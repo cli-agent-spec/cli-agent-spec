@@ -1,0 +1,9 @@
+nav:
+  - Home: README.md
+  - Implementation Guide: IMPLEMENTING.md
+  - Comparison Matrix: comparison-matrix.md
+  - Challenges: challenges
+  - Requirements: requirements
+  - Schemas: schemas
+  - Guides: guides
+  - Research: research

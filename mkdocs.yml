@@ -1,0 +1,45 @@
+site_name: CLI Agent Spec
+site_description: 67 failure modes + 147 requirements for building CLIs that AI agents can call reliably
+site_url: https://cli-agent-spec.github.io/cli-agent-spec/
+repo_url: https://github.com/cli-agent-spec/cli-agent-spec
+repo_name: cli-agent-spec/cli-agent-spec
+docs_dir: docs
+site_dir: site
+exclude_docs: |
+  index.html
+  sessions/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - search.highlight
+    - search.suggest
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - awesome-pages

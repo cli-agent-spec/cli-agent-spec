@@ -57,4 +57,4 @@ def handler(args):
 |-------------|------|--------------|
 | [REQ-F-027](f-027-cwd-in-response-meta.md) | F | Provides: `meta.cwd` records the process CWD at invocation time |
 | [REQ-F-028](f-028-config-source-tracking-in-response-meta.md) | F | Composes: config resolution uses absolute paths, not CWD-relative paths |
-| [REQ-O-017](o-017-cwd-override-flag.md) | O | Extends: `--cwd` flag supplies the working directory as an explicit argument |
+| [REQ-O-017](o-017-cwd-root-flag.md) | O | Extends: `--cwd` flag supplies the working directory as an explicit argument |

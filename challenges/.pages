@@ -1,0 +1,12 @@
+title: Challenges
+nav:
+  - index.md
+  - checklist.md
+  - sources.md
+  - Part 1 — Ecosystem & Runtime: 01-critical-ecosystem-runtime-agent-specific
+  - Part 2 — Execution & Reliability: 02-critical-execution-and-reliability
+  - Part 3 — Security: 03-critical-security
+  - Part 4 — Output & Parsing: 04-critical-output-and-parsing
+  - Part 5 — Environment & State: 05-high-environment-and-state
+  - Part 6 — Errors & Discoverability: 06-high-errors-and-discoverability
+  - Part 7 — Observability: 07-medium-observability

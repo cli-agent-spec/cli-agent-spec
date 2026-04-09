@@ -1,0 +1,8 @@
+title: Schemas
+nav:
+  - index.md
+  - exit-code.md
+  - exit-code-entry.md
+  - response-envelope.md
+  - manifest-response.md
+  - codegen-guide.md
