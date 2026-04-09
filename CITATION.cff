@@ -4,8 +4,8 @@ message: "If you use this specification, please cite it using the metadata below
 type: software
 version: "1.5"
 date-released: "2026-03-19"
-url: "https://github.com/romamo/cli-agent-spec"
-repository-code: "https://github.com/romamo/cli-agent-spec"
+url: "https://github.com/cli-agent-spec/cli-agent-spec"
+repository-code: "https://github.com/cli-agent-spec/cli-agent-spec"
 license: MIT
 abstract: >
   A specification for building CLI tools that work reliably under AI agent
@@ -36,5 +36,5 @@ preferred-citation:
       alias: romamo
   version: "1.5"
   date-released: "2026-03-19"
-  url: "https://github.com/romamo/cli-agent-spec"
-  repository-code: "https://github.com/romamo/cli-agent-spec"
+  url: "https://github.com/cli-agent-spec/cli-agent-spec"
+  repository-code: "https://github.com/cli-agent-spec/cli-agent-spec"
