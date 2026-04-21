@@ -165,7 +165,7 @@ After completing any path, continue with the full [wave plan](#suggested-impleme
 | [REQ-C-015](requirements/c-015-commands-declare-input-and-output-schema.md) | Commands Declare Input and Output Schema | Full parameter + output schema at `--schema`; no exploration required |
 | [REQ-O-001](requirements/o-001-output-format-flag.md) **†** | `--output` Format Flag | `--output id` pipes bare IDs — no JSON parse step in composition chains |
 | [REQ-O-003](requirements/o-003-limit-and-cursor-pagination-flags.md) **†** | `--limit` and `--cursor` Pagination Flags | Standard cursor model; agent reuses same pagination logic for all list commands |
-| [REQ-O-013](requirements/o-013-schema-output-schema-flag.md) | `--schema` / `--output-schema` Flag | One call exposes all parameters, exit codes, and output shape |
+| [REQ-O-013](requirements/o-013-schema-output-schema-flag.md) | `--schema` / `--output-schema` Flag | One call exposes all parameters, exit codes, and output shape; `--print-schema` is a compatibility alias |
 | [REQ-O-026](requirements/o-026-tool-doctor-built-in-command.md) | `tool doctor` Built-In Command | One preflight call replaces O(N) individual dependency checks |
 | [REQ-O-041](requirements/o-041-tool-manifest-built-in-command.md) | `tool manifest` Built-In Command | Full command tree in one call — replaces O(N) `--help` per subcommand |
 

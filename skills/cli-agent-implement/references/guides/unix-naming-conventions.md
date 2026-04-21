@@ -227,4 +227,3 @@ Layer 1 is free — it costs nothing to name a command `apply` instead of `upser
 | [challenges/index.md](../challenges/index.md) | Provides: failure modes that arise when Unix mechanics are inherited without override |
 | [requirements/index.md](../requirements/index.md) | Provides: implementation contracts for Layer 2 (mechanics) |
 | [schemas/manifest-response.md](../schemas/manifest-response.md) | Provides: manifest schema that supports Layer 3 runtime self-documentation |
-| [docs/sessions/2026-04-01-unix-llm-context-reuse.md](../docs/sessions/2026-04-01-unix-llm-context-reuse.md) | Sources: session that produced this guide |

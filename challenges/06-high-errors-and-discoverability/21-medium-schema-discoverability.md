@@ -83,6 +83,8 @@ $ tool --schema --output json
 **For framework design:**
 - Every command auto-generates its schema from its parameter declarations
 - `tool --schema` outputs the full manifest
+- If `tool` with no arguments renders root help, keep it lightweight and use it to point to `--schema` rather than dumping the full manifest implicitly
+- `tool --print-schema` is accepted as a compatibility alias for `tool --schema`
 - Output schema is declared alongside input schema, not separate
 - Schema versioning: `tool --schema-version` to track evolution
 
@@ -93,7 +95,7 @@ $ tool --schema --output json
 | 0 | Help is prose only; no `--schema` flag; agent must parse natural language to understand arguments |
 | 1 | `--help --output json` returns some structured info but no output schema; commands not enumerable from root |
 | 2 | `tool --schema --output json` returns command list with parameter types, required flags, and exit codes |
-| 3 | Full manifest includes `output_schema` per command; `danger_level` declared; schema auto-generated from parameter declarations |
+| 3 | Full manifest includes `output_schema` per command; `danger_level` declared; schema auto-generated from parameter declarations; `--print-schema` compatibility alias accepted |
 
 **Check:** Run `tool --schema --output json` and verify the response includes `commands[].parameters[].type` and `commands[].output_schema` for at least one command.
 
@@ -145,4 +147,14 @@ def get_params_from_help(tool: str, command: str) -> list[str]:
     return re.findall(r"--(\w[\w-]*)", result.stdout)
 ```
 
-**Limitation:** If the tool has no `--schema` flag and help text is prose, the agent must discover parameters through trial and error — call with no arguments first to see usage, then add required arguments based on the error message; accept that this consumes tokens and may trigger partial side effects
+When available, start with root help on empty invocation to discover top-level commands, then narrow to per-command help only for the command you intend to call:
+```python
+def get_root_help(tool: str) -> str:
+    result = subprocess.run(
+        [tool],
+        capture_output=True, text=True,
+    )
+    return result.stdout
+```
+
+**Limitation:** If the tool has no `--schema` flag and help text is prose, the agent must discover parameters through trial and error — call with no arguments first to see root usage, then inspect the selected subcommand's help or error message; accept that this consumes tokens and may trigger partial side effects

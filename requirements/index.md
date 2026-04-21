@@ -2,7 +2,7 @@
 
 > All requirements for an agent-compatible CLI framework, derived from the CLI Agent Spec's 67 documented failure modes.
 
-**147 total** &nbsp;|&nbsp; 78 Framework-Automatic · 28 Command Contract · 41 Opt-In — amended 2026-04-01 (session: unix-llm-context-reuse)
+**148 total** &nbsp;|&nbsp; 78 Framework-Automatic · 28 Command Contract · 42 Opt-In — amended 2026-04-18
 
 **By priority:** P0: 48 · P1: 62 · P2: 31 · P3: 9 — REQ-F-043 amended to add temp file permission requirements
 
@@ -179,7 +179,8 @@
 | [REQ-O-039](o-039-input-file-flag-for-stdin-commands.md) | P1 | --input-file Flag for Stdin Commands | [§61](../challenges/01-critical-ecosystem-runtime-agent-specific/61-critical-pipe-payload-deadlock.md) [§50](../challenges/01-critical-ecosystem-runtime-agent-specific/50-critical-stdin-deadlock.md) |
 | [REQ-O-040](o-040-no-follow-symlinks-flag-for-traversal-commands.md) | P1 | --no-follow-symlinks Flag for Traversal Commands | [§66](../challenges/01-critical-ecosystem-runtime-agent-specific/66-high-symlink-loop.md) |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | P1 | tool manifest Built-In Command | [§52](../challenges/01-critical-ecosystem-runtime-agent-specific/52-medium-command-tree-discovery.md) |
+| [REQ-O-042](o-042-output-format-env-var-default.md) | P2 | Output Format Environment Variable Default | [§2](../challenges/04-critical-output-and-parsing/02-critical-output-format.md) |
 
 ---
 
-*CLI Agent Spec v1.6 — 147 requirements (78 REQ-F + 28 REQ-C + 41 REQ-O). Updated 2026-04-01.*
+*CLI Agent Spec v1.6 — 148 requirements (78 REQ-F + 28 REQ-C + 42 REQ-O). Updated 2026-04-18.*

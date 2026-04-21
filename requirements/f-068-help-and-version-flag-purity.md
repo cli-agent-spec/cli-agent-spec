@@ -14,11 +14,14 @@ The framework MUST guarantee that `--help` and `--version` (and their short form
 
 Agents call `--help` routinely to inspect flag schemas, discover subcommands, and extract type annotations. Any side effect on this path contaminates isolated agent environments and corrupts parallelism.
 
+For multi-command CLIs that choose to render root help on empty invocation (`tool` with no subcommand), that empty-invocation help path MUST follow the same purity guarantees as `--help`. It remains a lightweight usage surface, not an implicit substitute for `--schema` or `tool manifest`.
+
 ## Acceptance Criteria
 
 - `--help` on a command that would otherwise fail (missing credentials, missing config, missing network) must succeed with exit 0 and produce help output
 - `--version` must succeed in a completely empty environment (`HOME=/tmp`, no config, no credentials)
 - Neither flag creates files, directories, network connections, or log entries
+- If `tool` with no subcommand renders root help, that path creates no files, directories, network connections, or log entries
 - Calling `--help` 1000 times in parallel produces no race conditions, no lock contention, no file conflicts
 - `--help` exit code is `0`; `--version` exit code is `0`
 
@@ -58,7 +61,14 @@ Usage: tool deploy [OPTIONS]
 Options:
   --env TEXT    Target environment (required)
   --dry-run     Preview changes without applying
-  --format TEXT Output format: text|json [default: text]
+  --output TEXT Output format: plain|json [default: plain]
+
+→ exit code: 0
+→ no files created in /tmp/empty
+→ no network connections attempted
+
+$ HOME=/tmp/empty TOOL_TOKEN="" tool
+Usage: tool [OPTIONS] COMMAND [ARGS]...
 
 → exit code: 0
 → no files created in /tmp/empty
@@ -74,3 +84,4 @@ Options:
 | [REQ-F-009](f-009-non-interactive-mode-auto-detection.md) | F | Provides: non-interactive detection that --help bypasses entirely |
 | [REQ-F-015](f-015-validate-before-execute-phase-order.md) | F | Extends: help/version exit before even Phase 1 validation runs |
 | [REQ-F-029](f-029-auto-update-suppression-in-non-interactive-mode.md) | F | Provides: update check suppression that --help also bypasses |
+| [REQ-F-047](f-047-repl-mode-prohibition-in-non-tty-context.md) | F | Composes: empty invocation may show root help safely instead of entering interactive mode |
