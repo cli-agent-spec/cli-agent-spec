@@ -1,5 +1,6 @@
 nav:
   - Home: README.md
+  - Agent Builders: agent-builders.md
   - Implementation Guide: IMPLEMENTING.md
   - Comparison Matrix: comparison-matrix.md
   - Challenges: challenges
