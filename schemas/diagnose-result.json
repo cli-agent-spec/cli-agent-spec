@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "diagnose-result",
+  "title": "DiagnoseResult",
+  "description": "Output of cli-agent-diagnose: matched §N failure modes with workarounds",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "matches",
+    "no_match",
+    "trace_insufficient",
+    "suggested_context",
+    "trace_summary"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version for adapter compatibility checks",
+      "enum": ["1.0"]
+    },
+    "matches": {
+      "type": "array",
+      "description": "Matched failure modes, sorted by confidence descending",
+      "items": { "$ref": "#/definitions/FailureModeMatch" }
+    },
+    "no_match": {
+      "type": "boolean",
+      "description": "True when the trace has output but no failure mode matched above the threshold"
+    },
+    "trace_insufficient": {
+      "type": "boolean",
+      "description": "True when stdout and stderr are too sparse to classify; check suggested_context"
+    },
+    "suggested_context": {
+      "type": "array",
+      "description": "Hints for what additional trace data would enable classification; non-empty only when trace_insufficient is true",
+      "items": { "type": "string" }
+    },
+    "trace_summary": {
+      "type": "string",
+      "description": "One-line human-readable summary of the parsed trace (commands seen, failure count, retry count)"
+    }
+  },
+  "definitions": {
+    "FailureModeMatch": {
+      "type": "object",
+      "required": [
+        "failure_mode_id",
+        "title",
+        "confidence",
+        "evidence",
+        "workaround",
+        "memory",
+        "skill_patch",
+        "severity",
+        "spec_link",
+        "limitation",
+        "source"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "failure_mode_id": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "§N identifier from the CLI Agent Spec failure taxonomy"
+        },
+        "title": {
+          "type": "string",
+          "description": "Human-readable failure mode title from the challenge file"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Classification confidence; ≥0.80 from deterministic matching, LLM-adjusted otherwise"
+        },
+        "evidence": {
+          "type": "string",
+          "description": "One sentence explaining what in the trace triggered this match"
+        },
+        "workaround": {
+          "type": "string",
+          "description": "Full text of the ### Agent Workaround section from the challenge file"
+        },
+        "memory": {
+          "type": "string",
+          "description": "One-sentence fact to store in agent memory; prevents repeating this failure in future sessions"
+        },
+        "skill_patch": {
+          "type": "string",
+          "description": "Reusable rule to add to the agent system prompt or skill file; generalises beyond this specific call"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low", "unknown"],
+          "description": "Severity from the challenge file frontmatter"
+        },
+        "spec_link": {
+          "type": "string",
+          "description": "Relative path to the challenge file from the repo root"
+        },
+        "limitation": {
+          "type": "string",
+          "description": "**Limitation:** line from the Agent Workaround section; empty string if none"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["deterministic", "llm"],
+          "description": "Whether the match came from deterministic signal matching or LLM classification"
+        }
+      }
+    }
+  }
+}
