@@ -9,3 +9,5 @@
 site/
 .gstack/
 tmp/
+evaluations/*/linkedin.md
+evaluations/*/x.md

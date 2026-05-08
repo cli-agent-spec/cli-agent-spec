@@ -102,10 +102,9 @@ Run `<resolved-command> --help` and scan for:
 Create `evaluations/<cli-name>/` if it does not exist. Save as `evaluations/<cli-name>/environment.md`:
 
 ```markdown
-# Environment Profile — <cli-name>
+# <cli-name> — Environment Profile
 
 **Generated:** <ISO date>
-**CWD:** <absolute path>
 
 ## OS
 - Platform: <darwin | linux | win32>

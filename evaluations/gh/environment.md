@@ -1,7 +1,6 @@
-# Environment Profile — gh
+# gh — Environment Profile
 
 **Generated:** 2026-05-07
-**CWD:** /Users/roman/PycharmProjects/CLI-argonomics/cli-agent-ergonomics
 
 ## OS
 - Platform: darwin
@@ -41,4 +40,4 @@
 
 ## Source
 - Docs read: `gh --help`, `gh help environment`, `gh help exit-codes`, `gh help formatting`, `gh config list`
-- No AGENTS.md or CODING_AGENTS.md found in CWD (not a gh source checkout)
+- No AGENTS.md or CODING_AGENTS.md found (not a gh source checkout)

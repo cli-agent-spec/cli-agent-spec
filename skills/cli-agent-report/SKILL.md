@@ -461,7 +461,6 @@ Save as `evaluations/<cli>/README.md`. This is the entry point for anyone browsi
 | [report-runtime.md](report-runtime.md) | Compact operational brief — what to set, what to avoid, what to watch for |
 | [report-agent-dev.md](report-agent-dev.md) | Integration guide — invocation invariants and per-gap workarounds for agent developers |
 | [report-dev.md](report-dev.md) | Fix list for CLI authors — what to implement, mapped to spec requirements |
-| [linkedin.md](linkedin.md) | LinkedIn post draft for sharing findings with the agent engineering community |
 | [findings.md](findings.md) | Raw scorecard — one row per evaluated failure mode |
 | [issues.md](issues.md) | Observed bugs recorded during live evaluation |
 | [trace.md](trace.md) | Audit trail — exact check commands, exit codes, stdout/stderr per §N |
@@ -492,7 +491,7 @@ Save as `evaluations/<cli>/linkedin.md`. The post addresses **both agent builder
 ---
 If your agent uses `<cli>` today, <one-clause hook describing the core risk — e.g. "it's flying blind" / "it's silently failing" / "it's creating duplicates">.
 
-We ran a live evaluation against the real binary — <N> failure modes, every check attempted. Here's what's silently breaking your agent right now:
+I ran a live evaluation against the real binary — <N> failure modes, every check attempted. Here's what's silently breaking your agent right now:
 
 🔴 <Score-0 gap or confirmed bug — written as what the AGENT experiences, present tense, one sentence>
 🔴 <Second score-0 or critical observed bug — agent's experience, present tense>
@@ -514,6 +513,8 @@ Full evaluation report: [PASTE LINK HERE]
 ```
 
 **LinkedIn post writing rules:**
+- **No markdown formatting** — LinkedIn does not render backticks, bold via `**`, or any markdown. Use plain text only. Wrap CLI tool names and commands in "double quotes" (e.g. "gh", "gh issue create") instead of backticks
+- **First person throughout** — use "I ran", "I evaluated", not "we ran" or "we evaluated"
 - **Hook from the agent's POV, present tense** — "your agent is experiencing this right now", not "we found that"
 - **No "we evaluated X" opener** — start with the reader's problem, not the evaluation process
 - **Bullets describe what the agent experiences**, not what the spec says or what the CLI does — write "your agent has no signal that anything went wrong" not "exit code is not semantic"
@@ -542,7 +543,7 @@ Save as `evaluations/<cli>/x.md`. X posts are 280 characters each. Write a threa
 **1/**
 If your agent uses `<cli>` — <one-clause hook, max 200 chars to leave room for 🧵>.
 
-<one sentence of context — what kind of evaluation, what was tested>
+<one sentence of context in first person — what kind of evaluation, what was tested. e.g. "I ran a live evaluation: N Critical failure modes against the real binary.">
 
 🧵
 ---
@@ -598,15 +599,14 @@ Files written:
   evaluations/<cli>/report-runtime.md
   evaluations/<cli>/report-agent-dev.md
   evaluations/<cli>/report-dev.md
-  evaluations/<cli>/linkedin.md
-  evaluations/<cli>/x.md
+  evaluations/<cli>/linkedin.md           ← gitignored, local use only
+  evaluations/<cli>/x.md                  ← gitignored, local use only
 
 <N files overwritten: list filenames that already existed and were replaced — omit line if none>
 
 Next steps:
 1. Publish the report (share the index file or host it)
-2. Open `evaluations/<cli>/linkedin.md`, paste the post into LinkedIn
-3. After posting, add the report link as the first comment
+2. Open `evaluations/<cli>/linkedin.md`, paste the post into LinkedIn; add the report link as the first comment
 ```
 
 ---
@@ -618,5 +618,5 @@ Next steps:
 - Workaround content must use actual values from `evaluations/<cli>/environment.md` when available — no generic placeholders when real values exist
 - If findings cover < 20% of all 71 failure modes, warn the user: "Findings are partial — run cli-agent-evaluate-batch for a complete picture"
 - Single-mode runs (`dev`, `agent-dev`, `runtime`, `issues`) never write files — output to conversation only
-- `all` mode writes eight files (4 reports + index + README + linkedin + x); if any file already exists, overwrite it and note the overwrite in the completion summary
+- `all` mode writes eight files (4 reports + index + README + linkedin + x); linkedin and x are gitignored and for local use only — do not reference them in the README Files table; if any file already exists, overwrite it and note the overwrite in the completion summary
 - LinkedIn post content must be grounded in actual findings — do not invent scores, bugs, or counts

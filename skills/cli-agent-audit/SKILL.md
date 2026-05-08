@@ -43,8 +43,8 @@ All files are written to `evaluations/<cli>/`:
 | `evaluations/<cli>/report-issues.md` | 5 — Report | Concrete bugs and gaps |
 | `evaluations/<cli>/report-index.md` | 5 — Report | Index linking all reports + score summary |
 | `evaluations/<cli>/README.md` | 5 — Report | Entry point — summary, key findings, file directory |
-| `evaluations/<cli>/linkedin.md` | 5 — Report | LinkedIn post draft for agent users |
-| `evaluations/<cli>/x.md` | 5 — Report | X.com thread draft for agent users |
+| `evaluations/<cli>/linkedin.md` | 5 — Report | LinkedIn post draft (gitignored — local use only) |
+| `evaluations/<cli>/x.md` | 5 — Report | X.com thread draft (gitignored — local use only) |
 
 ---
 

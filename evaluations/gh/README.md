@@ -30,8 +30,6 @@
 | [report-runtime.md](report-runtime.md) | Compact operational brief — what to set, what to avoid, what to watch for |
 | [report-agent-dev.md](report-agent-dev.md) | Integration guide — invocation invariants and per-gap workarounds for agent developers |
 | [report-dev.md](report-dev.md) | Fix list for CLI authors — what to implement, mapped to spec requirements |
-| [linkedin.md](linkedin.md) | LinkedIn post draft for sharing findings with the agent engineering community |
-| [x.md](x.md) | X.com thread draft (5 posts, 280 chars each) |
 | [findings.md](findings.md) | Raw scorecard — one row per evaluated failure mode |
 | [issues.md](issues.md) | Observed bugs recorded during live evaluation |
 | [trace.md](trace.md) | Audit trail — exact check commands, exit codes, stdout/stderr per §N |
