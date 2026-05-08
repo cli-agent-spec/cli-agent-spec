@@ -74,8 +74,8 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 | [`guides/`](guides/index.md) | Design guides: positive conventions that cannot be expressed as enforceable requirements |
 | [`IMPLEMENTING.md`](IMPLEMENTING.md) | Implementation guide: wave-based order, goal-based paths, invariants, codegen |
 | [`comparison-matrix.md`](comparison-matrix.md) | 71 failure modes × 12 frameworks coverage table |
-| [`research/`](research/) | Per-framework analysis and competitive landscape (MCP, OpenAPI, function calling) |
-| [`skills/`](skills/) | Agent skills for evaluating CLIs and guiding implementation |
+| [`research/`](research/index.md) | Per-framework analysis and competitive landscape (MCP, OpenAPI, function calling) |
+| [`skills/`](https://github.com/cli-agent-spec/cli-agent-spec/tree/master/skills) | Agent skills for evaluating CLIs and guiding implementation |
 
 ---
 
@@ -84,9 +84,9 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 **I want to understand the problem** → [`challenges/index.md`](challenges/index.md) — browse by severity. Start with §10 (interactive blocking), §43 (output size), §50 (stdin deadlock), §62 (editor trap).
 
 **I want to implement this in my framework** → [`IMPLEMENTING.md`](IMPLEMENTING.md) — wave-based implementation order, or pick a goal-based path:
-- [Fewer agent retries](IMPLEMENTING.md#path-a--fewer-retries) — 15 requirements
-- [Less context consumed](IMPLEMENTING.md#path-b--less-context-consumed) — 14 requirements
-- [Less token spend](IMPLEMENTING.md#path-c--less-token-spend) — 12 requirements
+- [Fewer agent retries](IMPLEMENTING.md#path-a-fewer-retries) — 15 requirements
+- [Less context consumed](IMPLEMENTING.md#path-b-less-context-consumed) — 14 requirements
+- [Less token spend](IMPLEMENTING.md#path-c-less-token-spend) — 12 requirements
 
 **I want to evaluate my existing CLI** → use the agent skills below, or read [`challenges/checklist.md`](challenges/checklist.md) for a self-assessment.
 
@@ -100,9 +100,9 @@ Three installable skills for [Agent Skills-compatible](https://agentskills.io) a
 
 | Skill | Purpose |
 |-------|---------|
-| [`cli-agent-onboard`](skills/cli-agent-onboard/) | Profile a CLI tool once — detects runtime, binary, flags, timeout method |
-| [`cli-agent-evaluate`](skills/cli-agent-evaluate/) | Score a CLI against a single failure mode (0–3), with applicable agent workaround |
-| [`cli-agent-implement`](skills/cli-agent-implement/) | Guide implementing the spec in a CLI framework, tier by tier |
+| [`cli-agent-onboard`](https://github.com/cli-agent-spec/cli-agent-spec/blob/master/skills/cli-agent-onboard/SKILL.md) | Profile a CLI tool once — detects runtime, binary, flags, timeout method |
+| [`cli-agent-evaluate`](https://github.com/cli-agent-spec/cli-agent-spec/blob/master/skills/cli-agent-evaluate/SKILL.md) | Score a CLI against a single failure mode (0–3), with applicable agent workaround |
+| [`cli-agent-implement`](https://github.com/cli-agent-spec/cli-agent-spec/blob/master/skills/cli-agent-implement/SKILL.md) | Guide implementing the spec in a CLI framework, tier by tier |
 
 ```bash
 # Install (run inside your agent)
