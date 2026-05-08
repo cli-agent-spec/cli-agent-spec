@@ -89,7 +89,7 @@ Before the call, during the call, after the call. RTK has one mode. FixLayer has
 
 Pass any trace: raw dict, message history, Langfuse span, LangSmith run. Nine deterministic patterns match at zero cost. Ambiguous failures get one focused LLM call per candidate §N. Returns §N match, workaround, **memory** entry for the agent to store, and a **skill patch** — a rule that eliminates this failure class permanently.
 
-> FixLayer reads the [CLI Agent Spec](https://github.com/cli-agent-spec/cli-agent-spec) directly at runtime — 67 named §N failure modes, each with a documented `### Agent Workaround` section. No separate model training. No taxonomy to maintain. The spec is the knowledge base.
+> FixLayer reads the [CLI Agent Spec](https://github.com/cli-agent-spec/cli-agent-spec) directly at runtime — 71 named §N failure modes, each with a documented `### Agent Workaround` section. No separate model training. No taxonomy to maintain. The spec is the knowledge base.
 
 ---
 
@@ -194,7 +194,7 @@ Langfuse logs it. RTK compresses it. FixLayer fixes it — before it runs, while
 | | |
 |---|---|
 | **3** | operating modes (pre · inline · post) |
-| **67** | named §N failure modes |
+| **71** | named §N failure modes |
 | **3–15%** | production tool call failure rate |
 | **32** | tools using Agent Skills format |
 
@@ -250,4 +250,4 @@ Pre-flight prevents. The wrapper fixes inline. The classifier names what went wr
 
 ---
 
-*FixLayer · built on the [CLI Agent Spec](README.md) (67 failure modes · 148 requirements)*
+*FixLayer · built on the [CLI Agent Spec](README.md) (71 failure modes · 154 requirements)*

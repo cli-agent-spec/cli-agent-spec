@@ -1,6 +1,6 @@
 # AGENTS.md — Spec Editor Guide for AI Agents
 
-This file is for AI agents helping to **maintain and extend the specification** — adding challenges, requirements, and schemas. It defines conventions every editor agent must follow.
+This file is for AI agents helping to **maintain and extend the specification** — adding failure modes, requirements, and schemas. It defines conventions every editor agent must follow.
 
 If you are helping someone **implement** this specification in their own project, read [`IMPLEMENTING.md`](IMPLEMENTING.md) instead.
 
@@ -8,7 +8,7 @@ If you are helping someone **implement** this specification in their own project
 
 ## Project overview
 
-This project defines the **CLI Agent Spec** specification: a catalogue of challenges, requirements, shared schemas, and a comparison matrix for building CLI tools that work reliably under AI agent orchestration.
+This project defines the **CLI Agent Spec** specification: a catalogue of failure modes, requirements, shared schemas, and a comparison matrix for building CLI tools that work reliably under AI agent orchestration.
 
 ---
 
@@ -17,8 +17,8 @@ This project defines the **CLI Agent Spec** specification: a catalogue of challe
 ```
 AGENTS.md                   ← spec editor guide (this file)
 IMPLEMENTING.md             ← implementer guide for AI agents
-comparison-matrix.md        ← solution comparison across all 67 failure modes
-challenges/                 ← 67 failure modes grouped into 7 parts
+comparison-matrix.md        ← solution comparison across all 71 failure modes
+challenges/                 ← 71 failure modes grouped into 7 parts
   index.md                  ← master index of all failure modes
   sources.md                ← source evidence for each failure mode
   checklist.md              ← implementation checklist
@@ -29,7 +29,7 @@ challenges/                 ← 67 failure modes grouped into 7 parts
   05-high-environment-and-state/
   06-high-errors-and-discoverability/
   07-medium-observability/
-requirements/               ← 147 requirements across 3 tiers
+requirements/               ← 154 requirements across 3 tiers
   index.md                  ← master index of all requirements
   f-NNN-<slug>.md           ← REQ-F: Framework-Automatic
   c-NNN-<slug>.md           ← REQ-C: Command Contract
@@ -102,7 +102,7 @@ Descriptions in `ExitCodeEntry`, `FlagEntry`, and `ErrorDetail` are read by agen
 
 ---
 
-## Challenge files
+## Failure mode files
 
 **Naming:** `{nn:02d}-{severity}-{slug}.md` inside the matching part folder
 
@@ -118,12 +118,12 @@ Descriptions in `ExitCodeEntry`, `FlagEntry`, and `ErrorDetail` are read by agen
 2. `### Impact` — consequences from the agent's perspective; bulleted list, no trailing periods
 3. `### Solutions` — CLI author and framework design fixes; sub-headings by audience (`**For CLI authors:**`, `**For framework design:**`); no agent-side content here
 4. `### Evaluation` — scoring table (0–3) or binary pass/fail with a `**Check:**` line describing what to run or observe
-5. `### Agent Workaround` — compensating behaviors an agent applies when the CLI has not addressed this challenge; code example + `**Limitation:**` line describing what the workaround cannot handle
+5. `### Agent Workaround` — compensating behaviors an agent applies when the CLI has not addressed this failure mode; code example + `**Limitation:**` line describing what the workaround cannot handle
 
 **Evaluation scoring:**
-- Use a 0–3 table when the challenge has four distinguishable states
+- Use a 0–3 table when the failure mode has four distinguishable states
 - Use a binary pass/fail when only two states are meaningful
-- Score 3 always means the CLI handles the challenge completely without agent intervention
+- Score 3 always means the CLI handles the failure mode completely without agent intervention
 - Score 0 always means the agent has no reliable recovery path
 
 **Agent Workaround rules:**
@@ -131,7 +131,7 @@ Descriptions in `ExitCodeEntry`, `FlagEntry`, and `ErrorDetail` are read by agen
 - Must include a `**Limitation:**` line (no trailing period) stating what the workaround cannot compensate for
 - Do not duplicate content already in `### Solutions` — Solutions is for CLI authors, Workaround is for agents calling a CLI that has not been fixed
 
-When adding a challenge:
+When adding a failure mode:
 1. Assign the next available `§N` number
 2. Place it in the correct part folder by severity
 3. Add a row to `challenges/index.md` and the part's `index.md`
@@ -200,8 +200,8 @@ When adding a schema type:
 
 ## Cross-reference conventions
 
-- Challenges are referenced as `§N` (e.g. `§34`)
+- Failure modes are referenced as `§N` (e.g. `§34`)
 - Requirements are referenced as `REQ-{TIER}-{NNN}` (e.g. `REQ-F-001`)
 - Schema types are referenced with a link to their `.json` file
 - All cross-document links use relative paths
-- Merged challenges: `§36 → §10`, `§39 → §3`, `§48 → §2` — do not create new content for these numbers
+- Merged failure modes: `§36 → §10`, `§39 → §3`, `§48 → §2` — do not create new content for these numbers

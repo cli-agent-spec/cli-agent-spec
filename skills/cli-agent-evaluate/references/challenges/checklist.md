@@ -155,4 +155,4 @@ challenges/
 
 ---
 
-*CLI Agent Spec v1.6 — 2026-04-01. Full failure mode reference: [challenges/index.md](index.md). Requirements: [requirements/index.md](../requirements/index.md)*
+*CLI Agent Spec v1.6 — 2026-04-01. Full failure mode reference: [challenges/index.md](index.md). Requirements: [requirements/index.md](../../../../requirements/index.md)*

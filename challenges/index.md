@@ -1,6 +1,6 @@
 # CLI Agent Spec — Full Index
 
-> All 67 failure modes across 7 parts. Each failure mode linked to its source file.
+> All 71 failure modes across 7 parts. Each failure mode linked to its source file.
 
 ---
 
@@ -20,7 +20,7 @@
 
 > Agent-specific patterns discovered from real frameworks, libraries, and multi-agent deployments.
 
-**34 failure modes** &nbsp;|&nbsp; 🔴 11 critical · 🟠 19 high · 🟡 4 medium
+**37 failure modes** &nbsp;|&nbsp; 🔴 12 critical · 🟠 21 high · 🟡 4 medium
 
 | # | Title | Severity | Frequency | Detectability | Token Spend | Time | Context |
 |---|-------|----------|-----------|---------------|-------------|------|---------|
@@ -35,6 +35,7 @@
 | [§61](01-critical-ecosystem-runtime-agent-specific/61-critical-pipe-payload-deadlock.md) | Bidirectional Pipe Payload Deadlock | 🔴 Critical | Situational | Hard | High | Critical | Low |
 | [§62](01-critical-ecosystem-runtime-agent-specific/62-critical-editor-trap.md) | $EDITOR and $VISUAL Trap | 🔴 Critical | Common | Hard | High | Critical | Low |
 | [§64](01-critical-ecosystem-runtime-agent-specific/64-critical-headless-gui.md) | Headless Display and GUI Launch Blocking | 🔴 Critical | Common | Hard | High | Critical | Low |
+| [§71](01-critical-ecosystem-runtime-agent-specific/71-critical-noninteractive-installation.md) | Non-Interactive Installation Absence | 🔴 Critical | Common | Easy | Low | Critical | Low |
 | [§35](01-critical-ecosystem-runtime-agent-specific/35-high-hallucination-inputs.md) | Agent Hallucination Input Patterns | 🟠 High | Common | Hard | Medium | Medium | Low |
 | [§38](01-critical-ecosystem-runtime-agent-specific/38-high-dependency-version-mismatch.md) | Runtime Dependency Version Mismatch | 🟠 High | Common | Medium | High | High | Low |
 | [§40](01-critical-ecosystem-runtime-agent-specific/40-high-async-race-condition.md) | `parse()` vs `parseAsync()` Silent Race Condition | 🟠 High | Common (Node.js ecosystem) | Hard | High | High | Low |
@@ -54,6 +55,8 @@
 | [§68](01-critical-ecosystem-runtime-agent-specific/68-high-stdout-pollution.md) | Third-Party Library Stdout Pollution | 🟠 High | Common | Medium | Medium | Low | High |
 | [§69](01-critical-ecosystem-runtime-agent-specific/69-high-argument-order-ambiguity.md) | Argument Order Ambiguity | 🟠 High | Common | Medium | Medium | Medium | Low |
 | [§70](01-critical-ecosystem-runtime-agent-specific/70-high-single-argument-arity.md) | Single-Argument Arity Forcing Agent Loop Overhead | 🟠 High | Common | Easy | Medium | Medium | Low |
+| [§72](01-critical-ecosystem-runtime-agent-specific/72-high-integration-artifact-drift.md) | Integration Artifact Version Drift | 🟠 High | Common | Medium | High | Medium | Low |
+| [§73](01-critical-ecosystem-runtime-agent-specific/73-high-documentation-accuracy-drift.md) | Documentation Accuracy Drift | 🟠 High | Common | Hard | High | Medium | Low |
 | [§44](01-critical-ecosystem-runtime-agent-specific/44-medium-knowledge-packaging.md) | Agent Knowledge Packaging Absence | 🟡 Medium | Very Common | Easy | High | High | Medium |
 | [§52](01-critical-ecosystem-runtime-agent-specific/52-medium-command-tree-discovery.md) | Recursive Command Tree Discovery Cost | 🟡 Medium | Very Common | Easy | High | Medium | High |
 | [§57](01-critical-ecosystem-runtime-agent-specific/57-medium-locale-errors.md) | Locale-Dependent Error Messages | 🟡 Medium | Situational | Easy | High | Low | Medium |
@@ -84,13 +87,14 @@
 
 > Destructive operations, authentication, secret handling, and prompt injection.
 
-**3 failure modes** &nbsp;|&nbsp; 🔴 3 critical
+**4 failure modes** &nbsp;|&nbsp; 🔴 4 critical
 
 | # | Title | Severity | Frequency | Detectability | Token Spend | Time | Context |
 |---|-------|----------|-----------|---------------|-------------|------|---------|
 | [§23](03-critical-security/23-critical-destructive-ops.md) | Side Effects & Destructive Operations | 🔴 Critical | Common | Medium | Medium | High | Medium |
 | [§24](03-critical-security/24-critical-auth-secrets.md) | Authentication & Secret Handling | 🔴 Critical | Common | Hard | Medium | Medium | Low |
 | [§25](03-critical-security/25-critical-prompt-injection.md) | Prompt Injection via Output | 🔴 Critical | Situational | Hard | High | High | High |
+| [§74](03-critical-security/74-critical-credential-scope-declaration.md) | Credential Scope Declaration Absence | 🔴 Critical | Common | Hard | Low | Medium | Low |
 
 ---
 
@@ -160,4 +164,4 @@
 
 ---
 
-*67 active failure modes across 7 parts. CLI Agent Spec v1.6 — 2026-04-01.*
+*71 active failure modes across 7 parts. CLI Agent Spec v1.6 — 2026-05-07.*

@@ -281,7 +281,7 @@ After all five scripts, report:
 ### Broken file links      — N errors
 ### Schema ↔ req symmetry  — N errors
 ### Index completeness     — N errors
-### Content completeness   — N/67 failure modes · N/148 requirements fully authored
+### Content completeness   — N/71 failure modes · N/154 requirements fully authored
 ### Counter consistency    — N errors
 
 Total: N errors  (completeness is informational, not an error count)

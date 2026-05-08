@@ -17,8 +17,8 @@ This project defines the **CLI Agent Spec** specification: a catalogue of failur
 ```
 AGENTS.md                   ← spec editor guide (this file)
 IMPLEMENTING.md             ← implementer guide for AI agents
-comparison-matrix.md        ← solution comparison across all 67 failure modes
-challenges/                 ← 67 failure modes grouped into 7 parts
+comparison-matrix.md        ← solution comparison across all 71 failure modes
+challenges/                 ← 71 failure modes grouped into 7 parts
   index.md                  ← master index of all failure modes
   sources.md                ← source evidence for each failure mode
   checklist.md              ← implementation checklist
@@ -29,7 +29,7 @@ challenges/                 ← 67 failure modes grouped into 7 parts
   05-high-environment-and-state/
   06-high-errors-and-discoverability/
   07-medium-observability/
-requirements/               ← 148 requirements across 3 tiers
+requirements/               ← 154 requirements across 3 tiers
   index.md                  ← master index of all requirements
   f-NNN-<slug>.md           ← REQ-F: Framework-Automatic
   c-NNN-<slug>.md           ← REQ-C: Command Contract

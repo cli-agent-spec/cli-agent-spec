@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CLI Agent Spec</title>
-  <meta name="description" content="67 documented failure modes when AI agents call CLI tools. 147 requirements to eliminate them.">
+  <meta name="description" content="71 documented failure modes when AI agents call CLI tools. 154 requirements to eliminate them.">
   <meta property="og:title" content="CLI Agent Spec">
-  <meta property="og:description" content="Your CLI works for humans. For AI agents, it silently hangs, leaks secrets, and exhausts context windows. We catalogued 67 ways this happens.">
+  <meta property="og:description" content="Your CLI works for humans. For AI agents, it silently hangs, leaks secrets, and exhausts context windows. We catalogued 71 ways this happens.">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <style>
@@ -364,7 +364,7 @@
     <div class="hero-badge">Open Specification · v1.6</div>
     <h1>Your CLI works for humans.<br><span>For AI agents, it's broken.</span></h1>
     <p class="hero-sub">
-      We catalogued 67 ways CLI tools fail under agent orchestration —
+      We catalogued 71 ways CLI tools fail under agent orchestration —
       silent hangs, secret leaks, context overflow, blind retries.
       Then we wrote the spec to fix them.
     </p>
@@ -448,7 +448,7 @@ $ tool list users --output json
 <section id="spec" style="background: var(--bg2);">
   <div class="container">
     <div class="section-label">The Specification</div>
-    <h2 class="section-title">Three layers. 147 requirements.</h2>
+    <h2 class="section-title">Three layers. 154 requirements.</h2>
     <p class="section-sub">Structured so framework authors, command authors, and application builders each know exactly what they own.</p>
 
     <div class="tiers">
@@ -545,7 +545,7 @@ $ tool list users --output json
   <div class="container">
     <div class="section-label">Framework Coverage</div>
     <h2 class="section-title">No framework has solved this</h2>
-    <p class="section-sub">Coverage across all 67 failure modes. Partial credit (✓/~) counted proportionally.</p>
+    <p class="section-sub">Coverage across all 71 failure modes. Partial credit (✓/~) counted proportionally.</p>
 
     <div style="margin-top: 1.5rem;">
       <div class="matrix-row"><span class="matrix-name">MCP + OpenAPI</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:57.7%;background:var(--green)"></div></div><span class="matrix-pct" style="color:var(--green)">58%</span></div>
@@ -557,7 +557,7 @@ $ tool list users --output json
       <div class="matrix-row"><span class="matrix-name">argparse</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:32%;background:var(--orange)"></div></div><span class="matrix-pct" style="color:var(--orange)">32%</span></div>
       <div class="matrix-row"><span class="matrix-name">Commander.js</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:30%;background:var(--orange)"></div></div><span class="matrix-pct" style="color:var(--orange)">30%</span></div>
     </div>
-    <p style="margin-top:1.25rem;font-size:0.8rem;color:var(--muted)">Full matrix: <a href="https://github.com/romamo/cli-agent-spec/blob/master/comparison-matrix.md">comparison-matrix.md</a> — 67 failure modes × 12 frameworks</p>
+    <p style="margin-top:1.25rem;font-size:0.8rem;color:var(--muted)">Full matrix: <a href="https://github.com/romamo/cli-agent-spec/blob/master/comparison-matrix.md">comparison-matrix.md</a> — 71 failure modes × 12 frameworks</p>
   </div>
 </section>
 
@@ -573,7 +573,7 @@ $ tool list users --output json
       <a class="path-card" href="https://github.com/romamo/cli-agent-spec/blob/master/challenges/index.md" style="color:inherit">
         <div class="path-icon">🔍</div>
         <h3>Understand the problem</h3>
-        <p>Browse 67 failure modes by severity. Each one documents the exact impact on agents: token cost, time cost, detectability.</p>
+        <p>Browse 71 failure modes by severity. Each one documents the exact impact on agents: token cost, time cost, detectability.</p>
         <div class="path-meta">challenges/index.md →</div>
       </a>
       <a class="path-card" href="https://github.com/romamo/cli-agent-spec/blob/master/IMPLEMENTING.md" style="color:inherit">
@@ -585,7 +585,7 @@ $ tool list users --output json
       <a class="path-card" href="https://github.com/romamo/cli-agent-spec/blob/master/challenges/checklist.md" style="color:inherit">
         <div class="path-icon">✅</div>
         <h3>Evaluate your CLI</h3>
-        <p>Self-assessment checklist derived from the 67 failure modes. Score your tool before and after implementing the spec.</p>
+        <p>Self-assessment checklist derived from the 71 failure modes. Score your tool before and after implementing the spec.</p>
         <div class="path-meta">challenges/checklist.md →</div>
       </a>
     </div>
@@ -597,7 +597,7 @@ $ tool list users --output json
 <footer>
   <p>
     CLI Agent Spec v1.6 &nbsp;·&nbsp;
-    67 failure modes · 147 requirements · 4 schemas &nbsp;·&nbsp;
+    71 failure modes · 154 requirements · 4 schemas &nbsp;·&nbsp;
     <a href="https://github.com/romamo/cli-agent-spec">GitHub</a> &nbsp;·&nbsp;
     <a href="https://github.com/romamo/cli-agent-spec/blob/master/AGENTS.md">Contributing</a>
   </p>

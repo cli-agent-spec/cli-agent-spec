@@ -1,6 +1,6 @@
 ---
 name: cli-agent-onboard
-description: Onboard a CLI tool for agent evaluation — reads agent docs, detects OS, runtime, toolchain, and binary, discovers non-interactive flags and config. Saves the result as a local <cli-name>-environment artifact for reuse by cli-agent-evaluate and other skills. Run once per CLI before starting evaluations.
+description: Onboard a CLI tool for agent evaluation — reads agent docs, detects OS, runtime, toolchain, and binary, discovers non-interactive flags and config. Saves the result as evaluations/<cli-name>/environment.md for reuse by cli-agent-evaluate and other skills. Run once per CLI before starting evaluations.
 license: MIT
 compatibility: Requires access to the CLI being onboarded. Works on macOS, Linux, and Windows.
 ---
@@ -9,19 +9,30 @@ compatibility: Requires access to the CLI being onboarded. Works on macOS, Linux
 
 Build and save a reusable environment profile for a CLI tool.
 
-## Input
+## Inputs
 
 - **CLI** — the CLI tool to profile: a command name (e.g. `gh`), a binary path, or enough context to locate it in the current working directory
+- **`--force`** _(optional)_ — skip the confirmation prompt in Step 0 and overwrite any existing profile without asking. Used by `cli-agent-audit` when `--refresh` is set.
 
 ## Local Memory Artifact
 
 This skill produces one local artifact:
 
-| Artifact | Content |
+| File | Content |
 |---|---|
-| `<cli-name>-environment` | OS, runtime, binary, version, non-interactive flags, config env vars |
+| `evaluations/<cli-name>/environment.md` | OS, runtime, binary, version, non-interactive flags, config env vars |
 
-If `<cli-name>-environment` already exists locally, report its contents and ask the user whether to refresh it. Do not overwrite silently.
+See **Step 0** for handling an existing profile.
+
+---
+
+## Step 0 — Check for existing profile
+
+Before doing anything else: check whether `evaluations/<cli-name>/environment.md` already exists.
+
+- **If it exists and `--force` is set:** proceed directly to Step 1 and overwrite on Step 6 — no prompt.
+- **If it exists and `--force` is not set:** display its contents, then ask the user: "A profile already exists for `<cli-name>`. Refresh it? (yes/no)". If no: skip Steps 1–6 — the existing profile is ready to use as-is by the calling skill. If yes: proceed to Step 1 and overwrite on Step 6.
+- **If it does not exist:** proceed directly to Step 1.
 
 ---
 
@@ -60,6 +71,8 @@ Resolve the actual invocable command in this order:
 
 Verify with `<resolved-command> --version` or `<resolved-command> --help`.
 
+If no manifest is found AND the CLI name is not on PATH: ask the user for the binary location or install command. Do not proceed with an incomplete runtime — the profile requires a verified binary path.
+
 ---
 
 ## Step 4 — Detect OS constraints
@@ -86,7 +99,7 @@ Run `<resolved-command> --help` and scan for:
 
 ## Step 6 — Save the profile
 
-Save locally as `<cli-name>-environment`:
+Create `evaluations/<cli-name>/` if it does not exist. Save as `evaluations/<cli-name>/environment.md`:
 
 ```markdown
 # Environment Profile — <cli-name>
@@ -128,6 +141,7 @@ Save locally as `<cli-name>-environment`:
 
 ## Rules
 
-- Do not overwrite an existing `<cli-name>-environment` without user confirmation
+- Create `evaluations/<cli-name>/` if it does not exist before saving the profile
+- Do not overwrite an existing `evaluations/<cli-name>/environment.md` without user confirmation, unless `--force` is passed
 - Record only values actually discovered — no placeholders or guesses
 - If a doc file (AGENTS.md, etc.) contradicts what `--help` shows, note the discrepancy in Source

@@ -1,16 +1,16 @@
 # Requirements Index
 
-> All requirements for an agent-compatible CLI framework, derived from the CLI Agent Spec's 67 documented failure modes.
+> All requirements for an agent-compatible CLI framework, derived from the CLI Agent Spec's 71 documented failure modes.
 
-**148 total** &nbsp;|&nbsp; 78 Framework-Automatic · 28 Command Contract · 42 Opt-In — amended 2026-04-18
+**154 total** &nbsp;|&nbsp; 78 Framework-Automatic · 29 Command Contract · 47 Opt-In — amended 2026-05-07
 
-**By priority:** P0: 48 · P1: 62 · P2: 31 · P3: 9 — REQ-F-043 amended to add temp file permission requirements
+**By priority:** P0: 50 · P1: 62 · P2: 33 · P3: 9 — REQ-F-043 amended to add temp file permission requirements
 
 ---
 
 ## Framework-Automatic (F)
 
-**78 requirements** &nbsp;|&nbsp; P0: 33 · P1: 31 · P2: 13 · P3: 1
+**78 requirements** &nbsp;|&nbsp; P0: 33 · P1: 29 · P2: 15 · P3: 1
 
 | ID | Priority | Title | Failure mode(s) |
 |----|----------|-------|-------------|
@@ -97,7 +97,7 @@
 
 ## Command Contract (C)
 
-**28 requirements** &nbsp;|&nbsp; P0: 11 · P1: 14 · P2: 1 · P3: 2
+**29 requirements** &nbsp;|&nbsp; P0: 12 · P1: 14 · P2: 1 · P3: 2
 
 | ID | Priority | Title | Failure mode(s) |
 |----|----------|-------|-------------|
@@ -129,12 +129,13 @@
 | [REQ-C-026](c-026-commands-declare-conditional-argument-dependencies.md) | P1 | Commands Declare Conditional Argument Dependencies | [§54](../challenges/01-critical-ecosystem-runtime-agent-specific/54-high-conditional-args.md) |
 | [REQ-C-027](c-027-commands-declare-option-placement.md) | P1 | Commands Declare Option Placement Convention | [§69](../challenges/01-critical-ecosystem-runtime-agent-specific/69-high-argument-order-ambiguity.md) |
 | [REQ-C-028](c-028-already-exists-response-pattern.md) | P1 | ALREADY_EXISTS Response Pattern | [§12](../challenges/02-critical-execution-and-reliability/12-critical-idempotency.md) |
+| [REQ-C-029](c-029-command-declares-required-scopes.md) | P0 | Command Declares Required Scopes | [§74](../challenges/03-critical-security/74-critical-credential-scope-declaration.md) |
 
 ---
 
 ## Opt-In (O)
 
-**41 requirements** &nbsp;|&nbsp; P0: 4 · P1: 16 · P2: 15 · P3: 6
+**47 requirements** &nbsp;|&nbsp; P0: 5 · P1: 19 · P2: 17 · P3: 6
 
 | ID | Priority | Title | Failure mode(s) |
 |----|----------|-------|-------------|
@@ -180,7 +181,12 @@
 | [REQ-O-040](o-040-no-follow-symlinks-flag-for-traversal-commands.md) | P1 | --no-follow-symlinks Flag for Traversal Commands | [§66](../challenges/01-critical-ecosystem-runtime-agent-specific/66-high-symlink-loop.md) |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | P1 | tool manifest Built-In Command | [§52](../challenges/01-critical-ecosystem-runtime-agent-specific/52-medium-command-tree-discovery.md) |
 | [REQ-O-042](o-042-output-format-env-var-default.md) | P2 | Output Format Environment Variable Default | [§2](../challenges/04-critical-output-and-parsing/02-critical-output-format.md) |
+| [REQ-O-043](o-043-agents-md-content-spec.md) | P1 | AGENTS.md Required Content | [§44](../challenges/01-critical-ecosystem-runtime-agent-specific/44-medium-knowledge-packaging.md) [§73](../challenges/01-critical-ecosystem-runtime-agent-specific/73-high-documentation-accuracy-drift.md) |
+| [REQ-O-044](o-044-noninteractive-install-command.md) | P1 | Non-Interactive Install Command Documentation | [§71](../challenges/01-critical-ecosystem-runtime-agent-specific/71-critical-noninteractive-installation.md) |
+| [REQ-O-045](o-045-integration-artifact-version-declaration.md) | P1 | Integration Artifact Version Declaration | [§72](../challenges/01-critical-ecosystem-runtime-agent-specific/72-high-integration-artifact-drift.md) [§47](../challenges/01-critical-ecosystem-runtime-agent-specific/47-high-mcp-schema-staleness.md) |
+| [REQ-O-046](o-046-agents-md-ci-validation.md) | P2 | AGENTS.md CI Validation | [§73](../challenges/01-critical-ecosystem-runtime-agent-specific/73-high-documentation-accuracy-drift.md) [§44](../challenges/01-critical-ecosystem-runtime-agent-specific/44-medium-knowledge-packaging.md) |
+| [REQ-O-047](o-047-tool-check-permissions-built-in-command.md) | P0 | tool check-permissions Built-In Command | [§74](../challenges/03-critical-security/74-critical-credential-scope-declaration.md) |
 
 ---
 
-*CLI Agent Spec v1.6 — 148 requirements (78 REQ-F + 28 REQ-C + 42 REQ-O). Updated 2026-04-18.*
+*CLI Agent Spec v1.6 — 154 requirements (78 REQ-F + 29 REQ-C + 47 REQ-O). Updated 2026-05-07.*

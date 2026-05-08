@@ -17,6 +17,8 @@
 |-------|------|----------|-------------|
 | `description` | string | yes | One-sentence summary |
 | `aliases` | string[] | no | Alternative invocation names |
+| `danger_level` | `"safe"` \| `"mutating"` \| `"destructive"` | yes | Mutation risk level of the command. Sourced from REQ-C-002 |
+| `required_scopes` | string[] | yes | Minimal permission strings needed from the active credential. Empty array if no auth required. Sourced from REQ-C-029 |
 | `flags` | `Record<string, FlagEntry>` | yes | Keyed by flag name without `--` |
 | `exit_codes` | `Record<string, ExitCodeEntry>` | yes | Keyed by code as string (e.g. `"0"`). Sourced from REQ-C-001 |
 | `examples` | `Example[]` | no | Ready-to-use invocation strings |

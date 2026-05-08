@@ -61,6 +61,7 @@ This file documents where each challenge came from, how confident the source is,
 | [§23](03-critical-security/23-critical-destructive-ops.md) | Side Effects & Destructive Operations | TD+FP | Dry-run and confirmation patterns are well-documented; agent-specific "no human to catch mistakes" risk framing from agent safety discussions |
 | [§24](03-critical-security/24-critical-auth-secrets.md) | Authentication & Secret Handling | TD+FP | Secret-in-env-var pattern is documented in 12-factor app, CI/CD guides; agent-specific leakage vectors from agent security training data |
 | [§25](03-critical-security/25-critical-prompt-injection.md) | Prompt Injection via Output | TD | Prompt injection via tool output is documented in LLM security research (Greshake et al., similar papers absorbed in training) |
+| [§74](03-critical-security/74-critical-credential-scope-declaration.md) | Credential Scope Declaration Absence | FP | Observed during gh evaluation: personal PAT grants full account access to agent; OAuth scope minimization is standard security practice but absent from CLI design guides |
 
 ### Part V: Environment & State
 
@@ -172,4 +173,4 @@ Discovered by reviewing two external agent-native CLI projects.
 
 ---
 
-*Written 2026-03-13. Revised 2026-03-13: §36, §39, §48 marked merged; confidence counts corrected to 30/18/17; personal paths removed; active links added. Revised 2026-03-19: §69 added. Revised 2026-03-26: §70 added. Covers CLI Agent Spec v1.6 — 67 active challenges (70 original, 3 merged).*
+*Written 2026-03-13. Revised 2026-03-13: §36, §39, §48 marked merged; confidence counts corrected to 30/18/17; personal paths removed; active links added. Revised 2026-03-19: §69 added. Revised 2026-03-26: §70 added. Revised 2026-05-07: §71 (FP), §72 (FP), §73 (FP) added; active total updated to 70. Revised 2026-05-07: §74 (FP) added; active total updated to 71. Covers CLI Agent Spec v1.6 — 71 active challenges (74 original, 3 merged).*

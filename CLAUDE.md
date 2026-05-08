@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repository is
 
-A **specification** (not an implementation) for building CLI tools that work reliably under AI agent orchestration. It defines 67 failure modes, 147 requirements across 3 tiers, 4 canonical JSON schemas, analysis of 12 existing frameworks, and design guides for CLI authors.
+A **specification** (not an implementation) for building CLI tools that work reliably under AI agent orchestration. It defines 71 failure modes, 154 requirements across 3 tiers, 4 canonical JSON schemas, analysis of 12 existing frameworks, and design guides for CLI authors.
 
 There is no build system, test runner, or package manager. All content is markdown and JSON.
 
@@ -21,9 +21,19 @@ npm install -g ajv-cli
 ajv compile -s "schemas/*.json" --spec=draft7
 ```
 
+**Full autonomous audit (install → onboard → readiness → evaluate → report):**
+```
+/cli-agent-audit
+```
+
 **Onboard a CLI tool before evaluation (run once per CLI):**
 ```
 /cli-agent-onboard
+```
+
+**Score how proactively agent-ready a CLI is (docs, integrations, setup, workflows):**
+```
+/cli-agent-readiness
 ```
 
 **Evaluate a CLI against a single failure mode:**
@@ -31,21 +41,36 @@ ajv compile -s "schemas/*.json" --spec=draft7
 /cli-agent-evaluate
 ```
 
+**Evaluate a CLI against multiple failure modes (batch):**
+```
+/cli-agent-evaluate-batch
+```
+
+**Generate a perspective-specific report from findings (dev / agent-dev / runtime / issues / all):**
+```
+/cli-agent-report
+```
+
 **Guide implementing the spec in a CLI framework:**
 ```
 /cli-agent-implement
+```
+
+**Classify a failed agent CLI call against §N failure modes and get a workaround:**
+```
+/cli-agent-diagnose
 ```
 
 ## Architecture
 
 ### Directories
 
-- `challenges/` — 67 failure modes in 7 parts (01=critical ecosystem, 02=execution, 03=security, 04=output, 05=environment, 06=errors, 07=observability). Failure modes are referenced as `§N`.
-- `requirements/` — 147 requirements in 3 tiers: `f-NNN` (Framework-Automatic), `c-NNN` (Command Contract), `o-NNN` (Opt-In). Referenced as `REQ-{TIER}-{NNN}`.
-- `schemas/` — 4 canonical JSON Schema draft-07 types, each with a `.json` (machine) and `.md` (human) companion: `exit-code`, `exit-code-entry`, `response-envelope`, `manifest-response`.
+- `challenges/` — 71 failure modes in 7 parts (01=critical ecosystem, 02=execution, 03=security, 04=output, 05=environment, 06=errors, 07=observability). Failure modes are referenced as `§N`.
+- `requirements/` — 154 requirements in 3 tiers: `f-NNN` (Framework-Automatic), `c-NNN` (Command Contract), `o-NNN` (Opt-In). Referenced as `REQ-{TIER}-{NNN}`.
+- `schemas/` — 4 canonical JSON Schema draft-07 types, each with a `.json` (machine) and `.md` (human) companion: `exit-code`, `exit-code-entry`, `response-envelope`, `manifest-response`. Plus `diagnose-result` (skill-internal, not a canonical spec type).
 - `research/` — per-framework analysis (argparse, click, clap, cobra, typer, commander-js, pydantic, MCP, OpenAPI, etc.).
 - `guides/` — design guides for CLI authors: positive conventions that cannot be expressed as enforceable requirements. See `guides/index.md`.
-- `comparison-matrix.md` — 67 failure modes × 12 frameworks coverage table.
+- `comparison-matrix.md` — 71 failure modes × 12 frameworks coverage table.
 
 ### Requirement tiers
 
@@ -108,15 +133,16 @@ When adding a guide: create `guides/<name>.md`, add a row to `guides/index.md`.
 When the user's request matches an available skill, invoke it via the Skill tool. When in doubt, invoke the skill.
 
 Key routing rules:
-- Product ideas/brainstorming → invoke /office-hours
-- Strategy/scope → invoke /plan-ceo-review
-- Architecture → invoke /plan-eng-review
-- Design system/plan review → invoke /design-consultation or /plan-design-review
-- Full review pipeline → invoke /autoplan
-- Bugs/errors → invoke /investigate
-- QA/testing site behavior → invoke /qa or /qa-only
-- Code review/diff check → invoke /review
-- Visual polish → invoke /design-review
-- Ship/deploy/PR → invoke /ship or /land-and-deploy
-- Save progress → invoke /context-save
-- Resume context → invoke /context-restore
+- Full autonomous audit of a CLI (install + evaluate + report) → invoke /cli-agent-audit
+- Onboard CLI before evaluation → invoke /cli-agent-onboard
+- Score CLI proactive readiness (docs, integrations, setup, workflows) → invoke /cli-agent-readiness
+- Evaluate CLI against one failure mode → invoke /cli-agent-evaluate
+- Evaluate CLI against multiple failure modes / severity / part → invoke /cli-agent-evaluate-batch
+- Generate fix list for CLI author from findings → invoke /cli-agent-report mode=dev
+- Generate integration guide for agent builder from findings → invoke /cli-agent-report mode=agent-dev
+- Generate runtime brief for an AI agent from findings → invoke /cli-agent-report mode=runtime
+- Generate issues/problems report for an agent using a CLI → invoke /cli-agent-report mode=issues
+- Generate all reports + index + LinkedIn post → invoke /cli-agent-report mode=all
+- Guide implementing the spec in a CLI framework → invoke /cli-agent-implement
+- Validate cross-links and spec consistency → invoke /validate-links
+- Classify a failed agent CLI call / diagnose why a CLI invocation failed → invoke /cli-agent-diagnose
