@@ -2,7 +2,7 @@
 
 **File:** [`diagnose-result.json`](diagnose-result.json)
 
-> **Used by:** [`cli-agent-diagnose`](../skills/cli-agent-diagnose/SKILL.md) skill — returned as the top-level output of `diagnose.py`
+> **Used by:** `cli-agent-diagnose` skill — returned as the top-level output of `diagnose.py`
 
 ---
 
