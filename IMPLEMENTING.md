@@ -1,4 +1,4 @@
-# IMPLEMENTING.md — Implementation Guide for AI Agents
+# Implementation Guide for AI Agents
 
 This file is for AI agents helping someone **implement the CLI Agent Spec specification** in their own project. It covers how to read the spec, generate language-specific types, and validate your output.
 

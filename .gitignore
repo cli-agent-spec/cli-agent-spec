@@ -8,3 +8,4 @@
 .DS_Store
 site/
 .gstack/
+tmp/
