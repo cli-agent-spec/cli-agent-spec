@@ -121,7 +121,7 @@ Output a structured result block for immediate visibility. This block is for the
 For the Notes column: summarize what was observed. If score is `?/3` (timeout), write `timeout after <N>s — check could not complete`.
 
 ```markdown
-# Findings — <cli-name>
+# <cli-name> — Findings
 
 | Failure mode | Title | Severity | Score | Date | Notes |
 |---|---|---|---|---|---|
@@ -131,7 +131,7 @@ For the Notes column: summarize what was observed. If score is `?/3` (timeout), 
 If any bugs or unexpected behaviours were observed, load `evaluations/<cli-name>/issues.md`, append an entry, and save it back:
 
 ```markdown
-# Issues — <cli-name>
+# <cli-name> — Issues
 
 ### §18 candidate — transaction add unhandled TypeError
 `bean transaction add` without `--json` raises a raw stack trace instead of a clean error.
@@ -141,7 +141,7 @@ Discovered during §10 evaluation on 2026-03-15.
 **Trace** — load `evaluations/<cli-name>/trace.md` if it exists. If `--refresh` is set and a block for this §N already exists, replace that block; otherwise append one block. The trace makes the score auditable and reproducible.
 
 ```markdown
-# Trace — <cli-name>
+# <cli-name> — Trace
 
 ## §10 — Interactivity & TTY Requirements
 **Date:** 2026-03-15

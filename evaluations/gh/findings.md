@@ -1,4 +1,4 @@
-# Findings — gh
+# gh — Findings
 
 | Failure mode | Title | Severity | Score | Date | Notes |
 |---|---|---|---|---|---|

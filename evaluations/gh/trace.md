@@ -1,4 +1,4 @@
-# Trace — gh
+# gh — Trace
 
 ## §1 — Exit Codes & Status Signaling
 **Date:** 2026-05-07

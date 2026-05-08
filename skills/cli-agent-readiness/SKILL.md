@@ -291,7 +291,7 @@ _Include only §N rows that are relevant given the actual findings._
 Save as `evaluations/<cli-name>/readiness.md`:
 
 ```markdown
-# Readiness — <cli-name>
+# <cli-name> — Readiness
 
 **CLI version:** <version>
 **Date:** <ISO date>
@@ -312,7 +312,7 @@ For `quick` depth: replace `/15` with `/6` and use the quick grade scale (A 6 ·
 If `evaluations/<cli-name>/readiness.md` already exists, insert the new entry after the `# Readiness — <cli-name>` header line and before the previous entry — the artifact is a log, newest first. The header line appears only once at the top of the file. Separate entries with `---`. Example with two entries:
 
 ```markdown
-# Readiness — <cli-name>
+# <cli-name> — Readiness
 
 **CLI version:** 2.5.0
 **Date:** 2026-05-08

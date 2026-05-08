@@ -1,4 +1,4 @@
-# Issues Report — gh
+# gh — Issues Report
 
 **Generated:** 2026-05-07
 **CLI version:** 2.88.1

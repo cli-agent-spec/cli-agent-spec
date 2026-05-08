@@ -1,4 +1,4 @@
-# CLI Agent Evaluation — gh
+# gh — Evaluation Index
 
 **Generated:** 2026-05-07
 **CLI version:** 2.88.1

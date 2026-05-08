@@ -1,4 +1,4 @@
-# CLI Agent Integration Guide — gh
+# gh — Integration Guide
 
 **Generated:** 2026-05-07
 **CLI version:** 2.88.1

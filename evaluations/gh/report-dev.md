@@ -1,4 +1,4 @@
-# CLI Agent Spec — Fix Report for gh
+# gh — Fix Report
 
 **Generated:** 2026-05-07
 **CLI version:** 2.88.1

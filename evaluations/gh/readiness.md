@@ -1,4 +1,4 @@
-# Readiness — gh
+# gh — Readiness
 
 **CLI version:** 2.88.1
 **Date:** 2026-05-07

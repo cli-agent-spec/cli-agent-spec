@@ -93,7 +93,7 @@ Audience: the person who wrote or maintains the CLI.
 Goal: "here is what you must implement, in priority order."
 
 ```
-# CLI Agent Spec — Fix Report for <cli>
+# <cli> — Fix Report
 
 **Generated:** <ISO date>
 **CLI version:** <version from evaluations/<cli>/environment.md — "unknown" if profile not loaded>
@@ -145,7 +145,7 @@ Audience: a developer writing an agent, wrapper, or orchestration layer that cal
 Goal: "here is every workaround you must code, plus a reusable invocation template."
 
 ```
-# CLI Agent Integration Guide — <cli>
+# <cli> — Integration Guide
 
 **Generated:** <ISO date>
 **CLI version:** <version from evaluations/<cli>/environment.md — "unknown" if profile not loaded>
@@ -206,7 +206,7 @@ Goal: compact, decision-table format. No prose. Directly actionable.
 Load `evaluations/<cli>/environment.md` for the actual binary and flags. If it is not found, state "environment profile not found — values below are placeholders."
 
 ```
-# Runtime Brief — <cli>
+# <cli> — Runtime Brief
 Generated: <ISO date> | CLI version: <version> | Findings: <N> failure modes | Scope: <filter>
 
 ## Invoke As
@@ -269,7 +269,7 @@ This mode surfaces two layers:
 Use the pre-loaded `issues.md` and `trace.md` from Step 0. If `issues.md` was not found or contains no entries (only the header line), note "No issues recorded during evaluation" and continue with scored gaps only. `trace.md` provides check commands, exit codes, and exact dates for each gap.
 
 ```
-# Issues Report — <cli>
+# <cli> — Issues Report
 
 **Generated:** <ISO date>
 **CLI version:** <version from evaluations/<cli>/environment.md — "unknown" if profile not loaded>
@@ -373,7 +373,7 @@ Print a one-line status after each file is saved: `✓ <filename> saved`.
 Save as `evaluations/<cli>/report-index.md`:
 
 ```markdown
-# CLI Agent Evaluation — <cli>
+# <cli> — Evaluation Index
 
 **Generated:** <ISO date>  
 **CLI version:** <version from evaluations/<cli>/environment.md — "unknown" if profile not loaded>  

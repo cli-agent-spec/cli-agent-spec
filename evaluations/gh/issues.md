@@ -1,4 +1,4 @@
-# Issues — gh
+# gh — Issues
 
 ### §1 candidate — HTTP error responses exit 0
 `gh issue view 999999999 --repo cli/cli` returns a GraphQL error message to stderr but exits 0.

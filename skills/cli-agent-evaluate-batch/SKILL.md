@@ -116,7 +116,7 @@ After each §N, save immediately to findings.md and trace.md; also write to issu
 **Findings** — if `--refresh` is set and a row for this §N already exists in `evaluations/<cli-name>/findings.md`, replace that row; otherwise append one row. For the Notes column: summarize what was observed; if score is `?/3` (timeout), write `timeout after <N>s — check could not complete`.
 
 ```markdown
-# Findings — <cli-name>
+# <cli-name> — Findings
 
 | Failure mode | Title | Severity | Score | Date | Notes |
 |---|---|---|---|---|---|
@@ -126,7 +126,7 @@ After each §N, save immediately to findings.md and trace.md; also write to issu
 **Trace** — if `--refresh` is set and a block for this §N already exists in `evaluations/<cli-name>/trace.md`, replace that block; otherwise append one block:
 
 ```markdown
-# Trace — <cli-name>
+# <cli-name> — Trace
 
 ## §10 — Interactivity & TTY Requirements
 **Date:** 2026-03-15

@@ -1,4 +1,4 @@
-# Runtime Brief — gh
+# gh — Runtime Brief
 Generated: 2026-05-07 | CLI version: 2.88.1 | Findings: 13 failure modes | Scope: Critical
 
 ## Invoke As
