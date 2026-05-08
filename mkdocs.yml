@@ -9,6 +9,7 @@ exclude_docs: |
   index.html
   sessions/
   yc-application.md
+  skills/
 
 theme:
   name: material
