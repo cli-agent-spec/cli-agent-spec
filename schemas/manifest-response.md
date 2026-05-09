@@ -21,6 +21,7 @@
 | `required_scopes` | string[] | yes | Minimal permission strings needed from the active credential. Empty array if no auth required. Sourced from REQ-C-029 |
 | `flags` | `Record<string, FlagEntry>` | yes | Keyed by flag name without `--` |
 | `exit_codes` | `Record<string, ExitCodeEntry>` | yes | Keyed by code as string (e.g. `"0"`). Sourced from REQ-C-001 |
+| `output_schema` | object (JSONSchema draft-07) | no | Shape of the command's stdout payload on success. Agents use this to validate responses and detect schema drift |
 | `examples` | `Example[]` | no | Ready-to-use invocation strings |
 | `subcommands` | string[] | no | Dot-separated paths of direct children. Resolve via top-level `commands` |
 ### FlagEntry

@@ -7,3 +7,4 @@
 | Guide | Topic | Summary |
 |-------|-------|---------|
 | [Unix Naming Conventions](unix-naming-conventions.md) | Naming, vocabulary, corpus alignment | How to exploit LLM Unix training as a design asset |
+| [Streaming vs Envelope Output](streaming-vs-envelope.md) | Output mode selection | When to stream by default vs return a buffered envelope |

@@ -30,6 +30,7 @@ This file documents where each challenge came from, how confident the source is,
 | [§7](04-critical-output-and-parsing/07-medium-output-nondeterminism.md) | Output Non-Determinism | TD+FP | Non-deterministic output breaking diffing is a known CI/CD problem; agent retry-loop consequence is first-principles inference |
 | [§8](04-critical-output-and-parsing/08-high-ansi-leakage.md) | ANSI & Color Code Leakage | TD+FP | Extremely common complaint in both CI and agent contexts; structurally guaranteed if agent reads stdout |
 | [§9](04-critical-output-and-parsing/09-high-binary-encoding.md) | Binary & Encoding Safety | TD | Binary-in-JSON encoding issues documented in API design guides and CLI output handling discussions |
+| [§76](04-critical-output-and-parsing/76-high-streaming-default-incompatibility.md) | Streaming-Default JSONL Incompatibility | FP | Structurally guaranteed: `json.loads(stdout)` is the dominant agent parsing pattern; JSONL-default without declaration breaks it by construction |
 
 ### Part II: Execution & Reliability
 
@@ -62,6 +63,7 @@ This file documents where each challenge came from, how confident the source is,
 | [§24](03-critical-security/24-critical-auth-secrets.md) | Authentication & Secret Handling | TD+FP | Secret-in-env-var pattern is documented in 12-factor app, CI/CD guides; agent-specific leakage vectors from agent security training data |
 | [§25](03-critical-security/25-critical-prompt-injection.md) | Prompt Injection via Output | TD | Prompt injection via tool output is documented in LLM security research (Greshake et al., similar papers absorbed in training) |
 | [§74](03-critical-security/74-critical-credential-scope-declaration.md) | Credential Scope Declaration Absence | FP | Observed during gh evaluation: personal PAT grants full account access to agent; OAuth scope minimization is standard security practice but absent from CLI design guides |
+| [§75](03-critical-security/75-critical-safe-default-execution.md) | Safe-Default Execution Mode Absent | FP | Observed in trading bot scenario: --dry-run is available (§23) but not the default; agents that omit the flag cause real trades; Terraform plan/apply split is the established model for safe-default execution |
 
 ### Part V: Environment & State
 
@@ -173,4 +175,4 @@ Discovered by reviewing two external agent-native CLI projects.
 
 ---
 
-*Written 2026-03-13. Revised 2026-03-13: §36, §39, §48 marked merged; confidence counts corrected to 30/18/17; personal paths removed; active links added. Revised 2026-03-19: §69 added. Revised 2026-03-26: §70 added. Revised 2026-05-07: §71 (FP), §72 (FP), §73 (FP) added; active total updated to 70. Revised 2026-05-07: §74 (FP) added; active total updated to 71. Covers CLI Agent Spec v1.6 — 71 active challenges (74 original, 3 merged).*
+*Written 2026-03-13. Revised 2026-03-13: §36, §39, §48 marked merged; confidence counts corrected to 30/18/17; personal paths removed; active links added. Revised 2026-03-19: §69 added. Revised 2026-03-26: §70 added. Revised 2026-05-07: §71 (FP), §72 (FP), §73 (FP) added; active total updated to 70. Revised 2026-05-07: §74 (FP) added; active total updated to 71. Revised 2026-05-09: §75 (FP) added; active total updated to 72. Covers CLI Agent Spec v1.7 — 72 active challenges (75 original, 3 merged).*

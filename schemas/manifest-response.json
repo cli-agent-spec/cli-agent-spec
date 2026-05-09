@@ -29,7 +29,7 @@
   "definitions": {
     "CommandEntry": {
       "type": "object",
-      "required": ["description", "flags", "exit_codes"],
+      "required": ["description", "danger_level", "flags", "exit_codes"],
       "additionalProperties": false,
       "properties": {
         "description": {
@@ -41,6 +41,11 @@
           "items": { "type": "string" },
           "description": "Alternative names this command can be invoked with."
         },
+        "danger_level": {
+          "type": "string",
+          "enum": ["safe", "mutating", "destructive"],
+          "description": "Mutation risk level. safe: read-only; mutating: creates or modifies state; destructive: permanently deletes or irreversibly modifies state. Sourced from REQ-C-002."
+        },
         "flags": {
           "type": "object",
           "description": "Map from flag name (without leading --) to FlagEntry.",
@@ -50,6 +55,11 @@
           "type": "object",
           "description": "Map from exit code integer (as string key) to ExitCodeEntry. Sourced from REQ-C-001 declarations.",
           "additionalProperties": { "$ref": "exit-code-entry.json" }
+        },
+        "output_schema": {
+          "type": "object",
+          "description": "JSONSchema draft-07 object describing the shape of the command's stdout payload on success. Agents use this to validate responses and detect schema drift.",
+          "additionalProperties": true
         },
         "examples": {
           "type": "array",
