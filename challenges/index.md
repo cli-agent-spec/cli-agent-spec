@@ -1,6 +1,6 @@
 # CLI Agent Spec — Full Index
 
-> All 71 failure modes across 7 parts. Each failure mode linked to its source file.
+> All 73 failure modes across 7 parts. Each failure mode linked to its source file.
 
 ---
 
@@ -87,7 +87,7 @@
 
 > Destructive operations, authentication, secret handling, and prompt injection.
 
-**4 failure modes** &nbsp;|&nbsp; 🔴 4 critical
+**5 failure modes** &nbsp;|&nbsp; 🔴 5 critical
 
 | # | Title | Severity | Frequency | Detectability | Token Spend | Time | Context |
 |---|-------|----------|-----------|---------------|-------------|------|---------|
@@ -95,6 +95,7 @@
 | [§24](03-critical-security/24-critical-auth-secrets.md) | Authentication & Secret Handling | 🔴 Critical | Common | Hard | Medium | Medium | Low |
 | [§25](03-critical-security/25-critical-prompt-injection.md) | Prompt Injection via Output | 🔴 Critical | Situational | Hard | High | High | High |
 | [§74](03-critical-security/74-critical-credential-scope-declaration.md) | Credential Scope Declaration Absence | 🔴 Critical | Common | Hard | Low | Medium | Low |
+| [§75](03-critical-security/75-critical-safe-default-execution.md) | Safe-Default Execution Mode Absent | 🔴 Critical | Situational | Hard | Low | Critical | Low |
 
 ---
 
@@ -102,7 +103,7 @@
 
 > How CLI tools format, stream, and structure their output for agent consumption.
 
-**9 failure modes** &nbsp;|&nbsp; 🔴 2 critical · 🟠 4 high · 🟡 3 medium
+**10 failure modes** &nbsp;|&nbsp; 🔴 2 critical · 🟠 5 high · 🟡 3 medium
 
 | # | Title | Severity | Frequency | Detectability | Token Spend | Time | Context |
 |---|-------|----------|-----------|---------------|-------------|------|---------|
@@ -112,6 +113,7 @@
 | [§5](04-critical-output-and-parsing/05-high-pagination.md) | Pagination & Large Output | 🟠 High | Common | Hard | High | High | Critical |
 | [§8](04-critical-output-and-parsing/08-high-ansi-leakage.md) | ANSI & Color Code Leakage | 🟠 High | Common | Hard | Medium | Low | Medium |
 | [§9](04-critical-output-and-parsing/09-high-binary-encoding.md) | Binary & Encoding Safety | 🟠 High | Situational | Hard | Low | Medium | Low |
+| [§76](04-critical-output-and-parsing/76-high-streaming-default-incompatibility.md) | Streaming-Default JSONL Incompatibility | 🟠 High | Situational | Medium | Medium | Low | Medium |
 | [§4](04-critical-output-and-parsing/04-medium-verbosity.md) | Verbosity & Token Cost | 🟡 Medium | Very Common | Easy | High | Low | High |
 | [§6](04-critical-output-and-parsing/06-medium-command-composition.md) | Command Composition & Piping | 🟡 Medium | Common | Easy | Medium | Low | Low |
 | [§7](04-critical-output-and-parsing/07-medium-output-nondeterminism.md) | Output Non-Determinism | 🟡 Medium | Common | Hard | Medium | Medium | Low |
@@ -164,4 +166,4 @@
 
 ---
 
-*71 active failure modes across 7 parts. CLI Agent Spec v1.6 — 2026-05-07.*
+*73 active failure modes across 7 parts. CLI Agent Spec v1.6 — 2026-05-07.*

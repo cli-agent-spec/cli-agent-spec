@@ -1,10 +1,10 @@
 # Requirements Index
 
-> All requirements for an agent-compatible CLI framework, derived from the CLI Agent Spec's 71 documented failure modes.
+> All requirements for an agent-compatible CLI framework, derived from the CLI Agent Spec's 73 documented failure modes.
 
-**154 total** &nbsp;|&nbsp; 78 Framework-Automatic · 29 Command Contract · 47 Opt-In — amended 2026-05-07
+**155 total** &nbsp;|&nbsp; 78 Framework-Automatic · 29 Command Contract · 48 Opt-In — amended 2026-05-09
 
-**By priority:** P0: 50 · P1: 62 · P2: 33 · P3: 9 — REQ-F-043 amended to add temp file permission requirements
+**By priority:** P0: 51 · P1: 62 · P2: 33 · P3: 9 — REQ-O-048 added: destructive commands default to dry-run mode (§75)
 
 ---
 
@@ -135,7 +135,7 @@
 
 ## Opt-In (O)
 
-**47 requirements** &nbsp;|&nbsp; P0: 5 · P1: 19 · P2: 17 · P3: 6
+**48 requirements** &nbsp;|&nbsp; P0: 6 · P1: 19 · P2: 17 · P3: 6
 
 | ID | Priority | Title | Failure mode(s) |
 |----|----------|-------|-------------|
@@ -186,6 +186,7 @@
 | [REQ-O-045](o-045-integration-artifact-version-declaration.md) | P1 | Integration Artifact Version Declaration | [§72](../challenges/01-critical-ecosystem-runtime-agent-specific/72-high-integration-artifact-drift.md) [§47](../challenges/01-critical-ecosystem-runtime-agent-specific/47-high-mcp-schema-staleness.md) |
 | [REQ-O-046](o-046-agents-md-ci-validation.md) | P2 | AGENTS.md CI Validation | [§73](../challenges/01-critical-ecosystem-runtime-agent-specific/73-high-documentation-accuracy-drift.md) [§44](../challenges/01-critical-ecosystem-runtime-agent-specific/44-medium-knowledge-packaging.md) |
 | [REQ-O-047](o-047-tool-check-permissions-built-in-command.md) | P0 | tool check-permissions Built-In Command | [§74](../challenges/03-critical-security/74-critical-credential-scope-declaration.md) |
+| [REQ-O-048](o-048-destructive-commands-default-dry-run.md) | P0 | Destructive Commands Default to Dry-Run Mode | [§75](../challenges/03-critical-security/75-critical-safe-default-execution.md) |
 
 ---
 

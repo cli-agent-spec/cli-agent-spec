@@ -2,7 +2,7 @@
 
 **Your CLI tool works perfectly for humans. For AI agents, it silently hangs, corrupts data, leaks secrets, and exhausts context windows — and you would never know.**
 
-This is a specification for building CLI tools that AI agents can call reliably: **71 documented failure modes**, **154 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
+This is a specification for building CLI tools that AI agents can call reliably: **73 documented failure modes**, **155 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
 
 > **No existing CLI framework covers more than 58% of these failure modes.**
 
@@ -38,15 +38,15 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 ## What this spec defines
 
-**71 failure modes** — each documented with severity, frequency, detectability, token cost, time cost, and context cost from the agent's perspective. Grouped into 7 parts: ecosystem/runtime, execution, security, output, environment, errors, and observability.
+**73 failure modes** — each documented with severity, frequency, detectability, token cost, time cost, and context cost from the agent's perspective. Grouped into 7 parts: ecosystem/runtime, execution, security, output, environment, errors, and observability.
 
-**154 requirements** across 3 tiers:
+**155 requirements** across 3 tiers:
 
 | Tier | Count | Who implements it |
 |------|-------|------------------|
 | **F** — Framework-Automatic | 78 | The framework enforces it; command authors get it for free |
 | **C** — Command Contract | 29 | Command authors declare it at registration |
-| **O** — Opt-In | 47 | Applications enable it explicitly |
+| **O** — Opt-In | 48 | Applications enable it explicitly |
 
 **4 JSON schemas** — machine-readable type definitions for exit codes, response envelopes, tool manifests, and error details. Generate typed structs for your language directly from the schemas.
 

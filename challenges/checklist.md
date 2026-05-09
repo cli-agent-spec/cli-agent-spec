@@ -1,6 +1,6 @@
 # Agent-Compatible CLI Checklist
 
-> A condensed implementation checklist derived from the CLI Agent Spec's 71 documented failure modes.
+> A condensed implementation checklist derived from the CLI Agent Spec's 73 documented failure modes.
 > Use this to audit an existing CLI tool or verify a new one before agent deployment.
 
 ---
