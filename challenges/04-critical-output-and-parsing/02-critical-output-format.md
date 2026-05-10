@@ -73,6 +73,9 @@ tool list-users --output json
 tool list-users --output jsonl   # one JSON object per line for streaming
 tool list-users --output tsv     # tab-separated, good for piping
 tool list-users --output plain   # minimal, no decoration (for humans too)
+
+# Some CLIs use --json as a shorthand (gh, az, etc.)
+tool list-users --json           # equivalent to --output json
 ```
 
 **JSON output schema:**
@@ -228,11 +231,17 @@ The comparison matrix shows REQ-F-004 (Consistent JSON Response Envelope) is ✗
 **Always request structured output and detect format violations before parsing:**
 
 ```python
-result = subprocess.run(
-    [*cmd, "--output", "json"],
-    capture_output=True, text=True,
-    env={**os.environ, "NO_COLOR": "1", "CI": "true"},
-)
+# Try --output json first; fall back to --json (used by gh, az, and similar CLIs)
+for json_flag in (["--output", "json"], ["--json"]):
+    result = subprocess.run(
+        [*cmd, *json_flag],
+        capture_output=True, text=True,
+        env={**os.environ, "NO_COLOR": "1", "CI": "true"},
+    )
+    if result.returncode == 0 or not any(
+        kw in result.stderr for kw in ("unknown flag", "unrecognized", "invalid option")
+    ):
+        break
 
 stdout = result.stdout.strip()
 
