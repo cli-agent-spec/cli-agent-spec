@@ -76,6 +76,9 @@ tool list-users --output plain   # minimal, no decoration (for humans too)
 
 # Some CLIs use --json as a shorthand (gh, az, etc.)
 tool list-users --json           # equivalent to --output json
+
+# Some CLIs use -o as a short flag (kubectl, helm, etc.)
+tool list-users -o json
 ```
 
 **JSON output schema:**
@@ -231,17 +234,27 @@ The comparison matrix shows REQ-F-004 (Consistent JSON Response Envelope) is ✗
 **Always request structured output and detect format violations before parsing:**
 
 ```python
-# Try --output json first; fall back to --json (used by gh, az, and similar CLIs)
-for json_flag in (["--output", "json"], ["--json"]):
-    result = subprocess.run(
-        [*cmd, *json_flag],
-        capture_output=True, text=True,
-        env={**os.environ, "NO_COLOR": "1", "CI": "true"},
-    )
-    if result.returncode == 0 or not any(
-        kw in result.stderr for kw in ("unknown flag", "unrecognized", "invalid option")
-    ):
-        break
+# Discover the JSON flag from --help before invoking the real command
+_help = subprocess.run([*cmd, "--help"], capture_output=True, text=True)
+help_text = _help.stdout + _help.stderr
+
+JSON_FLAG_PATTERNS = [
+    (r"--output\s+\w*json", ["--output", "json"]),  # --output json / --output-format json
+    (r"--json\b",            ["--json"]),             # gh, az
+    (r"-o\b",                ["-o", "json"]),         # kubectl, helm
+]
+json_flag = next(
+    (flag for pattern, flag in JSON_FLAG_PATTERNS if re.search(pattern, help_text)),
+    None,
+)
+if json_flag is None:
+    raise ValueError(f"No JSON output flag found in --help for: {cmd}")
+
+result = subprocess.run(
+    [*cmd, *json_flag],
+    capture_output=True, text=True,
+    env={**os.environ, "NO_COLOR": "1", "CI": "true"},
+)
 
 stdout = result.stdout.strip()
 
