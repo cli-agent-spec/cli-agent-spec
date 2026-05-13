@@ -103,7 +103,7 @@ Four installable skills for [Agent Skills-compatible](https://agentskills.io) ag
 | [`cli-agent-onboard`](https://github.com/cli-agent-spec/cli-agent-spec/blob/master/skills/cli-agent-onboard/SKILL.md) | Profile a CLI tool once — detects runtime, binary, flags, timeout method |
 | [`cli-agent-evaluate`](https://github.com/cli-agent-spec/cli-agent-spec/blob/master/skills/cli-agent-evaluate/SKILL.md) | Score a CLI against a single failure mode (0–3), with applicable agent workaround |
 | [`cli-agent-implement`](https://github.com/cli-agent-spec/cli-agent-spec/blob/master/skills/cli-agent-implement/SKILL.md) | Guide implementing the spec in a CLI framework, tier by tier |
-| [`cli-agent-diagnose`](skills/cli-agent-diagnose/SKILL.md) | Classify a failed CLI call against §N taxonomy, return workaround + memory string |
+| [`cli-agent-diagnose`](https://github.com/cli-agent-spec/cli-agent-spec/blob/master/skills/cli-agent-diagnose/SKILL.md) | Classify a failed CLI call against §N taxonomy, return workaround + memory string |
 
 ```bash
 # Install (run inside your agent)

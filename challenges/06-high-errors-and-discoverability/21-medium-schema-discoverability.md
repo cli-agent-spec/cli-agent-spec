@@ -90,14 +90,16 @@ $ tool --schema --output json
 
 ### Evaluation
 
+**Prerequisite check (§1 / REQ-F-068):** Run `tool` with no arguments and verify exit code is 0. If the bare invocation exits non-zero, cap the score at 0 regardless of `--schema` richness — the agent's first-contact probe fails before any discovery can occur.
+
 | Score | Condition |
 |-------|-----------|
-| 0 | Help is prose only; no `--schema` flag; agent must parse natural language to understand arguments |
-| 1 | `--help --output json` returns some structured info but no output schema; commands not enumerable from root |
-| 2 | `tool --schema --output json` returns command list with parameter types, required flags, and exit codes |
-| 3 | Full manifest includes `output_schema` per command; `danger_level` declared; schema auto-generated from parameter declarations; `--print-schema` compatibility alias accepted |
+| 0 | Bare invocation exits non-zero; or help is prose only with no `--schema` flag; agent must parse natural language to understand arguments |
+| 1 | Bare invocation exits 0 with root help; `--help --output json` returns some structured info but no output schema; commands not enumerable from root |
+| 2 | Bare invocation exits 0; `tool --schema --output json` returns command list with parameter types, required flags, and exit codes |
+| 3 | Bare invocation exits 0; full manifest includes `output_schema` per command; `danger_level` declared; schema auto-generated from parameter declarations; `--print-schema` compatibility alias accepted |
 
-**Check:** Run `tool --schema --output json` and verify the response includes `commands[].parameters[].type` and `commands[].output_schema` for at least one command.
+**Check:** First run `tool` with no arguments and confirm exit 0. Then run `tool --schema --output json` and verify the response includes `commands[].parameters[].type` and `commands[].output_schema` for at least one command.
 
 ---
 

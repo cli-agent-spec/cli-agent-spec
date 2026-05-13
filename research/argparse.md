@@ -108,6 +108,15 @@ class ValidatePositiveInt(argparse.Action):
 
 **Subcommand discoverability**: `parser.parse_args(['--help'])` exits 0 and prints all subcommands to stdout. `parser.parse_args(['subcommand', '--help'])` prints subcommand-specific help. This is reliable and consistent.
 
+**Warning — two bare-invocation anti-patterns**: The default `add_subparsers(required=False)` produces silent exit 0 with no output on bare invocation. Agents expect a command list on stdout; empty output fails discovery silently. Explicit `required=True` is worse: it exits 2 with "the following arguments are required: COMMAND", which agents interpret as the tool being broken. Both anti-patterns share the same fix: `required=False` combined with a default handler that prints help and exits 0:
+
+```python
+subparsers = parser.add_subparsers(dest="command", required=False)
+parser.set_defaults(func=lambda args: (parser.print_help(), sys.exit(0)))
+```
+
+Without `set_defaults`, argparse silently does nothing on bare invocation, which also fails agents (exit 0 but no output). Both the error-exit form and the silent-success form violate REQ-F-068.
+
 **No external dependencies**: An argparse-based CLI works in any Python environment without installation. An agent can invoke it without dependency management.
 
 **`suggest_on_error=True`** (Python 3.14+): When enabled, provides "did you mean X?" suggestions for typo'd argument names or choices. Reduces agent retry cycles for near-miss invocations.
@@ -186,7 +195,7 @@ class ValidatePositiveInt(argparse.Action):
 | 18 | Error Message Quality | ~ | Plain-text messages identify offending argument and bad value; not structured JSON; `suggest_on_error` (3.14+) adds "did you mean?" for typos; parseable by regex but not natively machine-readable |
 | 19 | Retry Hints in Error Responses | ✗ | No retry-after, backoff, or retry-with information in errors |
 | 20 | Environment & Dependency Discovery | ✗ | No built-in environment probe or dependency check commands |
-| 21 | Schema & Help Discoverability | ~ | `--help` is auto-generated and covers all arguments with types and defaults; `format_help()` returns string programmatically; no JSON Schema export |
+| 21 | Schema & Help Discoverability | ~ | `--help` is auto-generated; `format_help()` available programmatically; no JSON Schema export; bare invocation exits 0 with help only if `add_subparsers(required=False)` + default handler is configured — the common `required=True` anti-pattern caps §21 score at 0 regardless of `--schema` richness |
 | 22 | Schema Versioning & Output Stability | ✗ | No schema versioning; help format differs across Python versions; no stability guarantee for help text format |
 | 23 | Side Effects & Destructive Operations | ✗ | No `--dry-run` support, confirmation gates, or destructive-operation annotations |
 | 24 | Authentication & Secret Handling | ✗ | No secret masking, secure input prompts, or keychain integration |
