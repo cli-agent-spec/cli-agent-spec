@@ -9,6 +9,7 @@
   <meta property="og:description" content="Stop debugging agent tool failures. Start classifying them. 73 named failure modes, zero-cost deterministic matching, tested workarounds.">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
+  <script>(function(){var t=localStorage.getItem('theme');if(t&&t!=='auto')document.documentElement.setAttribute('data-theme',t);}());</script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -26,6 +27,49 @@
       --blue: #58a6ff;
       --purple: #bc8cff;
       --accent: #58a6ff;
+      --nav-bg: rgba(13,17,23,0.92);
+      --code-bg: #0d1117;
+      --code-text: #a5d6ff;
+    }
+
+    html[data-theme="light"] {
+      --bg: #ffffff;
+      --bg2: #f6f8fa;
+      --bg3: #eaeef2;
+      --border: #d0d7de;
+      --text: #1f2328;
+      --muted: #57606a;
+      --red: #cf222e;
+      --orange: #bc4c00;
+      --yellow: #9a6700;
+      --green: #1a7f37;
+      --blue: #0969da;
+      --purple: #8250df;
+      --accent: #0969da;
+      --nav-bg: rgba(255,255,255,0.92);
+      --code-bg: #f6f8fa;
+      --code-text: #24292f;
+    }
+
+    @media (prefers-color-scheme: light) {
+      html:not([data-theme="dark"]) {
+        --bg: #ffffff;
+        --bg2: #f6f8fa;
+        --bg3: #eaeef2;
+        --border: #d0d7de;
+        --text: #1f2328;
+        --muted: #57606a;
+        --red: #cf222e;
+        --orange: #bc4c00;
+        --yellow: #9a6700;
+        --green: #1a7f37;
+        --blue: #0969da;
+        --purple: #8250df;
+        --accent: #0969da;
+        --nav-bg: rgba(255,255,255,0.92);
+        --code-bg: #f6f8fa;
+        --code-text: #24292f;
+      }
     }
 
     html { scroll-behavior: smooth; }
@@ -48,7 +92,7 @@
     /* NAV */
     nav {
       position: sticky; top: 0; z-index: 100;
-      background: rgba(13,17,23,0.92);
+      background: var(--nav-bg);
       backdrop-filter: blur(8px);
       border-bottom: 1px solid var(--border);
       padding: 0 2rem;
@@ -143,7 +187,7 @@
     .split-card pre {
       margin: 0; padding: 1.1rem 1.25rem;
       font-size: 0.78rem; line-height: 1.7;
-      background: var(--bg); color: #a5d6ff; overflow-x: auto;
+      background: var(--code-bg); color: var(--code-text); overflow-x: auto;
     }
     .split-card pre .c  { color: var(--muted); }
     .split-card pre .e  { color: var(--red); }
@@ -199,7 +243,7 @@
     .demo-pane { padding: 1.25rem; display: none; }
     .demo-pane.active { display: block; }
     .demo-pane pre {
-      font-size: 0.78rem; line-height: 1.75; color: #a5d6ff;
+      font-size: 0.78rem; line-height: 1.75; color: var(--code-text);
       white-space: pre-wrap; word-break: break-word;
     }
     .demo-pane pre .c { color: var(--muted); }
@@ -230,7 +274,7 @@
       padding: 0.75rem 1rem;
     }
     .match-workaround-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 0.4rem; }
-    .match-workaround pre { font-size: 0.76rem; line-height: 1.6; color: #a5d6ff; white-space: pre-wrap; }
+    .match-workaround pre { font-size: 0.76rem; line-height: 1.6; color: var(--code-text); white-space: pre-wrap; }
     .severity-critical { color: var(--red); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
     .severity-high     { color: var(--orange); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
 
@@ -272,7 +316,7 @@
     }
     .install-block pre {
       padding: 1rem 1.25rem; font-size: 0.82rem; line-height: 1.7;
-      color: #a5d6ff; margin: 0; overflow-x: auto;
+      color: var(--code-text); margin: 0; overflow-x: auto;
     }
     .install-block pre .c { color: var(--muted); }
     .install-block pre .cmd { color: var(--green); }
@@ -291,6 +335,16 @@
     footer a { color: var(--muted); }
     footer a:hover { color: var(--text); }
 
+    /* THEME TOGGLE */
+    .theme-btn {
+      width: 32px; height: 32px; margin-right: 0.75rem;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 6px; cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted); transition: color 0.1s, background 0.1s;
+    }
+    .theme-btn:hover { color: var(--text); background: var(--bg2); }
+
     @media (max-width: 700px) {
       .split { grid-template-columns: 1fr; }
       .stats-strip { grid-template-columns: repeat(2, 1fr); }
@@ -308,6 +362,7 @@
     <a href="#demo">Example</a>
     <a href="#install">Install</a>
   </div>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme"></button>
   <a class="nav-cta" href="https://github.com/cli-agent-spec/cli-agent-spec">GitHub</a>
 </nav>
 
@@ -674,14 +729,14 @@ result.failure_mode_id  <span class="c"># → 43</span>
       <div class="install-header">Standalone Python (deterministic only, zero tokens)</div>
       <pre>
 <span class="c"># Single failed trace</span>
-<span class="cmd">python diagnose.py \
+<span class="cmd">uv run scripts/diagnose.py \
   '{"command":"deploy","stderr":"Are you sure? [y/n]","exit_code":124}'</span>
 
 <span class="c"># Full message history from a run</span>
-<span class="cmd">python diagnose.py --history messages.json</span>
+<span class="cmd">uv run scripts/diagnose.py --history messages.json</span>
 
-<span class="c"># With LLM for ambiguous failures (requires ANTHROPIC_API_KEY)</span>
-<span class="cmd">ANTHROPIC_API_KEY=... python diagnose.py '...' --llm</span></pre>
+<span class="c"># With LLM for ambiguous failures (installs anthropic on-the-fly)</span>
+<span class="cmd">ANTHROPIC_API_KEY=... uv run --with anthropic scripts/diagnose.py '...' --llm</span></pre>
     </div>
 
     <div class="install-block" style="margin-top:1rem;">
@@ -734,6 +789,31 @@ result.failure_mode_id  <span class="c"># → 43</span>
     document.getElementById('tab-' + name).classList.add('active');
     el.classList.add('active');
   }
+
+  const ICON_SUN  = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+  const ICON_MOON = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+
+  function effectiveTheme() {
+    return document.documentElement.getAttribute('data-theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+
+  function updateBtn() {
+    const btn = document.getElementById('theme-btn');
+    const isDark = effectiveTheme() === 'dark';
+    btn.innerHTML = isDark ? ICON_SUN : ICON_MOON;
+    btn.title = isDark ? 'Switch to light' : 'Switch to dark';
+  }
+
+  function toggleTheme() {
+    const next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    updateBtn();
+  }
+
+  updateBtn();
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateBtn);
 </script>
 
 </body>
