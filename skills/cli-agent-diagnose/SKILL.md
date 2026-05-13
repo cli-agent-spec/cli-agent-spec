@@ -1,138 +1,145 @@
 ---
 name: cli-agent-diagnose
-description: Post-hoc CLI failure classifier. Given a failed agent tool call trace (stdout, stderr, exit code, command), classifies the failure against the CLI Agent Spec §N taxonomy, returns applicable workarounds, and produces ready-to-store memory and skill-patch strings. Also ships a transparent subprocess runner wrapper and a Claude Code PreToolUse hook for proactive interception.
+description: Classify a failed agent CLI tool call against the CLI Agent Spec §N failure taxonomy. Given a failed command with stdout, stderr, and exit code, identifies the matching failure mode, returns an actionable workaround, and produces a memory string and skill patch to prevent recurrence. Use when a CLI invocation fails and you need to understand why and how to work around it.
 license: MIT
-compatibility: Requires Python 3.10+. LLM classification mode requires ANTHROPIC_API_KEY. Deterministic mode runs with zero API cost.
+compatibility: Requires Python 3.10+. LLM mode requires ANTHROPIC_API_KEY and the anthropic package (installed on-the-fly via uv --with).
 ---
 
 # CLI Agent Diagnose
 
-Classify a failed CLI tool call against the CLI Agent Spec failure taxonomy and get an actionable workaround.
+Classify a failed CLI tool call and get an actionable §N workaround.
 
-## Operating Modes
+## Available scripts
 
-This skill ships three components that can be used independently:
-
-| Mode | File | When to use |
-|------|------|-------------|
-| **Diagnose** | `diagnose.py` | Post-hoc: agent has a failed trace and wants to classify it |
-| **Runner** | `runner.py` | Inline: agent wraps `subprocess.run` to auto-apply workarounds before and after each call |
-| **Preflight hook** | `preflight_hook.py` | Proactive: intercepts Bash tool calls in Claude Code before they run |
+- **`scripts/diagnose.py`** — Post-hoc classifier: given a trace (command, stdout, stderr, exit code), returns §N matches with workarounds
+- **`scripts/runner.py`** — Inline subprocess wrapper: drop-in for `subprocess.run` that applies §N fixes transparently
+- **`scripts/preflight_hook.py`** — Claude Code PreToolUse hook: intercepts Bash calls before they run and advises on §N risks
 
 ---
 
-## Mode 1 — Diagnose (Post-Hoc Classification)
+## Inputs
 
-### Inputs
+- **Trace** — one of:
+  - A failed call visible in the current conversation (construct the JSON yourself)
+  - A JSON object the user supplies: `{"command": "...", "stdout": "...", "stderr": "...", "exit_code": N}`
+  - A path to a JSON file containing an agent message history (OpenAI format, LangSmith, or Langfuse)
 
-Provide one of:
+---
 
-- **Positional JSON string** — a single trace event:
-  ```json
-  {"command": "gh pr create", "stdout": "", "stderr": "requires a TTY", "exit_code": 1}
-  ```
-- **`--history FILE`** — path to a JSON file containing an agent message history list (OpenAI format, LangSmith run, or Langfuse span)
-- **stdin** — same JSON, piped
+## Step 1 — Build the trace JSON
 
-Optional flags:
-- **`--llm`** — enable LLM classification for ambiguous candidates (requires `ANTHROPIC_API_KEY`; adds ~$0.01 per ambiguous candidate)
-- **`--challenges-dir PATH`** — override the path to the `challenges/` directory
+Construct a JSON object from the failed call. All four fields are required:
 
-### Step 1 — Prepare the trace
+| Field | Source |
+|-------|--------|
+| `command` | Exact command string that failed |
+| `stdout` | Full captured stdout (empty string if none) |
+| `stderr` | Full captured stderr (empty string if none) |
+| `exit_code` | Integer exit code; use `124` if the command timed out |
 
-Format the failed call as a JSON object with these fields:
+If the user describes the failure in prose, extract these four fields from the description.
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `command` | yes | The exact command string that failed |
-| `stdout` | yes | Full captured stdout (empty string if none) |
-| `stderr` | yes | Full captured stderr (empty string if none) |
-| `exit_code` | yes | Integer exit code |
+---
 
-For message history input, pass the full conversation list as a JSON array. The parser extracts tool call / tool result pairs automatically from OpenAI, LangSmith, and Langfuse formats.
-
-### Step 2 — Run the classifier
+## Step 2 — Run the classifier
 
 ```bash
-# Single trace
-uv run python skills/cli-agent-diagnose/diagnose.py '{"command": "gh pr create", "stdout": "", "stderr": "requires a TTY", "exit_code": 1}'
-
-# From file
-uv run python skills/cli-agent-diagnose/diagnose.py --history agent_run.json
-
-# With LLM classification
-ANTHROPIC_API_KEY=... uv run python skills/cli-agent-diagnose/diagnose.py '...' --llm
+uv run scripts/diagnose.py '<trace-json>'
 ```
 
-Exit codes from the script:
-- `0` — at least one §N match found; result JSON on stdout
-- `2` — trace too sparse to classify; result JSON on stdout with `suggested_context`
-- `3` — no failure mode matched; result JSON on stdout
+For a message history file:
+```bash
+uv run scripts/diagnose.py --history <path>
+```
 
-Always parse stdout as JSON regardless of exit code — the `DiagnoseResult` object is always emitted.
+To enable LLM classification for ambiguous candidates (~$0.01 per ambiguous candidate):
+```bash
+uv run --with anthropic scripts/diagnose.py '<trace-json>' --llm
+```
 
-### Step 3 — Interpret the result
+**Always parse stdout as JSON** — the result object is emitted regardless of exit code.
 
-The output is a `DiagnoseResult` object (schema: [`schemas/diagnose-result.json`](../../schemas/diagnose-result.json)):
+Exit codes:
+- `0` — at least one §N match found
+- `2` — trace too sparse; see `suggested_context` for what to collect
+- `3` — no failure mode matched
+
+---
+
+## Step 3 — Interpret the result
 
 **When `trace_insufficient` is true:**
-Collect hints from `suggested_context`, re-capture the failing command with full stdout/stderr, and re-run the classifier.
+Report the `suggested_context` hints to the user. Do not re-run on the same sparse trace — collect the missing context first, then re-classify.
 
 **When `no_match` is true:**
-The failure is application-specific or not yet covered by the spec. Report `trace_summary` to the user and escalate.
+The failure is application-specific or not yet in the spec. Report `trace_summary` to the user and ask for more context or escalate.
 
 **When `matches` is non-empty:**
-Process matches in confidence order:
-1. Read `evidence` — one sentence explaining why this §N was triggered
-2. Apply `workaround` to the current invocation attempt
-3. Store `memory` in the agent's memory system, tagged with CLI name and `failure_mode_id`
-4. Add `skill_patch` to the system prompt or active skill file for this CLI
-5. Note `limitation` — the workaround's coverage boundary
+Process matches in confidence order (highest first):
+
+1. Read `evidence` — one sentence explaining why §N was triggered
+2. Apply `workaround` to the current invocation
+3. Note `limitation` — the boundary of what the workaround covers
+4. Queue `memory` and `skill_patch` for Step 5
 
 Critical-severity matches (`"severity": "critical"`) must be resolved before retrying.
 
-### Step 4 — Store memory and patch
+---
 
-```python
-# memory — one-liner for the agent memory store
-agent_memory.add(f"[{cli_name} §{match.failure_mode_id}] {match.memory}")
+## Step 4 — Emit the result to the user
 
-# skill_patch — reusable rule for system prompt / skill file
-skill_file.prepend(match.skill_patch)
+```
+## Diagnosis Result
+
+**Trace:** <command> (exit <exit_code>)
+**Match:** §<N> — <title> (<severity>, confidence <confidence>)
+**Evidence:** <evidence>
+
+### Workaround
+<workaround>
+
+### Limitation
+<limitation>
 ```
 
-The `memory` field prevents the agent from repeating the same failure in future sessions. The `skill_patch` generalises the fix beyond this specific call — it should be retained across sessions.
+If `no_match` or `trace_insufficient`:
+```
+## Diagnosis Result
+
+**Trace:** <trace_summary>
+**Status:** <No match found | Trace insufficient>
+<suggested_context as a bulleted list, or escalation note>
+```
 
 ---
 
-## Mode 2 — Runner (Inline Subprocess Wrapper)
+## Step 5 — Store memory and skill patch
 
-`runner.py` is a transparent drop-in replacement for `subprocess.run`. Import it in agent code that calls CLIs:
+After any successful match, store both immediately:
 
-```python
-from skills.cli_agent_diagnose.runner import run
+1. **Memory** — add a memory entry tagged with the CLI name and `§N`:
+   > `[<cli-name> §<N>] <memory field from match>`
 
-# Identical call signature to subprocess.run
-result = run(["git", "log", "--oneline"])
+2. **Skill patch** — prepend to the system prompt or active skill file for this CLI:
+   > `<skill_patch field from match>`
 
-# result is a subprocess.CompletedProcess with one addition:
-# result.fix — §N annotation if any transformation occurred (None otherwise)
-```
-
-The runner applies two-stage interception:
-
-1. **Pre-flight** — transforms the command before execution using a zero-cost pattern table (e.g., injects `--no-pager` into `git log`, adds `--json` flag for CLIs that support it)
-2. **Post-flight** — if output signals a §N failure mode, applies the workaround and re-runs once
-
-The caller's code is unchanged. If `result.fix` is not None, the agent can log or store the applied §N for observability.
+Discarding either leaves future sessions exposed to the same failure.
 
 ---
 
-## Mode 3 — Preflight Hook (Claude Code Integration)
+## Rules
 
-`preflight_hook.py` intercepts Bash tool calls in Claude Code before they execute. If a command matches a known §N failure pattern, it emits an advisory message with the corrected invocation.
+- Always parse stdout as JSON regardless of exit code
+- Do not retry a `critical`-severity failure before applying its workaround
+- For `trace_insufficient`: collect more context, then re-classify — do not loop on the same sparse trace
+- Use `--llm` only when all confidence scores are below 0.50; deterministic mode handles most common failures
+- If the user provides a prose description rather than a structured trace, construct the JSON yourself rather than asking them to format it
 
-**Install into `.claude/settings.json`:**
+---
+
+## Optional: Preflight hook (proactive interception)
+
+Install `scripts/preflight_hook.py` to intercept Bash tool calls in Claude Code before they run. Add to `.claude/settings.json` (use the absolute installed path):
 
 ```json
 {
@@ -141,21 +148,11 @@ The caller's code is unchanged. If `result.fix` is not None, the agent can log o
       "matcher": "Bash",
       "hooks": [{
         "type": "command",
-        "command": "uv run python /path/to/skills/cli-agent-diagnose/preflight_hook.py"
+        "command": "uv run python ~/.claude/skills/cli-agent-diagnose/scripts/preflight_hook.py"
       }]
     }]
   }
 }
 ```
 
-The hook reads tool input as JSON from stdin and writes an advisory to stdout. It never blocks (exit 0 only). To enable hard-blocking, change the exit code logic in `preflight_hook.py`.
-
----
-
-## Rules
-
-- Always parse stdout as JSON — the result object is emitted even when exit code is 2 or 3
-- Do not retry the failing command until a `critical`-severity match is resolved
-- Store both `memory` and `skill_patch` after any match — discarding either leaves future sessions exposed to the same failure
-- For `trace_insufficient`: collect more context before re-classifying; do not loop on the same sparse trace
-- Deterministic mode (no `--llm`) is sufficient for most common failures; add `--llm` only when confidence scores are all below 0.50
+The hook reads tool input from stdin and writes an advisory to stdout. It never blocks (exit 0 only).

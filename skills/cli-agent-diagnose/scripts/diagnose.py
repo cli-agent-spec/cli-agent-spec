@@ -1,19 +1,11 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
+# Note: --llm mode requires the anthropic package. Run with:
+#   uv run --with anthropic scripts/diagnose.py ... --llm
+
 from __future__ import annotations
-
-"""
-cli-agent-diagnose — deterministic trace parser + LLM classifier
-
-Three-stage pipeline:
-  1. parse_trace()        detect input format, extract structured events
-  2. extract_failures()   filter to retry loops and non-zero exit events
-  3. match_signals()      deterministic §N matching (zero LLM cost)
-  4. classify_with_llm()  one LLM call per ambiguous candidate (~$0.01 total)
-
-Usage:
-    python diagnose.py '{"stdout": "...", "stderr": "...", "exit_code": 1, "command": "deploy"}'
-    python diagnose.py --history messages.json
-    ANTHROPIC_API_KEY=... python diagnose.py '...' --llm
-"""
 
 import argparse
 import json
@@ -27,7 +19,28 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import anthropic as _anthropic
 
-CHALLENGES_DIR = Path(__file__).parent.parent.parent / "challenges"
+def _resolve_challenges_dir() -> Path:
+    # 1. Explicit env var override (highest priority)
+    env_val = os.environ.get("CLI_AGENT_CHALLENGES_DIR")
+    if env_val:
+        return Path(env_val)
+    # 2. Bundled in skill root (installed: ~/.claude/skills/cli-agent-diagnose/challenges/)
+    skill_root = Path(__file__).parent.parent  # scripts/ → skill root
+    local = skill_root / "challenges"
+    if local.is_dir():
+        return local
+    # 3. Repo layout: scripts/ → skill dir → skills/ → repo root → challenges/
+    repo = skill_root.parent.parent / "challenges"
+    if repo.is_dir():
+        return repo
+    # 4. Current working directory contains a challenges/ dir (running installed, cwd is the repo)
+    cwd = Path.cwd() / "challenges"
+    if cwd.is_dir():
+        return cwd
+    return repo  # fall through; FileNotFoundError will surface at first load attempt
+
+
+CHALLENGES_DIR = _resolve_challenges_dir()
 CONFIDENCE_DETERMINISTIC_HIGH = 0.80   # skip LLM; report as-is
 CONFIDENCE_LLM_THRESHOLD = 0.15        # below this: don't send to LLM
 
@@ -342,6 +355,22 @@ _INTERACTIVE_PATTERNS = [
     ]
 ]
 
+# TTY-requirement errors — explicit error messages when a command requires an interactive terminal
+_TTY_REQUIREMENT_PATTERNS = [
+    re.compile(p, re.IGNORECASE) for p in [
+        r"requires?\s+a\s+tty",
+        r"not\s+a\s+tty",
+        r"no\s+tty\s+present",
+        r"input\s+device\s+is\s+not\s+a\s+tty",
+        r"stdin\s+is\s+not\s+a\s+terminal",
+        r"must\s+be\s+connected\s+to\s+a\s+terminal",
+        r"terminal\s+required",
+        r"tty\s+required",
+        r"inappropriate\s+ioctl\s+for\s+device",
+        r"device\s+or\s+resource\s+busy.*tty",
+    ]
+]
+
 # Pager indicators (stdout)
 _PAGER_PATTERNS = [
     re.compile(p) for p in [
@@ -434,6 +463,12 @@ def match_signals(events: tuple[TraceEvent, ...]) -> tuple[_RawSignal, ...]:
                 if pat.search(combined):
                     _keep(_RawSignal(10, 0.90, f"interactive prompt pattern in output: {pat.pattern!r}"))
                     break
+
+        # §10 — TTY-requirement errors (explicit "requires a TTY"-style messages in stderr or stdout)
+        for pat in _TTY_REQUIREMENT_PATTERNS:
+            if pat.search(combined):
+                _keep(_RawSignal(10, 0.95, f"TTY-requirement error: {pat.pattern!r}"))
+                break
 
         # §43 — Output unboundedness (large stdout)
         if len(stdout) > 50_000:

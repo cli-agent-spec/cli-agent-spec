@@ -96,19 +96,21 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 ## Agent skills
 
-Three installable skills for [Agent Skills-compatible](https://agentskills.io) agents (Claude Code, Cursor, Gemini CLI, Copilot, and others):
+Four installable skills for [Agent Skills-compatible](https://agentskills.io) agents (Claude Code, Cursor, Gemini CLI, Copilot, and others):
 
 | Skill | Purpose |
 |-------|---------|
 | [`cli-agent-onboard`](https://github.com/cli-agent-spec/cli-agent-spec/blob/master/skills/cli-agent-onboard/SKILL.md) | Profile a CLI tool once — detects runtime, binary, flags, timeout method |
 | [`cli-agent-evaluate`](https://github.com/cli-agent-spec/cli-agent-spec/blob/master/skills/cli-agent-evaluate/SKILL.md) | Score a CLI against a single failure mode (0–3), with applicable agent workaround |
 | [`cli-agent-implement`](https://github.com/cli-agent-spec/cli-agent-spec/blob/master/skills/cli-agent-implement/SKILL.md) | Guide implementing the spec in a CLI framework, tier by tier |
+| [`cli-agent-diagnose`](skills/cli-agent-diagnose/SKILL.md) | Classify a failed CLI call against §N taxonomy, return workaround + memory string |
 
 ```bash
 # Install (run inside your agent)
 npx skills install romamo/cli-agent-spec/skills/cli-agent-onboard
 npx skills install romamo/cli-agent-spec/skills/cli-agent-evaluate
 npx skills install romamo/cli-agent-spec/skills/cli-agent-implement
+npx skills install romamo/cli-agent-spec/skills/cli-agent-diagnose
 ```
 
 ---
