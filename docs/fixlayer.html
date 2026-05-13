@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixLayer — Agent Tool Call Diagnostics</title>
+  <meta name="description" content="When your agent's tool call fails, you get retry loops. FixLayer classifies the failure to a named §N code and returns the exact fix. 73 named failure modes, zero-cost deterministic matching, tested workarounds.">
+  <meta property="og:title" content="FixLayer — Agent Tool Call Diagnostics">
+  <meta property="og:description" content="Stop debugging agent tool failures. Start classifying them. 73 named failure modes, zero-cost deterministic matching, tested workarounds.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --bg2: #161b22;
+      --bg3: #21262d;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --red: #f85149;
+      --orange: #f0883e;
+      --yellow: #d29922;
+      --green: #3fb950;
+      --blue: #58a6ff;
+      --purple: #bc8cff;
+      --accent: #58a6ff;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code, pre, .mono {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,17,23,0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 56px;
+    }
+    .nav-brand { font-weight: 800; font-size: 1rem; color: var(--text); letter-spacing: -0.02em; }
+    .nav-brand span { color: var(--accent); }
+    .nav-links { display: flex; gap: 1.5rem; font-size: 0.875rem; }
+    .nav-links a { color: var(--muted); }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+    .nav-cta {
+      background: var(--accent); color: #000;
+      padding: 0.4rem 1rem; border-radius: 6px;
+      font-size: 0.875rem; font-weight: 600;
+    }
+    .nav-cta:hover { background: #79c0ff; text-decoration: none; }
+
+    /* LAYOUT */
+    section { padding: 5rem 1rem; }
+    .container { max-width: 860px; margin: 0 auto; }
+    .container-wide { max-width: 1100px; margin: 0 auto; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+    /* HERO */
+    .hero {
+      padding: 7rem 1rem 5rem; text-align: center;
+      background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(88,166,255,0.07), transparent);
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(88,166,255,0.1); border: 1px solid rgba(88,166,255,0.25);
+      color: var(--accent); font-size: 0.78rem; font-weight: 700;
+      padding: 0.3rem 0.9rem; border-radius: 20px;
+      margin-bottom: 1.5rem; letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 800;
+      line-height: 1.15; letter-spacing: -0.03em;
+      margin-bottom: 1.5rem; max-width: 720px;
+      margin-left: auto; margin-right: auto;
+    }
+    .hero h1 em { color: var(--accent); font-style: normal; }
+    .hero-sub {
+      font-size: 1.1rem; color: var(--muted);
+      max-width: 580px; margin: 0 auto 2.5rem; line-height: 1.75;
+    }
+    .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 3.5rem; }
+    .btn-primary {
+      background: var(--accent); color: #000;
+      padding: 0.7rem 1.5rem; border-radius: 8px;
+      font-weight: 700; font-size: 0.95rem;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .btn-primary:hover { background: #79c0ff; text-decoration: none; }
+    .btn-secondary {
+      background: var(--bg3); color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.7rem 1.5rem; border-radius: 8px;
+      font-weight: 600; font-size: 0.95rem;
+    }
+    .btn-secondary:hover { background: var(--bg2); text-decoration: none; border-color: var(--muted); }
+
+    /* SECTION TITLES */
+    .section-label {
+      font-size: 0.75rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--accent); margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-size: clamp(1.5rem, 3vw, 2.1rem); font-weight: 800;
+      letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 0.75rem;
+    }
+    .section-sub { font-size: 1rem; color: var(--muted); max-width: 560px; line-height: 1.7; margin-bottom: 2.5rem; }
+
+    /* BEFORE / AFTER */
+    .split {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2.5rem;
+    }
+    .split-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+    }
+    .split-card.after { border-color: rgba(88,166,255,0.35); }
+    .split-header {
+      padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
+      font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .split-header.bad { color: var(--red); }
+    .split-header.good { color: var(--green); }
+    .split-card pre {
+      margin: 0; padding: 1.1rem 1.25rem;
+      font-size: 0.78rem; line-height: 1.7;
+      background: var(--bg); color: #a5d6ff; overflow-x: auto;
+    }
+    .split-card pre .c  { color: var(--muted); }
+    .split-card pre .e  { color: var(--red); }
+    .split-card pre .g  { color: var(--green); }
+    .split-card pre .y  { color: var(--yellow); }
+    .split-card pre .p  { color: var(--purple); }
+    .split-card pre .o  { color: var(--orange); }
+    .split-footer {
+      padding: 0.6rem 1rem; border-top: 1px solid var(--border);
+      font-size: 0.78rem; color: var(--muted);
+    }
+    .split-footer strong { color: var(--red); }
+    .split-footer.ok strong { color: var(--green); }
+
+    /* HOW IT WORKS */
+    .steps { display: flex; flex-direction: column; gap: 0; margin-top: 2.5rem; }
+    .step {
+      display: flex; gap: 1.5rem; padding: 1.5rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(88,166,255,0.12); border: 1px solid rgba(88,166,255,0.3);
+      color: var(--accent); font-weight: 800; font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .step-body h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.35rem; }
+    .step-body p { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
+    .step-tag {
+      display: inline-block; font-size: 0.72rem; font-weight: 700;
+      padding: 0.2rem 0.55rem; border-radius: 4px; margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    .step-tag.free { background: rgba(63,185,80,0.15); color: var(--green); }
+    .step-tag.low  { background: rgba(88,166,255,0.15); color: var(--accent); }
+
+    /* DEMO / OUTPUT */
+    .demo-wrap {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden; margin-top: 2.5rem;
+    }
+    .demo-tabs {
+      display: flex; border-bottom: 1px solid var(--border);
+      background: var(--bg3);
+    }
+    .demo-tab {
+      padding: 0.6rem 1.25rem; font-size: 0.8rem; font-weight: 600;
+      color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
+      transition: color 0.1s;
+    }
+    .demo-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+    .demo-pane { padding: 1.25rem; display: none; }
+    .demo-pane.active { display: block; }
+    .demo-pane pre {
+      font-size: 0.78rem; line-height: 1.75; color: #a5d6ff;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .demo-pane pre .c { color: var(--muted); }
+    .demo-pane pre .k { color: var(--purple); }
+    .demo-pane pre .s { color: var(--green); }
+    .demo-pane pre .n { color: var(--orange); }
+    .demo-pane pre .b { color: var(--accent); }
+    .demo-pane pre .e { color: var(--red); }
+
+    /* MATCH CARD */
+    .match-card {
+      background: var(--bg); border: 1px solid rgba(88,166,255,0.25);
+      border-radius: 8px; padding: 1.1rem 1.25rem; margin-bottom: 0.75rem;
+    }
+    .match-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; }
+    .match-code {
+      background: rgba(88,166,255,0.12); border: 1px solid rgba(88,166,255,0.25);
+      color: var(--accent); font-weight: 800; font-size: 0.82rem;
+      padding: 0.2rem 0.6rem; border-radius: 5px; font-family: monospace;
+    }
+    .match-title { font-weight: 700; font-size: 0.95rem; }
+    .match-conf {
+      margin-left: auto; font-size: 0.78rem; font-weight: 700; color: var(--green);
+    }
+    .match-evidence { font-size: 0.82rem; color: var(--muted); margin-bottom: 0.75rem; }
+    .match-workaround {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.75rem 1rem;
+    }
+    .match-workaround-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 0.4rem; }
+    .match-workaround pre { font-size: 0.76rem; line-height: 1.6; color: #a5d6ff; white-space: pre-wrap; }
+    .severity-critical { color: var(--red); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+    .severity-high     { color: var(--orange); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+
+    /* VALUE PROPS */
+    .props-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem; margin-top: 2.5rem;
+    }
+    .prop-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1.5rem;
+    }
+    .prop-icon { font-size: 1.4rem; margin-bottom: 0.75rem; }
+    .prop-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .prop-card p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+    /* STATS */
+    .stats-strip {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+      margin-top: 2rem;
+    }
+    .stat-cell {
+      background: var(--bg2); padding: 1.75rem 1.25rem; text-align: center;
+    }
+    .stat-cell .n { font-size: 2.25rem; font-weight: 800; letter-spacing: -0.04em; }
+    .stat-cell .label { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
+
+    /* INSTALL */
+    .install-block {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden; margin-top: 1.25rem;
+    }
+    .install-header {
+      padding: 0.6rem 1rem; background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.78rem; color: var(--muted); font-weight: 600;
+    }
+    .install-block pre {
+      padding: 1rem 1.25rem; font-size: 0.82rem; line-height: 1.7;
+      color: #a5d6ff; margin: 0; overflow-x: auto;
+    }
+    .install-block pre .c { color: var(--muted); }
+    .install-block pre .cmd { color: var(--green); }
+    .install-coming {
+      padding: 0.7rem 1.25rem; border-top: 1px solid var(--border);
+      font-size: 0.78rem; color: var(--muted);
+    }
+    .install-coming span { color: var(--muted); font-style: italic; }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 1rem; text-align: center;
+      color: var(--muted); font-size: 0.85rem;
+    }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--text); }
+
+    @media (max-width: 700px) {
+      .split { grid-template-columns: 1fr; }
+      .stats-strip { grid-template-columns: repeat(2, 1fr); }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand">Fix<span>Layer</span></span>
+  <div class="nav-links">
+    <a href="#problem">The Problem</a>
+    <a href="#how">How It Works</a>
+    <a href="#demo">Example</a>
+    <a href="#install">Install</a>
+  </div>
+  <a class="nav-cta" href="https://github.com/cli-agent-spec/cli-agent-spec">GitHub</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">Agent Token &amp; Context Optimization</div>
+    <h1>Your agent leaks tokens on every call<br><em>Stop it before it runs</em></h1>
+    <p class="hero-sub">
+      Exit 0, no error, no retry — just noise. A single tool call silently drains thousands of tokens
+      and floods your context window. Bash commands, API responses, file reads:
+      FixLayer catches them before they run, fixes them inline, and eliminates it permanently
+    </p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="#demo">See an example</a>
+      <a class="btn-secondary" href="#install">Install FixLayer</a>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- BEFORE / AFTER -->
+<section id="problem">
+  <div class="container-wide">
+    <div class="section-label">The Problem</div>
+    <h2 class="section-title">Exit 0 doesn't mean it worked</h2>
+    <p class="section-sub">
+      The worst failures are silent. No error, no retry — just 3,200 tokens
+      of output the agent didn't need, on a 30-commit repo.
+      On a real project this is 100,000+ tokens per call.
+    </p>
+
+    <div class="split">
+      <div class="split-card">
+        <div class="split-header bad">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zM0 8a8 8 0 1116 0A8 8 0 010 8z"/><path d="M7.002 11a1 1 0 112 0 1 1 0 01-2 0zM7.1 4.995a.905.905 0 111.8 0l-.35 3.507a.552.552 0 01-1.1 0L7.1 4.995z"/></svg>
+          Without FixLayer
+        </div>
+        <pre>
+<span class="c"># Agent calls git log to check history</span>
+$ git log
+exit_code=0  <span class="c">← looks fine</span>
+stdout: 331 lines
+  commit 44243d62676bb947d871c5c...
+  Author: dev@company.com
+  Date:   Wed Apr 29 16:44:38 2026
+
+      chore: add gstack skill routing...
+
+  commit 0208d45387b00222b74750e0...
+  Author: dev@company.com
+  <span class="e">  ...28 more commits, full details...</span>
+
+<span class="c"># No error. But agent pays the cost:</span>
+<span class="e">~3,200 tokens consumed
+full SHA + email + date + body
+for every commit since repo start</span>
+</pre>
+        <div class="split-footer">
+          Tokens consumed: <strong>~3,200</strong> &nbsp;·&nbsp; grows with every commit
+        </div>
+      </div>
+
+      <div class="split-card after">
+        <div class="split-header good">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/></svg>
+          With FixLayer
+        </div>
+        <pre>
+<span class="c"># Same call</span>
+$ git log
+stdout: 12,889 chars  exit_code=0
+
+<span class="c"># FixLayer classifies:</span>
+§43 — Output Unboundedness
+confidence: <span class="g">0.88</span>  severity: <span class="e">critical</span>
+
+<span class="c"># Workaround — fix this call:</span>
+<span class="g">git --no-pager log --format="%h %s" -n 20</span>
+<span class="c"># → 347 tokens (9× less)</span>
+
+<span class="c"># Memory — store for future sessions:</span>
+<span class="p">"git log returns all history by default;
+ always add -n and --format for agent use"</span>
+
+<span class="c"># Skill patch — add to system prompt:</span>
+<span class="p">"When calling git log, always scope with
+ -n &lt;limit&gt; and --format='%h %s'"</span></pre>
+        <div class="split-footer ok">
+          <strong>workaround</strong> + <strong>memory</strong> + <strong>skill patch</strong> returned
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- HOW IT WORKS -->
+<section id="how" style="background: var(--bg2);">
+  <div class="container">
+    <div class="section-label">How It Works</div>
+    <h2 class="section-title">Three modes. Full lifecycle</h2>
+    <p class="section-sub">
+      One bad call drains budget. A repeating bad call drains it forever.
+      FixLayer breaks the pattern at all three stages.
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Pre-flight — before the call
+            <span class="step-tag free">zero tokens</span>
+          </h3>
+          <p>
+            <code>preflight(["git", "log"])</code> inspects the command shape before
+            anything runs. Flags §43 (no <code>-n</code> limit), §10 (editor will open),
+            §19 (already failed in history). Returns the correct call instead.
+            Wires into Claude Code as a PreToolUse hook: every tool call screened
+            automatically, no agent code change.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Inline wrapper — during the call
+            <span class="step-tag free">zero tokens</span>
+          </h3>
+          <p>
+            <code>fixlayer.run(["git", "log"])</code> is a drop-in for
+            <code>subprocess.run</code>. Pre-flight transforms the command before running.
+            Post-flight detects §N in the output and re-runs with the fix. One call,
+            correct result, no second round-trip from your agent.
+          </p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Post-hoc classifier — after the call
+            <span class="step-tag low">~$0.01</span>
+          </h3>
+          <p>
+            Pass any trace: raw dict, message history, Langfuse span, LangSmith run.
+            Nine deterministic patterns match at zero cost. Ambiguous failures get
+            one focused LLM call per candidate §N. Returns §N match, workaround,
+            <strong>memory</strong> entry for the agent to store, and a
+            <strong>skill patch</strong> — a rule that eliminates this failure permanently.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:2.5rem; padding: 1.25rem 1.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 10px;">
+      <p style="font-size: 0.875rem; color: var(--muted); line-height: 1.7;">
+        FixLayer reads the
+        <a href="https://github.com/cli-agent-spec/cli-agent-spec">CLI Agent Spec</a>
+        directly at runtime: 73 named §N failure modes, each with a documented
+        <code>### Agent Workaround</code> section. No separate model training.
+        No taxonomy to maintain. The spec is the knowledge base.
+      </p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- DEMO / EXAMPLE -->
+<section id="demo">
+  <div class="container">
+    <div class="section-label">Example</div>
+    <h2 class="section-title">What you get back</h2>
+    <p class="section-sub">
+      A real trace from a failing agent pipeline. The classifier catches it in
+      under 200ms at zero token cost.
+    </p>
+
+    <div class="demo-wrap">
+      <div class="demo-tabs">
+        <div class="demo-tab active" onclick="showTab('input', this)">Input trace</div>
+        <div class="demo-tab" onclick="showTab('output', this)">FixLayer output</div>
+        <div class="demo-tab" onclick="showTab('apply', this)">Agent applies fix</div>
+      </div>
+
+      <div id="tab-input" class="demo-pane active">
+        <pre>
+<span class="c"># Failed tool call — send this to diagnose.py</span>
+{
+  <span class="k">"command"</span>: <span class="s">"git"</span>,
+  <span class="k">"args"</span>:    [<span class="s">"commit"</span>, <span class="s">"-m"</span>, <span class="s">"feat: update config"</span>],
+  <span class="k">"stdout"</span>:  <span class="s">""</span>,
+  <span class="k">"stderr"</span>:  <span class="s">"hint: Waiting for your editor to close the file..."</span>,
+  <span class="k">"exit_code"</span>: <span class="n">124</span>
+}</pre>
+      </div>
+
+      <div id="tab-output" class="demo-pane">
+        <div class="match-card">
+          <div class="match-header">
+            <span class="match-code">§10</span>
+            <span class="match-title">Interactivity &amp; TTY Requirements</span>
+            <span class="match-conf">95% confident</span>
+          </div>
+          <div style="display:flex;gap:1rem;align-items:center;margin-bottom:0.6rem;">
+            <span class="severity-critical">critical</span>
+            <span style="font-size:0.78rem;color:var(--muted)">source: deterministic · 0 tokens</span>
+          </div>
+          <div class="match-evidence">
+            exit_code=124 (timeout) + interactive prompt pattern detected in stderr:
+            "Waiting for your editor to close"
+          </div>
+          <div class="match-workaround">
+            <div class="match-workaround-label">Workaround — apply immediately</div>
+            <pre>
+env = {
+    **os.environ,
+    <span style="color:var(--green)">"EDITOR"</span>: <span style="color:var(--green)">"true"</span>,     <span style="color:var(--muted)"># no-op editor, exits 0</span>
+    <span style="color:var(--green)">"GIT_EDITOR"</span>: <span style="color:var(--green)">"true"</span>,
+    <span style="color:var(--green)">"PAGER"</span>: <span style="color:var(--green)">"cat"</span>,
+    <span style="color:var(--green)">"GIT_PAGER"</span>: <span style="color:var(--green)">"cat"</span>,
+}
+result = subprocess.run(
+    cmd, env=env,
+    stdin=subprocess.DEVNULL,
+    capture_output=True,
+    timeout=30,
+)</pre>
+          </div>
+        </div>
+        <p style="font-size:0.78rem;color:var(--muted);padding:0 0.25rem;">
+          Limitation: tools that open <code>/dev/tty</code> directly still block — use timeout as circuit breaker
+        </p>
+      </div>
+
+      <div id="tab-apply" class="demo-pane">
+        <pre>
+<span class="c"># Option A — diagnostic: re-call with returned workaround</span>
+result = subprocess.run(
+    [<span class="s">"git"</span>, <span class="s">"--no-pager"</span>, <span class="s">"log"</span>, <span class="s">"--format=%h %s"</span>, <span class="s">"-n"</span>, <span class="s">"20"</span>],
+    capture_output=<span class="b">True</span>, text=<span class="b">True</span>, timeout=<span class="n">30</span>,
+)
+<span class="c"># Agent makes a second call with the fixed command.</span>
+
+<span class="c">
+# Option B — wrapper: one call, fixed transparently</span>
+<span class="k">from</span> fixlayer.runner <span class="k">import</span> run
+
+result = run([<span class="s">"git"</span>, <span class="s">"log"</span>])  <span class="c"># same call as before</span>
+
+<span class="c"># FixLayer rewrites it inline to:</span>
+<span class="c">#   git --no-pager log --format="%h %s" -n 20</span>
+<span class="c"># before subprocess even runs.</span>
+
+result.stdout   <span class="c"># → 20 lines, 1,391 chars</span>
+result.fixed    <span class="c"># → "§43 pre-flight: added --no-pager ..."</span>
+result.failure_mode_id  <span class="c"># → 43</span>
+
+<span class="c"># No second call. No agent code change.
+# Already-correct calls pass through untouched.</span>
+</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- VALUE PROPS -->
+<section style="background: var(--bg2);">
+  <div class="container">
+    <div class="section-label">Why FixLayer</div>
+    <h2 class="section-title">Built for the agent that can't ask for help</h2>
+    <div class="props-grid">
+      <div class="prop-card">
+        <div class="prop-icon">🔮</div>
+        <h3>Prevent before it happens</h3>
+        <p>
+          Pre-flight checks the tool call before anything runs: bash commands,
+          file reads, API calls. <code>git log</code> without <code>-n</code>?
+          Flagged as §43, corrected to <code>git --no-pager log --format="%h %s" -n 20</code>
+          before execution starts. Wire the PreToolUse hook once. Every call screened automatically.
+        </p>
+      </div>
+      <div class="prop-card">
+        <div class="prop-icon">⚡</div>
+        <h3>Fix inline, no re-call</h3>
+        <p>
+          The inline wrapper intercepts, transforms, and re-runs, returning
+          the correct result in one call. Your agent code doesn't change.
+          No second round-trip. No retry loop. The fix is invisible.
+        </p>
+      </div>
+      <div class="prop-card">
+        <div class="prop-icon">🧠</div>
+        <h3>The agent learns</h3>
+        <p>
+          Every §N match returns a <strong>memory</strong> entry (one-liner the agent stores)
+          and a <strong>skill patch</strong> (rule for the system prompt). The agent stops
+          making the same mistake. Permanently, not just for this call.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- STATS -->
+<section>
+  <div class="container">
+    <div class="section-label">By the Numbers</div>
+    <h2 class="section-title">The only failure intelligence layer covering the full agent tool call lifecycle</h2>
+    <p class="section-sub">
+      FixLayer catches failures before they run, fixes them inline,
+      and eliminates them from future runs: full lifecycle, three modes.
+    </p>
+    <div class="stats-strip">
+      <div class="stat-cell">
+        <div class="n" style="color:var(--accent)">3</div>
+        <div class="label">operating modes (pre · inline · post)</div>
+      </div>
+      <div class="stat-cell">
+        <div class="n" style="color:var(--green)">73</div>
+        <div class="label">named failure modes</div>
+      </div>
+      <div class="stat-cell">
+        <div class="n" style="color:var(--orange)">9×</div>
+        <div class="label">token reduction on unbounded calls</div>
+      </div>
+      <div class="stat-cell">
+        <div class="n" style="color:var(--purple)">~$0.01</div>
+        <div class="label">per post-hoc classification</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- INSTALL -->
+<section id="install" style="background: var(--bg2);">
+  <div class="container">
+    <div class="section-label">Get Started</div>
+    <h2 class="section-title">Install in one command</h2>
+    <p class="section-sub">
+      Works as an installable agent skill or as a standalone Python script.
+      No dependencies beyond the Anthropic SDK for the LLM stage; that stage
+      is optional for the nine zero-cost deterministic patterns.
+    </p>
+
+    <div class="install-block">
+      <div class="install-header">Claude Code / Claude agents</div>
+      <pre>
+<span class="c"># Install the skill</span>
+<span class="cmd">/install cli-agent-diagnose</span>
+
+<span class="c"># Then use it: paste a failed trace, get §N + workaround</span></pre>
+    </div>
+
+    <div class="install-block" style="margin-top:1rem;">
+      <div class="install-header">Standalone Python (deterministic only, zero tokens)</div>
+      <pre>
+<span class="c"># Single failed trace</span>
+<span class="cmd">python diagnose.py \
+  '{"command":"deploy","stderr":"Are you sure? [y/n]","exit_code":124}'</span>
+
+<span class="c"># Full message history from a run</span>
+<span class="cmd">python diagnose.py --history messages.json</span>
+
+<span class="c"># With LLM for ambiguous failures (requires ANTHROPIC_API_KEY)</span>
+<span class="cmd">ANTHROPIC_API_KEY=... python diagnose.py '...' --llm</span></pre>
+    </div>
+
+    <div class="install-block" style="margin-top:1rem;">
+      <div class="install-header">Langfuse / LangSmith span</div>
+      <pre>
+<span class="c"># Pipe a span directly — format detected automatically</span>
+<span class="cmd">langfuse export span &lt;id&gt; | python diagnose.py</span></pre>
+      <div class="install-coming">
+        Community plugins for Langfuse and LangSmith registries: <span>coming soon</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- CTA -->
+<section style="text-align:center; padding: 5rem 1rem;">
+  <div class="container">
+    <h2 class="section-title">Before. During. After.<br>The full agent tool call lifecycle</h2>
+    <p style="color:var(--muted); max-width:480px; margin:0.75rem auto 2.5rem; line-height:1.75;">
+      Pre-flight prevents the leak. The wrapper fixes it inline. The classifier eliminates
+      it permanently. Open source. Zero wasted tokens.
+    </p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="https://github.com/cli-agent-spec/cli-agent-spec">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        View on GitHub
+      </a>
+      <a class="btn-secondary" href="https://github.com/cli-agent-spec/cli-agent-spec/blob/master/challenges/index.md">Browse failure modes</a>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<footer>
+  <p>
+    FixLayer &nbsp;·&nbsp; built on the
+    <a href="index.html">CLI Agent Spec</a>
+    (73 failure modes · 155 requirements) &nbsp;·&nbsp;
+    <a href="https://github.com/cli-agent-spec/cli-agent-spec">GitHub</a>
+  </p>
+</footer>
+
+<script>
+  function showTab(name, el) {
+    document.querySelectorAll('.demo-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    el.classList.add('active');
+  }
+</script>
+
+</body>
+</html>

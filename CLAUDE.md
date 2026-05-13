@@ -83,11 +83,12 @@ ajv compile -s "schemas/*.json" --spec=draft7
 
 ## Styling rules (apply to all documents)
 
-1. **No trailing periods** in list items, table cells, or blockquotes. Periods only in prose paragraphs.
+1. **No trailing periods** in headings, labels, list items, table cells, blockquotes, or UI copy. Periods only in prose paragraphs. Exception: intentional staccato rhythm used as a rhetorical device (e.g., "Before. During. After.").
 2. **Inline code** for all flag names, field names, constants, filenames, command invocations, and schema `$id` values.
 3. **Verb-first** labels in `## Related` tables. Allowed verbs: `Provides` · `Consumes` · `Enforces` · `Specializes` · `Composes` · `Aggregates` · `Wraps` · `Sources` · `Exposes` · `Extends`
 4. **Present tense** in all `description` fields.
 5. **Agent-readable descriptions** (in `ExitCodeEntry`, `FlagEntry`, `ErrorDetail`): state the condition, ≤120 chars, no trailing period.
+6. **Em dash sparingly.** Two legitimate uses only: (a) double parenthetical aside (`Any tool — bash, API, file — can...`); (b) dramatic reveal after a build-up (`no retry — just 3,200 tokens`). For everything else use the correct mark: colon to introduce a list or explanation, semicolon to join related clauses, comma for a participial phrase, period to separate sentences, parentheses for a label aside. Maximum one em dash per paragraph.
 
 ## Failure mode file format
 
