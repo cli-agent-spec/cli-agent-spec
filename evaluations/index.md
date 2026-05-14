@@ -7,6 +7,7 @@ Real-world CLI tools evaluated against the CLI Agent Spec — scored across crit
 | CLI | Version | Score | Readiness | Scope |
 |---|---|---|---|---|
 | [gh](gh/README.md) | 2.88.1 | 1.8/3 | 7/15 [D] | Critical (13 of 71) |
+| [gws](gws/README.md) | 0.22.5 | 1.23/3 | 7/15 [C] | Critical (22 of 71) |
 
 ## How Evaluations Work
 
