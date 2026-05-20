@@ -1,13 +1,2 @@
-title: gws
 nav:
   - README.md
-  - report-index.md
-  - report-issues.md
-  - report-runtime.md
-  - report-agent-dev.md
-  - report-dev.md
-  - findings.md
-  - issues.md
-  - readiness.md
-  - environment.md
-  - trace.md
