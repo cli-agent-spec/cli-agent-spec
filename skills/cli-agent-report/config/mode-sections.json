@@ -1,0 +1,18 @@
+{
+  "dev": {
+    "challenge_sections": ["Solutions"],
+    "filter": "score_lt_3"
+  },
+  "agent-dev": {
+    "challenge_sections": ["Agent Workaround"],
+    "filter": "score_lt_3"
+  },
+  "runtime": {
+    "challenge_sections": ["Agent Workaround"],
+    "filter": "score_lt_3"
+  },
+  "issues": {
+    "challenge_sections": ["The Problem"],
+    "filter": "score_lt_3"
+  }
+}

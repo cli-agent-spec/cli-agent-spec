@@ -268,6 +268,8 @@ A cluster of blog posts argued that direct CLI invocation is superior to MCP for
 - Leverages existing maintained tool investment
 - Unix composability preserved
 
+Lambda AI's 450M-token tool-calling distillation dataset (May 2026) provides independent scale evidence: training samples average 20 turns per conversation with 10–15 tool calls per turn, collected via the Hermes Agent harness across 184 H100 GPUs over several days. This volume of agent–tool interaction confirms that tool-calling is not an edge case — it is the dominant inner-loop operation. It also demonstrates that model capability alone does not solve the behavioral contract problem: even a perfectly fine-tuned tool-calling model fails when the CLI it invokes has ambiguous exit codes, interactive prompts, or unstructured output.
+
 The counterpoint (also well-represented): MCP is better for stateful, authenticated, multi-system coordination and cloud-hosted agent deployments. This debate does not produce a competing specification — it produces advocacy for fixing existing CLIs rather than wrapping them in MCP servers.
 
 ### AGENTS.md convention
@@ -376,4 +378,5 @@ The following 23 challenges have **zero** native implementations across all 12 e
 | Source | URL | Relevance |
 |---|---|---|
 | "CLI is the new MCP" benchmark data (2026) | *(multiple blog posts; no single canonical source)* | 35× token efficiency, 33% task completion rate comparisons |
+| Lambda AI — Tool-Calling Token Distillation (May 2026) | https://lambda.ai/blog/creating-highly-efficient-agents-450m-tool-calling-tokens-distilled-for-post-training-from-top-open-source-models | 450M-token Hermes Agent harness dataset; 20 turns/sample, 10–15 tools/turn — scale evidence for agent-tool interaction volume |
 | MCP GitHub server token analysis | *(derived from tools/list inspection of `github/github-mcp-server`)* | 93 tools = ~55,000 tokens at init |

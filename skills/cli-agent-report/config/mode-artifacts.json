@@ -1,0 +1,27 @@
+{
+  "dev": {
+    "read": ["findings.md"]
+  },
+  "agent-dev": {
+    "read": ["findings.md", "environment.md"]
+  },
+  "runtime": {
+    "read": ["findings.md", "environment.md"]
+  },
+  "issues": {
+    "read": ["findings.md", "issues.md", "trace.md"]
+  },
+  "all": {
+    "read": ["findings.md", "environment.md", "issues.md", "trace.md", "readiness.md"],
+    "write": [
+      "report-dev.md",
+      "report-agent-dev.md",
+      "report-runtime.md",
+      "report-issues.md",
+      "report-index.md",
+      "README.md",
+      "linkedin.md",
+      "x.md"
+    ]
+  }
+}
