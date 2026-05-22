@@ -1,6 +1,6 @@
 # Alternative Solutions Landscape
 
-> A comprehensive comparison of existing approaches to the agent-CLI integration problem, evaluated against the 67 failure modes in this specification.
+> A comprehensive comparison of existing approaches to the agent-CLI integration problem, evaluated against the 73 failure modes in this specification.
 
 Researched March 2026.
 
@@ -16,8 +16,9 @@ No single existing solution addresses the full scope of the agent-CLI integratio
 | Framework | How CLI argument parsing and output are structured | Click, Cobra, Clap, Typer |
 | Wrapper | How existing CLI tools are made machine-readable post-hoc | jc, jq, Nushell, PowerShell |
 | Convention | Informal checklists for CLI authors | better-cli, DEV Community guides |
+| Audit | Post-hoc reliability classification of production agent traces | EvidenceRun |
 
-CLI Agent Spec occupies a fifth layer — **behavioral contract specification** — that none of these approaches formally addresses.
+CLI Agent Spec occupies a sixth layer — **behavioral contract specification** — that none of these approaches formally addresses.
 
 ---
 
@@ -284,6 +285,76 @@ A community standard for publishing AI service metadata at `/.well-known/ai.json
 
 An open-source multi-agent orchestration framework from AWS Labs that wraps Amazon Q CLI and Claude Code as worker agents in a supervisor/worker hierarchy. Orchestrates calls to existing CLIs rather than specifying how CLIs should behave. Does not define exit code standards, structured output envelopes, or tool manifests.
 
+### EgisAI
+
+**Source:** [egisai.co](https://egisai.co/) / [EgisLabs/egisai-sdk](https://github.com/EgisLabs/egisai-sdk) — runtime governance SDK for Python AI applications.
+
+EgisAI intercepts LLM provider calls and tool invocations to enforce PII masking, policy rules, model allowlists, and audit logging before and after each call. One-line integration (`egisai.init()`) with 15+ AI frameworks. Targets engineering and security teams shipping production AI features, not CLI authors.
+
+The SDK operates at the agent → LLM/tool boundary, not the host → subprocess boundary. It addresses adjacent challenges from the agent side:
+
+| EgisAI concern | Spec challenge | Difference |
+|---|---|---|
+| PII leakage to third-party APIs | §25 Prompt injection, §59 Token poisoning | EgisAI sanitizes agent-side output before dispatch; spec requires CLIs to sanitize their own responses before returning them to the agent |
+| Unauthorized tool access | §34 Shell injection | EgisAI restricts which tools agents may call; spec requires tools to reject dangerous inputs at registration |
+| Audit trail | §33 Observability & audit trail | EgisAI audits at the agent layer; spec requires `request_id` and JSONL audit logs at the CLI layer |
+
+**Relationship to this spec:** Complementary — agent-side governance vs. CLI-side behavioral contracts. EgisAI governs what the agent is permitted to invoke; this spec governs how CLIs must behave when invoked. Both are necessary in a production agent deployment; neither substitutes for the other.
+
+### EvidenceRun — Agent Reliability Audit Taxonomy
+
+**Source:** [evidencerun.com](https://www.evidencerun.com/) / [Substack: "12 Ways AI Agents Fail in Production"](https://getevidencerun.substack.com/p/12-ways-ai-agents-fail-in-production) (May 2026) — a structured failure taxonomy for production agent behavior, used as the basis for a commercial reliability audit service targeting enterprise-facing agent startups.
+
+#### What it is
+
+A 12-mode taxonomy derived from production incidents, red-team write-ups, and instrumented agent traces across refund bots, coding agents, research agents, sales-prospecting agents, and support copilots. The taxonomy is organized into three severity tiers and delivered as a buyer-ready "Agent Reliability Report" founders can use in investor, security, and enterprise sales conversations.
+
+| Tier | Mode | Description |
+|---|---|---|
+| Critical | #3 PII exposure | Customer data, secrets, or prompt content leaks to a third-party tool, log, or downstream model |
+| Critical | #5 Missing approval | High-impact actions execute without the human-in-the-loop check the workflow promises |
+| Critical | #11 Unverifiable decisions | A decision was made; nobody can reconstruct what the agent saw, asked, or weighed |
+| Critical | #12 No replay trail | Inputs, prompts, model versions, and tool outputs are not stored long enough for an after-the-fact audit |
+| Operational | #1 Tool misuse | Agent calls a tool with the wrong args, wrong scope, or no need to call it at all |
+| Operational | #2 Hidden retries | Silent retry loops on non-idempotent calls cause duplicate side effects nobody can see in the trace |
+| Operational | #6 Runaway cost | Recursive calls, retry storms, or context bloat send a single run past the alarm threshold |
+| Operational | #8 Silent failure | Tool returned an error; the agent returned success — the user is told something happened that didn't |
+| Subtle | #4 Prompt injection | Untrusted content in inputs, attachments, or web pages overrides system instructions |
+| Subtle | #7 Stale context | Agent acts on cached customer state, expired session data, or out-of-date documents |
+| Subtle | #9 Wrong system access | Agent inherits service-account permissions far beyond what the workflow requires |
+| Subtle | #10 Output drift | Customer-facing wording, format, or recommendations drift across runs in ways nobody noticed |
+
+#### Mapping to this spec
+
+EvidenceRun's taxonomy operates at the agent behavior layer; this spec operates at the CLI tool design layer. Most of EvidenceRun's 12 modes have root causes that live in CLI behavioral contracts:
+
+| EvidenceRun mode | Spec challenges | Relationship |
+|---|---|---|
+| #1 Tool misuse | §2 Output format, §21 Schema discoverability, §35 Hallucination input patterns | Exit code taxonomy and arg validation requirements make misuse structurally detectable |
+| #2 Hidden retries | §12 Idempotency / safe retries, §19 Retry hints | Near-perfect match: the spec's `retryable`/`side_effects` invariant is the only known design-time mechanism that addresses this mode per exit code |
+| #3 PII exposure | §34 Shell injection, §59 Token poisoning | Spec controls structured output boundaries; EgisAI is the closer agent-side enforcement |
+| #4 Prompt injection | §25 Prompt injection, §59 Token poisoning | Spec addresses the CLI trust boundary; CLI-side response sanitization (per Poehnelt's Model Armor approach) is the structural fix |
+| #5 Missing approval | §23 Destructive operations | `side_effects` field enables agent-side approval gating; spec cannot enforce gating by design — enforcement is the agent's responsibility |
+| #6 Runaway cost | §11 Timeout enforcement, §43 Unbounded output | Timeout signals and pagination requirements reduce runaway cost surface |
+| #7 Stale context | None | Agent architecture concern; no CLI design addresses read/write time-delta in agent state |
+| #8 Silent failure | §1 Exit code taxonomy, §6 Errors (entire part) | **Core value of this spec** — exit codes, structured error envelopes, and non-zero exits on failure are the direct structural fix |
+| #9 Wrong system access | §30 Undeclared filesystem side effects, §53 Credential expiry | Manifest declarations enable least-privilege reasoning; IAM enforcement is external |
+| #10 Output drift | §22 Schema versioning per response | Versioned `response-envelope` schema and regression scaffolding directly address drift |
+| #11 Unverifiable decisions | §33 Observability & audit trail | `request_id`, JSONL audit logs, and structured response envelopes are the spec's contributions |
+| #12 No replay trail | §33 Observability & audit trail, §22 Schema versioning | Structured, versioned, deterministic output makes replay possible; the spec provides the format |
+
+10 of EvidenceRun's 12 modes trace directly to CLI behavioral gaps this spec addresses. The two without a CLI fix — #7 (Stale context) and partly #9 (Wrong system access / IAM enforcement) — are genuinely agent-architecture concerns.
+
+#### Compounding and the spec's contribution
+
+EvidenceRun emphasizes that failure modes compound in production: prompt injection (#4) + wrong system access (#9) = an attacker with write access to billing; hidden retries (#2) + silent failure (#8) = three invoices sent, system reports one. The spec's `side_effects` declarations and structured exit codes allow agents to implement defense-in-depth before a call lands — earlier in the stack than any audit can intervene.
+
+#### Relationship to this spec
+
+EvidenceRun is post-hoc audit; this spec is design-time prevention. EvidenceRun instruments one workflow, maps failures to the 12-mode taxonomy, and packages the evidence for enterprise buyers. This spec provides the behavioral contracts that make most of those failures structurally impossible or detectable at call time. A CLI built to this spec would score better on modes #1, #2, #8, #10, #11, and #12 by construction — not because the audit rubric changed, but because the failure mode was eliminated at the source.
+
+**The spec as the substrate that makes EvidenceRun findings fixable:** EvidenceRun's 12 modes are high-level; the spec's 73 failure modes are granular sub-cases. "#1 Tool misuse" in EvidenceRun decomposes into at least 8 §N failure modes in the spec. An EvidenceRun audit tells a team which high-level mode fired. The spec tells CLI authors which specific behavioral contract to implement to prevent it from firing again.
+
 ---
 
 ## 7. Universal Gaps
@@ -334,6 +405,8 @@ The following 23 challenges have **zero** native implementations across all 12 e
 | AGENTS.md | Per-repo instructions only | Write a Markdown file | All process-level contracts | Different scope |
 | AI Manifest | Discovery only | Host `/.well-known/ai.json` | All behavioral contracts after discovery | Complementary |
 | better-cli | Informal checklist | Write CLI following rules | No enforcement, no schemas, no tiered contracts | Informal predecessor of same problem space |
+| EgisAI | 0% (different layer) | Add `egisai.init()` to agent code | CLI behavioral contracts entirely | Complementary — agent-side governance |
+| EvidenceRun | N/A (audit taxonomy) | Instrument one agent workflow for tracing | Post-hoc only — no prevention mechanism; no structural enforcement at CLI or protocol layer | Complementary — post-hoc audit taxonomy vs. design-time behavioral contracts |
 
 ---
 
@@ -372,6 +445,9 @@ The following 23 challenges have **zero** native implementations across all 12 e
 | Nushell | https://www.nushell.sh/ | Structured shell pipeline; 0.108.0 added MCP server |
 | better-cli | https://github.com/yogin16/better-cli | 17-rule checklist as agent-installable skill |
 | AWS CLI agent orchestrator | https://github.com/awslabs/cli-agent-orchestrator | Multi-agent CLI orchestration framework |
+| EgisAI SDK | https://github.com/EgisLabs/egisai-sdk | Runtime governance interceptor; agent-side §25/§34/§33 adjacency |
+| EvidenceRun | https://www.evidencerun.com/ | 12-mode agent reliability audit taxonomy; post-hoc diagnosis of production agent failures |
+| EvidenceRun — "12 Ways AI Agents Fail in Production" | https://getevidencerun.substack.com/p/12-ways-ai-agents-fail-in-production | Primary taxonomy source; mapping between 12 modes and spec §N failure modes |
 
 ### Benchmark data
 
