@@ -1,13 +1,16 @@
 ---
 name: cli-agent-diagnose
 description: Classify a failed agent CLI tool call against the CLI Agent Spec §N failure taxonomy. Given a failed command with stdout, stderr, and exit code, identifies the matching failure mode, returns an actionable workaround, and produces a memory string and skill patch to prevent recurrence. Use when a CLI invocation fails and you need to understand why and how to work around it.
-license: MIT
-compatibility: Requires Python 3.10+. LLM mode requires ANTHROPIC_API_KEY and the anthropic package (installed on-the-fly via uv --with).
 ---
 
 # CLI Agent Diagnose
 
 Classify a failed CLI tool call and get an actionable §N workaround.
+
+## Runtime requirements
+
+- Requires Python 3.10+
+- LLM mode requires `ANTHROPIC_API_KEY` and the `anthropic` package, installed on the fly with `uv --with`
 
 ## Available scripts
 

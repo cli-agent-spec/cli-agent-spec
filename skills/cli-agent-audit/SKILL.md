@@ -1,13 +1,17 @@
 ---
 name: cli-agent-audit
 description: Autonomous end-to-end CLI audit pipeline. Downloads and installs the CLI non-interactively, onboards it, scores proactive readiness, evaluates all Critical failure modes, and generates the full report bundle (dev, agent-dev, runtime, issues, index, LinkedIn post). Single command, zero human steps required in the happy path.
-license: MIT
-compatibility: Requires internet access for installation. Produces all local artifacts consumed by cli-agent-report mode=all.
 ---
 
 # CLI Agent Audit — Autonomous Pipeline
 
 Run the complete evaluation pipeline for a CLI tool in one command.
+
+## Runtime requirements
+
+- Requires internet access when Phase 1 installs a package
+- Requires `cli-agent-report` for Phase 5 report generation
+- Phase 5 helper scripts require Python 3.8+
 
 ## Inputs
 
@@ -204,6 +208,8 @@ If the batch skill reports that it could not run some checks (no CLI access, tim
 Delegate to `cli-agent-report mode=all`. Pass the same CLI name. The report skill reads all artifacts produced in Phases 2–4.
 
 The report skill produces all 8 files. Print `✓` as each file is saved (the report skill already does this).
+
+If the report helper exits non-zero, do not freehand a report from memory. Re-run with a supported Python interpreter when the error is a runtime mismatch. If manual completion is still required, apply the `cli-agent-report` templates exactly and preserve every template rule.
 
 ---
 

@@ -1,12 +1,15 @@
 ---
 name: validate-links
 description: Validate all cross-links in the CLI Agent Spec specification — broken file links, missing schema sections, and schema↔requirement symmetry. Use when files have been added or edited, or to check the project is internally consistent.
-allowed-tools: Bash
-license: MIT
-compatibility: Requires git and a POSIX shell (bash/zsh). Designed for the cli-agent-spec repository.
 ---
 
 # Validate Cross-Links
+
+## Runtime requirements
+
+- Requires `git`
+- Requires a POSIX shell such as `bash` or `zsh`
+- Designed for the CLI Agent Spec repository
 
 Run the scripts below in order. Report every failure found. If all checks pass, confirm with a summary of what was checked and how many links were verified.
 

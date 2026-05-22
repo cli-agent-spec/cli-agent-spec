@@ -1,11 +1,14 @@
 ---
 name: cli-agent-onboard
-description: Onboard a CLI tool for agent evaluation — reads agent docs, detects OS, runtime, toolchain, and binary, discovers non-interactive flags and config. Saves the result as evaluations/<cli-name>/environment.md for reuse by cli-agent-evaluate and other skills. Run once per CLI before starting evaluations.
-license: MIT
-compatibility: Requires access to the CLI being onboarded. Works on macOS, Linux, and Windows.
+description: Onboard a CLI tool for agent evaluation — reads agent docs, detects OS, runtime, toolchain, and binary, discovers non-interactive flags and config. Saves the result as the CLI environment profile for reuse by cli-agent-evaluate and other skills. Run once per CLI before starting evaluations.
 ---
 
 # CLI Onboard — Environment Profile
+
+## Runtime requirements
+
+- Requires access to the CLI being onboarded
+- Works on macOS, Linux, and Windows
 
 Build and save a reusable environment profile for a CLI tool.
 

@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.8"
+# dependencies = []
+# ///
 """
 Parse evaluations/<cli>/findings.md and emit structured JSON for report generation.
 
@@ -37,10 +41,26 @@ Output JSON structure:
     }
 """
 
+from __future__ import annotations
+
 import json
 import re
 import sys
 from pathlib import Path
+
+MIN_PYTHON = (3, 8)
+
+
+def require_supported_python() -> None:
+    if sys.version_info < MIN_PYTHON:
+        required = ".".join(str(part) for part in MIN_PYTHON)
+        current = ".".join(str(part) for part in sys.version_info[:3])
+        print(
+            f"aggregate_findings.py requires Python {required}+; current Python is {current}",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
 
 SEVERITY_ORDER = ["Critical", "High", "Medium"]
 SEVERITY_RANK = {s: i for i, s in enumerate(SEVERITY_ORDER)}
@@ -209,6 +229,8 @@ def build_lists(rows: list[dict]) -> dict:
 
 
 def main() -> None:
+    require_supported_python()
+
     if len(sys.argv) < 2:
         print("Usage: aggregate_findings.py <findings.md> [--scope <filter>]", file=sys.stderr)
         sys.exit(1)

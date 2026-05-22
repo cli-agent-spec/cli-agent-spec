@@ -1,13 +1,17 @@
 ---
 name: cli-agent-report
-description: Generate a perspective-specific report from existing CLI evaluation findings. Five modes — dev (fix list for CLI authors), agent-dev (integration guide for agent builders), runtime (operational brief for AI agents), issues (concrete bugs and gaps an agent will hit), all (runs all four, saves to files, generates an index and a LinkedIn post). Requires evaluations/<cli>/findings.md from cli-agent-evaluate or cli-agent-evaluate-batch.
-license: MIT
-compatibility: Reads local artifacts only — no CLI access required. The `all` mode writes report files to the current directory.
+description: Generate a perspective-specific report from existing CLI evaluation findings. Five modes — dev (fix list for CLI authors), agent-dev (integration guide for agent builders), runtime (operational brief for AI agents), issues (concrete bugs and gaps an agent will hit), all (runs all four, saves to files, generates an index and a LinkedIn post). Requires findings from cli-agent-evaluate or cli-agent-evaluate-batch.
 ---
 
 # CLI Agent Report — Perspective Lens
 
 Transform evaluation findings into a targeted report for one of four audiences, or generate all at once.
+
+## Runtime requirements
+
+- Reads local artifacts only; no CLI access is required
+- Helper scripts require Python 3.8+
+- `all` mode writes report files to the current directory
 
 ## Inputs
 
@@ -64,6 +68,8 @@ No findings found for <cli>. Run /cli-agent-evaluate-batch or /cli-agent-audit f
 Run `scripts/aggregate_findings.py evaluations/<cli>/findings.md [--scope <scope>]` to obtain structured findings data. All subsequent steps consume this JSON output — no re-reading of findings.md required.
 
 If findings cover < 20% of all 71 failure modes, warn the user: "Findings are partial — run cli-agent-evaluate-batch for a complete picture."
+
+If `aggregate_findings.py` exits non-zero, treat the message as authoritative. For a Python version error, rerun with Python 3.8+ or `uv run`. Do not freehand report data from `findings.md` unless you still apply the provided templates exactly and preserve every template rule.
 
 ---
 
@@ -232,3 +238,4 @@ Next steps:
 - Single-mode runs (`dev`, `agent-dev`, `runtime`, `issues`) never write files — output to conversation only
 - `all` mode writes nine files (4 reports + index + README + linkedin + x + .pages); linkedin and x are gitignored and for local use only — do not reference them in the README Files table; if any file already exists, overwrite it and note the overwrite in the completion summary
 - LinkedIn and X post content must be grounded in actual findings — do not invent scores, bugs, or counts
+- If helper execution fails, do not improvise alternate report structure; use the templates exactly or stop with the actionable helper error

@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.8"
+# dependencies = []
+# ///
 """
 Extract and deduplicate invocation invariants (env vars and flags) from Agent Workaround
 sections across multiple §N failure modes. Used to populate the Invocation Invariants
@@ -32,11 +36,27 @@ Exit codes:
     2   usage / parse error
 """
 
+from __future__ import annotations
+
 import json
 import re
 import sys
 from collections import defaultdict
 from pathlib import Path
+
+MIN_PYTHON = (3, 8)
+
+
+def require_supported_python() -> None:
+    if sys.version_info < MIN_PYTHON:
+        required = ".".join(str(part) for part in MIN_PYTHON)
+        current = ".".join(str(part) for part in sys.version_info[:3])
+        print(
+            f"build_invariants.py requires Python {required}+; current Python is {current}",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
 
 # Patterns that signal an env var recommendation in a workaround section.
 # Captures NAME=VALUE or just NAME (with context showing it is an env var).
@@ -106,6 +126,8 @@ def format_section_list(sections: list[int]) -> str:
 
 
 def main() -> None:
+    require_supported_python()
+
     if len(sys.argv) < 2:
         print("Usage: build_invariants.py <workarounds.json>", file=sys.stderr)
         sys.exit(2)

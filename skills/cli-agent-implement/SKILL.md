@@ -1,11 +1,14 @@
 ---
 name: cli-agent-implement
 description: Guide implementing the CLI Agent Spec specification in a CLI framework or tool. Audits command naming against Unix conventions, walks through requirements tier-by-tier (REQ-F → REQ-C → REQ-O), generates language-specific schema types, and verifies acceptance criteria. Use when building or extending a CLI framework to support AI agent orchestration.
-license: MIT
-compatibility: Requires a CLI framework project to implement into. Language-specific codegen tools needed for schema type generation.
 ---
 
 # CLI Agent Implement
+
+## Runtime requirements
+
+- Requires a CLI framework project to implement into
+- Requires language-specific codegen tools when schema type generation is requested
 
 Guide an agent through implementing the CLI Agent Spec specification.
 

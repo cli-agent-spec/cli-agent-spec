@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.8"
+# dependencies = []
+# ///
 """
 Given one or more §N identifiers, find every requirement in requirements/index.md
 whose "Failure mode(s)" column references that §N.
@@ -17,9 +21,25 @@ Exit codes:
     2   usage error
 """
 
+from __future__ import annotations
+
 import re
 import sys
 from pathlib import Path
+
+MIN_PYTHON = (3, 8)
+
+
+def require_supported_python() -> None:
+    if sys.version_info < MIN_PYTHON:
+        required = ".".join(str(part) for part in MIN_PYTHON)
+        current = ".".join(str(part) for part in sys.version_info[:3])
+        print(
+            f"lookup_requirements.py requires Python {required}+; current Python is {current}",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
 
 TIER_LABELS = {
     "F": "F = framework handles",
@@ -65,6 +85,8 @@ def format_row(row: dict) -> str:
 
 
 def main() -> None:
+    require_supported_python()
+
     if len(sys.argv) < 3:
         print(
             "Usage: lookup_requirements.py <requirements/index.md> §N [§N ...]",

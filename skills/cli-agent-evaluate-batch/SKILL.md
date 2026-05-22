@@ -1,11 +1,13 @@
 ---
 name: cli-agent-evaluate-batch
 description: Evaluate a CLI tool against multiple CLI Agent Spec failure modes in one run. Accepts a severity filter, part number, or an explicit list of §N identifiers. Skips already-evaluated failure modes (resumable). Emits a scorecard table when done.
-license: MIT
-compatibility: Requires access to the CLI being evaluated.
 ---
 
 # CLI Agent Evaluate — Batch
+
+## Runtime requirements
+
+- Requires access to the CLI being evaluated
 
 Evaluate a CLI tool against a set of failure modes from the CLI Agent Spec in a single run.
 

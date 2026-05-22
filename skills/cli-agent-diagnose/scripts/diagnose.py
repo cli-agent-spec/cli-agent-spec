@@ -19,6 +19,20 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import anthropic as _anthropic
 
+MIN_PYTHON = (3, 10)
+
+
+def require_supported_python() -> None:
+    if sys.version_info < MIN_PYTHON:
+        required = ".".join(str(part) for part in MIN_PYTHON)
+        current = ".".join(str(part) for part in sys.version_info[:3])
+        print(
+            f"diagnose.py requires Python {required}+; current Python is {current}. Run it with `uv run` or a Python {required}+ interpreter.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
+
 def _resolve_challenges_dir() -> Path:
     # 1. Explicit env var override (highest priority)
     env_val = os.environ.get("CLI_AGENT_CHALLENGES_DIR")
@@ -79,6 +93,7 @@ class SignalMatch:
     spec_link: str              # relative path to challenge file
     limitation: str             # from ### Agent Workaround **Limitation:** line
     source: str                 # "deterministic" | "llm"
+    triggering_events: tuple[TraceEvent, ...] = ()   # events that fired this match
 
 
 @dataclass(frozen=True)
@@ -105,6 +120,9 @@ def parse_trace(raw: str | dict | list) -> TraceInput:
         return parse_trace(parsed)
 
     if isinstance(raw, list):
+        # Claude Code tool execution log: list of records with tool_name key
+        if raw and isinstance(raw[0], dict) and "tool_name" in raw[0]:
+            return _parse_claude_code_tool_log(raw)
         return _parse_history(raw)
 
     if not isinstance(raw, dict):
@@ -428,19 +446,30 @@ class _RawSignal:
     failure_mode_id: int
     confidence: float
     evidence: str
+    triggering_events: list[TraceEvent] = field(default_factory=list)
 
 
 def match_signals(events: tuple[TraceEvent, ...]) -> tuple[_RawSignal, ...]:
     """
     Deterministic signal matching. Returns candidates sorted by confidence desc.
-    Each matched §N appears at most once (highest confidence wins across events).
+    Each matched §N appears at most once; triggering_events accumulates all
+    events that fired the signal across the full trace.
     """
     best: dict[int, _RawSignal] = {}
 
     def _keep(sig: _RawSignal) -> None:
         existing = best.get(sig.failure_mode_id)
-        if existing is None or sig.confidence > existing.confidence:
+        if existing is None:
             best[sig.failure_mode_id] = sig
+        else:
+            # Accumulate all triggering events regardless of confidence ordering
+            for e in sig.triggering_events:
+                if e not in existing.triggering_events:
+                    existing.triggering_events.append(e)
+            # Upgrade confidence and evidence if this signal is stronger
+            if sig.confidence > existing.confidence:
+                existing.confidence = sig.confidence
+                existing.evidence = sig.evidence
 
     # Check each event individually
     for event in events:
@@ -453,58 +482,58 @@ def match_signals(events: tuple[TraceEvent, ...]) -> tuple[_RawSignal, ...]:
             has_prompt = any(p.search(combined) for p in _INTERACTIVE_PATTERNS)
             has_pager = any(p.search(stdout) for p in _PAGER_PATTERNS)
             if has_prompt or has_pager:
-                _keep(_RawSignal(10, 0.95, "timeout + interactive prompt or pager indicator detected"))
+                _keep(_RawSignal(10, 0.95, "timeout + interactive prompt or pager indicator detected", [event]))
             else:
                 # §11 — Timeouts (timeout without clear interactive prompt)
-                _keep(_RawSignal(11, 0.85, f"exit_code=124 (timeout) with no interactive prompt"))
+                _keep(_RawSignal(11, 0.85, f"exit_code=124 (timeout) with no interactive prompt", [event]))
 
         if not event.timed_out:
             for pat in _INTERACTIVE_PATTERNS:
                 if pat.search(combined):
-                    _keep(_RawSignal(10, 0.90, f"interactive prompt pattern in output: {pat.pattern!r}"))
+                    _keep(_RawSignal(10, 0.90, f"interactive prompt pattern in output: {pat.pattern!r}", [event]))
                     break
 
         # §10 — TTY-requirement errors (explicit "requires a TTY"-style messages in stderr or stdout)
         for pat in _TTY_REQUIREMENT_PATTERNS:
             if pat.search(combined):
-                _keep(_RawSignal(10, 0.95, f"TTY-requirement error: {pat.pattern!r}"))
+                _keep(_RawSignal(10, 0.95, f"TTY-requirement error: {pat.pattern!r}", [event]))
                 break
 
         # §43 — Output unboundedness (large stdout)
         if len(stdout) > 50_000:
             conf = min(0.95, 0.75 + (len(stdout) - 50_000) / 200_000)
-            _keep(_RawSignal(43, conf, f"stdout size {len(stdout):,} chars exceeds 50 KB"))
+            _keep(_RawSignal(43, conf, f"stdout size {len(stdout):,} chars exceeds 50 KB", [event]))
 
         # §68 — Stdout pollution: ANSI codes in stdout
         if _ANSI_RE.search(stdout):
-            _keep(_RawSignal(68, 0.90, "ANSI escape sequences detected in stdout"))
+            _keep(_RawSignal(68, 0.90, "ANSI escape sequences detected in stdout", [event]))
         # ANSI in stderr only is a lower-confidence §68 signal
         elif _ANSI_RE.search(stderr):
-            _keep(_RawSignal(68, 0.65, "ANSI escape sequences detected in stderr"))
+            _keep(_RawSignal(68, 0.65, "ANSI escape sequences detected in stderr", [event]))
 
         # §38 — Runtime version mismatch
         for pat in _VERSION_PATTERNS:
             if pat.search(combined):
-                _keep(_RawSignal(38, 0.85, f"runtime version mismatch pattern: {pat.pattern!r}"))
+                _keep(_RawSignal(38, 0.85, f"runtime version mismatch pattern: {pat.pattern!r}", [event]))
                 break
 
         # §52 — Command tree discovery failure
         for pat in _DISCOVERY_PATTERNS:
             if pat.search(combined):
-                _keep(_RawSignal(52, 0.85, f"command discovery failure: {pat.pattern!r}"))
+                _keep(_RawSignal(52, 0.85, f"command discovery failure: {pat.pattern!r}", [event]))
                 break
 
         # §53 — Credential / auth expiry
         for pat in _CREDENTIAL_PATTERNS:
             if pat.search(combined):
-                _keep(_RawSignal(53, 0.85, f"credential/auth signal: {pat.pattern!r}"))
+                _keep(_RawSignal(53, 0.85, f"credential/auth signal: {pat.pattern!r}", [event]))
                 break
 
         # §56 — Pipeline exit masking: exit 0 but error-like stderr
         if event.exit_code == 0 and stderr.strip():
             error_words = ("error", "fail", "exception", "traceback", "panic", "fatal")
             if any(w in stderr.lower() for w in error_words):
-                _keep(_RawSignal(56, 0.75, "exit_code=0 but stderr contains error-like content"))
+                _keep(_RawSignal(56, 0.75, "exit_code=0 but stderr contains error-like content", [event]))
 
     # Cross-event signals (require full event list)
     _keep_retry_signal(events, best)
@@ -540,6 +569,7 @@ def _keep_retry_signal(
             0.90,
             f"{cmd_str!r} called {len(group)}× all returning exit_code≠0 with no "
             f'"retryable" field — agent is looping without retry guidance',
+            list(group),
         )
         existing = best.get(19)
         if existing is None or sig.confidence > existing.confidence:
@@ -557,6 +587,7 @@ def _keep_discovery_loop_signal(
             52,
             0.92,
             f"agent called --help {len(help_calls)}× — schema not available in one call",
+            list(help_calls),
         )
         existing = best.get(52)
         if existing is None or sig.confidence > existing.confidence:
@@ -721,6 +752,7 @@ def classify_with_llm(
                 spec_link=spec_link,
                 limitation=limitation,
                 source=source,
+                triggering_events=tuple(raw_sig.triggering_events),
             ))
 
     return tuple(sorted(results, key=lambda m: m.confidence, reverse=True))
@@ -781,6 +813,7 @@ def _deterministic_match(
     challenges_dir: Path,
 ) -> SignalMatch:
     """Build a SignalMatch for a high-confidence deterministic hit without LLM."""
+    evts = tuple(raw_sig.triggering_events)
     try:
         challenge = _load_challenge(raw_sig.failure_mode_id, challenges_dir)
         return SignalMatch(
@@ -795,6 +828,7 @@ def _deterministic_match(
             spec_link=challenge.spec_link,
             limitation=challenge.limitation,
             source="deterministic",
+            triggering_events=evts,
         )
     except FileNotFoundError:
         return SignalMatch(
@@ -809,6 +843,7 @@ def _deterministic_match(
             spec_link="",
             limitation="",
             source="deterministic",
+            triggering_events=evts,
         )
 
 
@@ -904,28 +939,142 @@ def _summarize(events: tuple[TraceEvent, ...]) -> str:
 
 
 # ---------------------------------------------------------------------------
+# File loading helpers
+# ---------------------------------------------------------------------------
+
+def _load_history_file(path: Path) -> str | dict | list:
+    """Load a history file — handles JSON array, JSON object, and JSONL."""
+    text = path.read_text(encoding="utf-8")
+    # Try standard JSON first
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+    # Try JSONL: one JSON object per non-empty line
+    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    records = []
+    for line in lines:
+        try:
+            records.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    if records:
+        return records
+    raise ValueError(f"cannot parse {path} as JSON or JSONL")
+
+
+def _parse_claude_code_tool_log(records: list) -> TraceInput:
+    """
+    Parse Claude Code PostToolUse hook logs — one record per tool call.
+    Expected keys: tool_name, tool_input {command}, tool_response {stdout, stderr, interrupted}
+    """
+    call_counts: dict[tuple[str, tuple[str, ...]], int] = {}
+    events: list[TraceEvent] = []
+
+    for rec in records:
+        if not isinstance(rec, dict):
+            continue
+        if rec.get("tool_name") != "Bash":
+            continue
+        inp = rec.get("tool_input") or {}
+        resp = rec.get("tool_response") or {}
+        if not isinstance(inp, dict) or not isinstance(resp, dict):
+            continue
+
+        command = str(inp.get("command", ""))
+        stdout = str(resp.get("stdout", ""))
+        stderr = str(resp.get("stderr", ""))
+        interrupted = bool(resp.get("interrupted", False))
+        exit_code = 124 if interrupted else _infer_exit_code(stdout, stderr)
+
+        # Skip self-referential events: commands that ran diagnose.py itself,
+        # or whose stdout is diagnose.py JSON output (schema_version key).
+        # These pollute the classifier with its own evidence strings.
+        if _is_self_referential(command, stdout):
+            continue
+
+        args: tuple[str, ...] = ()
+        key = (command, args)
+        call_counts[key] = call_counts.get(key, 0) + 1
+
+        events.append(TraceEvent(
+            command=command,
+            args=args,
+            stdout=stdout,
+            stderr=stderr,
+            exit_code=exit_code,
+            attempt=call_counts[key],
+            timed_out=interrupted,
+        ))
+
+    if not events:
+        return TraceInput(events=(_make_text_event(str(records)),), source_format="claude-code-tool-log")
+    return TraceInput(events=tuple(events), source_format="claude-code-tool-log")
+
+
+_SELF_REF_CMD_PATTERNS = re.compile(
+    r"diagnose\.py|fixlayer[_-]report|generate_report\.py",
+    re.IGNORECASE,
+)
+
+
+def _is_self_referential(command: str, stdout: str) -> bool:
+    """Return True when an event was produced by the classifier running itself."""
+    if _SELF_REF_CMD_PATTERNS.search(command):
+        return True
+    # stdout that starts with our DiagnoseResult JSON schema
+    stripped = stdout.lstrip()
+    if stripped.startswith('{"schema_version"') or stripped.startswith("{\n  \"schema_version\""):
+        return True
+    return False
+
+
+def _infer_exit_code(stdout: str, stderr: str) -> int:
+    """Infer exit code from stdout/stderr content when not explicitly provided."""
+    combined = (stdout + "\n" + stderr).lower()
+    error_words = ("error", "failed", "exception", "traceback", "panic", "fatal", "no such file")
+    if any(w in combined for w in error_words):
+        return 1
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
-def _result_to_dict(result: DiagnoseResult) -> dict:
+def _event_to_explain_dict(e: TraceEvent) -> dict:
+    return {
+        "command": e.command,
+        "exit_code": e.exit_code,
+        "attempt": e.attempt,
+        "timed_out": e.timed_out,
+        "stderr_excerpt": e.stderr[:300] if e.stderr else "",
+        "stdout_excerpt": e.stdout[:300] if e.stdout else "",
+    }
+
+
+def _result_to_dict(result: DiagnoseResult, *, explain: bool = False) -> dict:
+    def _match_dict(m: SignalMatch) -> dict:
+        d: dict = {
+            "failure_mode_id": m.failure_mode_id,
+            "title": m.title,
+            "confidence": m.confidence,
+            "evidence": m.evidence,
+            "workaround": m.workaround,
+            "memory": m.memory,
+            "skill_patch": m.skill_patch,
+            "severity": m.severity,
+            "spec_link": m.spec_link,
+            "limitation": m.limitation,
+            "source": m.source,
+        }
+        if explain:
+            d["triggering_events"] = [_event_to_explain_dict(e) for e in m.triggering_events]
+        return d
+
     return {
         "schema_version": result.schema_version,
-        "matches": [
-            {
-                "failure_mode_id": m.failure_mode_id,
-                "title": m.title,
-                "confidence": m.confidence,
-                "evidence": m.evidence,
-                "workaround": m.workaround,
-                "memory": m.memory,
-                "skill_patch": m.skill_patch,
-                "severity": m.severity,
-                "spec_link": m.spec_link,
-                "limitation": m.limitation,
-                "source": m.source,
-            }
-            for m in result.matches
-        ],
+        "matches": [_match_dict(m) for m in result.matches],
         "no_match": result.no_match,
         "trace_insufficient": result.trace_insufficient,
         "suggested_context": list(result.suggested_context),
@@ -934,6 +1083,8 @@ def _result_to_dict(result: DiagnoseResult) -> dict:
 
 
 def main() -> None:
+    require_supported_python()
+
     parser = argparse.ArgumentParser(
         description="Classify a failed agent tool call against the CLI Agent Spec failure taxonomy"
     )
@@ -953,6 +1104,11 @@ def main() -> None:
         help="Enable LLM classification for ambiguous candidates (requires ANTHROPIC_API_KEY)",
     )
     parser.add_argument(
+        "--explain",
+        action="store_true",
+        help="Include triggering_events per match — shows which specific tool calls fired each §N",
+    )
+    parser.add_argument(
         "--challenges-dir",
         default=str(CHALLENGES_DIR),
         help=f"Path to challenges/ directory (default: {CHALLENGES_DIR})",
@@ -962,7 +1118,7 @@ def main() -> None:
     challenges_dir = Path(args.challenges_dir)
 
     if args.history:
-        raw: str | dict | list = json.loads(Path(args.history).read_text())
+        raw: str | dict | list = _load_history_file(Path(args.history))
     elif args.trace:
         raw = args.trace
     else:
@@ -980,7 +1136,7 @@ def main() -> None:
         client = anthropic.Anthropic(api_key=api_key)
 
     result = diagnose(raw, client=client, challenges_dir=challenges_dir)
-    print(json.dumps(_result_to_dict(result), indent=2))
+    print(json.dumps(_result_to_dict(result, explain=args.explain), indent=2))
 
     if result.trace_insufficient:
         sys.exit(2)

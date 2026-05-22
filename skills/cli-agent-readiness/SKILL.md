@@ -1,11 +1,14 @@
 ---
 name: cli-agent-readiness
-description: Score how proactively agent-ready a CLI is across five dimensions — documentation quality, self-description, pre-built integrations, setup reproducibility, and workflow coverage. Complements cli-agent-evaluate-batch (which scores what breaks) with a positive readiness score (what the CLI provides). Requires CLI access and evaluations/<cli>/environment.md from cli-agent-onboard.
-license: MIT
-compatibility: Requires access to the CLI being evaluated.
+description: Score how proactively agent-ready a CLI is across five dimensions — documentation quality, self-description, pre-built integrations, setup reproducibility, and workflow coverage. Complements cli-agent-evaluate-batch (which scores what breaks) with a positive readiness score (what the CLI provides). Requires CLI access and an environment profile from cli-agent-onboard.
 ---
 
 # CLI Agent Readiness — Proactive Readiness Score
+
+## Runtime requirements
+
+- Requires access to the CLI being evaluated
+- Requires `evaluations/<cli>/environment.md` from `cli-agent-onboard`
 
 Evaluate what a CLI provides to help agents succeed, not just what it avoids breaking.
 

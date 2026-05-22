@@ -1,11 +1,13 @@
 ---
 name: cli-agent-evaluate
 description: Evaluate a CLI tool against a single CLI Agent Spec failure mode. Runs the failure mode's check, scores 0–3, and provides an applicable agent workaround if the score is below 3. Use this for targeted single-failure-mode evaluation. For multi-failure-mode evaluation use cli-agent-evaluate-batch.
-license: MIT
-compatibility: Requires access to the CLI being evaluated.
 ---
 
 # CLI Agent Evaluate — Single Failure Mode
+
+## Runtime requirements
+
+- Requires access to the CLI being evaluated
 
 Evaluate a CLI tool against one failure mode from the CLI Agent Spec.
 

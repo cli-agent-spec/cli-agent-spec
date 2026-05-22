@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
 """
 FailSense PreToolUse hook for Claude Code.
 
@@ -41,13 +45,28 @@ import shlex
 import sys
 from pathlib import Path
 
+MIN_PYTHON = (3, 10)
+
 _SKILL_DIR = Path(__file__).parent
 sys.path.insert(0, str(_SKILL_DIR))
 
 from runner import preflight, PreflightAdvice  # noqa: E402
 
 
+def require_supported_python() -> None:
+    if sys.version_info < MIN_PYTHON:
+        required = ".".join(str(part) for part in MIN_PYTHON)
+        current = ".".join(str(part) for part in sys.version_info[:3])
+        print(
+            f"preflight_hook.py requires Python {required}+; current Python is {current}. Run it with `uv run` or a Python {required}+ interpreter.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
+
 def main() -> None:
+    require_supported_python()
+
     raw = sys.stdin.read().strip()
     if not raw:
         sys.exit(0)
