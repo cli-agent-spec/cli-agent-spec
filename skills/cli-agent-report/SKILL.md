@@ -50,6 +50,7 @@ All files live under `evaluations/<cli-name>/`:
 | `evaluations/<cli-name>/linkedin.md` | Write | `all` — LinkedIn post draft |
 | `evaluations/<cli-name>/x.md` | Write | `all` — X.com thread draft |
 | `docs/evaluations/<cli-name>/.pages` | Write | `all` — MkDocs awesome-pages sidebar config (title + nav order) |
+| `docs/evaluations/.pages` | Write | `all` — parent nav; `<cli>` appended in alphabetical order if absent |
 
 Single-mode runs (`dev`, `agent-dev`, `runtime`, `issues`) emit output to the conversation only — they never write files. Only `all` writes files.
 
@@ -183,6 +184,8 @@ Print `✓ <filename> saved` after each file.
 
 Write `docs/evaluations/<cli>/.pages` from `templates/pages.yaml`, substituting `{{CLI}}` with the CLI name. Create `docs/evaluations/<cli>/` if it does not exist. Print `✓ docs/evaluations/<cli>/.pages saved`.
 
+Read `docs/evaluations/.pages`. If `<cli>` is not already present in the `nav:` list, append it in alphabetical order among the directory entries (after `index.md`). Write the file back. Print `✓ docs/evaluations/.pages updated`.
+
 #### Step B — Generate the index file
 
 Fill `templates/report-index.md` and save as `evaluations/<cli>/report-index.md`.
@@ -220,6 +223,7 @@ Files written:
   evaluations/<cli>/linkedin.md           ← gitignored, local use only
   evaluations/<cli>/x.md                  ← gitignored, local use only
   docs/evaluations/<cli>/.pages           ← MkDocs sidebar config
+  docs/evaluations/.pages                ← parent nav updated
 
 <N files overwritten: list filenames that already existed and were replaced — omit line if none>
 

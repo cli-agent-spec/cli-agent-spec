@@ -2,5 +2,7 @@ title: Evaluations
 nav:
   - index.md
   - docuseal
+  - dokploy
   - gh
   - gws
+  - langfuse

@@ -9,6 +9,7 @@ Real-world CLI tools evaluated against the CLI Agent Spec — scored across crit
 | [docuseal](docuseal/README.md) | 1.0.3 | 0.72/3 | 7/15 [C] | All (71 of 71) |
 | [gh](gh/README.md) | 2.88.1 | 1.8/3 | 7/15 [D] | Critical (13 of 71) |
 | [gws](gws/README.md) | 0.22.5 | 1.23/3 | 7/15 [C] | Critical (22 of 71) |
+| [dokploy](dokploy/README.md) | 0.3.0 | 1.1/3 | 7/15 [C] | Critical (22 of 71) |
 | [langfuse](langfuse/README.md) | 0.0.10 | 1.4/3 | 9/15 [C] | Critical (22 of 71) |
 
 ## How Evaluations Work

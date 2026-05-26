@@ -12,6 +12,7 @@ This file documents where each challenge came from, how confident the source is,
 | **TD** | Training data pattern | Absorbed from GitHub issues, blog posts, Stack Overflow, CLI library docs, forum threads during training | Medium (anecdotal, unverifiable) |
 | **RA** | Research artifact | Read from specific real source code, docs, or spec during this project's research phase | High (verifiable) |
 | **TD+FP** | Both | Attested in training data AND independently derivable from first principles | Very High |
+| **EP** | Empirical publication | Quantitative evidence from a peer-reviewed or pre-print research paper; claims are reproducible and verifiable by reference | High (verifiable, quantitative) |
 
 ---
 
@@ -175,4 +176,27 @@ Discovered by reviewing two external agent-native CLI projects.
 
 ---
 
-*Written 2026-03-13. Revised 2026-03-13: §36, §39, §48 marked merged; confidence counts corrected to 30/18/17; personal paths removed; active links added. Revised 2026-03-19: §69 added. Revised 2026-03-26: §70 added. Revised 2026-05-07: §71 (FP), §72 (FP), §73 (FP) added; active total updated to 70. Revised 2026-05-07: §74 (FP) added; active total updated to 71. Revised 2026-05-09: §75 (FP) added; active total updated to 72. Covers CLI Agent Spec v1.7 — 72 active challenges (75 original, 3 merged).*
+## Empirical Publication Sources
+
+The following peer-reviewed or pre-print papers provide **quantitative evidence** for challenges in this spec. EP sources strengthen existing challenge entries without replacing their primary source category — they add measured effect sizes where the spec previously had only structural or anecdotal evidence.
+
+### SkillOpt: Executive Strategy for Self-Evolving Agent Skills
+
+**Citation:** Yang et al., Microsoft Research + Shanghai Jiao Tong / Tongji / Fudan universities. arXiv:2605.23904, May 2026.
+
+**What it measures:** Performance gains from optimized skill documents across 6 benchmarks, 7 target models, and 3 execution harnesses (direct chat, Codex CLI, Claude Code). 52/52 best-or-tied evaluated cells.
+
+**Challenges it provides EP-level evidence for:**
+
+| Challenge | What SkillOpt measures | Effect |
+|---|---|---|
+| [§44 Agent Knowledge Packaging Absence](01-critical-ecosystem-runtime-agent-specific/44-medium-knowledge-packaging.md) | Zero-shot frontier models vs. optimized-skill frontier models on procedural benchmarks — the gap is the cost of missing knowledge | GPT-5.5: 33–42% no-skill → 67–81% with optimized skill on SpreadsheetBench, OfficeQA, LiveMathBench |
+| [§2 Output Format & Parseability](04-critical-output-and-parsing/02-critical-output-format.md) | CLIs with automatic verifiers (parseable exit codes + structured output) support a held-out gate that produces stable gains; CLIs without them cannot train | The validation gate is the single most impactful SkillOpt component; removing it collapses training |
+| [§4 Verbosity & Token Cost](04-critical-output-and-parsing/04-medium-verbosity.md) | Training cost per test-point gain varies by an order of magnitude with trajectory length | SearchQA (longer trajectories): 37.9M tokens/point; SpreadsheetBench (shorter): 0.6M tokens/point |
+| [§18 Error Message Quality](06-high-errors-and-discoverability/18-high-error-quality.md) | Failure minibatches are the primary source of useful edits; the optimizer identifies recurring error patterns and encodes procedures to avoid them | Removing the rejected-edit buffer (which captures recurring failure patterns) costs 4.6 points on SpreadsheetBench |
+
+**The partition SkillOpt reveals:** challenges split into *behavioral* (can be partially remediated by a well-trained skill) and *structural* (abort rollouts before any trajectory is logged). §10, §11, §25, §34, §45, §60 are structural — no amount of skill optimization can work around them. This partition is now documented in `guides/skill-optimizable-design.md`.
+
+---
+
+*Written 2026-03-13. Revised 2026-03-13: §36, §39, §48 marked merged; confidence counts corrected to 30/18/17; personal paths removed; active links added. Revised 2026-03-19: §69 added. Revised 2026-03-26: §70 added. Revised 2026-05-07: §71 (FP), §72 (FP), §73 (FP) added; active total updated to 70. Revised 2026-05-07: §74 (FP) added; active total updated to 71. Revised 2026-05-09: §75 (FP) added; active total updated to 72. Revised 2026-05-26: EP source category added; SkillOpt (arXiv:2605.23904) added as EP source for §44, §2, §4, §18. Covers CLI Agent Spec v1.7 — 72 active challenges (75 original, 3 merged).*

@@ -8,7 +8,7 @@ Researched March 2026.
 
 ## Overview
 
-No single existing solution addresses the full scope of the agent-CLI integration problem. The landscape fragments into four distinct layers:
+No single existing solution addresses the full scope of the agent-CLI integration problem. The landscape fragments into six distinct layers:
 
 | Layer | What it addresses | Representative solutions |
 |---|---|---|
@@ -17,8 +17,9 @@ No single existing solution addresses the full scope of the agent-CLI integratio
 | Wrapper | How existing CLI tools are made machine-readable post-hoc | jc, jq, Nushell, PowerShell |
 | Convention | Informal checklists for CLI authors | better-cli, DEV Community guides |
 | Audit | Post-hoc reliability classification of production agent traces | EvidenceRun |
+| Optimization | How agents adaptively learn to use existing CLIs | SkillOpt |
 
-CLI Agent Spec occupies a sixth layer — **behavioral contract specification** — that none of these approaches formally addresses.
+CLI Agent Spec occupies a seventh layer — **behavioral contract specification** — that none of these approaches formally addresses.
 
 ---
 
@@ -357,7 +358,82 @@ EvidenceRun is post-hoc audit; this spec is design-time prevention. EvidenceRun 
 
 ---
 
-## 7. Universal Gaps
+## 7. SkillOpt — Text-Space Skill Optimization
+
+**Source:** arXiv:2605.23904 — "SkillOpt: Executive Strategy for Self-Evolving Agent Skills" (Yang et al., Microsoft Research + Shanghai Jiao Tong / Tongji / Fudan universities, May 2026)
+
+### What it is
+
+SkillOpt is the first systematic text-space optimizer for agent skills. Rather than modifying model weights or wrapping CLIs in new protocols, it treats a compact natural-language *skill document* as the trainable state of a frozen agent. A separate optimizer model converts scored execution trajectories into bounded `add`/`delete`/`replace` edits on the skill document; a held-out validation gate accepts an edit only if it strictly improves performance on a disjoint selection split. The deployed output is a single `best_skill.md` file — 300–2,000 tokens, assembled from a median of 2.5 accepted edits across the entire optimization run.
+
+The training loop deliberately mirrors deep-learning optimizer design:
+
+| DL concept | SkillOpt equivalent |
+|---|---|
+| Mini-batch | Rollout batch of scored trajectories |
+| Learning rate | Edit budget `Lₜ` — maximum edits applied per step |
+| Validation / early stopping | Held-out selection gate (strict improvement required; ties rejected) |
+| Momentum | Epoch-wise slow update in a protected `<!-- SLOW_UPDATE -->` markup region |
+| Negative replay buffer | Rejected-edit buffer — failed edits recycled as negative feedback for later steps |
+
+Each component is ablated. Removing bounded edits costs up to 22.5 points on SpreadsheetBench; removing the slow/meta update costs the same. The gains are robust to rollout batch size, reflection minibatch size, and learning-rate schedule — but sensitive to the presence of bounded text-space learning and validation gating.
+
+### What it requires of CLIs
+
+SkillOpt's training loop requires three prerequisites from any CLI it optimizes against:
+
+**1. Automatic verifiers.** The held-out validation gate requires a reliable scalar success signal. Exit codes and output must be machine-interpretable without external oracles. A CLI where "success" requires reading human-formatted text and making a judgment call cannot support automatic validation gating — the optimizer learns from ambiguous signal and produces unstable skills. This maps directly to §1 (Exit Code Taxonomy) and §2 (Output Format).
+
+**2. Deterministic, bounded output.** Non-deterministic output (§7) produces contradictory evidence batches — the optimizer may learn opposite rules from identical underlying behavior. Unbounded output (§43) inflates training cost: SearchQA already costs 213M tokens at 37.9M tokens per test-point gain.
+
+**3. Harness-agnostic behavior.** The cross-harness transfer results show that skills trained in Codex can outperform skills trained natively in Claude Code. A SpreadsheetBench skill trained entirely inside the Codex execution harness transferred to Claude Code with a +59.7 point gain — slightly exceeding the in-domain Claude Code SkillOpt score of 80.4. The transferred rules are workbook-level procedures ("inspect structure before writing", "write evaluated static values, not formula references") — not harness-specific command sequences. CLIs whose correct usage depends on execution-environment conventions (env vars the harness happens to set, TTY state, workspace layout) produce non-transferable knowledge.
+
+### What it can and cannot address
+
+SkillOpt ameliorates *behavioral* failure modes: procedures, output format expectations, error interpretation, search discipline. It cannot address *structural* failure modes, which abort rollouts before any trajectory is logged:
+
+| SkillOpt can learn around | SkillOpt cannot fix |
+|---|---|
+| §2 Unstructured output — learns format rules from failures | §10 TTY deadlock — rollout never completes |
+| §4 Verbose output — optimizer selects compact procedures | §11 Hanging process — rollout exceeds training budget |
+| §18 Poor error quality — learns to interpret error patterns | §25 Prompt injection — CLI-side output trust boundary |
+| §21 Schema discoverability — can learn to probe `--help` | §34 Shell injection — CLI input validation issue |
+| §44 Missing knowledge packaging — the optimized skill IS the knowledge | §45 Headless auth deadlock — structural TTY block |
+
+This partition maps to a useful design principle: structural failure modes are the prerequisite layer that spec compliance must eliminate before skill optimization becomes effective.
+
+### Key empirical results
+
+Across 6 benchmarks, 7 target models, and 3 execution harnesses (direct chat, Codex CLI, Claude Code), SkillOpt is best or tied-best on all 52 evaluated (model × benchmark × harness) cells. The gains are largest on procedural benchmarks where reusable format and tool-use rules matter most:
+
+| Benchmark | GPT-5.5 no skill | GPT-5.5 SkillOpt | Gain | Accepted edits |
+|---|---|---|---|---|
+| SpreadsheetBench | 41.8 | 80.7 | +38.9 | 4 |
+| OfficeQA | 33.1 | 72.1 | +39.0 | 1 |
+| LiveMathBench | 37.6 | 66.9 | +29.3 | 1 |
+| DocVQA | 78.8 | 91.2 | +12.4 | 3 |
+| SearchQA | 77.7 | 87.3 | +9.6 | 4 |
+| ALFWorld | 83.6 | 95.5 | +11.9 | 2 |
+
+The edit economy finding is striking: OfficeQA gains +39.0 points from a single accepted edit. The validation gate rejects the majority of what the optimizer proposes; the deployed skill is the tip of a discarded iceberg.
+
+These results provide the first quantitative measure of the performance gap attributable to missing procedural knowledge (§44): zero-shot frontier models reach 33–42% accuracy on procedural benchmarks; SkillOpt-trained skills reach 67–81%.
+
+### Relationship to this spec
+
+**Complementary — optimization layer above spec.** This spec defines behavioral contracts CLIs must satisfy; SkillOpt is a training method for producing knowledge artifacts that help agents use conformant CLIs correctly. The two address sequential parts of the same problem:
+
+1. A CLI that violates the spec (interactive prompts, ambiguous exit codes, unstructured output) blocks SkillOpt's rollout loop — structural failure modes abort training before any trajectory is logged
+2. A CLI that satisfies the spec provides the stable, verifiable behavior that SkillOpt's validation gate requires
+3. SkillOpt then discovers the domain-semantic procedures the spec's requirements alone cannot encode: search heuristics, formula-evaluation discipline, answer-format constraints, tool-use sequencing
+
+The spec is the prerequisite; SkillOpt is a consumer of conformant CLIs that produces portable knowledge artifacts from execution evidence. Together they form a complete adaptation stack: spec compliance removes structural blockers; skill optimization discovers reusable procedures; the exported `best_skill.md` deploys across models and harnesses without further training.
+
+**On §44 specifically:** SkillOpt produces exactly the kind of artifact §44 identifies as missing. The spec defines the problem (agents cannot infer domain heuristics from `--help`); SkillOpt provides a training-loop answer. The two are not in competition — the spec defines what the artifact must encode; SkillOpt provides a systematic method for producing it.
+
+---
+
+## 8. Universal Gaps
 
 The following 23 challenges have **zero** native implementations across all 12 evaluated solutions, including MCP. They represent the genuinely novel territory this spec addresses:
 
@@ -407,6 +483,7 @@ The following 23 challenges have **zero** native implementations across all 12 e
 | better-cli | Informal checklist | Write CLI following rules | No enforcement, no schemas, no tiered contracts | Informal predecessor of same problem space |
 | EgisAI | 0% (different layer) | Add `egisai.init()` to agent code | CLI behavioral contracts entirely | Complementary — agent-side governance |
 | EvidenceRun | N/A (audit taxonomy) | Instrument one agent workflow for tracing | Post-hoc only — no prevention mechanism; no structural enforcement at CLI or protocol layer | Complementary — post-hoc audit taxonomy vs. design-time behavioral contracts |
+| SkillOpt | Behavioral failure modes only (structural modes abort rollouts) | CLI with automatic verifiers + deterministic output + harness-agnostic behavior | Cannot fix §10/§11/§25/§34/§45; requires training budget | Complementary — optimization layer above spec |
 
 ---
 
@@ -456,3 +533,9 @@ The following 23 challenges have **zero** native implementations across all 12 e
 | "CLI is the new MCP" benchmark data (2026) | *(multiple blog posts; no single canonical source)* | 35× token efficiency, 33% task completion rate comparisons |
 | Lambda AI — Tool-Calling Token Distillation (May 2026) | https://lambda.ai/blog/creating-highly-efficient-agents-450m-tool-calling-tokens-distilled-for-post-training-from-top-open-source-models | 450M-token Hermes Agent harness dataset; 20 turns/sample, 10–15 tools/turn — scale evidence for agent-tool interaction volume |
 | MCP GitHub server token analysis | *(derived from tools/list inspection of `github/github-mcp-server`)* | 93 tools = ~55,000 tokens at init |
+
+### Research papers
+
+| Source | URL | Relevance |
+|---|---|---|
+| SkillOpt: Executive Strategy for Self-Evolving Agent Skills | https://arxiv.org/abs/2605.23904 | First quantitative measurement of performance gap from missing procedural knowledge (§44); empirical evidence for §2/§4/§18 prerequisites; cross-harness transfer results; 52/52 best-or-tied across model × benchmark × harness |
