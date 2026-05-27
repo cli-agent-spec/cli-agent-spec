@@ -79,6 +79,24 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 ---
 
+## Where this fits
+
+The field is converging on **Agent Experience (AX)** as the term for "how well is a system designed to be consumed by an AI agent" — the machine-facing analog of Developer Experience (DX) or User Experience (UX). It applies across APIs, databases, SDKs, web services, and CLIs.
+
+This spec is AX research applied to the CLI layer. CLIs are the most underserved slice of the problem: they are the primary interface through which agents interact with infrastructure, but they were designed for human terminal sessions. The gap between CLI defaults and agent requirements is where the 73 failure modes live.
+
+**What distinguishes this project from other AX work:**
+
+- **It names failure** — most AX guidance is prescriptive ("do this"). The failure mode taxonomy is a named, scored, reproducible catalog of what goes wrong and why, making automated evaluation possible
+- **It formalizes retry semantics** — the `retryable: true` / `side_effects: "none"` pairing in `ExitCodeEntry` encodes agent-safe re-execution as a machine-checkable constraint, which we have not seen formalized elsewhere at this precision
+- **It operates at the implementation layer** — requirements have acceptance criteria, schemas have typed wire formats, and evaluation rubrics score 0–3. The output is designed to generate code, not frame discussions
+
+**Relation to MCP.** Anthropic's [Model Context Protocol](https://modelcontextprotocol.io) defines a transport and capability-discovery layer between agents and tools. This spec defines the behavioral contracts for what a tool must do once invoked. The two are complementary.
+
+**What this spec does not yet cover.** Streaming output ergonomics for agents: partial JSON, progress tokens, and incremental structured data from long-running commands. This remains an open AX problem for CLIs.
+
+---
+
 ## Start here
 
 **I want to understand the problem** → [`challenges/index.md`](challenges/index.md) — browse by severity. Start with §10 (interactive blocking), §43 (output size), §50 (stdin deadlock), §62 (editor trap).

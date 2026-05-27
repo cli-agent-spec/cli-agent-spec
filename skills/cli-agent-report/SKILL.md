@@ -182,7 +182,13 @@ Run `dev`, `agent-dev`, `runtime`, and `issues` modes using the pre-loaded artif
 
 Print `✓ <filename> saved` after each file.
 
-Write `docs/evaluations/<cli>/.pages` from `templates/pages.yaml`, substituting `{{CLI}}` with the CLI name. Create `docs/evaluations/<cli>/` if it does not exist. Print `✓ docs/evaluations/<cli>/.pages saved`.
+Write `docs/evaluations/<cli>/.pages` with exactly this content, substituting the actual CLI name for `<cli-name>`. Create `docs/evaluations/<cli>/` if it does not exist. Print `✓ docs/evaluations/<cli>/.pages saved`.
+
+```yaml
+title: <cli-name>
+nav:
+  - README.md
+```
 
 Read `docs/evaluations/.pages`. If `<cli>` is not already present in the `nav:` list, append it in alphabetical order among the directory entries (after `index.md`). Write the file back. Print `✓ docs/evaluations/.pages updated`.
 
