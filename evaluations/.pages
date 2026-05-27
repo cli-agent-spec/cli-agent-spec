@@ -3,6 +3,7 @@ nav:
   - index.md
   - docuseal
   - dokploy
+  - firecrawl
   - gh
   - gws
   - langfuse

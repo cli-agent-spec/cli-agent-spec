@@ -48,7 +48,7 @@ All files live under `evaluations/<cli-name>/`:
 | `evaluations/<cli-name>/report-index.md` | Write | `all` — index linking all four reports |
 | `evaluations/<cli-name>/README.md` | Write | `all` — entry point: summary, key findings, file directory |
 | `evaluations/<cli-name>/linkedin.md` | Write | `all` — LinkedIn post draft |
-| `evaluations/<cli-name>/x.md` | Write | `all` — X.com thread draft |
+| `evaluations/<cli-name>/x.md` | Write | `all` — X Premium long-form post draft |
 | `docs/evaluations/<cli-name>/.pages` | Write | `all` — MkDocs awesome-pages sidebar config (title + nav order) |
 | `docs/evaluations/.pages` | Write | `all` — parent nav; `<cli>` appended in alphabetical order if absent |
 
@@ -187,7 +187,7 @@ Write `docs/evaluations/<cli>/.pages` with exactly this content, substituting th
 ```yaml
 title: <cli-name>
 nav:
-  - README.md
+  - <cli-name>: README.md
 ```
 
 Read `docs/evaluations/.pages`. If `<cli>` is not already present in the `nav:` list, append it in alphabetical order among the directory entries (after `index.md`). Write the file back. Print `✓ docs/evaluations/.pages updated`.
@@ -210,7 +210,7 @@ Fill `templates/README.md` and save as `evaluations/<cli>/README.md`.
 
 Fill `templates/linkedin.md` and save as `evaluations/<cli>/linkedin.md`. All format rules are embedded in the template as HTML comments — follow them exactly.
 
-#### Step E — Generate the X.com thread
+#### Step E — Generate the X Premium post
 
 Fill `templates/x.md` and save as `evaluations/<cli>/x.md`. All format rules are embedded in the template as HTML comments — follow them exactly.
 
