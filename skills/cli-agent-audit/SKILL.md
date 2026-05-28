@@ -209,6 +209,8 @@ Delegate to `cli-agent-report mode=all`. Pass the same CLI name. The report skil
 
 The report skill produces all 8 files. Print `✓` as each file is saved (the report skill already does this).
 
+After report generation, require the report skill's bundle validation to pass before Phase 5 is considered complete. If `scripts/validate_report_bundle.py evaluations/<cli> --cli <cli>` reports errors, fix the reported artifacts by applying the `cli-agent-report` templates exactly, rerun validation, and only then continue to Phase 6.
+
 If the report helper exits non-zero, do not freehand a report from memory. Re-run with a supported Python interpreter when the error is a runtime mismatch. If manual completion is still required, apply the `cli-agent-report` templates exactly and preserve every template rule.
 
 ---

@@ -214,7 +214,21 @@ Fill `templates/linkedin.md` and save as `evaluations/<cli>/linkedin.md`. All fo
 
 Fill `templates/x.md` and save as `evaluations/<cli>/x.md`. All format rules are embedded in the template as HTML comments — follow them exactly.
 
-#### Step F — Print completion summary
+#### Step F — Validate the bundle
+
+Run:
+
+```bash
+python3 scripts/validate_report_bundle.py evaluations/<cli> --cli <cli>
+```
+
+The validator checks that required report files exist, `findings.md` has parseable scores, and `x.md` preserves the X Premium template contract: title, copy instructions, post boundaries, no unreplaced `{{PLACEHOLDER}}` values, findings-derived counts, report-link placeholder, one long-form post shape, and target length.
+
+If validation fails, stop and fix the reported artifact(s). Do not print the completion summary or claim the bundle is complete until validation passes.
+
+Print `✓ report bundle validation passed`.
+
+#### Step G — Print completion summary
 
 ```
 ## Bundle complete — <cli>
@@ -248,4 +262,5 @@ Next steps:
 - Single-mode runs (`dev`, `agent-dev`, `runtime`, `issues`) never write files — output to conversation only
 - `all` mode writes nine files (4 reports + index + README + linkedin + x + .pages); linkedin and x are gitignored and for local use only — do not reference them in the README Files table; if any file already exists, overwrite it and note the overwrite in the completion summary
 - LinkedIn and X post content must be grounded in actual findings — do not invent scores, bugs, or counts
+- `all` mode must run `scripts/validate_report_bundle.py` after writing artifacts and before completion; validator failure is a report helper failure
 - If helper execution fails, do not improvise alternate report structure; use the templates exactly or stop with the actionable helper error
