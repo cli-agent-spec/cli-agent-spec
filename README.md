@@ -75,7 +75,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 | [`IMPLEMENTING.md`](IMPLEMENTING.md) | Implementation guide: wave-based order, goal-based paths, invariants, codegen |
 | [`comparison-matrix.md`](comparison-matrix.md) | 73 failure modes × 12 frameworks coverage table |
 | [`research/`](research/index.md) | Per-framework analysis and competitive landscape (MCP, OpenAPI, function calling) |
-| [`skills/`](skills/README.md) | Agent skills for evaluating CLIs and guiding implementation |
+| [`skills/`](skills.md) | Agent skills for evaluating CLIs and guiding implementation |
 
 ---
 
