@@ -201,7 +201,7 @@ Single-mode `cli-agent-report` runs (`dev`, `agent-dev`, `runtime`, `issues`) em
 
 **Flags:** `--skip-install`, `--skip-readiness`, `--refresh`.
 
-**Artifacts produced:** 13 files under `evaluations/<cli>/` — see [cli-agent-audit SKILL.md](../skills/cli-agent-audit/SKILL.md) for the full table.
+**Artifacts produced:** 13 files under `evaluations/<cli>/` — see the `cli-agent-audit` SKILL.md for the full table.
 
 ---
 
