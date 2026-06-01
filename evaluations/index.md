@@ -14,6 +14,7 @@ Real-world CLI tools evaluated against the CLI Agent Spec — scored across crit
 | [firecrawl](firecrawl/README.md) | 1.18.1 | 0.48/3 | 7/15 [C] | Critical (22 of 71) |
 | [omd](omd/README.md) | 0.1.1 | 1.5/3 | 12/15 [B] | Critical (22 of 71) |
 | [shopify](shopify/README.md) | @shopify/cli 4.1.0 | 0.6/3 | 6/15 [D] | Critical (22 of 71) |
+| [hevn](hevn/README.md) | hevn-cli 0.1.0 | 0.9/3 | 7/15 [C] | Critical (22 of 71) |
 
 ## How Evaluations Work
 
