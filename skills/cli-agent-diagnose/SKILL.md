@@ -130,6 +130,19 @@ Discarding either leaves future sessions exposed to the same failure.
 
 ---
 
+## Scope
+
+This skill operates at the **tool execution layer only**.
+
+- **In scope**: failures where the agent called a tool and the tool call itself went wrong — wrong exit code, unresolved conflict left in the working tree, file not written, command not found, credential expired mid-call
+- **Out of scope**: agent reasoning failures, wrong answers, incorrect domain logic, task-completeness failures
+
+Workarounds are applied via `runner.py` (transparent subprocess wrapper) or `preflight_hook.py` / PostToolUse hooks — mechanisms that intercept tool calls at the execution boundary. They do **not** modify the agent's instruction, system prompt, or visible context.
+
+If the failure is a reasoning failure (agent produced the wrong output, wrong answer, wrong content), report `no_match` and do not attempt a workaround.
+
+---
+
 ## Rules
 
 - Always parse stdout as JSON regardless of exit code
@@ -137,6 +150,7 @@ Discarding either leaves future sessions exposed to the same failure.
 - For `trace_insufficient`: collect more context, then re-classify — do not loop on the same sparse trace
 - Use `--llm` only when all confidence scores are below 0.50; deterministic mode handles most common failures
 - If the user provides a prose description rather than a structured trace, construct the JSON yourself rather than asking them to format it
+- Never suggest changing the agent's instruction or system prompt as a workaround — only suggest tool-level fixes (hook, wrapper, flag)
 
 ---
 

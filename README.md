@@ -50,7 +50,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 **4 JSON schemas** — machine-readable type definitions for exit codes, response envelopes, tool manifests, and error details. Generate typed structs for your language directly from the schemas.
 
-**A comparison matrix** — 12 existing frameworks (argparse, Click, Cobra, Clap, Typer, Commander.js, and more) scored against all 71 failure modes. No framework exceeds 58%.
+**A comparison matrix** — 12 existing frameworks (argparse, Click, Cobra, Clap, Typer, Commander.js, and more) scored against all 73 failure modes. No framework exceeds 58%.
 
 ---
 
@@ -68,14 +68,14 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 | Path | Contents |
 |------|----------|
-| [`challenges/`](challenges/index.md) | 71 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround |
-| [`requirements/`](requirements/index.md) | 154 requirements with acceptance criteria, wire format, and examples |
+| [`challenges/`](challenges/index.md) | 73 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround |
+| [`requirements/`](requirements/index.md) | 155 requirements with acceptance criteria, wire format, and examples |
 | [`schemas/`](schemas/index.md) | JSON Schema draft-07 definitions for all 4 types |
 | [`guides/`](guides/index.md) | Design guides: positive conventions that cannot be expressed as enforceable requirements |
 | [`IMPLEMENTING.md`](IMPLEMENTING.md) | Implementation guide: wave-based order, goal-based paths, invariants, codegen |
-| [`comparison-matrix.md`](comparison-matrix.md) | 71 failure modes × 12 frameworks coverage table |
+| [`comparison-matrix.md`](comparison-matrix.md) | 73 failure modes × 12 frameworks coverage table |
 | [`research/`](research/index.md) | Per-framework analysis and competitive landscape (MCP, OpenAPI, function calling) |
-| [`skills/`](https://github.com/cli-agent-spec/cli-agent-spec/tree/master/skills) | Agent skills for evaluating CLIs and guiding implementation |
+| [`skills/`](skills/README.md) | Agent skills for evaluating CLIs and guiding implementation |
 
 ---
 
@@ -91,9 +91,9 @@ This spec is AX research applied to the CLI layer. CLIs are the most underserved
 - **It formalizes retry semantics** — the `retryable: true` / `side_effects: "none"` pairing in `ExitCodeEntry` encodes agent-safe re-execution as a machine-checkable constraint, which we have not seen formalized elsewhere at this precision
 - **It operates at the implementation layer** — requirements have acceptance criteria, schemas have typed wire formats, and evaluation rubrics score 0–3. The output is designed to generate code, not frame discussions
 
-**Relation to MCP.** Anthropic's [Model Context Protocol](https://modelcontextprotocol.io) defines a transport and capability-discovery layer between agents and tools. This spec defines the behavioral contracts for what a tool must do once invoked. The two are complementary.
+**Relation to MCP:** Anthropic's [Model Context Protocol](https://modelcontextprotocol.io) defines a transport and capability-discovery layer between agents and tools. This spec defines the behavioral contracts for what a tool must do once invoked. The two are complementary.
 
-**What this spec does not yet cover.** Streaming output ergonomics for agents: partial JSON, progress tokens, and incremental structured data from long-running commands. This remains an open AX problem for CLIs.
+**What this spec does not yet cover:** Streaming output ergonomics for agents: partial JSON, progress tokens, and incremental structured data from long-running commands. This remains an open AX problem for CLIs.
 
 ---
 
@@ -108,16 +108,19 @@ This spec is AX research applied to the CLI layer. CLIs are the most underserved
 
 **I want to evaluate my existing CLI** → use the agent skills below, or read [`challenges/checklist.md`](challenges/checklist.md) for a self-assessment.
 
+**I want to audit any interface for agent-friendliness** → the failure mode taxonomy applies beyond CLIs. REST APIs, SDKs, MCP servers, and RPC interfaces share the same failure categories: ambiguous error signaling (§1), interactive blocking (§10), missing machine-readable schemas (§21), over-verbose output (§43), credential leakage (§30). Use [`challenges/index.md`](challenges/index.md) as a lens and substitute "interface" for "CLI" — the problem statement holds. For subprocess-callable tools, run `cli-agent-audit` directly; for other interfaces, apply the `### Evaluation` rubrics manually against your integration layer.
+
 **I want to add a failure mode or requirement** → [`AGENTS.md`](AGENTS.md)
 
 ---
 
 ## Agent skills
 
-Four installable skills for [Agent Skills-compatible](https://agentskills.io) agents (Claude Code, Cursor, Gemini CLI, Copilot, and others):
+Installable skills for Agent Skills-compatible agents (Claude Code, Cursor, Gemini CLI, Copilot, and others):
 
 | Skill | Purpose |
 |-------|---------|
+| [`cli-agent-audit`](https://github.com/cli-agent-spec/cli-agent-spec/blob/master/skills/cli-agent-audit/SKILL.md) | Autonomous end-to-end pipeline: install → onboard → readiness → evaluate → report |
 | [`cli-agent-onboard`](https://github.com/cli-agent-spec/cli-agent-spec/blob/master/skills/cli-agent-onboard/SKILL.md) | Profile a CLI tool once — detects runtime, binary, flags, timeout method |
 | [`cli-agent-evaluate`](https://github.com/cli-agent-spec/cli-agent-spec/blob/master/skills/cli-agent-evaluate/SKILL.md) | Score a CLI against a single failure mode (0–3), with applicable agent workaround |
 | [`cli-agent-implement`](https://github.com/cli-agent-spec/cli-agent-spec/blob/master/skills/cli-agent-implement/SKILL.md) | Guide implementing the spec in a CLI framework, tier by tier |
@@ -125,6 +128,7 @@ Four installable skills for [Agent Skills-compatible](https://agentskills.io) ag
 
 ```bash
 # Install (run inside your agent)
+npx skills install romamo/cli-agent-spec/skills/cli-agent-audit
 npx skills install romamo/cli-agent-spec/skills/cli-agent-onboard
 npx skills install romamo/cli-agent-spec/skills/cli-agent-evaluate
 npx skills install romamo/cli-agent-spec/skills/cli-agent-implement
@@ -141,4 +145,4 @@ Before contributing, read [`AGENTS.md`](AGENTS.md) for conventions: file format,
 
 ---
 
-*CLI Agent Spec v1.6 — 71 failure modes · 154 requirements · 4 schemas · 12 frameworks evaluated*
+*CLI Agent Spec v1.6 — 73 failure modes · 155 requirements · 4 schemas · 12 frameworks evaluated*
