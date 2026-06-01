@@ -8,16 +8,16 @@ Ten installable agent skills for evaluating CLIs, implementing the spec, and dia
 
 | Skill | Category | Purpose |
 |-------|----------|---------|
-| [`cli-agent-onboard`](../skills/cli-agent-onboard/SKILL.md) | Evaluation pipeline | Profile a CLI tool — detects runtime, binary, non-interactive flags, timeout method |
-| [`cli-agent-evaluate`](../skills/cli-agent-evaluate/SKILL.md) | Evaluation pipeline | Score a CLI against one failure mode (0–3), return applicable agent workaround |
-| [`cli-agent-evaluate-batch`](../skills/cli-agent-evaluate-batch/SKILL.md) | Evaluation pipeline | Evaluate a CLI across multiple failure modes in one resumable run |
-| [`cli-agent-readiness`](../skills/cli-agent-readiness/SKILL.md) | Evaluation pipeline | Score proactive agent-readiness across 5 dimensions (0–15) |
-| [`cli-agent-report`](../skills/cli-agent-report/SKILL.md) | Evaluation pipeline | Transform findings into perspective-specific reports for 4 audiences |
-| [`cli-agent-audit`](../skills/cli-agent-audit/SKILL.md) | Evaluation pipeline | Autonomous end-to-end pipeline: install → onboard → readiness → evaluate → report |
-| [`cli-agent-implement`](../skills/cli-agent-implement/SKILL.md) | Implementation | Guide implementing the spec in a CLI framework, tier by tier |
-| [`cli-agent-diagnose`](../skills/cli-agent-diagnose/SKILL.md) | Diagnosis | Classify a failed agent CLI call against the §N taxonomy; return workaround + memory string |
-| [`fixlayer-report`](../skills/fixlayer-report/SKILL.md) | Diagnosis | Render a self-contained HTML audit report from a tool-execution trace file |
-| [`validate-links`](../skills/validate-links/SKILL.md) | Spec maintenance | Validate cross-links and schema↔requirement symmetry in the spec |
+| `cli-agent-onboard` | Evaluation pipeline | Profile a CLI tool — detects runtime, binary, non-interactive flags, timeout method |
+| `cli-agent-evaluate` | Evaluation pipeline | Score a CLI against one failure mode (0–3), return applicable agent workaround |
+| `cli-agent-evaluate-batch` | Evaluation pipeline | Evaluate a CLI across multiple failure modes in one resumable run |
+| `cli-agent-readiness` | Evaluation pipeline | Score proactive agent-readiness across 5 dimensions (0–15) |
+| `cli-agent-report` | Evaluation pipeline | Transform findings into perspective-specific reports for 4 audiences |
+| `cli-agent-audit` | Evaluation pipeline | Autonomous end-to-end pipeline: install → onboard → readiness → evaluate → report |
+| `cli-agent-implement` | Implementation | Guide implementing the spec in a CLI framework, tier by tier |
+| `cli-agent-diagnose` | Diagnosis | Classify a failed agent CLI call against the §N taxonomy; return workaround + memory string |
+| `fixlayer-report` | Diagnosis | Render a self-contained HTML audit report from a tool-execution trace file |
+| `validate-links` | Spec maintenance | Validate cross-links and schema↔requirement symmetry in the spec |
 
 ---
 
