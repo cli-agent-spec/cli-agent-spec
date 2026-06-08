@@ -28,12 +28,12 @@ Neon CLI is partly agent-ready: it has documented npm installation, API-key auth
 
 | File | Purpose |
 |---|---|
-| `report-index.md` | Score summary and links |
-| `report-dev.md` | Fix list for CLI authors |
-| `report-agent-dev.md` | Integration guide for agent builders |
-| `report-runtime.md` | Operational brief for agents |
-| `report-issues.md` | Concrete issues and gaps |
-| `findings.md` | Raw score table |
-| `issues.md` | Observed bugs |
-| `trace.md` | Probe trace |
-| `readiness.md` | Readiness score |
+| [report-index.md](report-index.md) | Score summary and links |
+| [report-dev.md](report-dev.md) | Fix list for CLI authors |
+| [report-agent-dev.md](report-agent-dev.md) | Integration guide for agent builders |
+| [report-runtime.md](report-runtime.md) | Operational brief for agents |
+| [report-issues.md](report-issues.md) | Concrete issues and gaps |
+| [findings.md](findings.md) | Raw score table |
+| [issues.md](issues.md) | Observed bugs |
+| [trace.md](trace.md) | Probe trace |
+| [readiness.md](readiness.md) | Readiness score |
