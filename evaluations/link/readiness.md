@@ -54,13 +54,13 @@ These artifacts live in the same source repository as `packages/cli/package.json
 Documented install command:
 
 ```bash
-npm install -g @stripe/link-cli
+npm install -g @stripe/link
 ```
 
 Verification:
 
 ```bash
-link-cli --version
+link --version
 ```
 
 Observed version: `0.7.1`. The install command completed non-interactively and a second install is idempotent for npm global packages. Dependencies are declared in `packages/cli/package.json`, with monorepo lockfiles present.
@@ -82,7 +82,7 @@ The README and bundled skill cover realistic end-to-end workflows:
 Verified read-only example with workspace-local auth storage:
 
 ```bash
-LINK_AUTH_FILE=/Users/roman/Documents/Link-cli/source/tmp/link-auth.json link-cli auth status --format json
+LINK_AUTH_FILE=/Users/roman/Documents/Link-cli/source/tmp/link-auth.json link auth status --format json
 ```
 
 It exited 0 and returned `authenticated: false` with the explicit credential path.

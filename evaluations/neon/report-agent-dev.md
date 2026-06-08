@@ -8,7 +8,7 @@
 Use the absolute binary discovered during audit:
 
 ```bash
-/Users/roman/.hermes/node/bin/neonctl
+/Users/roman/.hermes/node/bin/neon
 ```
 
 For agent runs, always include:
@@ -20,7 +20,7 @@ For agent runs, always include:
 Prefer credentials in the environment:
 
 ```bash
-NEON_API_KEY=<token> neonctl <command> --output json --config-dir <isolated-temp-dir> --no-analytics --color false
+NEON_API_KEY=<token> neon <command> --output json --config-dir <isolated-temp-dir> --no-analytics --color false
 ```
 
 Avoid passing `--api-key` unless you have no other option; it places the secret in argv.
@@ -30,7 +30,7 @@ Avoid passing `--api-key` unless you have no other option; it places the secret 
 Use `link --agent` when linking a local directory. It is the one documented JSON state-machine workflow:
 
 ```bash
-neonctl link --agent --output json --config-dir <isolated-temp-dir> --no-analytics --color false
+neon link --agent --output json --config-dir <isolated-temp-dir> --no-analytics --color false
 ```
 
 Always run commands through a subprocess timeout. The CLI has auth/init paths that can block.

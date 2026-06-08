@@ -319,12 +319,12 @@ Truncation exists, but not as `meta.truncated: true` plus `meta.total_bytes`.
 ```json
 {
   "code": "NOT_AUTHENTICATED",
-  "message": "Not authenticated. Run \"link-cli auth login\" first.",
+  "message": "Not authenticated. Run \"link auth login\" first.",
   "cta": {
     "description": "Suggested command:",
     "commands": [
       {
-        "command": "link-cli auth login",
+        "command": "link auth login",
         "description": "Log in to Link"
       }
     ]
@@ -350,7 +350,7 @@ No hang or browser launch occurred, but `auth_methods` was absent and the code w
 ```json
 {
   "code": "UNKNOWN",
-  "message": "EPERM: operation not permitted, mkdir '/Users/roman/Library/Preferences/link-cli-nodejs'"
+  "message": "EPERM: operation not permitted, mkdir '/Users/roman/Library/Preferences/link-nodejs'"
 }
 ```
 
