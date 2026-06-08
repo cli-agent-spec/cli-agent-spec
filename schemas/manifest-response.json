@@ -61,6 +61,11 @@
           "description": "JSONSchema draft-07 object describing the shape of the command's stdout payload on success. Agents use this to validate responses and detect schema drift.",
           "additionalProperties": true
         },
+        "output_formats": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Format values accepted by --output or --format for this command. Omit when only the framework defaults (json, jsonl, tsv, plain) are supported. Present when the command accepts additional formats (e.g. 'toon', 'yaml', 'md'). json is always assumed available and need not be listed."
+        },
         "examples": {
           "type": "array",
           "items": { "$ref": "#/definitions/Example" }

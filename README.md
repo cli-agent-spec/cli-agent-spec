@@ -2,7 +2,7 @@
 
 **Your CLI tool works perfectly for humans. For AI agents, it silently hangs, corrupts data, leaks secrets, and exhausts context windows — and you would never know.**
 
-This is a specification for building CLI tools that AI agents can call reliably: **73 documented failure modes**, **155 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
+This is a specification for building CLI tools that AI agents can call reliably: **73 documented failure modes**, **156 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
 
 > **No existing CLI framework covers more than 58% of these failure modes.**
 
@@ -40,7 +40,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 **73 failure modes** — each documented with severity, frequency, detectability, token cost, time cost, and context cost from the agent's perspective. Grouped into 7 parts: ecosystem/runtime, execution, security, output, environment, errors, and observability.
 
-**155 requirements** across 3 tiers:
+**156 requirements** across 3 tiers:
 
 | Tier | Count | Who implements it |
 |------|-------|------------------|
@@ -69,7 +69,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 | Path | Contents |
 |------|----------|
 | [`challenges/`](challenges/index.md) | 73 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround |
-| [`requirements/`](requirements/index.md) | 155 requirements with acceptance criteria, wire format, and examples |
+| [`requirements/`](requirements/index.md) | 156 requirements with acceptance criteria, wire format, and examples |
 | [`schemas/`](schemas/index.md) | JSON Schema draft-07 definitions for all 4 types |
 | [`guides/`](guides/index.md) | Design guides: positive conventions that cannot be expressed as enforceable requirements |
 | [`IMPLEMENTING.md`](IMPLEMENTING.md) | Implementation guide: wave-based order, goal-based paths, invariants, codegen |
@@ -145,4 +145,4 @@ Before contributing, read [`AGENTS.md`](AGENTS.md) for conventions: file format,
 
 ---
 
-*CLI Agent Spec v1.6 — 73 failure modes · 155 requirements · 4 schemas · 12 frameworks evaluated*
+*CLI Agent Spec v1.6 — 73 failure modes · 156 requirements · 4 schemas · 12 frameworks evaluated*

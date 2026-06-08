@@ -22,6 +22,7 @@
 | `flags` | `Record<string, FlagEntry>` | yes | Keyed by flag name without `--` |
 | `exit_codes` | `Record<string, ExitCodeEntry>` | yes | Keyed by code as string (e.g. `"0"`). Sourced from REQ-C-001 |
 | `output_schema` | object (JSONSchema draft-07) | no | Shape of the command's stdout payload on success. Agents use this to validate responses and detect schema drift |
+| `output_formats` | string[] | no | Additional format values accepted by `--output` or `--format` beyond the framework defaults (`json`, `jsonl`, `tsv`, `plain`). Omit when only defaults are supported. `json` is always assumed available. Sourced from REQ-O-049 |
 | `examples` | `Example[]` | no | Ready-to-use invocation strings |
 | `subcommands` | string[] | no | Dot-separated paths of direct children. Resolve via top-level `commands` |
 ### FlagEntry
@@ -59,6 +60,11 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - `type: "enum"` — only values in `enum_values` are accepted; sending any other value produces `ARG_ERROR (3)`
 - `default` absent — the flag is optional but has no fallback; omitting it changes behavior; include explicitly if the outcome matters
 - `short` present — both `--flag-name value` and `-f value` are valid; prefer long form for clarity in agent-constructed calls
+
+**Selecting output format from `output_formats`**
+- If `output_formats` is absent, treat `json` as the only guaranteed format — do not attempt non-standard values
+- If `output_formats` is present, select the most appropriate format for your consumer: `json` for programmatic parsing, an LLM-optimized value (e.g. `toon`) when the language model is the final reader and token cost matters
+- Never assume a format value is valid unless it appears in `output_formats` or is one of the framework defaults
 
 **Pre-planning retries from `exit_codes`**
 - Before the first call, read the command's `exit_codes` map and identify which codes are retryable
@@ -100,3 +106,16 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - `etag` must be computed from registrations (names, flags, exit codes, descriptions), not runtime state. Same registrations → same etag
 - `exit_codes` keys are strings (`"0"`, `"2"`) because JSON object keys are always strings
 - `FlagEntry.default` must be omitted (not `null`) when no default exists, to distinguish "optional without fallback" from "default is null"
+- `output_formats` must list only values the command actually accepts; do not list formats that resolve to an error
+
+## Related
+
+| Document | Relationship |
+|---|---|
+| [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) | Consumes: the command that returns this schema |
+| [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md) | Sources: `output_formats` field — LLM-optimized formats are declared here |
+| [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) | Sources: `exit_codes` per command |
+| [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) | Sources: `danger_level` per command |
+| [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) | Sources: `required_scopes` per command |
+| [schemas/exit-code-entry.md](exit-code-entry.md) | Provides: `ExitCodeEntry` type used in `exit_codes` map |
+| [schemas/response-envelope.md](response-envelope.md) | Wraps: manifest is returned as the `data` field of a `ResponseEnvelope` |

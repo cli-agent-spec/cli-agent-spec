@@ -2,9 +2,9 @@
 
 > All requirements for an agent-compatible CLI framework, derived from the CLI Agent Spec's 73 documented failure modes.
 
-**155 total** &nbsp;|&nbsp; 78 Framework-Automatic · 29 Command Contract · 48 Opt-In — amended 2026-05-09
+**156 total** &nbsp;|&nbsp; 78 Framework-Automatic · 29 Command Contract · 49 Opt-In — amended 2026-06-08
 
-**By priority:** P0: 51 · P1: 62 · P2: 33 · P3: 9 — REQ-O-048 added: destructive commands default to dry-run mode (§75)
+**By priority:** P0: 51 · P1: 62 · P2: 34 · P3: 9 — REQ-O-049 added: LLM token budget flags (§4, §43)
 
 ---
 
@@ -135,7 +135,7 @@
 
 ## Opt-In (O)
 
-**48 requirements** &nbsp;|&nbsp; P0: 6 · P1: 19 · P2: 17 · P3: 6
+**49 requirements** &nbsp;|&nbsp; P0: 6 · P1: 19 · P2: 18 · P3: 6
 
 | ID | Priority | Title | Failure mode(s) |
 |----|----------|-------|-------------|
@@ -187,7 +187,8 @@
 | [REQ-O-046](o-046-agents-md-ci-validation.md) | P2 | AGENTS.md CI Validation | [§73](../challenges/01-critical-ecosystem-runtime-agent-specific/73-high-documentation-accuracy-drift.md) [§44](../challenges/01-critical-ecosystem-runtime-agent-specific/44-medium-knowledge-packaging.md) |
 | [REQ-O-047](o-047-tool-check-permissions-built-in-command.md) | P0 | tool check-permissions Built-In Command | [§74](../challenges/03-critical-security/74-critical-credential-scope-declaration.md) |
 | [REQ-O-048](o-048-destructive-commands-default-dry-run.md) | P0 | Destructive Commands Default to Dry-Run Mode | [§75](../challenges/03-critical-security/75-critical-safe-default-execution.md) |
+| [REQ-O-049](o-049-llm-token-budget-flags.md) | P2 | LLM Token Budget Flags | [§4](../challenges/04-critical-output-and-parsing/04-medium-verbosity.md) [§43](../challenges/01-critical-ecosystem-runtime-agent-specific/43-critical-output-size-unboundedness.md) |
 
 ---
 
-*CLI Agent Spec v1.6 — 154 requirements (78 REQ-F + 29 REQ-C + 47 REQ-O). Updated 2026-05-07.*
+*CLI Agent Spec v1.6 — 156 requirements (78 REQ-F + 29 REQ-C + 49 REQ-O). Updated 2026-06-08.*
