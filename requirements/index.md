@@ -1,10 +1,10 @@
 # Requirements Index
 
-> All requirements for an agent-compatible CLI framework, derived from the CLI Agent Spec's 73 documented failure modes.
+> All requirements for an agent-compatible CLI framework, derived from the CLI Agent Spec's 74 documented failure modes.
 
-**156 total** &nbsp;|&nbsp; 78 Framework-Automatic · 29 Command Contract · 49 Opt-In — amended 2026-06-08
+**157 total** &nbsp;|&nbsp; 78 Framework-Automatic · 29 Command Contract · 50 Opt-In — amended 2026-06-11
 
-**By priority:** P0: 51 · P1: 62 · P2: 34 · P3: 9 — REQ-O-049 added: LLM token budget flags (§4, §43)
+**By priority:** P0: 51 · P1: 62 · P2: 35 · P3: 9 — REQ-O-050 added: tool exec built-in command (§77)
 
 ---
 
@@ -188,7 +188,8 @@
 | [REQ-O-047](o-047-tool-check-permissions-built-in-command.md) | P0 | tool check-permissions Built-In Command | [§74](../challenges/03-critical-security/74-critical-credential-scope-declaration.md) |
 | [REQ-O-048](o-048-destructive-commands-default-dry-run.md) | P0 | Destructive Commands Default to Dry-Run Mode | [§75](../challenges/03-critical-security/75-critical-safe-default-execution.md) |
 | [REQ-O-049](o-049-llm-token-budget-flags.md) | P2 | LLM Token Budget Flags | [§4](../challenges/04-critical-output-and-parsing/04-medium-verbosity.md) [§43](../challenges/01-critical-ecosystem-runtime-agent-specific/43-critical-output-size-unboundedness.md) |
+| [REQ-O-050](o-050-tool-exec-built-in-command.md) | P2 | tool exec Built-In Command | [§77](../challenges/02-critical-execution-and-reliability/77-high-no-batch-dispatch.md) |
 
 ---
 
-*CLI Agent Spec v1.6 — 156 requirements (78 REQ-F + 29 REQ-C + 49 REQ-O). Updated 2026-06-08.*
+*CLI Agent Spec v1.6 — 157 requirements (78 REQ-F + 29 REQ-C + 50 REQ-O). Updated 2026-06-11.*

@@ -2,7 +2,7 @@
 
 **Your CLI tool works perfectly for humans. For AI agents, it silently hangs, corrupts data, leaks secrets, and exhausts context windows — and you would never know.**
 
-This is a specification for building CLI tools that AI agents can call reliably: **73 documented failure modes**, **156 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
+This is a specification for building CLI tools that AI agents can call reliably: **74 documented failure modes**, **157 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
 
 > **No existing CLI framework covers more than 58% of these failure modes.**
 
@@ -38,19 +38,19 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 ## What this spec defines
 
-**73 failure modes** — each documented with severity, frequency, detectability, token cost, time cost, and context cost from the agent's perspective. Grouped into 7 parts: ecosystem/runtime, execution, security, output, environment, errors, and observability.
+**74 failure modes** — each documented with severity, frequency, detectability, token cost, time cost, and context cost from the agent's perspective. Grouped into 7 parts: ecosystem/runtime, execution, security, output, environment, errors, and observability.
 
-**156 requirements** across 3 tiers:
+**157 requirements** across 3 tiers:
 
 | Tier | Count | Who implements it |
 |------|-------|------------------|
 | **F** — Framework-Automatic | 78 | The framework enforces it; command authors get it for free |
 | **C** — Command Contract | 29 | Command authors declare it at registration |
-| **O** — Opt-In | 48 | Applications enable it explicitly |
+| **O** — Opt-In | 50 | Applications enable it explicitly |
 
-**4 JSON schemas** — machine-readable type definitions for exit codes, response envelopes, tool manifests, and error details. Generate typed structs for your language directly from the schemas.
+**5 JSON schemas** — machine-readable type definitions for exit codes, response envelopes, tool manifests, dispatch requests, and error details. Generate typed structs for your language directly from the schemas.
 
-**A comparison matrix** — 12 existing frameworks (argparse, Click, Cobra, Clap, Typer, Commander.js, and more) scored against all 73 failure modes. No framework exceeds 58%.
+**A comparison matrix** — 12 existing frameworks (argparse, Click, Cobra, Clap, Typer, Commander.js, and more) scored against all 74 failure modes. No framework exceeds 58%.
 
 ---
 
@@ -68,12 +68,12 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 | Path | Contents |
 |------|----------|
-| [`challenges/`](challenges/index.md) | 73 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround |
-| [`requirements/`](requirements/index.md) | 156 requirements with acceptance criteria, wire format, and examples |
-| [`schemas/`](schemas/index.md) | JSON Schema draft-07 definitions for all 4 types |
+| [`challenges/`](challenges/index.md) | 74 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround |
+| [`requirements/`](requirements/index.md) | 157 requirements with acceptance criteria, wire format, and examples |
+| [`schemas/`](schemas/index.md) | JSON Schema draft-07 definitions for all 5 types |
 | [`guides/`](guides/index.md) | Design guides: positive conventions that cannot be expressed as enforceable requirements |
 | [`IMPLEMENTING.md`](IMPLEMENTING.md) | Implementation guide: wave-based order, goal-based paths, invariants, codegen |
-| [`comparison-matrix.md`](comparison-matrix.md) | 73 failure modes × 12 frameworks coverage table |
+| [`comparison-matrix.md`](comparison-matrix.md) | 74 failure modes × 12 frameworks coverage table |
 | [`research/`](research/index.md) | Per-framework analysis and competitive landscape (MCP, OpenAPI, function calling) |
 | [`skills/`](skills.md) | Agent skills for evaluating CLIs and guiding implementation |
 
@@ -83,7 +83,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 The field is converging on **Agent Experience (AX)** as the term for "how well is a system designed to be consumed by an AI agent" — the machine-facing analog of Developer Experience (DX) or User Experience (UX). It applies across APIs, databases, SDKs, web services, and CLIs.
 
-This spec is AX research applied to the CLI layer. CLIs are the most underserved slice of the problem: they are the primary interface through which agents interact with infrastructure, but they were designed for human terminal sessions. The gap between CLI defaults and agent requirements is where the 73 failure modes live.
+This spec is AX research applied to the CLI layer. CLIs are the most underserved slice of the problem: they are the primary interface through which agents interact with infrastructure, but they were designed for human terminal sessions. The gap between CLI defaults and agent requirements is where the 74 failure modes live.
 
 **What distinguishes this project from other AX work:**
 
@@ -145,4 +145,4 @@ Before contributing, read [`AGENTS.md`](AGENTS.md) for conventions: file format,
 
 ---
 
-*CLI Agent Spec v1.6 — 73 failure modes · 156 requirements · 4 schemas · 12 frameworks evaluated*
+*CLI Agent Spec v1.6 — 74 failure modes · 157 requirements · 5 schemas · 12 frameworks evaluated*

@@ -12,3 +12,4 @@
 | [The No-Args Entry Point](no-args-entry-point.md) | First-contact discoverability, argparse anti-pattern | Why bare invocation must exit 0 and how the argparse `required=True` default silently breaks agent discovery |
 | [Designing CLIs for Skill Optimization](skill-optimizable-design.md) | Skill transferability, optimization prerequisites | How to make CLI behavior learnable and portable across agent runtimes — and which failure modes abort skill training entirely |
 | [LLM-Optimized Output Formats](llm-optimized-output-formats.md) | Output format design, token efficiency | When to offer a compact LLM-native format alongside JSON, what it requires, and where it expands the prompt injection surface |
+| [Designing a Built-In Batch Dispatch Command](batch-dispatch.md) | Batch execution, JSONL dispatch protocol | When to provide `exec`, how to design the `_cmd`/`_opts` protocol, and safe invocation patterns for agent builders |

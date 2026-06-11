@@ -1,6 +1,6 @@
 # CLI Agent Spec — Full Index
 
-> All 73 failure modes across 7 parts. Each failure mode linked to its source file.
+> All 74 failure modes across 7 parts. Each failure mode linked to its source file.
 
 ---
 
@@ -68,7 +68,7 @@
 
 > Execution flow, blocking behavior, atomicity, and reliability under agent orchestration.
 
-**8 failure modes** &nbsp;|&nbsp; 🔴 4 critical · 🟠 3 high · 🟡 1 medium
+**9 failure modes** &nbsp;|&nbsp; 🔴 4 critical · 🟠 4 high · 🟡 1 medium
 
 | # | Title | Severity | Frequency | Detectability | Token Spend | Time | Context |
 |---|-------|----------|-----------|---------------|-------------|------|---------|
@@ -80,6 +80,7 @@
 | [§15](02-critical-execution-and-reliability/15-high-race-conditions.md) | Race Conditions & Concurrency | 🟠 High | Situational | Hard | Medium | Medium | Low |
 | [§16](02-critical-execution-and-reliability/16-high-signal-handling.md) | Signal Handling & Graceful Cancellation | 🟠 High | Situational | Hard | Medium | Medium | Low |
 | [§17](02-critical-execution-and-reliability/17-medium-child-process-leakage.md) | Child Process Leakage | 🟡 Medium | Situational | Hard | Low | Low | Low |
+| [§77](02-critical-execution-and-reliability/77-high-no-batch-dispatch.md) | No Batch Command Dispatch | 🟠 High | Common | Easy | High | High | Medium |
 
 ---
 
@@ -166,4 +167,4 @@
 
 ---
 
-*73 active failure modes across 7 parts. CLI Agent Spec v1.6 — 2026-05-07.*
+*74 active failure modes across 7 parts. CLI Agent Spec v1.6 — 2026-06-11.*

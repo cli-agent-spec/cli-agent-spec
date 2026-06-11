@@ -12,6 +12,7 @@
 | ResponseEnvelope | [`response-envelope.json`](response-envelope.json) | [`response-envelope.md`](response-envelope.md) | REQ-F-004, all commands |
 | ManifestResponse | [`manifest-response.json`](manifest-response.json) | [`manifest-response.md`](manifest-response.md) | REQ-O-041 |
 | DiagnoseResult | [`diagnose-result.json`](diagnose-result.json) | [`diagnose-result.md`](diagnose-result.md) | `cli-agent-diagnose` skill |
+| DispatchRequest | [`dispatch-request.json`](dispatch-request.json) | [`dispatch-request.md`](dispatch-request.md) | REQ-O-050 |
 
 ---
 

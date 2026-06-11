@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "DispatchRequest",
+  "title": "DispatchRequest",
+  "description": "One line in the JSONL stream accepted by the built-in exec command. Routes to a subcommand by _cmd, applies per-line flag overrides from _opts, and forwards remaining fields as the --input JSON payload to the dispatched command.",
+  "type": "object",
+  "required": ["_cmd"],
+  "additionalProperties": true,
+  "properties": {
+    "_cmd": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)*$",
+      "description": "Dot-separated subcommand path matching a key in the tool manifest commands map (e.g. 'account.create', 'transaction.add')"
+    },
+    "_opts": {
+      "type": "object",
+      "description": "Per-line flag overrides applied to the dispatched command. Boolean true emits a bare flag (--flag); string or number emits --flag=value",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "boolean" },
+          { "type": "string" },
+          { "type": "integer" },
+          { "type": "number" }
+        ]
+      }
+    }
+  }
+}
