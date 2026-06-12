@@ -141,6 +141,49 @@ var rootCmd = &cobra.Command{
 
 ---
 
+## Structuring the Help Output
+
+Exit 0 with a subcommand list is the floor, not the ceiling. The help output is the first screen a human reads — and often the last they consult before deciding whether the tool fits their workflow. Structure it to answer three questions in order: what does this do, where do I start, and where do I go next.
+
+**Group commands by role, not alphabet**
+
+Alphabetical ordering exposes implementation detail. Role-based grouping encodes priority. A `CORE COMMANDS` group signals "start here"; `ADDITIONAL COMMANDS` signals "you'll find this later"; `HELP TOPICS` signals "concepts, not commands." The grouping lets a reader form a mental model before reading a single description.
+
+```
+CORE COMMANDS
+  issue:    Manage issues
+  pr:       Manage pull requests
+  repo:     Manage repositories
+
+ADDITIONAL COMMANDS
+  alias:    Create command shortcuts
+  config:   Manage configuration
+
+HELP TOPICS
+  exit-codes:    Exit codes used by this tool
+  formatting:    Formatting options for JSON output
+  environment:   Environment variables that can be used with this tool
+```
+
+**Provide curated examples, not abstract syntax**
+
+Abstract usage syntax (`tool <command> [flags]`) describes the grammar. Examples demonstrate the idiom. Provide 2–4 examples that span distinct domains and represent the most common real workflows — not a complete inventory.
+
+```
+EXAMPLES
+  $ gh issue create
+  $ gh repo clone owner/repo
+  $ gh pr checkout 321
+```
+
+Three examples, three domains. A reader immediately grasps the scope of the tool without reading the full command list.
+
+**Make help topics first-class**
+
+Concepts like exit codes, output formats, and environment variables are often buried in man pages or online documentation. Listing them by name in the root help makes them discoverable in one invocation. An agent that sees `exit-codes` as a named topic knows to run `tool help exit-codes` before guessing. A human knows where to look before reaching for a browser.
+
+---
+
 ## Verification Checklist for CLI Authors
 
 Three checks that must all pass before a CLI is considered agent-accessible:
