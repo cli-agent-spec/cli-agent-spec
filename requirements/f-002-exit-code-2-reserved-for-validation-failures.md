@@ -30,7 +30,7 @@ The `ErrorDetail.phase` field carries `"validation"` to guarantee the agent that
 
 ## Wire Format
 
-JSON error response for a command that exits `3` (`ARG_ERROR`) — `phase` field confirms validation-only failure:
+JSON error response for a command that exits `2` (`ARG_ERROR`) — `phase` field confirms validation-only failure:
 
 ```json
 {
@@ -58,12 +58,12 @@ Framework-Automatic: no command author action needed. The framework enforces the
 # Command receives --count foo (invalid integer)
 # Framework phase: VALIDATION
 # No I/O or state mutation has occurred
-→ exit 3, error.phase = "validation", error.retryable = true
+→ exit 2, error.phase = "validation", error.retryable = true
 
 # Command receives --count 5 (valid), begins writing to database
 # Framework phase: EXECUTION
 # A partial failure here cannot use ARG_ERROR
-→ exit 2 (PARTIAL_FAILURE), error.phase = "execution"
+→ exit 3 (PARTIAL_FAILURE), error.phase = "execution"
 ```
 
 ---
@@ -72,7 +72,7 @@ Framework-Automatic: no command author action needed. The framework enforces the
 
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
-| [REQ-F-001](f-001-standard-exit-code-table.md) | F | Specializes: enforces reserved semantics for `ARG_ERROR (3)` — zero side effects guarantee |
+| [REQ-F-001](f-001-standard-exit-code-table.md) | F | Specializes: enforces reserved semantics for `ARG_ERROR (2)` — zero side effects guarantee |
 | [REQ-F-015](f-015-validate-before-execute-phase-order.md) | F | Enforces: phase boundary that makes the `ARG_ERROR` guarantee enforceable |
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Consumes: `ARG_ERROR` must appear in every command's declared exit code map |
 | [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Composes: error response carries `phase` field alongside `code` and `message` |

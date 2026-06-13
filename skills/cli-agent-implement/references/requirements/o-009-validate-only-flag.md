@@ -82,7 +82,7 @@ $ tool delete --resource-id acme-prod --validate-only
 
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
-| [REQ-F-002](f-002-exit-code-2-reserved-for-validation-failures.md) | F | Enforces: `ARG_ERROR (3)` guarantees zero side effects in validation-only mode |
+| [REQ-F-002](f-002-exit-code-2-reserved-for-validation-failures.md) | F | Enforces: `ARG_ERROR (2)` guarantees zero side effects in validation-only mode |
 | [REQ-F-015](f-015-validate-before-execute-phase-order.md) | F | Provides: the validate-before-execute phase boundary this flag stops at |
 | [REQ-C-006](c-006-all-args-validated-in-phase-1.md) | C | Consumes: all declared validations run during `--validate-only` |
 | [REQ-O-013](o-013-schema-output-schema-flag.md) | O | Composes: `--schema` reveals what validations `--validate-only` will exercise |

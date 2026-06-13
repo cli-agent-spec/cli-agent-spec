@@ -89,8 +89,8 @@ These constraints are not checked by code generators. Enforce them at registrati
 |-----------|--------------|------|
 | `retryable: true` implies `side_effects: "none"` | `ExitCodeEntry` | Hard schema invariant — reject at registration |
 | Exit code map must include key `"0"` (SUCCESS) | REQ-C-001 | Every command must declare a SUCCESS entry |
-| `ARG_ERROR (3)` may only be emitted before any side effect | REQ-F-001 | Phase boundary between validation and execution |
-| `PARTIAL_FAILURE (2)` is never retryable | REQ-F-001 | Some writes occurred — state is unknown |
+| `ARG_ERROR (2)` may only be emitted before any side effect | REQ-F-001 | Phase boundary between validation and execution |
+| `PARTIAL_FAILURE (3)` is never retryable | REQ-F-001 | Some writes occurred — state is unknown |
 | Literal integers not permitted at call sites | REQ-F-001 | Use `ExitCode` enum constants only |
 
 ---

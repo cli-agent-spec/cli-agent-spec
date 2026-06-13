@@ -99,6 +99,6 @@ $ tool deploy --env staging2 --replicas -1
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
 | [REQ-F-002](f-002-exit-code-2-reserved-for-validation-failures.md) | F | Enforces: exit code `2` guarantee depends on this phase boundary |
-| [REQ-F-001](f-001-standard-exit-code-table.md) | F | Provides: `ARG_ERROR (3)` and `PARTIAL_FAILURE (2)` constants used in validation errors |
+| [REQ-F-001](f-001-standard-exit-code-table.md) | F | Provides: `ARG_ERROR (2)` and `PARTIAL_FAILURE (3)` constants used in validation errors |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Provides: response envelope structure that carries the validation error |
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: commands must declare `ARG_ERROR` in their exit code map |

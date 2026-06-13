@@ -79,5 +79,5 @@ tool files get --resource-id "usr-a1b2c3"
 |-------------|------|--------------|
 | [REQ-F-044](f-044-shell-argument-escaping-enforcement.md) | F | Composes: shell metacharacter rejection is a complementary Phase 1 validation layer |
 | [REQ-F-015](f-015-validate-before-execute-phase-order.md) | F | Enforces: hallucination pattern checks run in Phase 1 before any side effect |
-| [REQ-F-001](f-001-standard-exit-code-table.md) | F | Provides: `ARG_ERROR (3)` is the exit code for rejected arguments |
+| [REQ-F-001](f-001-standard-exit-code-table.md) | F | Provides: `ARG_ERROR (2)` is the exit code for rejected arguments |
 | [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Composes: rejection is reported as a structured JSON error response |

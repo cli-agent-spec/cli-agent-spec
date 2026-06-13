@@ -52,8 +52,8 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Check `aliases` before concluding a command does not exist — the agent may be using an alias that maps to a different primary key
 
 **Building a call from `FlagEntry`**
-- `required: true` flags must always be present; absence will produce `ARG_ERROR (3)`
-- `type: "enum"` — only values in `enum_values` are accepted; sending any other value produces `ARG_ERROR (3)`
+- `required: true` flags must always be present; absence will produce `ARG_ERROR (2)`
+- `type: "enum"` — only values in `enum_values` are accepted; sending any other value produces `ARG_ERROR (2)`
 - `default` absent — the flag is optional but has no fallback; omitting it changes behavior; include explicitly if the outcome matters
 - `short` present — both `--flag-name value` and `-f value` are valid; prefer long form for clarity in agent-constructed calls
 
@@ -63,7 +63,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 
 **Manifest staleness**
 - If a command call returns `REDIRECTED (13)` for a path that exists in the manifest — the manifest is stale; re-fetch unconditionally and update the cache
-- If a call returns `ARG_ERROR (3)` for a flag shown as valid in the manifest — possible version skew; re-fetch manifest before retrying
+- If a call returns `ARG_ERROR (2)` for a flag shown as valid in the manifest — possible version skew; re-fetch manifest before retrying
 
 ## Coding agent notes
 

@@ -38,7 +38,7 @@ In all examples, the integer code is the surrounding map key; entries do not con
 { "name": "SUCCESS", "description": "Deployment completed", "retryable": false, "side_effects": "complete" }
 ```
 
-**Valid — retryable input error, zero side effects (map key `"3"`)**
+**Valid — retryable input error, zero side effects (map key `"2"`)**
 ```json
 { "name": "ARG_ERROR", "description": "Invalid target environment", "retryable": true, "side_effects": "none" }
 ```

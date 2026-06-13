@@ -58,5 +58,5 @@ framework.run(["git", "clone", "https://example.com/repo; rm -rf /"])
 |-------------|------|--------------|
 | [REQ-F-045](f-045-agent-hallucination-input-pattern-rejection.md) | F | Composes: hallucination pattern rejection is a complementary Phase 1 validation layer |
 | [REQ-F-015](f-015-validate-before-execute-phase-order.md) | F | Enforces: metacharacter check runs in Phase 1 before any side effect |
-| [REQ-F-001](f-001-standard-exit-code-table.md) | F | Provides: `ARG_ERROR (3)` is the exit code for rejected arguments |
+| [REQ-F-001](f-001-standard-exit-code-table.md) | F | Provides: `ARG_ERROR (2)` is the exit code for rejected arguments |
 | [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Composes: rejection is reported as a structured JSON error response |

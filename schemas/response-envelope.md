@@ -80,7 +80,7 @@ Present in `error.redirect` when exit code is `REDIRECTED (13)`.
 }
 ```
 
-**ARG_ERROR (3) — retryable, zero side effects**
+**ARG_ERROR (2) — retryable, zero side effects**
 ```json
 {
   "ok": false,

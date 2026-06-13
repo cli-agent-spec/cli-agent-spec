@@ -16,8 +16,8 @@ Every error response MUST include `error.retryable` (boolean or the string `"may
 
 - Every error response includes `error.retryable`.
 - A `RATE_LIMITED` error includes `error.retry_after_ms > 0`.
-- A `VALIDATION_ERROR` error has `error.retryable: false`.
-- A `TIMEOUT` error has `error.retryable: true`.
+- A `VALIDATION_ERROR` error has `error.retryable: true`.
+- A `TIMEOUT` error has `error.retryable: true` by default; commands that declare `side_effects: "partial"` for `TIMEOUT` MUST override to `retryable: false`.
 - The framework error registry maps all standard error codes to default `retryable` values.
 
 ---
@@ -75,7 +75,7 @@ Timeout error (retryable, no delay):
 }
 ```
 
-Validation error (not retryable):
+Validation error (retryable after correcting input):
 
 ```json
 {
@@ -84,7 +84,7 @@ Validation error (not retryable):
   "error": {
     "code": "INVALID_ENVIRONMENT",
     "message": "Unknown target 'prodution'",
-    "retryable": false,
+    "retryable": true,
     "phase": "validation",
     "suggestion": "Valid values: prod, staging, dev"
   },
@@ -97,17 +97,16 @@ Validation error (not retryable):
 
 ## Example
 
-The command author overrides the framework default `retryable` value and supplies retry guidance at registration time:
+The command author explicitly declares exit code behavior at registration time, overriding framework defaults where appropriate:
 
 ```
 register command "deploy":
   exit_codes:
     SUCCESS  (0): retryable: false, side_effects: complete
-    TIMEOUT (10): retryable: true,  side_effects: partial,
-                  retry_after_ms: 0, retry_strategy: immediate
+    TIMEOUT (10): retryable: false, side_effects: partial
     RATE_LIMITED(11): retryable: true, side_effects: none,
                       retry_after_ms: 30000, retry_strategy: exponential_backoff
-    ARG_ERROR(3): retryable: false, side_effects: none
+    ARG_ERROR(2): retryable: true,  side_effects: none
 ```
 
 ---

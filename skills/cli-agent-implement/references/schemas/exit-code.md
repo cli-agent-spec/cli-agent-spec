@@ -27,13 +27,13 @@ Codes are sequential and grouped by category. The group boundaries are visible i
 | Code | Constant | Retryable | Side effects | Agent action |
 |------|----------|-----------|--------------|-------------|
 | 1 | `GENERAL_ERROR` | depends | unknown | Inspect `error.detail` — last resort, use a specific code whenever one exists |
-| 2 | `PARTIAL_FAILURE` | no | **partial** | Inspect state before retrying — some writes occurred |
+| 3 | `PARTIAL_FAILURE` | no | **partial** | Inspect state before retrying — some writes occurred |
 
 ### Input — caller's fault; safe to retry after fixing
 
 | Code | Constant | Retryable | Side effects | Agent action |
 |------|----------|-----------|--------------|-------------|
-| 3 | `ARG_ERROR` | **yes** | **none** | Fix the input, retry immediately — zero side effects guaranteed |
+| 2 | `ARG_ERROR` | **yes** | **none** | Fix the input, retry immediately — zero side effects guaranteed |
 | 4 | `PRECONDITION` | depends | none | Resolve the precondition, then retry |
 
 ### Resource — about the addressed entity
@@ -107,7 +107,7 @@ Violation: shell-reserved (`128 + SIGINT`). Codes `126–255` MUST NOT be used b
 
 - **Using `GENERAL_ERROR (1)` as the default.** Every condition that maps to a specific code must use that code. `GENERAL_ERROR` should be rare
 
-- **Emitting `ARG_ERROR (3)` after a side effect.** Code `3` carries a hard guarantee of zero side effects. If any write occurred before the error, emit `PARTIAL_FAILURE (2)` instead. The framework phase boundary (validate → execute) makes this automatic — do not bypass it
+- **Emitting `ARG_ERROR (2)` after a side effect.** Code `2` carries a hard guarantee of zero side effects. If any write occurred before the error, emit `PARTIAL_FAILURE (3)` instead. The framework phase boundary (validate → execute) makes this automatic — do not bypass it
 
 - **Treating `AUTH_REQUIRED (8)` as non-retryable.** It is retryable — but only after resolving credentials. An agent that treats it as terminal will unnecessarily give up on auto-refreshable token expiry
 
@@ -163,7 +163,7 @@ Rules for agents consuming exit codes at runtime. Apply these when the response 
 **Tests to generate**
 - For each code: a test that emits the code and asserts the correct integer reaches the process exit
 - A negative test: emitting a literal integer (e.g. `5`) at a call site that only accepts `ExitCode` must fail at compile/type-check time, not at runtime
-- A test that `ARG_ERROR (3)` is only emitted before any mock side-effect function is called
+- A test that `ARG_ERROR (2)` is only emitted before any mock side-effect function is called
 
 **Anti-patterns**
 - Do not generate `if code == 7` comparisons — always compare against `ExitCode.PERMISSION_DENIED`
@@ -176,7 +176,7 @@ Rules for agents consuming exit codes at runtime. Apply these when the response 
 
 - Represent as a named constant / enum — never a bare integer at call sites. The framework must reject literal integers at command registration
 - `retryable` and `side_effects` values in this table describe the *default* agent behavior when no per-command `ExitCodeEntry` is available. When a command's manifest or `--schema` output includes an `ExitCodeEntry` for the received code, that entry takes precedence — the command may declare a code as non-retryable even if this table marks it retryable (e.g. `TIMEOUT` with partial side effects)
-- The hard invariants that commands may not relax: `ARG_ERROR (3)` is always `side_effects: none`; `PARTIAL_FAILURE (2)` is always `retryable: false`; `SUCCESS (0)` is the only code with `side_effects: complete`
-- `ARG_ERROR (3)` requires a hard phase boundary between validation and execution. No side effect may begin before this code can be emitted
+- The hard invariants that commands may not relax: `ARG_ERROR (2)` is always `side_effects: none`; `PARTIAL_FAILURE (3)` is always `retryable: false`; `SUCCESS (0)` is the only code with `side_effects: complete`
+- `ARG_ERROR (2)` requires a hard phase boundary between validation and execution. No side effect may begin before this code can be emitted
 - `AUTH_REQUIRED (8)` intentionally does not distinguish expired from invalid at the exit code level. The distinction is in `error.code` in the JSON payload — a more controlled channel. See [`response-envelope.json`](response-envelope.json) `ErrorDetail.code` values: `TOKEN_EXPIRED`, `TOKEN_INVALID`, `TOKEN_MISSING`
 - `REDIRECTED (13)` requires the `error.redirect` field in the response. See [`response-envelope.json`](response-envelope.json) `Redirect` definition

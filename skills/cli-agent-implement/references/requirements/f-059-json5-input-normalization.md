@@ -25,7 +25,7 @@ The framework MUST use a forgiving JSON parser for all structured input flags (`
 
 **Type:** [`response-envelope.md`](../schemas/response-envelope.md)
 
-When normalization fails, the framework emits an `ARG_ERROR (3)` response with `error.code: "INVALID_JSON"` and a `corrected_input` field in `error.detail` or as a top-level extension.
+When normalization fails, the framework emits an `ARG_ERROR (2)` response with `error.code: "INVALID_JSON"` and a `corrected_input` field in `error.detail` or as a top-level extension.
 
 ---
 
@@ -86,6 +86,6 @@ $ mytool deploy --config '{env prod}' --json
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Provides: `ResponseEnvelope` shape used to return the `INVALID_JSON` error |
-| [REQ-F-002](f-002-exit-code-2-reserved-for-validation-failures.md) | F | Enforces: `ARG_ERROR (3)` exit code guarantees zero side effects for parse failures |
+| [REQ-F-002](f-002-exit-code-2-reserved-for-validation-failures.md) | F | Enforces: `ARG_ERROR (2)` exit code guarantees zero side effects for parse failures |
 | [REQ-F-015](f-015-validate-before-execute-phase-order.md) | F | Composes: JSON normalization runs during the validation phase, before execution |
 | [REQ-F-045](f-045-agent-hallucination-input-pattern-rejection.md) | F | Composes: hallucination pattern rejection applies after JSON normalization succeeds |

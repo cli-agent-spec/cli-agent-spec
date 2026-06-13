@@ -10,7 +10,7 @@
 
 ## Description
 
-The framework MUST define and enforce a fixed, documented exit code table. Commands MUST NOT exit with any code outside this table for a standard condition. The table MUST include: `0` (success), `1` (general error — last resort), `2` (operation started but failed mid-way, partial side effects), `3` (argument/validation error — zero side effects guaranteed), `4` (precondition not met), `5` (not found), `6` (conflict / already exists), `7` (permission denied — valid credentials, wrong access level), `8` (auth required — credentials missing or invalid), `9` (payment required), `10` (timeout — partial side effects possible), `11` (rate limited — retry after back-off), `12` (service unavailable), `13` (command redirected — use replacement verbatim). The framework MUST provide named constants for every code; commands MUST reference these constants, never literal integers.
+The framework MUST define and enforce a fixed, documented exit code table. Commands MUST NOT exit with any code outside this table for a standard condition. The table MUST include: `0` (success), `1` (general error — last resort), `2` (argument/validation error — zero side effects guaranteed), `3` (operation started but failed mid-way, partial side effects), `4` (precondition not met), `5` (not found), `6` (conflict / already exists), `7` (permission denied — valid credentials, wrong access level), `8` (auth required — credentials missing or invalid), `9` (payment required), `10` (timeout — partial side effects possible), `11` (rate limited — retry after back-off), `12` (service unavailable), `13` (command redirected — use replacement verbatim). The framework MUST provide named constants for every code; commands MUST reference these constants, never literal integers.
 
 ## Acceptance Criteria
 
@@ -30,8 +30,8 @@ The framework MUST define and enforce a fixed, documented exit code table. Comma
 |------|----------|-----------|----------------------|
 | 0 | `SUCCESS` | — | complete |
 | 1 | `GENERAL_ERROR` | depends | unknown |
-| 2 | `PARTIAL_FAILURE` | no | partial |
-| 3 | `ARG_ERROR` | yes | **none** (REQ-F-002) |
+| 2 | `ARG_ERROR` | yes | **none** (REQ-F-002) |
+| 3 | `PARTIAL_FAILURE` | no | partial |
 | 4 | `PRECONDITION` | depends | none |
 | 5 | `NOT_FOUND` | no | none |
 | 6 | `CONFLICT` | no | none |
@@ -58,8 +58,8 @@ Reserved ranges: `14–63` framework extensions · `64–78` POSIX sysexits comp
   "exit_codes": {
     "0":  { "name": "SUCCESS",     "description": "Operation completed as intended",          "retryable": false, "side_effects": "complete" },
     "1":  { "name": "GENERAL_ERROR","description": "Unclassified failure — use specific code when available", "retryable": false, "side_effects": "unknown" },
-    "2":  { "name": "PARTIAL_FAILURE","description": "Operation ran but failed mid-way; partial writes occurred", "retryable": false, "side_effects": "partial" },
-    "3":  { "name": "ARG_ERROR",   "description": "Input validation failed before any side effect",  "retryable": true,  "side_effects": "none"     },
+    "2":  { "name": "ARG_ERROR",      "description": "Input validation failed before any side effect",           "retryable": true,  "side_effects": "none"    },
+    "3":  { "name": "PARTIAL_FAILURE","description": "Operation ran but failed mid-way; partial writes occurred", "retryable": false, "side_effects": "partial"  },
     "10": { "name": "TIMEOUT",     "description": "Operation exceeded its configured time limit",     "retryable": true,  "side_effects": "partial"  },
     "11": { "name": "RATE_LIMITED","description": "Server-side rate limit reached",                  "retryable": true,  "side_effects": "none"     },
     "12": { "name": "UNAVAILABLE", "description": "Service temporarily unavailable",                 "retryable": true,  "side_effects": "none"     },
@@ -89,7 +89,7 @@ raise CommandError(5, "User not found")
 
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
-| [REQ-F-002](f-002-exit-code-2-reserved-for-validation-failures.md) | F | Specializes: enforces reserved semantics for `ARG_ERROR (3)` — zero side effects guarantee |
+| [REQ-F-002](f-002-exit-code-2-reserved-for-validation-failures.md) | F | Specializes: enforces reserved semantics for `ARG_ERROR (2)` — zero side effects guarantee |
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Consumes: commands declare which `ExitCode` values they may emit |
 | [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Composes: JSON error responses carry an `ExitCode` value in `error.code` |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Composes: envelope `ok` is derived from whether exit code is `SUCCESS` |

@@ -102,7 +102,7 @@ register command "migrate-database":
   steps: ["backup", "apply_schema", "migrate_data", "verify"]
   exit_codes:
     SUCCESS        (0): description: "Migration completed",           retryable: false, side_effects: complete
-    PARTIAL_FAILURE(2): description: "Migration failed mid-execution", retryable: false, side_effects: partial
+    PARTIAL_FAILURE(3): description: "Migration failed mid-execution", retryable: false, side_effects: partial
     TIMEOUT       (10): description: "Migration timed out",           retryable: false, side_effects: partial
 
   execute(args, step_tracker):
@@ -128,5 +128,5 @@ register command "migrate-database":
 | [REQ-C-009](c-009-multi-step-commands-report-completed-failed-skippe.md) | C | Composes: `completed_steps`/`failed_step`/`skipped_steps` are the runtime counterpart to the static `steps` declaration |
 | [REQ-O-010](o-010-resume-from-flag-for-multi-step-commands.md) | O | Extends: `--resume-from` uses the step names declared here to skip already-completed steps |
 | [REQ-O-011](o-011-rollback-on-failure-flag.md) | O | Extends: `--rollback-on-failure` uses `completed_steps` to determine what to undo |
-| [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: `PARTIAL_FAILURE (2)` must be declared in the command's `exit_codes` map |
+| [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: `PARTIAL_FAILURE (3)` must be declared in the command's `exit_codes` map |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Wraps: step tracking fields are carried inside `ResponseEnvelope.data` |

@@ -83,7 +83,7 @@ $ tool send-notifications --users 1,2,3,4,5
 }
 ```
 
-Exit code: `2` (`PARTIAL_FAILURE`).
+Exit code: `3` (`PARTIAL_FAILURE`).
 
 ---
 
@@ -96,8 +96,8 @@ register command "send-notifications":
   danger_level: mutating
   exit_codes:
     SUCCESS        (0): description: "All notifications sent",       retryable: false, side_effects: complete
-    PARTIAL_FAILURE(2): description: "Some notifications failed",    retryable: false, side_effects: partial
-    ARG_ERROR      (3): description: "Invalid --users value",        retryable: true,  side_effects: none
+    PARTIAL_FAILURE(3): description: "Some notifications failed",    retryable: false, side_effects: partial
+    ARG_ERROR      (2): description: "Invalid --users value",        retryable: true,  side_effects: none
 
   execute(args):
     results = []
@@ -122,5 +122,5 @@ register command "send-notifications":
 |-------------|------|--------------|
 | [REQ-C-008](c-008-multi-step-commands-emit-step-manifest.md) | C | Composes: `completed_steps`/`failed_step` for sequential multi-step commands; `summary`/`results` for batch commands |
 | [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Enforces: per-item `error` objects follow the same structure as top-level error responses |
-| [REQ-F-001](f-001-standard-exit-code-table.md) | F | Provides: `PARTIAL_FAILURE (2)` is the correct exit code for partial batch success |
+| [REQ-F-001](f-001-standard-exit-code-table.md) | F | Provides: `PARTIAL_FAILURE (3)` is the correct exit code for partial batch success |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Wraps: `summary` and `results` are carried inside `ResponseEnvelope.data` |

@@ -25,7 +25,7 @@ Command authors MUST implement all argument and precondition validation within t
 
 **Types:** [`response-envelope.md`](../schemas/response-envelope.md)
 
-Validation failures exit with code `3` (`ARG_ERROR`) and carry a structured `errors` array. Each entry identifies the failing parameter and reason.
+Validation failures exit with code `2` (`ARG_ERROR`) and carry a structured `errors` array. Each entry identifies the failing parameter and reason.
 
 ```json
 {
@@ -74,7 +74,7 @@ $ tool deploy --env prod --version 1.2.3 --notify-slack "#invalid channel" --wor
 }
 ```
 
-Exit code: `3` (`ARG_ERROR`) — guaranteed no side effects.
+Exit code: `2` (`ARG_ERROR`) — guaranteed no side effects.
 
 ---
 
@@ -87,7 +87,7 @@ register command "deploy":
   danger_level: mutating
   exit_codes:
     SUCCESS  (0): description: "Deployment completed",          retryable: false, side_effects: complete
-    ARG_ERROR(3): description: "Argument validation failed",    retryable: true,  side_effects: none
+    ARG_ERROR(2): description: "Argument validation failed",    retryable: true,  side_effects: none
 
   validate(args) → []error:
     errors = []
@@ -111,6 +111,6 @@ register command "deploy":
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
 | [REQ-F-015](f-015-validate-before-execute-phase-order.md) | F | Enforces: framework guarantees `validate()` completes before `execute()` runs |
-| [REQ-F-002](f-002-exit-code-2-reserved-for-validation-failures.md) | F | Provides: `ARG_ERROR (3)` exit code carries the zero-side-effects guarantee |
-| [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: `ARG_ERROR (3)` must be declared in the command's `exit_codes` map |
+| [REQ-F-002](f-002-exit-code-2-reserved-for-validation-failures.md) | F | Provides: `ARG_ERROR (2)` exit code carries the zero-side-effects guarantee |
+| [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: `ARG_ERROR (2)` must be declared in the command's `exit_codes` map |
 | [REQ-O-009](o-009-validate-only-flag.md) | O | Extends: `--validate-only` runs the `validate()` hook in isolation without proceeding to `execute()` |
