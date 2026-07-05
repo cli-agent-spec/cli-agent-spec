@@ -1,74 +1,73 @@
-# neonctl — Readiness
+# neon - Readiness
 
-**CLI version:** 2.22.2
-**Date:** 2026-06-06
+**CLI version:** 2.30.1
+**Date:** 2026-07-05
 **Depth:** full
-**Total:** 7/15  [C]
+**Total:** 8/15  [C]
 
 | Dimension | Score | Notes |
 |---|---|---|
-| Documentation Quality | 1/3 | README and official docs include install, auth, output, and `link --agent`; no AGENTS.md with canonical agent invocation. |
-| Self-Description | 1/3 | Help is structured and typed, but `--schema`, `--manifest`, and `manifest` do not return a machine-readable command schema. |
-| Pre-built Integrations | 1/3 | `init` references MCP/extension/agent skills, but no co-versioned manifest or integration artifact was found in the package. |
-| Setup Reproducibility | 2/3 | `npm i -g neonctl` is documented and worked non-interactively; package declares Node >=18 and `--version` verifies. |
-| Workflow Coverage | 2/3 | `link --agent` is a documented multi-step JSON workflow; most other workflows remain human-oriented or require auth. |
+| Documentation Quality | 2/3 | Official docs and package README include invocation, output formats, API-key auth, and agent-mode guidance, but no local `AGENTS.md`. |
+| Self-Description | 1/3 | No JSON schema/manifest command; `--help` is structured enough to parse commands and flag types. |
+| Pre-built Integrations | 1/3 | Co-versioned `--agent` JSON state-machine modes exist for selected workflows, but no complete CLI-wide MCP/OpenAPI/manifest artifact was found. |
+| Setup Reproducibility | 2/3 | `npm i -g neon` is documented, dependencies and Node engine are declared, `--version` verifies, and a second install succeeded. |
+| Workflow Coverage | 2/3 | README/docs include multi-step examples and agent workflows, but several realistic examples require live credentials and a documented offline `link --no-checks` check entered browser auth. |
 
 ---
 
 ## Dimension Details
 
-### 1. Documentation Quality — 1/3
+### 1. Documentation Quality - 2/3
 
-The installed README and Neon docs document installation, `--output`, `--api-key`, `NEON_API_KEY`, `--no-analytics`, and `link --agent`. There is no local AGENTS.md for the CLI package with canonical invocation, non-interactive defaults, input conventions, credential scope guidance, or timeout guidance.
+The official Neon CLI documentation and installed package README document the canonical `neon` invocation, global `--output json|yaml|table`, `--api-key`/`NEON_API_KEY` authentication, `--context-file`, and agent-oriented `neon link --agent`. Spot checks against `/Users/roman/.hermes/node/bin/neon --help` and `neon link --help` confirmed those flags are present. No `AGENTS.md` or `CODING_AGENTS.md` was available in the audit workspace or installed package, which prevents a full score under this rubric.
 
-### 2. Self-Description — 1/3
+### 2. Self-Description - 1/3
 
-`neonctl --schema` and `neonctl --manifest` fell back to human help output. `neonctl manifest` returned `ERROR: Unknown command: manifest`. Help output is structured enough to parse flags and choices manually, but there is no JSON manifest with commands, flags, exit codes, auth scopes, danger levels, or output schemas.
+Tried `/Users/roman/.hermes/node/bin/neon --schema`, `/Users/roman/.hermes/node/bin/neon manifest`, and `/Users/roman/.hermes/node/bin/neon --manifest`. `manifest` exits non-zero as an unknown command. `--schema` and `--manifest` return ordinary help text with exit code 0 rather than a machine-readable `ManifestResponse`. The help output is structured and includes commands, flag names, types, choices, defaults, and aliases.
 
-### 3. Pre-built Integrations — 1/3
+### 3. Pre-built Integrations - 1/3
 
-The README and `init` command describe MCP/extension/agent setup, and `link --agent` exposes a JSON state machine. However, no co-versioned MCP manifest, OpenAPI spec, skill artifact, or command schema file was found under the installed `neonctl` package. `init --agent cursor` produced terminal progress output and timed out during auth in the probe environment.
+No MCP config/server, OpenAPI spec file, Claude skill, LangChain/LlamaIndex wrapper, or complete workflow artifact was found in the installed package at `/Users/roman/.hermes/node/lib/node_modules/neon` within the scan depth. The package does include co-versioned agent-mode implementations for selected commands (`link`, `bootstrap`, `init`), but they do not cover the full CLI command surface.
 
-### 4. Setup Reproducibility — 2/3
+### 4. Setup Reproducibility - 2/3
 
-The documented npm install command completed non-interactively and `neonctl --version` returned `2.22.2`. Dependencies are declared in `package.json`, including Node `>=18`. There is no AGENTS.md install recipe or documented health check beyond `--version`.
+Install command documented by official docs and README: `npm i -g neon`. The installed `package.json` declares `node >=20.19.0`, package dependencies, and binary entries for `neon` and `neonctl`. `/Users/roman/.hermes/node/bin/neon --version` returned `2.30.1`. A second `npm install -g neon --no-fund --no-audit` completed successfully.
 
-### 5. Workflow Coverage — 2/3
+### 5. Workflow Coverage - 2/3
 
-`link --agent` is well documented as a multi-step agent workflow with `status`, `options`, and `next_command_template`. CRUD command examples exist in help and docs, but most commands do not expose agent-specific structured envelopes, idempotency keys, dry-run behavior, or credential-scope preflights.
+The README includes examples for linking, checkout, env pull, config/deploy, psql, and agent-mode JSON flows. `neon --help` was verified as a safe documented read-only example. A documented offline write example using `neon link --no-checks --org-id org-abc123 --project-id polished-snowflake-12345678` with a temporary context file unexpectedly entered browser authentication and was killed by timeout, so not all non-interactive examples verified.
 
 ---
 
 ## Recommended Improvements
 
-### Documentation Quality — currently 1/3
+### Documentation Quality - currently 2/3
 
-**To reach 2/3:** Add an AGENTS.md with canonical invocation, non-interactive flags, env vars, and safe config isolation.
-**To reach 3/3:** Include input conventions, timeout policy, credential-scope recipes, and command examples verified against `--help`.
+**To reach 3/3:** Add an `AGENTS.md` or equivalent package artifact covering canonical invocation, non-interactive flags, env vars, input conventions, and safe examples for agents.
 
-### Self-Description — currently 1/3
+### Self-Description - currently 1/3
 
-**To reach 2/3:** Add `neonctl --schema` or `neonctl manifest` returning JSON for commands and flags.
-**To reach 3/3:** Include exit codes, required scopes, danger levels, output schemas, and an `etag`.
+**To reach 2/3:** Add a `neon --manifest` or `neon --schema` command that returns JSON describing commands and flags.
+**To reach 3/3:** Include typed command flags, exit-code mappings, and an `etag` in the manifest response.
 
-### Pre-built Integrations — currently 1/3
+### Pre-built Integrations - currently 1/3
 
-**To reach 2/3:** Ship a co-versioned MCP/agent manifest in the npm package.
-**To reach 3/3:** Make the artifact cover all commands and validate that its version matches the CLI binary.
+**To reach 2/3:** Ship a complete machine-readable artifact covering at least 80% of commands, such as an MCP server or CLI manifest.
+**To reach 3/3:** Co-version that artifact in the same npm package and validate it in release CI.
 
-### Setup Reproducibility — currently 2/3
+### Setup Reproducibility - currently 2/3
 
-**To reach 3/3:** Document the install and verify commands in AGENTS.md and include a health-check command for agents.
+**To reach 3/3:** Document the install and health check in an agent-specific file, including `neon --version` and `NEON_API_KEY` setup.
 
-### Workflow Coverage — currently 2/3
+### Workflow Coverage - currently 2/3
 
-**To reach 3/3:** Extend the `--agent` JSON state-machine pattern beyond `link` to auth, init, create/update/delete, and recovery workflows.
+**To reach 3/3:** Provide a fully offline, credential-free workflow example that can be run verbatim in CI and does not enter browser authentication.
 
 ---
 
 ## Related failure modes
 
-| §N | Title | Severity | Readiness dimension |
+| Section | Title | Severity | Readiness dimension |
 |---|---|---|---|
 | §44 | Agent Knowledge Packaging Absence | Medium | Documentation Quality |
 | §52 | Recursive Command Tree Discovery Cost | Medium | Self-Description |

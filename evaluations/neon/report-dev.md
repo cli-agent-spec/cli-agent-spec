@@ -1,74 +1,54 @@
-# neonctl — CLI Agent Audit Report for CLI Authors
+# neon - Fix Report
 
-**Date:** 2026-06-06
-**Version:** 2.22.2
-**Scope:** Critical failure modes
-**Findings:** 23
+**Generated:** 2026-07-05
+**CLI version:** 2.30.1
+**Scope:** Critical
+**In findings:** 22 failure modes evaluated
 
 ## Summary
 
-Neon CLI has useful foundations for agents: global JSON/YAML/table output, `NEON_API_KEY`, config-dir isolation, and a strong `link --agent` state-machine workflow. The critical gaps are that these affordances are not framework-wide. Auth, init, destructive commands, common errors, and mutating operations still behave like human terminal workflows.
-
-Failure mode score: **0.38/3** over scored Critical checks.
-
-| Bucket | Count |
-|---|---:|
-| Passing (3/3) | 0 |
-| Partial (1-2/3) | 7 |
-| Failing (0/3) | 14 |
-| Indeterminate (?/3) | 2 |
+| Severity | Pass (3/3) | Partial (1-2) | Fail (0) | Indeterminate (?) |
+|---|---:|---:|---:|---:|
+| Critical | 0 | 7 | 12 | 3 |
+| High | 0 | 0 | 0 | 0 |
+| Medium | 0 | 0 | 0 | 0 |
 
 ## Highest Priority Fixes
 
-### 1. Make non-TTY auth fail fast or emit JSON fallback
+### §45 / §64 / §10 - Headless auth and interactivity
 
-Affected: §45, §64, §10.
+**Gap:** Unauthenticated commands launched browser OAuth and waited until killed. `link --no-checks`, expected to be offline, also entered auth.
 
-`neonctl auth` currently starts browser OAuth and waits. In non-TTY/CI, return a JSON object with `code: "AUTH_REQUIRED"`, supported `auth_methods`, and exact next steps. Prefer API-key/env instructions over browser launch.
+**Fix:** In non-TTY or CI contexts, never start browser OAuth automatically. Return a structured JSON error with a stable code such as `AUTH_REQUIRED`, a list of auth methods, and the exact non-interactive next step. Ensure `--no-checks` truly performs no auth, API calls, or env pull.
 
-### 2. Apply `--agent` semantics beyond `link`
+### §1 / §2 - Error envelopes and exit codes
 
-Affected: §2, §10, §50, §60.
+**Gap:** Validation, missing-argument, and auth failures collapsed to exit code 1 and prose stderr, even with `--output json`.
 
-`link --agent` is the best current pattern. Extend it to `auth`, `init`, and mutating workflows so agent invocations get a single parseable JSON object instead of prompts, spinners, and prose stderr.
+**Fix:** Make `--output json` apply to success and failure paths. Include `ok`, `data`, `error`, `warnings`, and `meta`, and embed `exit_code` plus a stable `error.code`. Publish the exit-code table in help and the manifest.
 
-### 3. Add a machine-readable manifest
+### §74 - Manifest and credential scopes
 
-Affected: §1, §23, §24, §37, §42, §43, §53, §74, §75.
+**Gap:** No schema/manifest command declares commands, flags, exit codes, required scopes, interactivity, or danger level.
 
-Implement `neonctl --schema` or `neonctl manifest` with commands, flags, output schemas, exit codes, required scopes, danger levels, auth requirements, stdin/editor/GUI requirements, and sensitive flag metadata.
+**Fix:** Add `neon --manifest` or `neon --schema` returning a versioned JSON document with `commands`, typed `flags`, `exit_codes`, `required_scopes`, `requires_auth`, `requires_interactive`, and `danger_level`.
 
-### 4. Standardize JSON envelopes and error handling
+### §23 / §12 / §13 - Mutation safety contracts
 
-Affected: §1, §2, §11, §13, §53.
+**Gap:** Mutating/destructive workflows lack dry-run, idempotency, effect, partial-failure, and resume contracts.
 
-Make `--output json` apply to errors too. Use a stable envelope: `ok`, `data`, `error`, `warnings`, `meta`. Include semantic error codes and retryability information.
+**Fix:** Add `--dry-run` and `effect` to destructive operations, `--idempotency-key` to mutating operations, and structured `partial`, `completed_steps`, `failed_step`, and `resume_from` fields for multi-step flows.
 
-### 5. Make destructive operations previewable
+### §50 / §61 - Stdin contract
 
-Affected: §12, §23, §75.
+**Gap:** `neon api --data -` is documented as stdin but was parsed as `Unknown command: -`.
 
-Add `--dry-run` and explicit `effect` fields for create/update/delete commands. Declare `danger_level` and require explicit confirmation for irreversible deletes.
+**Fix:** Accept `--data -` and `--data=-` consistently, enforce a stdin size limit, and return structured `STDIN_REQUIRED` or `STDIN_TOO_LARGE` errors with file-based alternatives.
 
-## Passing List
+## Already Passing
 
-None.
+None in the Critical scope.
 
-## Indeterminate List
+## Could Not Verify
 
-§61, §62.
-
-## Observed Bugs
-
-- Invalid explicit `--api-key` auth failures printed that credentials were being deleted from the default config path.
-- `neonctl init` prompted for editor selection under `stdin=DEVNULL`.
-- `neonctl auth` did not exit within the timeout under non-TTY.
-- JSON mode did not apply to common auth errors.
-
-## Recommended Implementation Order
-
-1. Add non-TTY guards for `auth` and `init`.
-2. Route all failures through JSON when `--output json` or `--agent` is active.
-3. Add manifest/schema output.
-4. Add dry-run/effect/idempotency support for mutating commands.
-5. Add required-scope declarations and permission preflight.
+§53 Credential Expiry Mid-Session, §60 OS Output Buffer Deadlock, §62 $EDITOR and $VISUAL Trap. Treat these as unverified risk until they can be tested with a controlled credentialed environment.
