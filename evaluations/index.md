@@ -17,7 +17,7 @@ Real-world CLI tools evaluated against the CLI Agent Spec — scored across crit
 | [hevn](hevn/README.md) | hevn-cli 0.1.0 | 0.9/3     | 7/15 [C]      | Critical (22 of 71) |
 | [neon](neon/README.md) | 2.30.1 | 0.4/3     | 8/15 [C]      | Critical (22 of 71) |
 | [link](link/README.md) | 0.7.1 | 1.2/3     | 10/15 [B]     | Critical (22 of 71) |
-| [resend](resend/README.md) | resend-cli 2.8.1 | 1.2/3     | **14/15 [A]** | Critical (22 of 71) |
+| [resend](resend/README.md) | resend-cli 2.8.1 | 1.2/3     | **14/15 [A]** | Critical (22 of 74) |
 
 ## How Evaluations Work
 

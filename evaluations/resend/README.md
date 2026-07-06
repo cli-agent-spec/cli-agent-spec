@@ -1,10 +1,12 @@
 # resend — CLI Agent Evaluation
 
-> Evaluated against the [CLI Agent Spec](https://github.com/cli-agent-spec/cli-agent-spec) — a specification defining 71 failure modes for CLI tools used under AI agent orchestration.
+> Evaluated against the [CLI Agent Spec](https://github.com/cli-agent-spec/cli-agent-spec) — a specification defining 74 failure modes for CLI tools used under AI agent orchestration.
 
 **CLI version:** resend-cli v2.8.1
 **Evaluated:** 2026-07-06
-**Scope:** Critical (22 of 71 failure modes)
+**Scope:** Critical (22 of 74 failure modes)
+
+> Note: this run covered the 22 Critical failure modes as scoped at evaluation time. §75 (Safe-Default Execution Mode Absent), a Critical mode added in the same cycle, was not evaluated.
 
 ## Scores
 

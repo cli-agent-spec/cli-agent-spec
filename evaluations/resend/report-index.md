@@ -3,7 +3,9 @@
 **Generated:** 2026-07-06
 **CLI version:** resend-cli v2.8.1
 **Scope:** Critical
-**Failure modes evaluated:** 22 of 71 _(scope: Critical)_
+**Failure modes evaluated:** 22 of 74 _(scope: Critical)_
+
+> §75 (Safe-Default Execution Mode Absent), a Critical mode added in the same cycle, was not evaluated in this run.
 
 ## Score Summary
 
