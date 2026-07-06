@@ -4,6 +4,9 @@
 # IDE
 .idea/
 
+# Python
+__pycache__/
+
 # OS
 .DS_Store
 site/
