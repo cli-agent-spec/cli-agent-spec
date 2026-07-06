@@ -880,7 +880,7 @@ def _emit_jsonl(traj: Trajectory) -> None:
 
 # ── Diagnose integration ──────────────────────────────────────────────────────
 
-def _run_diagnose(traj: Trajectory, challenges_dir: str | None) -> None:
+def _run_diagnose(traj: Trajectory, challenges_dir: str | None, llm: bool = False) -> None:
     """Run diagnose.py on each failing bash call and aggregate the results.
 
     Passing all calls as a history lump produces false positives because
@@ -902,7 +902,7 @@ def _run_diagnose(traj: Trajectory, challenges_dir: str | None) -> None:
 
     if not candidates:
         print(json.dumps({
-            "schema_version": "1.0",
+            "schema_version": "1.1",
             "matches": [],
             "no_match": True,
             "trace_insufficient": False,
@@ -911,9 +911,14 @@ def _run_diagnose(traj: Trajectory, challenges_dir: str | None) -> None:
         }, indent=2))
         return
 
-    cmd_base = ["uv", "run", str(_DIAGNOSE)]
+    cmd_base = ["uv", "run"]
+    if llm:
+        cmd_base += ["--with", "anthropic"]
+    cmd_base.append(str(_DIAGNOSE))
     if challenges_dir:
         cmd_base += ["--challenges-dir", challenges_dir]
+    if llm:
+        cmd_base.append("--llm")
 
     # Aggregate matches: de-dup by failure_mode_id, keep highest confidence
     all_matches: dict[int, dict] = {}
@@ -938,8 +943,10 @@ def _run_diagnose(traj: Trajectory, challenges_dir: str | None) -> None:
             tmp_path = f.name
 
         try:
+            # --history loads the file and parses the JSON object inside;
+            # the positional argument expects a JSON string, not a path
             result = subprocess.run(
-                cmd_base + [f.name],
+                cmd_base + ["--history", f.name],
                 capture_output=True,
                 text=True,
             )
@@ -965,7 +972,7 @@ def _run_diagnose(traj: Trajectory, challenges_dir: str | None) -> None:
 
     no_match = len(matches) == 0
     print(json.dumps({
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "matches": matches,
         "no_match": no_match,
         "trace_insufficient": False,
@@ -1051,6 +1058,11 @@ def main() -> None:
         metavar="DIR",
         help="Override path to challenges/ directory for --diagnose",
     )
+    parser.add_argument(
+        "--llm",
+        action="store_true",
+        help="Enable LLM signature routing and scoring in --diagnose (requires ANTHROPIC_API_KEY)",
+    )
     args = parser.parse_args()
 
     traj = _load(Path(args.file))
@@ -1068,7 +1080,7 @@ def main() -> None:
         return
 
     if args.diagnose:
-        _run_diagnose(traj, args.challenges_dir)
+        _run_diagnose(traj, args.challenges_dir, llm=args.llm)
         return
 
     if args.eval:
