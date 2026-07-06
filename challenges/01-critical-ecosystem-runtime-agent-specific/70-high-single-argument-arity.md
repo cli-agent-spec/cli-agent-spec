@@ -96,6 +96,11 @@ Args: cobra.MinimumNArgs(1),
 
 ### Agent Workaround
 
+**Signature:** usage line plus `unrecognized arguments:` listing the second and later positionals when multiple items are passed; the same command with one item exits `0`
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** `for item in <items>; do tool <subcommand> "$item" || break; done` (one positional per call, stop at first failure); if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Detect arity from schema before constructing the invocation; loop as a fallback when `nargs` is `"1"` or absent:**
 
 ```python

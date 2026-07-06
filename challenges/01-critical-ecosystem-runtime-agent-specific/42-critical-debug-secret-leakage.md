@@ -82,6 +82,10 @@ class SecretAction(argparse.Action):
 
 ### Agent Workaround
 
+**Signature:** stdout or stderr from a `--debug`/`--trace`/`--verbose` run echoes a secret flag value verbatim; secret also visible in `ps` output while the command runs
+
+**Tier:** A (one safe command, no branching)
+
 **Always inject secrets via environment variables, never via CLI flags; scan output for leaked secrets:**
 
 ```python

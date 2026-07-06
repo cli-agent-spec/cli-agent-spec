@@ -56,7 +56,7 @@ $ tool manifest
         },
         "exit_codes": {
           "0": { "name": "SUCCESS",   "description": "Deployment completed",       "retryable": false, "side_effects": "complete" },
-          "2": { "name": "ARG_ERROR", "description": "Invalid target environment", "retryable": true,  "side_effects": "none"     },
+          "2": { "name": "ARG_ERROR", "description": "Invalid target environment", "retryable": false, "side_effects": "none"     },
           "7": { "name": "TIMEOUT",   "description": "Deployment timed out",       "retryable": true,  "side_effects": "partial"  }
         },
         "examples": [

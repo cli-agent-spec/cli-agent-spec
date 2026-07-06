@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repository is
 
-A **specification** (not an implementation) for building CLI tools that work reliably under AI agent orchestration. It defines 74 failure modes, 157 requirements across 3 tiers, 5 canonical JSON schemas, analysis of 12 existing frameworks, and design guides for CLI authors.
+A **specification** (not an implementation) for building CLI tools that work reliably under AI agent orchestration. It defines 74 failure modes, 158 requirements across 3 tiers, 5 canonical JSON schemas, analysis of 12 existing frameworks, and design guides for CLI authors.
 
 There is no build system, test runner, or package manager. All content is markdown and JSON.
 
@@ -65,12 +65,12 @@ ajv compile -s "schemas/*.json" --spec=draft7
 
 ### Directories
 
-- `challenges/` — 71 failure modes in 7 parts (01=critical ecosystem, 02=execution, 03=security, 04=output, 05=environment, 06=errors, 07=observability). Failure modes are referenced as `§N`.
-- `requirements/` — 154 requirements in 3 tiers: `f-NNN` (Framework-Automatic), `c-NNN` (Command Contract), `o-NNN` (Opt-In). Referenced as `REQ-{TIER}-{NNN}`.
+- `challenges/` — 74 failure modes in 7 parts (01=critical ecosystem, 02=execution, 03=security, 04=output, 05=environment, 06=errors, 07=observability). Failure modes are referenced as `§N`. `challenges/triage.md` maps observable failure signals (exit code, streams, timing) to §N candidates; it is a routing document, not a failure mode.
+- `requirements/` — 158 requirements in 3 tiers: `f-NNN` (Framework-Automatic), `c-NNN` (Command Contract), `o-NNN` (Opt-In). Referenced as `REQ-{TIER}-{NNN}`.
 - `schemas/` — 4 canonical JSON Schema draft-07 types, each with a `.json` (machine) and `.md` (human) companion: `exit-code`, `exit-code-entry`, `response-envelope`, `manifest-response`. Plus `diagnose-result` (skill-internal, not a canonical spec type).
 - `research/` — per-framework analysis (argparse, click, clap, cobra, typer, commander-js, pydantic, MCP, OpenAPI, etc.).
 - `guides/` — design guides for CLI authors: positive conventions that cannot be expressed as enforceable requirements. See `guides/index.md`.
-- `comparison-matrix.md` — 71 failure modes × 12 frameworks coverage table.
+- `comparison-matrix.md` — 74 failure modes × 12 frameworks coverage table.
 
 ### Requirement tiers
 
@@ -95,10 +95,12 @@ ajv compile -s "schemas/*.json" --spec=draft7
 Required sections in order: `### The Problem` → `### Impact` → `### Solutions` → `### Evaluation` → `### Agent Workaround`
 
 - `### Solutions` is for CLI authors and framework designers only — no agent-side content here
+- `### Agent Workaround` must open with a `**Signature:**` line: the observable trigger (exit code, stream content pattern, timing symptom) an agent can match without knowing the cause. One line, present tense, no trailing period
+- A `**Tier:**` line follows the Signature: `A`, `B`, or `C`, using the exact pinned gloss strings checked by `/validate-links`. Tier `C` files must add a `**Fallback:**` line (a single degraded action for weak models, shell command preferred); tiers `A`/`B` must not. Definitions live in `challenges/triage.md`
 - `### Agent Workaround` must include a `**Limitation:**` line; generic only, no tool-specific instructions
 - Evaluation: 0–3 scoring table when four states are meaningful; binary pass/fail otherwise
 
-When adding a failure mode: assign next `§N`, place in correct part folder, add rows to `challenges/index.md` and the part's `index.md`, add row to `challenges/sources.md`, create/update requirements.
+When adding a failure mode: assign next `§N`, place in correct part folder, add rows to `challenges/index.md` and the part's `index.md`, add row to `challenges/sources.md`, add or extend a `challenges/triage.md` row if the failure has a distinct observable signature, create/update requirements.
 
 ## Requirement file format
 

@@ -166,6 +166,10 @@ program.configureOutput({
 
 ### Agent Workaround
 
+**Signature:** redirected stdout contains progress or warning prose around the data; `Usage:` or `Options:` on stdout with nonzero exit and empty stderr
+
+**Tier:** B (one observable check, then one command)
+
 **Always capture stderr and stdout separately; detect contamination before parsing:**
 
 ```python
@@ -188,13 +192,38 @@ if stderr:
 parsed = json.loads(stdout)
 ```
 
-**For tools that route warnings to stdout as prose, strip leading non-JSON lines:**
+**For tools that mix prose with the JSON body on stdout, apply the canonical extraction rule (identical in §2, §41, §68; defined in [triage.md](../triage.md)):**
+
 ```python
-lines = stdout.splitlines()
-json_start = next((i for i, l in enumerate(lines) if l.strip().startswith("{")), None)
-if json_start is not None and json_start > 0:
-    warnings_text = "\n".join(lines[:json_start])
-    stdout = "\n".join(lines[json_start:])
+import json, re
+
+def extract_envelope(stdout: str):
+    """Canonical JSON extraction rule — defined in challenges/triage.md."""
+    text = re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", stdout)   # 1. strip ANSI codes
+    try:
+        return json.loads(text)                            # 2. fast path: clean stream
+    except json.JSONDecodeError:
+        pass
+    candidates = []                                        # 3. every maximal JSON value
+    decoder = json.JSONDecoder()
+    i = 0
+    while True:
+        starts = [s for s in (text.find(c, i) for c in "{[") if s != -1]
+        if not starts:
+            break
+        start = min(starts)
+        try:
+            obj, end = decoder.raw_decode(text[start:])
+            candidates.append(obj)
+            i = start + end
+        except json.JSONDecodeError:
+            i = start + 1
+    envelopes = [c for c in candidates if isinstance(c, dict) and "ok" in c]
+    if envelopes:
+        return envelopes[-1]                               # 4. last envelope wins
+    if candidates:
+        return candidates[-1]                              # 5. last complete value
+    return None                                            # 6. unstructured: do not guess
 ```
 
 **Limitation:** If a tool routes structured data to stderr or mixes help text and JSON in the same stream with no separator, there is no reliable parse strategy — the tool requires a fix from its author before it can be safely used by agents

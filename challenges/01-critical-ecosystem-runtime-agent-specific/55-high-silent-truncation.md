@@ -70,6 +70,11 @@ $ tool tag-resource --id res_1 --tags a,b,c,d,e,f,g,h,i,j,k  # 11 tags, limit is
 
 ### Agent Workaround
 
+**Signature:** `exit 0` with `"ok": true` but the returned field value is shorter than the value sent; array items missing from the created resource
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** After each write returning `ok: true`, compare every returned field value in `data` to the value sent and treat any shortened value as truncation; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Check `warnings[]` after every write operation; validate field lengths against schema before sending:**
 
 ```python

@@ -86,6 +86,11 @@ $ tool audit-log --since 1h --output jsonl
 
 ### Agent Workaround
 
+**Signature:** responses lack `meta.request_id`, `duration_ms`, and timestamps; `TOOL_TRACE_ID` not echoed back; no `audit-log` command
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Run `TOOL_TRACE_ID=<session-id> tool <args>`; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Supply a unique trace ID per agent session and per operation; log `request_id` from every response:**
 
 ```python

@@ -1,6 +1,8 @@
 # CLI Agent Spec — Full Index
 
 > All 74 failure modes across 7 parts. Each failure mode linked to its source file.
+>
+> Failed call and don't know which §N applies? Start at [triage.md](triage.md) — a first-match decision table from observable signals (exit code, streams, timing) to failure modes.
 
 ---
 

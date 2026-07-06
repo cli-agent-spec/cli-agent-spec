@@ -63,6 +63,10 @@ echo "$result" | jq '.data[].id'
 
 ### Agent Workaround
 
+**Signature:** pipeline exits `0` with empty output; running the tool alone exits non-zero and prints a JSON error envelope with `"ok": false`
+
+**Tier:** B (one observable check, then one command)
+
 **Never pipe structured output directly; always capture and check `.ok` before extracting fields:**
 
 ```python

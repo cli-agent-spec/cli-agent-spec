@@ -75,6 +75,11 @@ $ unbuffer my-tool migrate   # via expect package
 
 ### Agent Workaround
 
+**Signature:** no output for minutes on a long-running command, then all lines arrive at once; killed by timeout with empty or truncated stdout
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** `PYTHONUNBUFFERED=1 stdbuf -o0 timeout 300 tool <args> </dev/null`; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Set `PYTHONUNBUFFERED=1`; use `stdbuf` wrapper; implement a heartbeat-based liveness check:**
 
 ```python

@@ -121,6 +121,11 @@ tool list-users --stable-output
 
 ### Agent Workaround
 
+**Signature:** two identical read-only invocations produce different stdout: reordered arrays, changed timestamps, or fresh random IDs; diff is never empty
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Compare only the `data` field of the two outputs and ignore `meta`; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Compare only `data`, never `meta`; extract specific fields rather than diffing full output:**
 
 ```python

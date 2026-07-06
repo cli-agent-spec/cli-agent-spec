@@ -39,7 +39,7 @@
     "ErrorDetail": {
       "type": "object",
       "required": ["code", "message"],
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "code": {
           "type": "string",
@@ -55,12 +55,25 @@
         },
         "retryable": {
           "type": "boolean",
-          "description": "Whether the agent may safely retry. Should mirror the ExitCodeEntry.retryable for the emitted code."
+          "description": "True if re-running the identical invocation unchanged may succeed; implies no side effects occurred. Mirrors ExitCodeEntry.retryable for the emitted code. False for caller-correctable failures — see fix_required."
         },
-        "retry_after": {
+        "retry_after_ms": {
           "type": "integer",
           "minimum": 0,
-          "description": "Seconds the agent should wait before retrying. Present only when retryable is true and a specific back-off is known."
+          "description": "Milliseconds the agent should wait before retrying. Present only when retryable is true and a specific back-off is known."
+        },
+        "retry_strategy": {
+          "type": "string",
+          "enum": ["immediate", "linear_backoff", "exponential_backoff"],
+          "description": "Back-off strategy the agent should apply on retry. Present only when retryable is true."
+        },
+        "fix_required": {
+          "type": "string",
+          "description": "Condition the caller must correct before reissuing. Present only when retryable is false and the failure is caller-correctable; absent on terminal failures."
+        },
+        "fix_command": {
+          "type": "string",
+          "description": "Exact command invocation that resolves the fix_required condition, executable verbatim with no placeholders. Must be read-only or idempotent, never destructive. Present only when retryable is false and a single-command remediation exists."
         },
         "phase": {
           "type": "string",

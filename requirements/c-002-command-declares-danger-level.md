@@ -57,7 +57,7 @@ $ tool delete-account --schema
   },
   "exit_codes": {
     "0": { "name": "SUCCESS",   "description": "User account deleted",    "retryable": false, "side_effects": "complete" },
-    "3": { "name": "ARG_ERROR", "description": "Invalid user ID",         "retryable": true,  "side_effects": "none"     },
+    "2": { "name": "ARG_ERROR", "description": "Invalid user ID",         "retryable": false, "side_effects": "none"     },
     "5": { "name": "NOT_FOUND", "description": "User not found",          "retryable": false, "side_effects": "none"     }
   }
 }

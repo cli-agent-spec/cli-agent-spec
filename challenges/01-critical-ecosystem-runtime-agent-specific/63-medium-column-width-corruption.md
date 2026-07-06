@@ -73,6 +73,10 @@ $ tool describe resource --width=0 --output json
 
 ### Agent Workaround
 
+**Signature:** JSON parse fails on output where long strings (URLs, paths) are split across lines at a fixed column (often 80); break point shifts with `COLUMNS`
+
+**Tier:** B (one observable check, then one command)
+
 **Set `COLUMNS=0` and `--width=0` to suppress terminal-width wrapping; strip any injected newlines from string values:**
 
 ```python

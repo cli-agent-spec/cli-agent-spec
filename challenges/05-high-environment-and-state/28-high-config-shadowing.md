@@ -117,6 +117,10 @@ tool --config /dev/null deploy --env staging
 
 ### Agent Workaround
 
+**Signature:** explicit flags appear ignored; identical command behaves differently across machines or directories; exit `0` with an unexpected target
+
+**Tier:** B (one observable check, then one command)
+
 **Always run `tool --show-config --output json` before any configuration-sensitive operation:**
 
 ```python

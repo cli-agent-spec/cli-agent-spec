@@ -85,7 +85,7 @@ register command "create-order":
   danger_level: mutating
   exit_codes:
     SUCCESS  (0): description: "Order created or already existed", retryable: false, side_effects: complete
-    ARG_ERROR(3): description: "Invalid amount",                   retryable: true,  side_effects: none
+    ARG_ERROR(2): description: "Invalid amount",                   retryable: false, side_effects: none
 
   execute(args):
     cached = idempotency_store.get(args.idempotency_key)

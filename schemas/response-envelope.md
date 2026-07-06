@@ -2,7 +2,7 @@
 
 **File:** [`response-envelope.json`](response-envelope.json)
 
-> **Used by:** [REQ-F-004](../requirements/f-004-consistent-json-response-envelope.md) · [REQ-C-013](../requirements/c-013-error-responses-include-code-and-message.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · all commands in JSON output mode
+> **Used by:** [REQ-F-004](../requirements/f-004-consistent-json-response-envelope.md) · [REQ-C-013](../requirements/c-013-error-responses-include-code-and-message.md) · [REQ-C-014](../requirements/c-014-error-responses-include-retryable-and-retry-after-.md) · [REQ-C-030](../requirements/c-030-error-responses-include-fix-command.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · all commands in JSON output mode
 
 Shape is invariant — `ok`, `data`, `error`, `warnings`, `meta` are always present regardless of success, failure, or result count.
 
@@ -26,8 +26,11 @@ Shape is invariant — `ok`, `data`, `error`, `warnings`, `meta` are always pres
 | `code` | string | yes | Stable machine-readable identifier. Agents branch on this, not `message`. Never changes between versions |
 | `message` | string | yes | Human-readable summary. May be localized. Do not parse — use `code` |
 | `detail` | string | no | Stack context or raw upstream error |
-| `retryable` | boolean | no | Mirrors `ExitCodeEntry.retryable` for the emitted exit code |
-| `retry_after` | integer | no | Seconds to wait before retrying. Only when `retryable: true` and back-off is known |
+| `retryable` | boolean | no | `true` = the identical unchanged invocation may succeed and no side effects occurred. Mirrors `ExitCodeEntry.retryable` for the emitted exit code |
+| `retry_after_ms` | integer | no | Milliseconds to wait before retrying. Only when `retryable: true` and back-off is known |
+| `retry_strategy` | `"immediate"` \| `"linear_backoff"` \| `"exponential_backoff"` | no | Back-off strategy to apply. Only when `retryable: true` |
+| `fix_required` | string | no | Condition the caller must correct before reissuing. Only when `retryable: false` and the failure is caller-correctable; absent on terminal failures |
+| `fix_command` | string | no | Exact command that resolves `fix_required`, executable verbatim (no placeholders). Read-only or idempotent, never destructive. Only when a single-command remediation exists |
 | `phase` | `"validation"` \| `"execution"` \| `"cleanup"` | no | `"validation"` guarantees zero side effects |
 | `suggestion` | string | no | Actionable next step for the agent |
 | `redirect` | `Redirect` | no | Present only when exit code is `REDIRECTED (13)` |
@@ -80,7 +83,7 @@ Present in `error.redirect` when exit code is `REDIRECTED (13)`.
 }
 ```
 
-**ARG_ERROR (2) — retryable, zero side effects**
+**ARG_ERROR (2) — fix the input, then reissue; zero side effects**
 ```json
 {
   "ok": false,
@@ -88,7 +91,8 @@ Present in `error.redirect` when exit code is `REDIRECTED (13)`.
   "error": {
     "code": "INVALID_ENVIRONMENT",
     "message": "Unknown target environment 'prodution'",
-    "retryable": true,
+    "retryable": false,
+    "fix_required": "Correct the target environment argument",
     "phase": "validation",
     "suggestion": "Valid environments: prod, staging, dev"
   },
@@ -105,8 +109,9 @@ Present in `error.redirect` when exit code is `REDIRECTED (13)`.
   "error": {
     "code": "TOKEN_EXPIRED",
     "message": "Access token has expired",
-    "retryable": true,
-    "retry_after": 0
+    "retryable": false,
+    "fix_required": "Refresh the access token, then reissue the call",
+    "fix_command": "tool auth refresh"
   },
   "warnings": [],
   "meta": { "duration_ms": 4 }
@@ -121,7 +126,8 @@ Present in `error.redirect` when exit code is `REDIRECTED (13)`.
   "error": {
     "code": "COMMAND_RENAMED",
     "message": "'tool user create' was renamed in v2.0",
-    "retryable": true,
+    "retryable": false,
+    "fix_required": "Reissue using error.redirect.command verbatim",
     "redirect": {
       "command": "tool users add --name alice",
       "permanent": true,
@@ -142,7 +148,7 @@ Present in `error.redirect` when exit code is `REDIRECTED (13)`.
     "code": "RATE_LIMIT_EXCEEDED",
     "message": "API rate limit reached",
     "retryable": true,
-    "retry_after": 30
+    "retry_after_ms": 30000
   },
   "warnings": [],
   "meta": { "duration_ms": 6 }
@@ -170,7 +176,9 @@ Rules for agents parsing `ResponseEnvelope` at runtime, including handling malfo
 - `meta.not_modified: true` — `data` is intentionally `null`; use the previously cached response; this is not an error
 
 **Retrying**
-- `error.retryable: true` without `error.retry_after` — retry immediately for `ARG_ERROR`; apply 1s default back-off for all others
+- `error.retryable: true` without `error.retry_after_ms` — apply a 1s default back-off before retrying
+- `error.retryable: false` with `error.fix_required` or `error.redirect` present — apply the stated fix, then reissue once; with neither, treat as terminal and stop
+- `error.fix_command` present — run it verbatim (it is declared safe: read-only or idempotent), then reissue the original call once; if either step fails, stop and escalate
 - `error.retryable` absent — fall back to the exit code's retryability from [`exit-code.md`](exit-code.md)
 - Never retry more than 3 times on the same error code without a state change
 
@@ -220,5 +228,6 @@ Rules for agents parsing `ResponseEnvelope` at runtime, including handling malfo
 - `data` must always be present as a key — use `null` rather than omitting it
 - `error` must always be present as a key — use `null` rather than omitting it
 - `ResponseMeta` uses `additionalProperties: true` to allow framework extensions without breaking existing parsers
+- `ErrorDetail` uses `additionalProperties: true` for the same reason — requirements extend it with fields such as `refresh_command` (REQ-F-063) and network context (REQ-F-037)
 - `error.redirect` is only meaningful when the exit code is `REDIRECTED (13)`. Parsers should ignore it at other exit codes
 - `error.code` is the stable identifier agents act on. `error.message` is for humans and may change between versions

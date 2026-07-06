@@ -80,6 +80,10 @@ The tell: the process is running, consuming no CPU, producing no output — indi
 
 ### Agent Workaround
 
+**Signature:** process produces no output, consumes no CPU, and never exits when an expected flag is omitted; killed only by timeout; sometimes a bare `Password:` prompt
+
+**Tier:** A (one safe command, no branching)
+
 **Always pass `stdin=DEVNULL`; if a required arg is missing, the tool should fail fast — treat 1s hangs as stdin reads:**
 
 ```python

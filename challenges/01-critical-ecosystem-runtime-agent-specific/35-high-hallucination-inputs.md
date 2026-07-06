@@ -92,6 +92,10 @@ def validate_resource_id(value: str) -> str:
 
 ### Agent Workaround
 
+**Signature:** not-found or invalid-value error for a resource that exists; the passed value contains `%2F`, `?`, `#`, `../`, or literal `null`/`undefined`
+
+**Tier:** B (one observable check, then one command)
+
 **Normalize LLM-generated values before passing to the CLI; retry once with the tool's `suggestion` on rejection:**
 
 ```python

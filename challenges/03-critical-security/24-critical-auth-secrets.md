@@ -98,6 +98,10 @@ tool deploy --token-file /run/secrets/api-token
 
 ### Agent Workaround
 
+**Signature:** stdout or stderr echoes a credential value (`sk-...`, `Bearer ...`); non-TTY run hangs at a prompt like `Enter API token:`
+
+**Tier:** B (one observable check, then one command)
+
 **Always supply credentials via environment variables, never via flags:**
 
 ```python

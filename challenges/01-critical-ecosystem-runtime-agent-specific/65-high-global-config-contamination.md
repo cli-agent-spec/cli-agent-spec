@@ -94,6 +94,10 @@ $ tool config set --global region=us-east-1
 
 ### Agent Workaround
 
+**Signature:** `exit 0` on a config command but files under `~/.config/` or `~/.tool/` change; subsequent sessions show different defaults, formats, or accounts
+
+**Tier:** B (one observable check, then one command)
+
 **Check `warnings[]` for `GLOBAL_CONFIG_MODIFIED`; prefer session-scoped or local config commands:**
 
 ```python

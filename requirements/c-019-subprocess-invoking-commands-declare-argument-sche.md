@@ -53,7 +53,7 @@ $ tool run --schema
   },
   "exit_codes": {
     "0": { "name": "SUCCESS",   "description": "Script completed successfully", "retryable": false, "side_effects": "complete" },
-    "3": { "name": "ARG_ERROR", "description": "Shell metacharacter in argument", "retryable": true, "side_effects": "none" }
+    "2": { "name": "ARG_ERROR", "description": "Shell metacharacter in argument", "retryable": false,"side_effects": "none" }
   }
 }
 ```

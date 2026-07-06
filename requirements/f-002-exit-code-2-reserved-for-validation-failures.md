@@ -10,7 +10,7 @@
 
 ## Description
 
-The framework MUST ensure that exit code `2` is emitted if and only if command execution was aborted during input validation, before any side effect occurred. The framework MUST guarantee this by enforcing the validate-before-execute phase boundary (see REQ-F-015). A command that exits `2` MUST be safe to retry without any cleanup or rollback.
+The framework MUST ensure that exit code `2` is emitted if and only if command execution was aborted during input validation, before any side effect occurred. The framework MUST guarantee this by enforcing the validate-before-execute phase boundary (see REQ-F-015). A command that exits `2` requires no cleanup or rollback; the caller corrects the input and reissues. The error response carries `retryable: false` (the identical invocation fails deterministically) with `fix_required` stating the correction.
 
 ## Acceptance Criteria
 
@@ -24,7 +24,7 @@ The framework MUST ensure that exit code `2` is emitted if and only if command e
 
 **Types:** [`response-envelope.md`](../schemas/response-envelope.md) · [`exit-code.md`](../schemas/exit-code.md)
 
-The `ErrorDetail.phase` field carries `"validation"` to guarantee the agent that no side effect occurred and the command is safe to retry after correcting the input.
+The `ErrorDetail.phase` field carries `"validation"` to guarantee the agent that no side effect occurred and the command may be reissued after correcting the input.
 
 ---
 
@@ -39,7 +39,8 @@ JSON error response for a command that exits `2` (`ARG_ERROR`) — `phase` field
   "error": {
     "code": "INVALID_ARGUMENT",
     "message": "Flag --count must be a positive integer",
-    "retryable": true,
+    "retryable": false,
+    "fix_required": "Correct the --count argument",
     "phase": "validation",
     "suggestion": "Provide a value greater than 0"
   },
@@ -58,7 +59,7 @@ Framework-Automatic: no command author action needed. The framework enforces the
 # Command receives --count foo (invalid integer)
 # Framework phase: VALIDATION
 # No I/O or state mutation has occurred
-→ exit 2, error.phase = "validation", error.retryable = true
+→ exit 2, error.phase = "validation", error.retryable = false, error.fix_required set
 
 # Command receives --count 5 (valid), begins writing to database
 # Framework phase: EXECUTION

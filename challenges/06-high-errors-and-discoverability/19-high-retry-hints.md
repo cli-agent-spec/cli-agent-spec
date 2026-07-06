@@ -32,7 +32,7 @@ exit 1
 ```bash
 $ tool sync-data
 {"ok": false, "error": {"code": "RATE_LIMITED", "message": "Too many requests"}}
-exit 9
+exit 11
 
 # Agent retries immediately → hits rate limit again → retry loop
 ```
@@ -74,17 +74,21 @@ exit 9
 
 **Retry classification taxonomy:**
 ```
-retryable: false   → VALIDATION_ERROR, NOT_FOUND, PERMISSION_DENIED, CONFLICT
-retryable: true    → TIMEOUT, SERVICE_UNAVAILABLE, RATE_LIMITED, NETWORK_ERROR
-retryable: "maybe" → INTERNAL_ERROR (sometimes transient, sometimes not)
+retryable: false → VALIDATION_ERROR, NOT_FOUND, PERMISSION_DENIED, CONFLICT
+                   (fix-then-retry cases carry fix_required with the correction)
+retryable: true  → TIMEOUT, SERVICE_UNAVAILABLE, RATE_LIMITED, NETWORK_ERROR
+INTERNAL_ERROR   → retryable: false by default; a command may declare it true
+                   when the failure is known to be transient
 ```
 
 **Exit code alignment:**
 ```
-Exit 9 (RATE_LIMITED)       → always retryable, check retry_after_ms
-Exit 7 (TIMEOUT)            → retryable, immediate retry ok
-Exit 8 (PERMISSION_DENIED)  → never retryable without auth change
-Exit 2 (BAD_ARGS)           → never retryable without arg change
+Exit 11 (RATE_LIMITED)      → retryable, wait error.retry_after_ms
+Exit 12 (UNAVAILABLE)       → retryable, exponential back-off
+Exit 10 (TIMEOUT)           → retryable only when the command declares
+                              side_effects: "none" for TIMEOUT
+Exit 7 (PERMISSION_DENIED)  → never retryable without auth change
+Exit 2 (ARG_ERROR)          → never retryable without arg change
 ```
 
 **For framework design:**
@@ -107,6 +111,11 @@ Exit 2 (BAD_ARGS)           → never retryable without arg change
 ---
 
 ### Agent Workaround
+
+**Signature:** error output lacks `retryable` and `retry_after_ms`; immediate retry after `RATE_LIMITED` fails again; identical retries fail identically
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Retry once after a 1 s back-off only if the command is read-only, never if it mutates; if that fails, escalate with the command, exit code, stdout, and stderr
 
 **Implement retry logic driven by `retryable` and `retry_after_ms` fields:**
 
@@ -149,10 +158,11 @@ def run_with_retry(cmd: list[str], max_attempts: int = 3) -> dict:
 
 **Map exit codes to retry decisions when `retryable` field is absent:**
 ```python
-# Exit codes that are always retryable
-RETRYABLE_EXIT_CODES = {7, 9}   # TIMEOUT, RATE_LIMITED per spec
-# Exit codes that are never retryable
-PERMANENT_EXIT_CODES = {2, 3, 4, 8}  # BAD_ARGS, USAGE, NOT_FOUND, PERMISSION_DENIED
+# Exit codes that are retryable per the spec's standard table
+# (10 = TIMEOUT is only safe when the command declares side_effects: "none")
+RETRYABLE_EXIT_CODES = {10, 11, 12}  # TIMEOUT, RATE_LIMITED, UNAVAILABLE
+# Exit codes that are never retryable without changing something first
+PERMANENT_EXIT_CODES = {2, 3, 5, 6, 7}  # ARG_ERROR, PARTIAL_FAILURE, NOT_FOUND, CONFLICT, PERMISSION_DENIED
 
 if result.returncode in RETRYABLE_EXIT_CODES:
     time.sleep(5)
@@ -161,4 +171,4 @@ elif result.returncode in PERMANENT_EXIT_CODES:
     raise RuntimeError("Permanent failure — do not retry")
 ```
 
-**Limitation:** If the tool provides no `retryable` field and uses exit code 1 for all failures (both permanent and transient), the agent cannot safely distinguish them — limit retries to a low count (≤2) with exponential backoff and treat unknown errors as non-retryable after the final attempt
+**Limitation:** If the tool provides no `retryable` field and uses exit code 1 for all failures (both permanent and transient), the agent cannot safely distinguish them — apply the default retry policy from `triage.md` (one retry for read-only commands, none for mutations) and treat unknown errors as non-retryable after the final attempt

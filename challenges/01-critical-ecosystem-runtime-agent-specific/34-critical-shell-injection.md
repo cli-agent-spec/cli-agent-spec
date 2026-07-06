@@ -79,6 +79,10 @@ const result = await execFile(args[0], args.slice(1));  // ✓ never shell=True
 
 ### Agent Workaround
 
+**Signature:** command whose values contain `;`, `&&`, `$()`, or `../` produces unexpected output or side effects; may still exit `0` with plausible-looking result
+
+**Tier:** A (one safe command, no branching)
+
 **Always use exec-array (list form) for subprocess calls; validate LLM-generated values before passing them:**
 
 ```python

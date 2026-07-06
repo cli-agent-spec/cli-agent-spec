@@ -92,6 +92,10 @@ $ tool long-operation --output json
 
 ### Agent Workaround
 
+**Signature:** no output or partial progress lines, then silence until killed by timeout; `exit 124` from an external `timeout` wrapper with no JSON error emitted
+
+**Tier:** B (one observable check, then one command)
+
 **Enforce a timeout at the subprocess level and parse whatever partial output exists:**
 
 ```python

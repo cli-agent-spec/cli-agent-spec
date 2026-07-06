@@ -38,7 +38,8 @@ When normalization fails, the framework emits an `ARG_ERROR (2)` response with `
   "error": {
     "code": "INVALID_JSON",
     "message": "Input could not be normalized to valid JSON",
-    "retryable": true,
+    "retryable": false,
+    "fix_required": "Reissue with the corrected_input value",
     "phase": "validation",
     "corrected_input": "{\"key\": \"value\"}",
     "suggestion": "Use the corrected_input value to retry"
@@ -72,7 +73,8 @@ $ mytool deploy --config '{env prod}' --json
     "code": "INVALID_JSON",
     "message": "Input could not be normalized to valid JSON",
     "corrected_input": "{\"env\": \"prod\"}",
-    "retryable": true,
+    "retryable": false,
+    "fix_required": "Reissue with the corrected_input value",
     "phase": "validation"
   },
   ...

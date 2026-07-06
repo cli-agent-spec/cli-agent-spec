@@ -54,7 +54,7 @@ $ tool config set --schema
   },
   "exit_codes": {
     "0": { "name": "SUCCESS",   "description": "Config value written",                    "retryable": false, "side_effects": "complete" },
-    "3": { "name": "ARG_ERROR", "description": "Key or value failed validation",           "retryable": true,  "side_effects": "none"     }
+    "2": { "name": "ARG_ERROR", "description": "Key or value failed validation",           "retryable": false, "side_effects": "none"     }
   }
 }
 ```

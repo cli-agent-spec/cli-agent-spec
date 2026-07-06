@@ -42,7 +42,8 @@ $ tool list-resources
     "message": "Access token expired at 2024-03-11T14:15:00Z.",
     "expired": true,
     "expired_at": "2024-03-11T14:15:00Z",
-    "retryable": true,
+    "retryable": false,
+    "fix_required": "Refresh credentials, then reissue",
     "reauth_command": "tool auth refresh",
     "reauth_env_var": "TOOL_TOKEN"
   }
@@ -50,7 +51,7 @@ $ tool list-resources
 ```
 
 **For framework design:**
-- Add `exit 10` to the standard exit code table: `10 = credentials expired (retryable with refresh)`. Exit 8 = permanent permission denied
+- Use the standard exit code table: expiry emits `AUTH_REQUIRED (8)` with `error.code: CREDENTIALS_EXPIRED` (recoverable by refresh); permanent denial emits `PERMISSION_DENIED (7)`
 - Framework MUST intercept HTTP 401/403 responses and attempt to classify expiry vs permission denial before surfacing the error
 - `error.reauth_command` is a mandatory field for all auth errors — the exact command to run to recover credentials
 
@@ -61,13 +62,17 @@ $ tool list-resources
 | 0 | Expired credentials produce `FORBIDDEN` or `UNAUTHORIZED` identical to permission denial; no way to distinguish; no reauth hint |
 | 1 | Error message mentions "expired" in human-readable text; no structured `expired` field; `reauth_command` absent |
 | 2 | `CREDENTIALS_EXPIRED` code distinct from `PERMISSION_DENIED`; `expired_at` field present; `reauth_command` provided |
-| 3 | Exit code 10 (expiry) distinct from exit 8 (permanent denied); `retryable: true` on expiry errors; `reauth_env_var` listed |
+| 3 | Exit code 8 (expiry, `error.code: CREDENTIALS_EXPIRED`) distinct from exit 7 (permanent denied); `reauth_command` on expiry errors; `reauth_env_var` listed |
 
 **Check:** Let credentials expire (or mock expiry) and run any authenticated command — verify the response contains `"code": "CREDENTIALS_EXPIRED"` (not `FORBIDDEN`) and a `reauth_command` field.
 
 ---
 
 ### Agent Workaround
+
+**Signature:** commands that succeeded earlier in the session start failing with `UNAUTHORIZED`/`FORBIDDEN` or `401`/`403`; every subsequent call fails the same way
+
+**Tier:** B (one observable check, then one command)
 
 **Distinguish `CREDENTIALS_EXPIRED` from permanent auth failures; auto-refresh when `reauth_command` is provided:**
 

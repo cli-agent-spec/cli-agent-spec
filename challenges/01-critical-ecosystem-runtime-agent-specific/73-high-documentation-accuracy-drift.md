@@ -88,6 +88,11 @@ Provide a `--validate-agents-md` command or make `generate-skills` verify existi
 
 ### Agent Workaround
 
+**Signature:** `unknown command` or `unknown flag` errors for invocations taken verbatim from AGENTS.md; retries with documented variations all fail; `--help` disagrees
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Ignore AGENTS.md and plan invocations solely from `<binary> --help` and subcommand `--help` output; if that fails, escalate with the command, exit code, stdout, and stderr
+
 Before using AGENTS.md as a planning source, spot-check its accuracy against `--help`:
 
 ```

@@ -117,6 +117,11 @@ tool get-user --id 42 --schema-version 1
 
 ### Agent Workaround
 
+**Signature:** previously working field lookups fail after a tool upgrade; responses lack `meta.schema_version`; JSON shape differs across versions
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Run `tool --version` and confirm it matches the version the integration was built against; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Track `meta.schema_version` across calls; fail fast when version changes mid-session:**
 
 ```python

@@ -10,14 +10,14 @@
 
 ## Description
 
-Every error response MUST include `error.retryable` (boolean or the string `"maybe"`) indicating whether the same invocation with identical arguments is safe to retry. For retryable errors, the response SHOULD include `error.retry_after_ms` (integer milliseconds to wait before retrying) and `error.retry_strategy` (one of: `"immediate"`, `"linear_backoff"`, `"exponential_backoff"`). The framework MUST maintain a default `retryable` value for each error code in its error registry, which commands inherit unless overridden.
+Every error response MUST include `error.retryable` (boolean): `true` only when re-running the identical invocation, unchanged, may succeed and no side effects occurred. Failures the caller can correct (invalid input, expired credentials, unmet preconditions) MUST set `retryable: false` and SHOULD include `error.fix_required` (string) stating the condition to correct before reissuing. For retryable errors, the response SHOULD include `error.retry_after_ms` (integer milliseconds to wait before retrying) and `error.retry_strategy` (one of: `"immediate"`, `"linear_backoff"`, `"exponential_backoff"`). The framework MUST maintain a default `retryable` value for each error code in its error registry, which commands inherit unless overridden.
 
 ## Acceptance Criteria
 
-- Every error response includes `error.retryable`
+- Every error response includes `error.retryable` as a boolean
 - A `RATE_LIMITED` error includes `error.retry_after_ms > 0`
-- A `VALIDATION_ERROR` error has `error.retryable: true`
-- A `TIMEOUT` error has `error.retryable: true` by default; commands that declare `side_effects: "partial"` for `TIMEOUT` MUST override to `retryable: false`
+- A `VALIDATION_ERROR` error has `error.retryable: false` and `error.fix_required` present
+- A `TIMEOUT` error from a command whose `TIMEOUT` entry declares `side_effects: "none"` has `retryable: true`; when the entry declares `side_effects: "partial"`, `retryable` MUST be `false`
 - The framework error registry maps all standard error codes to default `retryable` values
 
 ---
@@ -30,9 +30,10 @@ This requirement extends `ResponseEnvelope.ErrorDetail` with the following requi
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `error.retryable` | boolean \| `"maybe"` | yes | Whether the identical invocation is safe to retry |
+| `error.retryable` | boolean | yes | Whether the identical unchanged invocation may succeed on re-run; `true` implies no side effects occurred |
 | `error.retry_after_ms` | integer | when `retryable: true` | Milliseconds the agent should wait before retrying |
 | `error.retry_strategy` | `"immediate"` \| `"linear_backoff"` \| `"exponential_backoff"` | recommended | Backoff strategy to apply |
+| `error.fix_required` | string | when the failure is caller-correctable | Condition to correct before reissuing; absent on terminal failures |
 
 ---
 
@@ -57,7 +58,7 @@ $ tool deploy --target prod
 }
 ```
 
-Timeout error (retryable, no delay):
+Timeout error from a command that declared `TIMEOUT` with `side_effects: "none"` (retryable, no delay):
 
 ```json
 {
@@ -75,7 +76,7 @@ Timeout error (retryable, no delay):
 }
 ```
 
-Validation error (retryable after correcting input):
+Validation error (identical retry fails; fix the input, then reissue):
 
 ```json
 {
@@ -84,7 +85,8 @@ Validation error (retryable after correcting input):
   "error": {
     "code": "INVALID_ENVIRONMENT",
     "message": "Unknown target 'prodution'",
-    "retryable": true,
+    "retryable": false,
+    "fix_required": "Correct the target environment argument",
     "phase": "validation",
     "suggestion": "Valid values: prod, staging, dev"
   },
@@ -106,7 +108,7 @@ register command "deploy":
     TIMEOUT (10): retryable: false, side_effects: partial
     RATE_LIMITED(11): retryable: true, side_effects: none,
                       retry_after_ms: 30000, retry_strategy: exponential_backoff
-    ARG_ERROR(2): retryable: true,  side_effects: none
+    ARG_ERROR(2): retryable: false, side_effects: none
 ```
 
 ---

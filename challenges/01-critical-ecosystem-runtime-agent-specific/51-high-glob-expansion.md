@@ -83,6 +83,10 @@ result = framework.run(["my-tool", "process", filename])
 
 ### Agent Workaround
 
+**Signature:** error names only the first word of a space-containing path; shell prints `no matches found`; tool receives literal `*.json` or zero args yet may exit `0`
+
+**Tier:** B (one observable check, then one command)
+
 **Always use exec-array (list form) for subprocess calls; pre-validate file paths before passing them:**
 
 ```python

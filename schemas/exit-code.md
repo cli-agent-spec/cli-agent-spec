@@ -10,6 +10,8 @@
 
 Most CLI tools use only `0` (success) and `1` (failure), forcing agents to parse error messages to understand what went wrong and whether retrying is safe. `ExitCode` replaces this with a fixed table where every code carries two machine-readable guarantees: whether the operation is **retryable** and how far **side effects** progressed. An agent can decide its next action from the exit code alone.
 
+`retryable` answers exactly one question: may the agent re-run the identical invocation, unchanged, with a chance of success? `yes` additionally guarantees no side effects occurred. Conditions the caller must correct first are marked *after fix* and surface in the envelope as `retryable: false` with `fix_required` (or `error.redirect`) present.
+
 Codes are sequential and grouped by category. The group boundaries are visible in this table — they are not encoded in the number itself.
 
 ---
@@ -29,12 +31,12 @@ Codes are sequential and grouped by category. The group boundaries are visible i
 | 1 | `GENERAL_ERROR` | depends | unknown | Inspect `error.detail` — last resort, use a specific code whenever one exists |
 | 3 | `PARTIAL_FAILURE` | no | **partial** | Inspect state before retrying — some writes occurred |
 
-### Input — caller's fault; safe to retry after fixing
+### Input — caller's fault; fix the input, then reissue
 
 | Code | Constant | Retryable | Side effects | Agent action |
 |------|----------|-----------|--------------|-------------|
-| 2 | `ARG_ERROR` | **yes** | **none** | Fix the input, retry immediately — zero side effects guaranteed |
-| 4 | `PRECONDITION` | depends | none | Resolve the precondition, then retry |
+| 2 | `ARG_ERROR` | after fix* | **none** | Fix the input, then reissue — zero side effects guaranteed |
+| 4 | `PRECONDITION` | after fix* | none | Resolve the precondition, then reissue |
 
 ### Resource — about the addressed entity
 
@@ -48,24 +50,24 @@ Codes are sequential and grouped by category. The group boundaries are visible i
 | Code | Constant | Retryable | Side effects | Agent action |
 |------|----------|-----------|--------------|-------------|
 | 7 | `PERMISSION_DENIED` | no | none | Stop — valid credentials, wrong permissions; escalate or change approach |
-| 8 | `AUTH_REQUIRED` | yes* | none | Read `error.code`: `TOKEN_EXPIRED` → auto-refresh and retry; `TOKEN_MISSING` / `TOKEN_INVALID` → acquire credentials |
-| 9 | `PAYMENT_REQUIRED` | yes* | none | Attempt x402 payment if agent has payment permission, then retry |
+| 8 | `AUTH_REQUIRED` | after fix* | none | Read `error.code`: `TOKEN_EXPIRED` → auto-refresh, then reissue; `TOKEN_MISSING` / `TOKEN_INVALID` → acquire credentials |
+| 9 | `PAYMENT_REQUIRED` | after fix* | none | Attempt x402 payment if agent has payment permission, then reissue |
 
 ### Infrastructure — external systems
 
 | Code | Constant | Retryable | Side effects | Agent action |
 |------|----------|-----------|--------------|-------------|
-| 10 | `TIMEOUT` | yes | partial | Back off and retry — some writes may have occurred |
-| 11 | `RATE_LIMITED` | yes | none | Retry after `error.retry_after` seconds |
+| 10 | `TIMEOUT` | depends | partial | Inspect state before retrying; retry directly only when the command declares `side_effects: "none"` |
+| 11 | `RATE_LIMITED` | yes | none | Retry after `error.retry_after_ms` milliseconds |
 | 12 | `UNAVAILABLE` | yes | none | Service temporarily down — apply exponential back-off, retry |
 
 ### Routing — API surface changed
 
 | Code | Constant | Retryable | Side effects | Agent action |
 |------|----------|-----------|--------------|-------------|
-| 13 | `REDIRECTED` | yes | none | Use `error.redirect.command` verbatim; if `error.redirect.permanent` is true, memorize — never call the old form again |
+| 13 | `REDIRECTED` | after fix* | none | Use `error.redirect.command` verbatim; if `error.redirect.permanent` is true, memorize — never call the old form again |
 
-\* Retryable only after the prerequisite condition is resolved.
+\* *after fix*: the identical invocation fails until the caller corrects the stated condition, then reissues. Declared as `retryable: false` in `ExitCodeEntry`; the envelope carries `fix_required` (or `error.redirect`) with the correction.
 
 **Reserved ranges:**
 - `14–63` framework extensions
@@ -109,7 +111,7 @@ Violation: shell-reserved (`128 + SIGINT`). Codes `126–255` MUST NOT be used b
 
 - **Emitting `ARG_ERROR (2)` after a side effect.** Code `2` carries a hard guarantee of zero side effects. If any write occurred before the error, emit `PARTIAL_FAILURE (3)` instead. The framework phase boundary (validate → execute) makes this automatic — do not bypass it
 
-- **Treating `AUTH_REQUIRED (8)` as non-retryable.** It is retryable — but only after resolving credentials. An agent that treats it as terminal will unnecessarily give up on auto-refreshable token expiry
+- **Treating `AUTH_REQUIRED (8)` as terminal.** The identical call fails until credentials are fixed (`retryable: false`), but the condition is correctable: read `error.code`, resolve it, reissue. An agent that gives up on auto-refreshable token expiry wastes the task
 
 - **Confusing `PERMISSION_DENIED (7)` and `AUTH_REQUIRED (8)`.** `PERMISSION_DENIED` means the credentials are valid but insufficient — retrying with the same credentials will never succeed. `AUTH_REQUIRED` means the credentials themselves are the problem
 
@@ -135,7 +137,8 @@ Rules for agents consuming exit codes at runtime. Apply these when the response 
 
 **Retry budget**
 - Codes marked retryable do not imply infinite retries — apply a retry budget (e.g. 3 attempts) before escalating
-- `RATE_LIMITED (11)` without `error.retry_after` — default to 60 seconds before retrying
+- Codes marked *after fix* — apply the fix stated in `error.fix_required` (or `error.redirect`), reissue once; if no fix is stated, treat as terminal
+- `RATE_LIMITED (11)` without `error.retry_after_ms` — default to 60 seconds before retrying
 - `UNAVAILABLE (12)` — use exponential back-off starting at 1s, cap at 5 minutes
 
 **Side effects under uncertainty**

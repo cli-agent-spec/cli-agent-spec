@@ -97,6 +97,11 @@ tools: [bash]
 
 ### Agent Workaround
 
+**Signature:** repeated failures unresolved by changing arguments; error hints at an undocumented prerequisite; no `AGENTS.md` and no `requires` metadata in `--schema`
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Read `AGENTS.md` in the tool's directory before retrying anything; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Read AGENTS.md before first use; extract `danger_level` and `requires` from schema for safe operation planning:**
 
 ```python

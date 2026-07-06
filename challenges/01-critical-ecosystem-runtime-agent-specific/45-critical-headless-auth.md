@@ -81,6 +81,10 @@ else:
 
 ### Agent Workaround
 
+**Signature:** process hangs after printing `Opening browser...` or a device-code URL; or blocks on an `Enter your API token:` prompt; ends only when killed by timeout
+
+**Tier:** B (one observable check, then one command)
+
 **Pre-check authentication before any command; act on `auth_methods` from `AUTH_REQUIRED` errors:**
 
 ```python

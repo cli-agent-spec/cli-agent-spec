@@ -2,9 +2,9 @@
 
 > All requirements for an agent-compatible CLI framework, derived from the CLI Agent Spec's 74 documented failure modes.
 
-**157 total** &nbsp;|&nbsp; 78 Framework-Automatic · 29 Command Contract · 50 Opt-In — amended 2026-06-11
+**158 total** &nbsp;|&nbsp; 78 Framework-Automatic · 30 Command Contract · 50 Opt-In — amended 2026-07-06
 
-**By priority:** P0: 51 · P1: 62 · P2: 35 · P3: 9 — REQ-O-050 added: tool exec built-in command (§77)
+**By priority:** P0: 51 · P1: 63 · P2: 35 · P3: 9 — REQ-C-030 added: executable `fix_command` in error responses (§18, §19, §53)
 
 ---
 
@@ -97,7 +97,7 @@
 
 ## Command Contract (C)
 
-**29 requirements** &nbsp;|&nbsp; P0: 12 · P1: 14 · P2: 1 · P3: 2
+**30 requirements** &nbsp;|&nbsp; P0: 12 · P1: 15 · P2: 1 · P3: 2
 
 | ID | Priority | Title | Failure mode(s) |
 |----|----------|-------|-------------|
@@ -130,6 +130,7 @@
 | [REQ-C-027](c-027-commands-declare-option-placement.md) | P1 | Commands Declare Option Placement Convention | [§69](../challenges/01-critical-ecosystem-runtime-agent-specific/69-high-argument-order-ambiguity.md) |
 | [REQ-C-028](c-028-already-exists-response-pattern.md) | P1 | ALREADY_EXISTS Response Pattern | [§12](../challenges/02-critical-execution-and-reliability/12-critical-idempotency.md) |
 | [REQ-C-029](c-029-command-declares-required-scopes.md) | P0 | Command Declares Required Scopes | [§74](../challenges/03-critical-security/74-critical-credential-scope-declaration.md) |
+| [REQ-C-030](c-030-error-responses-include-fix-command.md) | P1 | Error Responses Include Executable fix_command | [§18](../challenges/06-high-errors-and-discoverability/18-high-error-quality.md) [§19](../challenges/06-high-errors-and-discoverability/19-high-retry-hints.md) [§53](../challenges/01-critical-ecosystem-runtime-agent-specific/53-critical-credential-expiry.md) |
 
 ---
 

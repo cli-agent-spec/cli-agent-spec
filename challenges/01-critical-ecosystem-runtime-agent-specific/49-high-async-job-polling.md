@@ -90,6 +90,11 @@ exit 5  = job ID not found / expired
 
 ### Agent Workaround
 
+**Signature:** long-running command blocks silently until timeout; or returns a job ID with `exit 0` and the status query also exits `0` while the job still runs
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** `timeout 600 tool <args> </dev/null` run synchronously without `--async`; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Use the `status_command` from the job descriptor; poll with `terminal` field; respect `poll_interval_ms`:**
 
 ```python

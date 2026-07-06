@@ -88,6 +88,10 @@ def normalize_json(s):
 
 ### Agent Workaround
 
+**Signature:** immediate rejection with `Invalid JSON` or `Unexpected token` at a position matching a trailing comma, comment, or unquoted key in generated input
+
+**Tier:** B (one observable check, then one command)
+
 **Normalize LLM-generated JSON before passing to the tool; use `corrected_input` from parse errors on retry:**
 
 ```python

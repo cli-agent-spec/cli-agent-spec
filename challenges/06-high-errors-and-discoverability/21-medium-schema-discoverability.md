@@ -105,6 +105,11 @@ $ tool --schema --output json
 
 ### Agent Workaround
 
+**Signature:** `--schema` rejected as an unknown flag; `--help` returns prose usage text only; bare invocation may exit non-zero instead of printing root help
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Run `tool --help` and use only the flags shown verbatim in its output; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Load the full schema manifest once per session; use it to construct and validate calls:**
 
 ```python

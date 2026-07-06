@@ -82,6 +82,10 @@ result = subprocess.run(cmd, stdin=subprocess.DEVNULL, capture_output=True, time
 
 ### Agent Workaround
 
+**Signature:** process hangs and never exits; stdout shows a REPL banner or prompt (`IPython`, `>>>`, `mysql>`) instead of command output; ends only when killed by timeout
+
+**Tier:** B (one observable check, then one command)
+
 **Always set `stdin=DEVNULL` and scan for REPL-triggering flags before first invocation:**
 
 ```python

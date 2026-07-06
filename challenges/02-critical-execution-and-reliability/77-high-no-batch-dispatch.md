@@ -81,6 +81,11 @@ Each line routes to the matching subcommand in-process. Per-line output streams 
 
 ### Agent Workaround
 
+**Signature:** no `exec` or batch subcommand in `--help`; N operations require N separate invocations each paying startup latency; tool-call budget exhausts mid-plan
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** issue each operation as its own CLI invocation and stop at the first non-zero exit; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Manually loop when the CLI lacks `exec`:**
 
 ```python

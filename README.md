@@ -2,7 +2,7 @@
 
 **Your CLI tool works perfectly for humans. For AI agents, it silently hangs, corrupts data, leaks secrets, and exhausts context windows — and you would never know.**
 
-This is a specification for building CLI tools that AI agents can call reliably: **74 documented failure modes**, **157 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
+This is a specification for building CLI tools that AI agents can call reliably: **74 documented failure modes**, **158 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
 
 > **No existing CLI framework covers more than 58% of these failure modes.**
 
@@ -40,7 +40,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 **74 failure modes** — each documented with severity, frequency, detectability, token cost, time cost, and context cost from the agent's perspective. Grouped into 7 parts: ecosystem/runtime, execution, security, output, environment, errors, and observability.
 
-**157 requirements** across 3 tiers:
+**158 requirements** across 3 tiers:
 
 | Tier | Count | Who implements it |
 |------|-------|------------------|
@@ -69,7 +69,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 | Path | Contents |
 |------|----------|
 | [`challenges/`](challenges/index.md) | 74 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround |
-| [`requirements/`](requirements/index.md) | 157 requirements with acceptance criteria, wire format, and examples |
+| [`requirements/`](requirements/index.md) | 158 requirements with acceptance criteria, wire format, and examples |
 | [`schemas/`](schemas/index.md) | JSON Schema draft-07 definitions for all 5 types |
 | [`guides/`](guides/index.md) | Design guides: positive conventions that cannot be expressed as enforceable requirements |
 | [`IMPLEMENTING.md`](IMPLEMENTING.md) | Implementation guide: wave-based order, goal-based paths, invariants, codegen |

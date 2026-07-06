@@ -90,6 +90,11 @@ fi
 
 ### Agent Workaround
 
+**Signature:** stderr shows `cannot open display`, `Failed to open URI`, or `open: command not found` with `exit 127`; or process hangs after the operation completes
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** `CI=true NO_BROWSER=1 BROWSER=true DISPLAY= timeout 60 tool <args> </dev/null` (never pass `--open-browser`); if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Set headless environment variables; detect and avoid GUI-launching flags; handle URLs from headless fallback:**
 
 ```python

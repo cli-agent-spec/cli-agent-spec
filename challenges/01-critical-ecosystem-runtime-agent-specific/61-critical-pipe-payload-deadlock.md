@@ -82,6 +82,10 @@ if len(data) >= MAX_STDIN_BYTES:
 
 ### Agent Workaround
 
+**Signature:** process hangs with no output and no error when a large (>64KB) payload is piped to stdin; completes only when killed; small payloads work fine
+
+**Tier:** B (one observable check, then one command)
+
 **Never use bidirectional pipes with large payloads; always use `--input-file` for payloads over the safe threshold:**
 
 ```python

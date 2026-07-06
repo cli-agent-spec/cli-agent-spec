@@ -102,6 +102,10 @@ A preamble line lets an agent detect JSONL immediately and switch parsers before
 
 ### Agent Workaround
 
+**Signature:** `json.loads(stdout)` raises `Extra data: line 2 column 1`; each line parses as standalone JSON; streaming parsers return only the first object
+
+**Tier:** B (one observable check, then one command)
+
 **Probe the manifest first; fall back to heuristic JSONL detection:**
 
 ```python

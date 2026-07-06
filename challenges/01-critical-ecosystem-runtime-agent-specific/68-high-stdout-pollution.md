@@ -92,47 +92,52 @@ os.dup2(pipe_write_fd, 1)
 
 ### Agent Workaround
 
-**Extract the last valid JSON object from stdout; treat preceding lines as pollution:**
+**Signature:** stdout contains prose lines (SDK banners, driver logs) before or after the JSON body; persists despite `--quiet`, `CI=1`, or `NO_COLOR`
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Re-run with stderr separated (`2>/dev/null`) and parse stdout as a single JSON value; if that fails, escalate with the command, exit code, stdout, and stderr
+
+**Apply the canonical extraction rule (identical in §2, §3, §41; defined in [triage.md](../triage.md)); prose lines around the payload produce no candidate and cannot displace the envelope:**
 
 ```python
-import subprocess, json, re
+import json, re
 
-def extract_json_from_polluted_stdout(stdout: str) -> dict:
-    """Extract the JSON response from stdout that may contain pollution."""
-    # Strategy 1: Try to parse the whole stdout first (clean tools)
+def extract_envelope(stdout: str):
+    """Canonical JSON extraction rule — defined in challenges/triage.md."""
+    text = re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", stdout)   # 1. strip ANSI codes
     try:
-        return json.loads(stdout.strip())
+        return json.loads(text)                            # 2. fast path: clean stream
     except json.JSONDecodeError:
         pass
-
-    # Strategy 2: Find the first line starting with { or [
-    lines = stdout.splitlines()
-    for i, line in enumerate(lines):
-        stripped = line.strip()
-        if stripped.startswith("{") or stripped.startswith("["):
-            json_candidate = "\n".join(lines[i:])
-            try:
-                return json.loads(json_candidate)
-            except json.JSONDecodeError:
-                continue  # try next {-starting line
-
-    # Strategy 3: Find the last complete JSON object using regex
-    json_objects = list(re.finditer(r'(\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\})', stdout, re.DOTALL))
-    if json_objects:
-        last = json_objects[-1].group()
+    candidates = []                                        # 3. every maximal JSON value
+    decoder = json.JSONDecoder()
+    i = 0
+    while True:
+        starts = [s for s in (text.find(c, i) for c in "{[") if s != -1]
+        if not starts:
+            break
+        start = min(starts)
         try:
-            return json.loads(last)
+            obj, end = decoder.raw_decode(text[start:])
+            candidates.append(obj)
+            i = start + end
         except json.JSONDecodeError:
-            pass
+            i = start + 1
+    envelopes = [c for c in candidates if isinstance(c, dict) and "ok" in c]
+    if envelopes:
+        return envelopes[-1]                               # 4. last envelope wins
+    if candidates:
+        return candidates[-1]                              # 5. last complete value
+    return None                                            # 6. unstructured: do not guess
 
+result = subprocess.run(cmd, capture_output=True, text=True)
+parsed = extract_envelope(result.stdout)
+if parsed is None:
     raise RuntimeError(
         f"Cannot extract JSON from stdout. "
         f"Possible third-party stdout pollution. "
-        f"First 200 chars: {stdout[:200]!r}"
+        f"First 200 chars: {result.stdout[:200]!r}"
     )
-
-result = subprocess.run(cmd, capture_output=True, text=True)
-parsed = extract_json_from_polluted_stdout(result.stdout)
 ```
 
-**Limitation:** JSON extraction heuristics work for simple pollution (prose lines before JSON) but fail when pollution is interleaved with JSON output or when the pollution itself contains `{` characters — the only reliable fix is for the framework to intercept stdout before third-party libraries can write to it
+**Limitation:** The extraction rule fails when pollution is interleaved inside a single JSON value (a log line printed mid-object) — the only reliable fix is for the framework to intercept stdout before third-party libraries can write to it

@@ -19,7 +19,7 @@
     },
     "retryable": {
       "type": "boolean",
-      "description": "True if the agent may safely retry the exact same call without cleanup or rollback. Must be false whenever side_effects is 'partial' or 'complete'"
+      "description": "True if re-running the exact same call unchanged may succeed; implies no side effects occurred. False when the caller must first correct input, credentials, or state. Must be false whenever side_effects is 'partial' or 'complete'"
     },
     "side_effects": {
       "type": "string",

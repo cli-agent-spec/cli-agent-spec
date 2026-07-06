@@ -85,6 +85,11 @@ $ tool --schema --full
 
 ### Agent Workaround
 
+**Signature:** `--help` lists subcommand names only; each subcommand's flags require another `--help` call; no single `--schema` call returns the full command tree
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** `tool --schema --output json`; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Load the full schema tree in one call at session start; cache it for the session:**
 
 ```python

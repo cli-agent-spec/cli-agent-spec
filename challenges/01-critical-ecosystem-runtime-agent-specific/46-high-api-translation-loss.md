@@ -91,6 +91,10 @@ my-tool api POST /users --body '{"user": {"name": "Alice", "roles": [...]}}'
 
 ### Agent Workaround
 
+**Signature:** comma-containing value arrives split into multiple items; API-documented field has no corresponding flag; `unknown option` for fields the API accepts
+
+**Tier:** A (one safe command, no branching)
+
 **Use `--json` to bypass flag-based translation for complex structured inputs:**
 
 ```python

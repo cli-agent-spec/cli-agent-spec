@@ -81,6 +81,10 @@ $ tool config set key=value   # instead of tool config edit
 
 ### Agent Workaround
 
+**Signature:** process hangs emitting raw escape sequences like `\x1b[?1049h`; or exits with `Vim: Warning: Input is not from a terminal`; occurs when `-m`/`--file` omitted
+
+**Tier:** B (one observable check, then one command)
+
 **Override `$EDITOR` with a no-op; always use non-interactive alternatives for editor-requiring commands:**
 
 ```python

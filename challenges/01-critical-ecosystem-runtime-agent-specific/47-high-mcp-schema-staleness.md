@@ -94,6 +94,10 @@ def detect_schema_drift(tool_name: str, wrapper_schema: dict) -> list[str]:
 
 ### Agent Workaround
 
+**Signature:** `unknown option` or `unrecognized argument` for a flag the tool schema declares valid; missing-required error for a parameter absent from the schema
+
+**Tier:** B (one observable check, then one command)
+
 **Call `_wrapper_health` before first use; treat "unknown option" errors as schema staleness:**
 
 ```python

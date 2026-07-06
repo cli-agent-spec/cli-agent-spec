@@ -116,6 +116,11 @@ signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
 ### Agent Workaround
 
+**Signature:** `exit 143` with empty stdout after SIGTERM; piping into `head` yields `BrokenPipeError` traceback or nonzero exit; stale lock or temp files on next run
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** run the command as `timeout --signal=TERM --kill-after=5 300 tool <args>` and treat `exit 143` as unknown partial state; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Send SIGTERM and collect any partial JSON emitted during the grace period:**
 
 ```python

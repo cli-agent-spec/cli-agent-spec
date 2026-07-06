@@ -79,6 +79,10 @@ $ tool send-welcome-email --from-file /tmp/user.json
 
 ### Agent Workaround
 
+**Signature:** piped chain `tool a | tool b` exits with a missing-argument usage error while data sits on stdin; `-` rejected as an ID argument value
+
+**Tier:** B (one observable check, then one command)
+
 **Extract IDs explicitly with `jq` or inline Python rather than shell pipes:**
 
 ```python

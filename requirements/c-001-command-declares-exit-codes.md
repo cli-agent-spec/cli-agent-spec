@@ -54,7 +54,7 @@ Requirement-specific constraints on top of the base `ExitCodeEntry` schema:
 {
   "exit_codes": {
     "0":  { "name": "SUCCESS",   "description": "Deployment completed",       "retryable": false, "side_effects": "complete" },
-    "3":  { "name": "ARG_ERROR", "description": "Invalid target environment", "retryable": true,  "side_effects": "none"     },
+    "2":  { "name": "ARG_ERROR", "description": "Invalid target environment", "retryable": false, "side_effects": "none"     },
     "5":  { "name": "NOT_FOUND", "description": "Target cluster not found",   "retryable": false, "side_effects": "none"     },
     "6":  { "name": "CONFLICT",  "description": "Version already deployed",   "retryable": false, "side_effects": "none"     },
     "10": { "name": "TIMEOUT",   "description": "Deployment timed out — partial writes may have occurred", "retryable": false, "side_effects": "partial"  }
@@ -72,14 +72,14 @@ A command declares every exit code it may emit at registration time. The map key
 register command "deploy":
   exit_codes:
     SUCCESS  (0): description: "Deployment completed",                              retryable: false, side_effects: complete
-    ARG_ERROR(3): description: "Invalid target environment",                        retryable: true,  side_effects: none
+    ARG_ERROR(2): description: "Invalid target environment",                        retryable: false, side_effects: none
     NOT_FOUND(5): description: "Target cluster not found",                          retryable: false, side_effects: none
     CONFLICT (6): description: "Version already deployed",                          retryable: false, side_effects: none
     TIMEOUT (10): description: "Deployment timed out — partial writes may have occurred", retryable: false, side_effects: partial
 
 register command "no-success":
   exit_codes:
-    ARG_ERROR(3): description: "Bad argument", retryable: true, side_effects: none
+    ARG_ERROR(2): description: "Bad argument", retryable: false, side_effects: none
   → framework error: exit_codes must include SUCCESS (key "0")
 
 register command "bad-invariant":

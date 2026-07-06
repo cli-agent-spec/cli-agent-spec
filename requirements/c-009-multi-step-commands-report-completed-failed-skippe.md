@@ -97,7 +97,7 @@ register command "send-notifications":
   exit_codes:
     SUCCESS        (0): description: "All notifications sent",       retryable: false, side_effects: complete
     PARTIAL_FAILURE(3): description: "Some notifications failed",    retryable: false, side_effects: partial
-    ARG_ERROR      (2): description: "Invalid --users value",        retryable: true,  side_effects: none
+    ARG_ERROR      (2): description: "Invalid --users value",        retryable: false, side_effects: none
 
   execute(args):
     results = []

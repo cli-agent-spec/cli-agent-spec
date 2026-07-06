@@ -58,6 +58,10 @@ except OSError as e:
 
 ### Agent Workaround
 
+**Signature:** error text in stderr or `error.message` appears in a non-English language; text pattern matching that works on other hosts fails on this one
+
+**Tier:** A (one safe command, no branching)
+
 **Always classify errors by `error.code`, never by `error.message` text; set `LC_MESSAGES=C` in the subprocess environment:**
 
 ```python

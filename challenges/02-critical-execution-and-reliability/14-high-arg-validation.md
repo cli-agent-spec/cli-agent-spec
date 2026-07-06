@@ -109,6 +109,10 @@ tool deploy --env prod --version 1.2.3 --validate-only
 
 ### Agent Workaround
 
+**Signature:** argument or type error (`invalid literal`, `not found`) appears only after progress output; `exit 1` not `exit 2`; side effects exist despite the bad argument
+
+**Tier:** B (one observable check, then one command)
+
 **Use `--validate-only` before executing mutating commands when available:**
 
 ```python

@@ -86,6 +86,10 @@ The correct call is `await program.parseAsync()`, but this requires the calling 
 
 ### Agent Workaround
 
+**Signature:** `exit 0` with empty stdout and stderr from a command expected to produce output; the operation's side effect never occurred; may be intermittent across machines
+
+**Tier:** B (one observable check, then one command)
+
 **Treat exit 0 + empty stdout as a potential async race; require explicit JSON confirmation of completion:**
 
 ```python

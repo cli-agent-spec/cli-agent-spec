@@ -111,6 +111,11 @@ $ tool check-permissions --for issue:list
 
 ### Agent Workaround
 
+**Signature:** `--schema` or manifest output lacks `required_scopes`; any credential is accepted silently; `403` errors reveal scope gaps only after invocation
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Do not run the command with a personal or admin credential; escalate with the command, exit code, stdout, and stderr
+
 **Create a minimally-scoped credential before starting any agentic workflow:**
 
 ```python

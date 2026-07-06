@@ -74,6 +74,10 @@ $ tool create --type oauth --client-id abc123 --client-secret xyz
 
 ### Agent Workaround
 
+**Signature:** `missing required argument` errors surface one flag per retry after setting a value like `--type oauth`; each round trip reveals one more co-requirement
+
+**Tier:** B (one observable check, then one command)
+
 **Extract all `missing_args` from a single validation error; provide all co-required args in one retry:**
 
 ```python

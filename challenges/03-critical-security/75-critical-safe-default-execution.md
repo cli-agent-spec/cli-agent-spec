@@ -114,6 +114,11 @@ $ trade execute --symbol BTC --amount 10000 --live
 
 ### Agent Workaround
 
+**Signature:** high-stakes command invoked without flags causes real side effects and exits `0`; output lacks a `would_*` effect and any `meta.dry_run` field
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Run the command with `--dry-run` and do not execute live; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Check `safe_default` in the manifest before calling:**
 ```python
 manifest = json.loads(run(["tool", "manifest"]).stdout)

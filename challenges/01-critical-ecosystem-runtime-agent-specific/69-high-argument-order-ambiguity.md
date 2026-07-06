@@ -89,6 +89,10 @@ program.enablePositionalOptions(false)  # disable strict positional ordering
 
 ### Agent Workaround
 
+**Signature:** `unrecognised arguments` or `unknown flag` when a flag follows a positional; same invocation with the flag front-loaded succeeds; or `exit 0` with plain-text output
+
+**Tier:** A (one safe command, no branching)
+
 **Front-load all flags before positional arguments and subcommands:**
 
 ```python

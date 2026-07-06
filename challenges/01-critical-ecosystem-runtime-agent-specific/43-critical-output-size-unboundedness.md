@@ -74,6 +74,10 @@ my-tool get-record --id 12345 --max-length 10000 --truncate-mode head
 
 ### Agent Workaround
 
+**Signature:** single invocation returns very large stdout (tens of KB to MB) with no `meta.truncated` marker; output overflows context or arrives cut mid-structure
+
+**Tier:** B (one observable check, then one command)
+
 **Estimate output size before processing; use `--max-output` to bound large results; always check `meta.truncated`:**
 
 ```python

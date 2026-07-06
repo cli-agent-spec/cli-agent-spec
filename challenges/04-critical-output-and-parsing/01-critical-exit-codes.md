@@ -52,7 +52,7 @@ cmd1 && cmd2 && cmd3
 
 **For CLI tool authors:**
 ```
-Exit code conventions to follow:
+Exit code conventions to follow (the spec's standard table, REQ-F-001):
   0  = success, operation completed as intended
   1  = general error (use sparingly — be specific)
   2  = misuse / bad arguments (before operation starts)
@@ -60,9 +60,11 @@ Exit code conventions to follow:
   4  = precondition not met (dependency missing, not initialized)
   5  = not found (the thing you asked about doesn't exist)
   6  = conflict / already exists
-  7  = timeout
-  8  = permission denied
-  9  = rate limited / quota exceeded
+  7  = permission denied
+  8  = auth required (credentials missing, invalid, or expired)
+  9  = payment required
+  10 = timeout
+  11 = rate limited / quota exceeded
 ```
 
 **Separate "not found" from "error":**
@@ -99,6 +101,11 @@ tool get-user --id 123
 
 ### Agent Workaround
 
+**Signature:** `exit 0` while output contains `Error`, `Warning`, `failed`, or `timeout`; or the same `exit 1` for unrelated failures and empty results
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Do not retry; when stdout parses as a JSON envelope trust its `ok` field over the exit code; otherwise escalate with the command, exit code, stdout, and stderr
+
 **When exit codes are not semantic, branch on the JSON envelope instead:**
 
 ```python
@@ -119,9 +126,9 @@ elif result.returncode == 2:
 elif result.returncode == 5:
     raise NotFoundError()         # stop, do not retry
 
-elif result.returncode == 9:
-    retry_after = extract_retry_after(result.stdout)
-    time.sleep(retry_after or 60)  # rate-limited — back off
+elif result.returncode == 11:
+    retry_after_ms = extract_retry_after_ms(result.stdout)  # error.retry_after_ms
+    time.sleep((retry_after_ms or 60_000) / 1000)  # rate-limited — back off
 
 # 3. Fallback: parse stdout/stderr for error details
 else:

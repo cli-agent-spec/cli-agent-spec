@@ -86,7 +86,12 @@ if (process.stdout.isTTY && !process.env.CI) {
 
 ### Agent Workaround
 
-**Set suppression env vars; strip non-JSON lines from stdout before parsing:**
+**Signature:** update banner (`Update available`, box-drawing characters) on stdout or stderr before or after the data; JSON parse fails with `Extra data`
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** `NO_UPDATE_NOTIFIER=1 CI=true NO_COLOR=1 tool <args>`; if that fails, escalate with the command, exit code, stdout, and stderr
+
+**Set suppression env vars; recover the payload with the canonical extraction rule:**
 
 ```python
 import subprocess, json, re, os
@@ -100,24 +105,45 @@ env = {
 }
 
 result = subprocess.run(cmd, capture_output=True, text=True, env=env)
-stdout = result.stdout
 
-# Strip update notifier blocks — find the last valid JSON object/array
-# Update notifiers typically appear before the JSON
-lines = stdout.splitlines()
-json_start = -1
-for i, line in enumerate(lines):
-    stripped = line.strip()
-    if stripped.startswith("{") or stripped.startswith("["):
-        json_start = i
-        break
-
-if json_start > 0:
-    # Notification text appeared before JSON — extract just the JSON
-    json_text = "\n".join(lines[json_start:])
-    parsed = json.loads(json_text)
-else:
-    parsed = json.loads(stdout)
+# Recover the payload with the canonical extraction rule (defined below)
+parsed = extract_envelope(result.stdout)
+if parsed is None:
+    raise ValueError(f"No valid JSON in output: {result.stdout[:200]}")
 ```
 
-**Limitation:** If the update notifier appears after the JSON (appended to stdout), the `json_start` approach fails — use `json.loads()` first and fall back to finding the first `{` on failure; for JSONL output, filter lines that don't start with `{`
+**The canonical JSON extraction rule (identical in §2, §3, §68; defined in [triage.md](../triage.md)). Notifier text before or after the JSON produces no candidate, so the payload wins either way:**
+
+```python
+import json, re
+
+def extract_envelope(stdout: str):
+    """Canonical JSON extraction rule — defined in challenges/triage.md."""
+    text = re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", stdout)   # 1. strip ANSI codes
+    try:
+        return json.loads(text)                            # 2. fast path: clean stream
+    except json.JSONDecodeError:
+        pass
+    candidates = []                                        # 3. every maximal JSON value
+    decoder = json.JSONDecoder()
+    i = 0
+    while True:
+        starts = [s for s in (text.find(c, i) for c in "{[") if s != -1]
+        if not starts:
+            break
+        start = min(starts)
+        try:
+            obj, end = decoder.raw_decode(text[start:])
+            candidates.append(obj)
+            i = start + end
+        except json.JSONDecodeError:
+            i = start + 1
+    envelopes = [c for c in candidates if isinstance(c, dict) and "ok" in c]
+    if envelopes:
+        return envelopes[-1]                               # 4. last envelope wins
+    if candidates:
+        return candidates[-1]                              # 5. last complete value
+    return None                                            # 6. unstructured: do not guess
+```
+
+**Limitation:** If notifier text interrupts the JSON mid-value (interleaved writes), no extraction rule recovers it — the suppression env vars are the only defense; for JSONL output apply the rule per line rather than per stream

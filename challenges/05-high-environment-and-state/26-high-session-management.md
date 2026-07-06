@@ -83,6 +83,10 @@ $ tool status --output json
 
 ### Agent Workaround
 
+**Signature:** same command silently targets a different context or user across sessions; results change after another process runs `login` or `use-context`
+
+**Tier:** B (one observable check, then one command)
+
 **Always pass explicit `--context` and supply credentials per-call; read `tool status` before any session-sensitive operation:**
 
 ```python

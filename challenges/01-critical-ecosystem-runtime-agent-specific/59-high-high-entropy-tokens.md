@@ -67,6 +67,11 @@ Worse: the same high-entropy strings appear across multiple tool responses (reso
 
 ### Agent Workaround
 
+**Signature:** stdout contains long opaque strings: JWT segments starting `eyJ`, base64 blobs, hex hashes; hundreds of tokens per field with no readable content
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Extract only the needed field, e.g. `tool auth token --show --output json | jq '.data.expires_at'`, and discard the raw token; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Extract only the semantic metadata the agent needs; request `--unmask` only when the raw value is operationally required:**
 
 ```python

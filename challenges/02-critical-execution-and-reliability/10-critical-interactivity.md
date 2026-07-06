@@ -159,6 +159,10 @@ else:
 
 ### Agent Workaround
 
+**Signature:** process hangs until killed by timeout; last output may be a prompt like `Are you sure? (yes/no):`; same command succeeds in an interactive terminal
+
+**Tier:** B (one observable check, then one command)
+
 **Set pager and editor env vars, redirect stdin, and always apply a timeout:**
 
 ```python

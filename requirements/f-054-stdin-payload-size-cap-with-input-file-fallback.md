@@ -25,7 +25,7 @@ The framework MUST enforce a maximum stdin read size (default: 65536 bytes, conf
 
 **Types:** [`response-envelope.md`](../schemas/response-envelope.md)
 
-On oversized stdin, the framework exits with code 3 (`ARG_ERROR`) and emits a structured error with `code: "STDIN_TOO_LARGE"` and a `hint` field.
+On oversized stdin, the framework exits with code 2 (`ARG_ERROR`) and emits a structured error with `code: "STDIN_TOO_LARGE"` and a `hint` field.
 
 ---
 

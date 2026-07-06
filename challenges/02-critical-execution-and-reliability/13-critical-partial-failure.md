@@ -95,6 +95,11 @@ tool migrate-database --resume-from migrate_data
 
 ### Agent Workaround
 
+**Signature:** `exit 1` from a multi-step or batch command whose output shows some steps or items succeeded (`done`, `ok`) before a failure line
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** do not retry the multi-step command; escalate with the command, exit code, stdout, and stderr
+
 **Parse structured partial failure output to determine safe retry scope:**
 
 ```python

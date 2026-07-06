@@ -19,7 +19,7 @@ The declaration is consumed by `tool manifest` (REQ-O-041) and `--schema` (REQ-O
 - Commands forwarding args to a subprocess declare `option_placement: "strict"` at registration
 - `tool manifest` includes an `option_placement` field for every command
 - Commands without the declaration default to `"any"` (interspersed accepted)
-- A strict-placement command rejects options after positional args with exit code 3 (`ARG_ERROR`) and a structured error — never silently misparsing them
+- A strict-placement command rejects options after positional args with exit code 2 (`ARG_ERROR`) and a structured error — never silently misparsing them
 
 ## Schema
 

@@ -61,7 +61,7 @@ $ tool export --schema
   ],
   "exit_codes": {
     "0": { "name": "SUCCESS",   "description": "Export completed",                 "retryable": false, "side_effects": "complete" },
-    "3": { "name": "ARG_ERROR", "description": "Conditional argument rule violated", "retryable": true,  "side_effects": "none"     }
+    "2": { "name": "ARG_ERROR", "description": "Conditional argument rule violated", "retryable": false, "side_effects": "none"     }
   }
 }
 ```

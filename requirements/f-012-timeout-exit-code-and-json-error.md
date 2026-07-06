@@ -10,12 +10,12 @@
 
 ## Description
 
-When the framework's timeout fires, it MUST emit a structured JSON error to stdout before terminating the process, and MUST exit with code `7`. The error MUST include `"code": "TIMEOUT"`, the configured timeout value, and any partial progress information available from the command's registered state. The framework MUST never produce an empty stdout on timeout.
+When the framework's timeout fires, it MUST emit a structured JSON error to stdout before terminating the process, and MUST exit with code `10` (`TIMEOUT`). The error MUST include `"code": "TIMEOUT"`, the configured timeout value, and any partial progress information available from the command's registered state. The `error.retryable` value MUST be sourced from the command's declared `TIMEOUT` `ExitCodeEntry`: `true` only when the entry declares `side_effects: "none"`. The framework MUST never produce an empty stdout on timeout.
 
 ## Acceptance Criteria
 
 - A timed-out command's stdout is valid JSON containing `"ok": false` and `"error": {"code": "TIMEOUT"}`
-- Exit code is exactly `7` after timeout
+- Exit code is exactly `10` after timeout
 - `meta.duration_ms` is populated with the actual elapsed time
 - If the command emitted a step manifest (see REQ-C-008), `completed_steps` is included in the timeout error
 
@@ -31,7 +31,7 @@ The framework emits a `ResponseEnvelope` with `ok: false` and `error.code = "TIM
 
 ## Wire Format
 
-JSON error response emitted to stdout before the process exits with code `10`:
+JSON error response emitted to stdout before the process exits with code `10`. Here the command declared `TIMEOUT` with `side_effects: "none"` (read-only), so the framework sets `retryable: true`:
 
 ```json
 {
@@ -51,7 +51,7 @@ JSON error response emitted to stdout before the process exits with code `10`:
 }
 ```
 
-With partial step progress (when REQ-C-008 step manifest was emitted):
+With partial step progress (when REQ-C-008 step manifest was emitted). Partial writes occurred, so `retryable` is `false` — the agent inspects `completed_steps` and resumes instead of blindly re-running:
 
 ```json
 {
@@ -60,7 +60,7 @@ With partial step progress (when REQ-C-008 step manifest was emitted):
   "error": {
     "code": "TIMEOUT",
     "message": "Command exceeded timeout of 30000ms",
-    "retryable": true,
+    "retryable": false,
     "phase": "execution"
   },
   "warnings": [],
@@ -86,8 +86,10 @@ exit code: 10
 stdout: {"ok":false,"data":null,"error":{"code":"TIMEOUT",...},...}
 
 # Agent knows:
-# - error.retryable: true → may retry after back-off
-# - error.phase: "execution" → partial side effects are possible
+# - error.retryable mirrors the command's TIMEOUT declaration:
+#     true  → side_effects: "none" declared; re-run directly after back-off
+#     false → partial writes possible; inspect state (completed_steps) first
+# - error.phase: "execution" → the timeout fired mid-operation
 # - meta.duration_ms → actual elapsed time before termination
 ```
 

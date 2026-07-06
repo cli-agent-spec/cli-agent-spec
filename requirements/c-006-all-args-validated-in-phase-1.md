@@ -87,7 +87,7 @@ register command "deploy":
   danger_level: mutating
   exit_codes:
     SUCCESS  (0): description: "Deployment completed",          retryable: false, side_effects: complete
-    ARG_ERROR(2): description: "Argument validation failed",    retryable: true,  side_effects: none
+    ARG_ERROR(2): description: "Argument validation failed",    retryable: false, side_effects: none
 
   validate(args) → []error:
     errors = []

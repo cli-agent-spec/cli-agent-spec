@@ -92,6 +92,10 @@ if (major < 18) {
 
 ### Agent Workaround
 
+**Signature:** immediate crash with `SyntaxError`, `ImportError`, or missing-export error referencing runtime internals before any command output; fails on every invocation
+
+**Tier:** B (one observable check, then one command)
+
 **Check runtime version before running; parse `RUNTIME_VERSION` errors and surface them as environment issues:**
 
 ```python

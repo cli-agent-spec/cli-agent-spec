@@ -231,6 +231,11 @@ The comparison matrix shows REQ-F-004 (Consistent JSON Response Envelope) is ✗
 
 ### Agent Workaround
 
+**Signature:** `json.loads(stdout)` raises `JSONDecodeError`; stdout shows box-drawing tables, prose lines around a JSON object, or locale-formatted numbers
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Rerun as `NO_COLOR=1 CI=true tool <args> --output json`; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Always request structured output and detect format violations before parsing:**
 
 ```python
@@ -262,18 +267,47 @@ stdout = result.stdout.strip()
 if result.returncode != 0 and any(kw in stdout for kw in ("Usage:", "Options:", "Commands:")):
     raise ValueError(f"Received help text instead of JSON — likely a usage error: {cmd}")
 
-# Parse the last valid JSON line (guards against leading prose)
-for line in reversed(stdout.splitlines()):
-    try:
-        parsed = json.loads(line)
-        break
-    except json.JSONDecodeError:
-        continue
-else:
+# Recover the payload with the canonical extraction rule (defined below)
+parsed = extract_envelope(stdout)
+if parsed is None:
     raise ValueError(f"No valid JSON in output: {stdout[:200]}")
 
 ok = parsed.get("ok", parsed.get("status") == "ok")
 data = parsed.get("data") or parsed.get("result") or parsed
 ```
 
-**Limitation:** If the tool has no `--output json` flag and mixes prose with data in stdout, regex extraction is fragile and environment-dependent — there is no reliable agent-side fix; treat the tool as unstructured and require human review of any extracted values
+**The canonical JSON extraction rule (identical in §3, §41, §68; defined in [triage.md](../triage.md)):**
+
+```python
+import json, re
+
+def extract_envelope(stdout: str):
+    """Canonical JSON extraction rule — defined in challenges/triage.md."""
+    text = re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", stdout)   # 1. strip ANSI codes
+    try:
+        return json.loads(text)                            # 2. fast path: clean stream
+    except json.JSONDecodeError:
+        pass
+    candidates = []                                        # 3. every maximal JSON value
+    decoder = json.JSONDecoder()
+    i = 0
+    while True:
+        starts = [s for s in (text.find(c, i) for c in "{[") if s != -1]
+        if not starts:
+            break
+        start = min(starts)
+        try:
+            obj, end = decoder.raw_decode(text[start:])
+            candidates.append(obj)
+            i = start + end
+        except json.JSONDecodeError:
+            i = start + 1
+    envelopes = [c for c in candidates if isinstance(c, dict) and "ok" in c]
+    if envelopes:
+        return envelopes[-1]                               # 4. last envelope wins
+    if candidates:
+        return candidates[-1]                              # 5. last complete value
+    return None                                            # 6. unstructured: do not guess
+```
+
+**Limitation:** If the tool has no `--output json` flag, the extraction rule still fails when prose interleaves inside a single JSON value — there is no reliable agent-side fix; treat the tool as unstructured and require human review of any extracted values

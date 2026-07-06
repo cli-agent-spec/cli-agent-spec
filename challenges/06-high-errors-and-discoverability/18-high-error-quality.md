@@ -100,6 +100,7 @@ Examples:
 **For framework design:**
 - All errors MUST have a `code` (machine) and `message` (human)
 - `suggestion` field is encouraged for recoverable errors
+- When the remediation is a single safe command, emit `fix_command` (exact, verbatim-executable invocation) alongside the prose (REQ-C-030): prose requires the caller to synthesize a command, `fix_command` only requires copying one
 - Never emit raw stack traces to stdout; log them to stderr or a file
 - Provide an error code registry queryable via `tool errors list`
 
@@ -117,6 +118,11 @@ Examples:
 ---
 
 ### Agent Workaround
+
+**Signature:** failure exits `1` with a vague prose message (`Something went wrong`) or a `Traceback` dump; no `error.code` or `suggestion` field in output
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Do not retry with identical arguments; escalate with the command, exit code, stdout, and stderr
 
 **Extract and act on `error.code` and `error.suggestion` rather than parsing message text:**
 

@@ -24,7 +24,7 @@
   "x-enum-descriptions": [
     "Operation completed as intended.",
     "Unclassified execution failure — use a more specific code whenever one exists.",
-    "Input validation failed before any side effect occurred. Safe to retry unconditionally after fixing the input.",
+    "Input validation failed before any side effect occurred. The identical call fails; fix the input, then reissue.",
     "Operation started but did not complete. External state may be partially modified. Do not retry without inspecting state.",
     "A required precondition was not satisfied. No side effects occurred.",
     "The addressed resource does not exist. No side effects occurred.",
@@ -32,8 +32,8 @@
     "The caller has valid credentials but lacks permission. Do not retry — escalate or stop.",
     "Credentials are missing, invalid, or expired. Read error.code for detail: TOKEN_EXPIRED allows auto-refresh; TOKEN_MISSING requires credential acquisition.",
     "A payment is required to proceed. Attempt x402 payment if the agent has payment permission, then retry.",
-    "The operation exceeded its time limit. External state may be partially modified. Retry after back-off.",
-    "An upstream rate limit was hit. No side effects occurred. Retry after error.retry_after seconds.",
+    "The operation exceeded its time limit. External state may be partially modified. Inspect state before retrying unless the command declares side_effects: none.",
+    "An upstream rate limit was hit. No side effects occurred. Retry after error.retry_after_ms milliseconds.",
     "The service is temporarily unavailable. No side effects occurred. Retry with exponential back-off.",
     "The command or flag does not exist at this path. Read error.redirect for the replacement. If error.redirect.permanent is true, memorize and never call the old form again."
   ],

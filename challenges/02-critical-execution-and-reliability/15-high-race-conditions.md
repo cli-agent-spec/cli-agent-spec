@@ -79,6 +79,11 @@ Error: {
 
 ### Agent Workaround
 
+**Signature:** `lock file exists` or `LOCK_HELD` in stderr only when calls run in parallel; parallel runs both exit `0` but outputs or config keys silently vanish
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** run tool invocations one at a time, never in parallel; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Serialize parallel calls when a tool does not support concurrent invocation:**
 
 ```python
