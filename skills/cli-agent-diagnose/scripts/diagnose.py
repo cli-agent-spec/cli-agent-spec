@@ -93,6 +93,10 @@ class SignalMatch:
     spec_link: str              # relative path to challenge file
     limitation: str             # from ### Agent Workaround **Limitation:** line
     source: str                 # "deterministic" | "llm"
+    signature: str = ""         # **Signature:** line — observable trigger for §N
+    tier: str = ""              # **Tier:** letter — A | B | C (caller capability demanded)
+    fallback: str = ""          # **Fallback:** line — degraded action for Tier C
+    fix_command: str = ""       # error.fix_command from a response envelope in the trace
     triggering_events: tuple[TraceEvent, ...] = ()   # events that fired this match
 
 
@@ -103,7 +107,7 @@ class DiagnoseResult:
     trace_insufficient: bool
     suggested_context: tuple[str, ...]
     trace_summary: str
-    schema_version: str = "1.0"
+    schema_version: str = "1.1"
 
 
 # ---------------------------------------------------------------------------
@@ -609,6 +613,9 @@ class _ChallengeContent:
     memory: str         # derived: one-sentence fact for agent memory
     skill_patch: str    # derived: reusable rule for system prompt / skill file
     spec_link: str
+    signature: str = ""     # **Signature:** line from ### Agent Workaround
+    tier: str = ""          # **Tier:** letter — A | B | C
+    fallback: str = ""      # **Fallback:** line (present on Tier C files)
 
 
 def _load_challenge(failure_mode_id: int, challenges_dir: Path) -> _ChallengeContent:
@@ -647,6 +654,16 @@ def _load_challenge(failure_mode_id: int, challenges_dir: Path) -> _ChallengeCon
     limitation_match = re.search(r"\*\*Limitation:\*\*\s*(.+)", workaround_text)
     limitation = limitation_match.group(1).strip() if limitation_match else ""
 
+    # Recovery-layer lines from ### Agent Workaround (see challenges/triage.md)
+    signature_match = re.search(r"\*\*Signature:\*\*\s*(.+)", workaround_text)
+    signature = signature_match.group(1).strip() if signature_match else ""
+
+    tier_match = re.search(r"\*\*Tier:\*\*\s*([ABC])\b", workaround_text)
+    tier = tier_match.group(1) if tier_match else ""
+
+    fallback_match = re.search(r"\*\*Fallback:\*\*\s*(.+)", workaround_text)
+    fallback = fallback_match.group(1).strip() if fallback_match else ""
+
     spec_link = str(path.relative_to(challenges_dir.parent))
 
     # Derive memory: first non-empty sentence from The Problem (≤120 chars)
@@ -665,6 +682,9 @@ def _load_challenge(failure_mode_id: int, challenges_dir: Path) -> _ChallengeCon
         memory=memory,
         skill_patch=skill_patch,
         spec_link=spec_link,
+        signature=signature,
+        tier=tier,
+        fallback=fallback,
     )
 
 
@@ -692,6 +712,78 @@ def _derive_skill_patch(workaround_text: str) -> str:
         line = line.strip()
         if line and not line.startswith(("```", "#", "-", "*", ">")) and not _skip.search(line):
             return line[:120]
+    return ""
+
+
+# ---------------------------------------------------------------------------
+# Signature catalog — every §N's **Signature:** line as a declarative rule
+# ---------------------------------------------------------------------------
+
+# Challenge files are named "N-<severity>-<slug>.md"; index/triage/sources are not
+_CHALLENGE_FILE_RE = re.compile(r"^(\d+)-(?:critical|high|medium|low)-")
+
+
+def _load_signature_catalog(challenges_dir: Path) -> dict[int, str]:
+    """Map every §N to its **Signature:** line — the observable trigger an agent
+    can match without knowing the cause. Files without one are omitted."""
+    catalog: dict[int, str] = {}
+    for path in sorted(challenges_dir.rglob("*.md")):
+        name_match = _CHALLENGE_FILE_RE.match(path.name)
+        if not name_match:
+            continue
+        failure_mode_id = int(name_match.group(1))
+        text = path.read_text(encoding="utf-8")
+        sig_match = re.search(r"^\*\*Signature:\*\*\s*(.+)$", text, re.MULTILINE)
+        if sig_match:
+            catalog[failure_mode_id] = sig_match.group(1).strip()
+    return catalog
+
+
+# ---------------------------------------------------------------------------
+# Response envelope extraction (fix_command recovery directive)
+# ---------------------------------------------------------------------------
+
+def extract_envelope(stdout: str):
+    """Canonical JSON extraction rule — defined in challenges/triage.md."""
+    text = re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", stdout)   # 1. strip ANSI codes
+    try:
+        return json.loads(text)                            # 2. fast path: clean stream
+    except json.JSONDecodeError:
+        pass
+    candidates = []                                        # 3. every maximal JSON value
+    decoder = json.JSONDecoder()
+    i = 0
+    while True:
+        starts = [s for s in (text.find(c, i) for c in "{[") if s != -1]
+        if not starts:
+            break
+        start = min(starts)
+        try:
+            obj, end = decoder.raw_decode(text[start:])
+            candidates.append(obj)
+            i = start + end
+        except json.JSONDecodeError:
+            i = start + 1
+    envelopes = [c for c in candidates if isinstance(c, dict) and "ok" in c]
+    if envelopes:
+        return envelopes[-1]                               # 4. last envelope wins
+    if candidates:
+        return candidates[-1]                              # 5. last complete value
+    return None                                            # 6. unstructured: do not guess
+
+
+def _extract_fix_command(events: tuple[TraceEvent, ...] | list[TraceEvent]) -> str:
+    """Pull error.fix_command (REQ-C-030) from the last envelope in the trace.
+    The CLI's own remediation directive outranks any derived workaround."""
+    for event in reversed(list(events)):
+        envelope = extract_envelope(event.stdout)
+        if not isinstance(envelope, dict):
+            continue
+        error = envelope.get("error")
+        if isinstance(error, dict):
+            fix = error.get("fix_command")
+            if isinstance(fix, str) and fix.strip():
+                return fix.strip()
     return ""
 
 
@@ -752,6 +844,10 @@ def classify_with_llm(
                 spec_link=spec_link,
                 limitation=limitation,
                 source=source,
+                signature=challenge.signature if challenge else "",
+                tier=challenge.tier if challenge else "",
+                fallback=challenge.fallback if challenge else "",
+                fix_command=_extract_fix_command(raw_sig.triggering_events),
                 triggering_events=tuple(raw_sig.triggering_events),
             ))
 
@@ -775,7 +871,8 @@ def _llm_score(
         f"stdout: {stdout!r}\n"
         f"stderr: {stderr!r}\n"
         f"\nFAILURE MODE §{challenge.failure_mode_id} — {challenge.title}:\n"
-        f"{challenge.problem_text}\n"
+        + (f"Signature (observable trigger): {challenge.signature}\n" if challenge.signature else "")
+        + f"{challenge.problem_text}\n"
         f"\nDoes this trace exhibit the §{challenge.failure_mode_id} failure mode above?\n"
         f'Respond with JSON only (no prose): '
         f'{{"matches": true/false, "confidence": 0.0-1.0, "evidence": "one sentence"}}'
@@ -804,6 +901,64 @@ def _llm_score(
     return confidence, evidence
 
 
+_ROUTING_CONFIDENCE = 0.40      # routed candidates start ambiguous; _llm_score decides
+_ROUTING_MAX_CANDIDATES = 5     # cap focused scoring calls per routing pass
+
+
+def _llm_route(
+    event: TraceEvent,
+    catalog: dict[int, str],
+    known: frozenset[int],
+    client: _anthropic.Anthropic,
+) -> tuple[int, ...]:
+    """One LLM call matching the trace against the full signature catalog.
+    Extends coverage beyond the deterministic pattern tables to every §N that
+    declares a **Signature:** line. Returns candidate ids not already known."""
+    unknown = {fid: sig for fid, sig in catalog.items() if fid not in known}
+    if not unknown:
+        return ()
+
+    stdout = event.stdout[:3000] + (" [truncated]" if len(event.stdout) > 3000 else "")
+    stderr = event.stderr[:1500] + (" [truncated]" if len(event.stderr) > 1500 else "")
+    catalog_lines = "\n".join(f"§{fid}: {sig}" for fid, sig in sorted(unknown.items()))
+
+    prompt = (
+        f"TRACE:\n"
+        f"command: {event.command} {' '.join(event.args)}\n"
+        f"exit_code: {event.exit_code}\n"
+        f"timed_out: {event.timed_out}\n"
+        f"stdout: {stdout!r}\n"
+        f"stderr: {stderr!r}\n"
+        f"\nSIGNATURE CATALOG (observable trigger per failure mode):\n"
+        f"{catalog_lines}\n"
+        f"\nWhich signatures does this trace plausibly exhibit? "
+        f"List at most {_ROUTING_MAX_CANDIDATES} ids, best first; empty list if none.\n"
+        f'Respond with JSON only (no prose): {{"failure_mode_ids": [N, ...]}}'
+    )
+
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=256,
+        temperature=0,
+        messages=[{"role": "user", "content": prompt}],
+    )
+
+    text = ""
+    for block in response.content:
+        if hasattr(block, "text"):
+            text = block.text.strip()
+            break
+    text = re.sub(r"^```(?:json)?\s*", "", text)
+    text = re.sub(r"\s*```$", "", text)
+
+    parsed = json.loads(text)   # intentionally strict: let JSONDecodeError propagate
+    ids = parsed["failure_mode_ids"]
+    if not isinstance(ids, list):
+        raise ValueError(f"routing response failure_mode_ids is not a list: {ids!r}")
+    routed = [int(fid) for fid in ids if int(fid) in unknown]
+    return tuple(routed[:_ROUTING_MAX_CANDIDATES])
+
+
 # ---------------------------------------------------------------------------
 # Suffix: build SignalMatch for high-confidence deterministic hits
 # ---------------------------------------------------------------------------
@@ -828,6 +983,10 @@ def _deterministic_match(
             spec_link=challenge.spec_link,
             limitation=challenge.limitation,
             source="deterministic",
+            signature=challenge.signature,
+            tier=challenge.tier,
+            fallback=challenge.fallback,
+            fix_command=_extract_fix_command(evts),
             triggering_events=evts,
         )
     except FileNotFoundError:
@@ -888,6 +1047,23 @@ def diagnose(
         )
 
     raw_signals = match_signals(failures)
+
+    # Signature-catalog routing: with an LLM available, candidate selection is
+    # not limited to the deterministic pattern tables — every §N declaring a
+    # **Signature:** line is reachable.
+    if client is not None:
+        known = frozenset(s.failure_mode_id for s in raw_signals)
+        catalog = _load_signature_catalog(challenges_dir)
+        routed = _llm_route(failures[0], catalog, known, client)
+        raw_signals = raw_signals + tuple(
+            _RawSignal(
+                failure_mode_id=fid,
+                confidence=_ROUTING_CONFIDENCE,
+                evidence=f"signature catalog routing: trace matches §{fid} **Signature:** line",
+                triggering_events=[failures[0]],
+            )
+            for fid in routed
+        )
 
     if not raw_signals:
         return DiagnoseResult(
@@ -1066,6 +1242,10 @@ def _result_to_dict(result: DiagnoseResult, *, explain: bool = False) -> dict:
             "severity": m.severity,
             "spec_link": m.spec_link,
             "limitation": m.limitation,
+            "signature": m.signature,
+            "tier": m.tier,
+            "fallback": m.fallback,
+            "fix_command": m.fix_command,
             "source": m.source,
         }
         if explain:

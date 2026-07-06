@@ -17,7 +17,7 @@
     "schema_version": {
       "type": "string",
       "description": "Schema version for adapter compatibility checks",
-      "enum": ["1.0"]
+      "enum": ["1.0", "1.1"]
     },
     "matches": {
       "type": "array",
@@ -56,6 +56,10 @@
         "severity",
         "spec_link",
         "limitation",
+        "signature",
+        "tier",
+        "fallback",
+        "fix_command",
         "source"
       ],
       "additionalProperties": false,
@@ -103,6 +107,23 @@
         "limitation": {
           "type": "string",
           "description": "**Limitation:** line from the Agent Workaround section; empty string if none"
+        },
+        "signature": {
+          "type": "string",
+          "description": "**Signature:** line from the Agent Workaround section — the observable trigger for this failure mode; empty string if none"
+        },
+        "tier": {
+          "type": "string",
+          "enum": ["A", "B", "C", ""],
+          "description": "Workaround capability tier from challenges/triage.md; C demands stateful logic and carries a fallback"
+        },
+        "fallback": {
+          "type": "string",
+          "description": "**Fallback:** line — single degraded action for weak callers; non-empty only on tier C matches"
+        },
+        "fix_command": {
+          "type": "string",
+          "description": "error.fix_command extracted from a response envelope in the trace (REQ-C-030); run verbatim, then reissue the original call once; empty string if the CLI provided none"
         },
         "source": {
           "type": "string",

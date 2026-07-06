@@ -16,7 +16,7 @@
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `schema_version` | `"1.0"` | yes | Schema version for adapter compatibility checks |
+| `schema_version` | `"1.0"` \| `"1.1"` | yes | Schema version for adapter compatibility checks |
 | `matches` | `FailureModeMatch[]` | yes | Matched failure modes, sorted by confidence descending; empty array when `no_match` is true |
 | `no_match` | boolean | yes | True when the trace has output but no failure mode matched above the confidence threshold |
 | `trace_insufficient` | boolean | yes | True when stdout and stderr are too sparse to classify; check `suggested_context` |
@@ -39,6 +39,10 @@
 | `severity` | `"critical"` \| `"high"` \| `"medium"` \| `"low"` \| `"unknown"` | yes | Severity from the challenge file frontmatter |
 | `spec_link` | string | yes | Relative path to the challenge file from the repo root |
 | `limitation` | string | yes | `**Limitation:**` line from the Agent Workaround section; empty string if none |
+| `signature` | string | yes | `**Signature:**` line — the observable trigger for this failure mode; empty string if none |
+| `tier` | `"A"` \| `"B"` \| `"C"` \| `""` | yes | Workaround capability tier from `challenges/triage.md`; `C` demands stateful logic and carries a fallback |
+| `fallback` | string | yes | `**Fallback:**` line — single degraded action for weak callers; non-empty only on tier `C` matches |
+| `fix_command` | string | yes | `error.fix_command` extracted from a response envelope in the trace ([REQ-C-030](../requirements/c-030-error-responses-include-fix-command.md)); empty string if the CLI provided none |
 | `source` | `"deterministic"` \| `"llm"` | yes | Whether the match came from deterministic signal matching or LLM classification |
 
 ---
@@ -49,7 +53,7 @@
 
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "matches": [
     {
       "failure_mode_id": 10,
@@ -62,6 +66,10 @@
       "severity": "critical",
       "spec_link": "challenges/02-critical-execution-and-reliability/10-critical-interactivity.md",
       "limitation": "Some interactive commands have no --yes equivalent; check --help first",
+      "signature": "process hangs with no output until killed; or stderr names a TTY requirement",
+      "tier": "B",
+      "fallback": "",
+      "fix_command": "",
       "source": "deterministic"
     }
   ],
@@ -76,7 +84,7 @@
 
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "matches": [],
   "no_match": false,
   "trace_insufficient": true,
@@ -92,7 +100,7 @@
 
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "matches": [],
   "no_match": true,
   "trace_insufficient": false,
@@ -120,9 +128,10 @@ When `trace_insufficient` is true: do not attempt further classification. Collec
 When `no_match` is true: the failure is either application-specific (not covered by the spec) or a novel failure mode. Escalate to the human operator with `trace_summary` and the raw trace.
 
 When `matches` is non-empty: process in confidence order. For each match:
-1. Apply `workaround` to the current invocation
-2. Store `memory` in the agent's memory system tagged with the CLI name and `failure_mode_id`
-3. Prepend `skill_patch` to the agent's active skill file or system prompt for this CLI
+1. If `fix_command` is non-empty, run it verbatim, then reissue the original call once — the CLI's own remediation directive outranks the derived workaround
+2. Otherwise apply `workaround` to the current invocation; a weak caller facing `tier: "C"` should skip the workaround body and apply `fallback` instead (the Signature → Tier → Fallback ladder from `challenges/triage.md`)
+3. Store `memory` in the agent's memory system tagged with the CLI name and `failure_mode_id`
+4. Prepend `skill_patch` to the agent's active skill file or system prompt for this CLI
 
 Critical-severity matches (`severity: "critical"`) should block any retry until the workaround is applied.
 
@@ -151,3 +160,5 @@ Always parse stdout as JSON regardless of exit code — the result object is alw
 `DiagnoseResult` is an internal output type for the `cli-agent-diagnose` skill only — it is not returned by CLI tools being evaluated. It does not use `ResponseEnvelope` as a wrapper because the diagnose tool outputs the result directly, not as a CLI command response.
 
 The `source` field distinguishes deterministic matches (pattern-based signal matching against known §N indicators) from LLM matches (one API call per ambiguous candidate). Deterministic matches have confidence ≥ 0.80 by construction; LLM matches span the full 0.0–1.0 range based on the model's scored assessment.
+
+With `--llm`, candidate selection is not limited to the deterministic pattern tables: a routing call matches the trace against the full catalog of `**Signature:**` lines parsed from `challenges/`, so every §N that declares a signature is reachable. The `signature`, `tier`, and `fallback` fields are parsed from the matched challenge file at classification time; `fix_command` is extracted from the last response envelope in the trace using the canonical JSON extraction rule defined in `challenges/triage.md`.

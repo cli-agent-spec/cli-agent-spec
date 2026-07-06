@@ -17,6 +17,10 @@ Classify a failed CLI tool call and get an actionable §N workaround.
 - **`scripts/diagnose.py`** — Post-hoc classifier: given a trace (command, stdout, stderr, exit code), returns §N matches with workarounds
 - **`scripts/runner.py`** — Inline subprocess wrapper: drop-in for `subprocess.run` that applies §N fixes transparently
 - **`scripts/preflight_hook.py`** — Claude Code PreToolUse hook: intercepts Bash calls before they run and advises on §N risks
+- **`scripts/filter.py`** — Compacts a Claude Code tool-execution JSONL log into per-invocation trace records grouped by session and run
+- **`scripts/analyze.py`** — Feeds filtered runs through `diagnose.py` and emits per-run issue summaries
+- **`scripts/stats.py`** — Per-tool success/fail and output-size table from a raw hook log
+- **`scripts/traj.py`** — Parses ATIF trajectory files and routes bash calls into the diagnose pipeline
 
 ---
 
@@ -81,9 +85,11 @@ The failure is application-specific or not yet in the spec. Report `trace_summar
 Process matches in confidence order (highest first):
 
 1. Read `evidence` — one sentence explaining why §N was triggered
-2. Apply `workaround` to the current invocation
-3. Note `limitation` — the boundary of what the workaround covers
-4. Queue `memory` and `skill_patch` for Step 5
+2. If `fix_command` is non-empty, run it verbatim, then reissue the original call once: the CLI's own remediation directive outranks the derived workaround
+3. Otherwise apply `workaround` to the current invocation; when `tier` is `"C"` and the executing model is weak, skip the workaround body and apply `fallback` instead
+4. Confirm the match against `signature` — the observable trigger the trace should exhibit
+5. Note `limitation` — the boundary of what the workaround covers
+6. Queue `memory` and `skill_patch` for Step 5
 
 Critical-severity matches (`"severity": "critical"`) must be resolved before retrying.
 
@@ -95,11 +101,14 @@ Critical-severity matches (`"severity": "critical"`) must be resolved before ret
 ## Diagnosis Result
 
 **Trace:** <command> (exit <exit_code>)
-**Match:** §<N> — <title> (<severity>, confidence <confidence>)
+**Match:** §<N> — <title> (<severity>, tier <tier>, confidence <confidence>)
 **Evidence:** <evidence>
 
+### Fix command
+<fix_command, only when non-empty — run verbatim, then reissue the original call once>
+
 ### Workaround
-<workaround>
+<workaround; for tier C add the fallback line for weak callers>
 
 ### Limitation
 <limitation>
@@ -148,7 +157,8 @@ If the failure is a reasoning failure (agent produced the wrong output, wrong an
 - Always parse stdout as JSON regardless of exit code
 - Do not retry a `critical`-severity failure before applying its workaround
 - For `trace_insufficient`: collect more context, then re-classify — do not loop on the same sparse trace
-- Use `--llm` only when all confidence scores are below 0.50; deterministic mode handles most common failures
+- Use `--llm` when deterministic mode returns `no_match` or all confidence scores are below 0.50; besides rescoring, it routes the trace against the full `**Signature:**` catalog, reaching failure modes the deterministic patterns do not cover
+- When a match carries a non-empty `fix_command`, run it verbatim before any other workaround step, then reissue the original call once
 - If the user provides a prose description rather than a structured trace, construct the JSON yourself rather than asking them to format it
 - Never suggest changing the agent's instruction or system prompt as a workaround — only suggest tool-level fixes (hook, wrapper, flag)
 
