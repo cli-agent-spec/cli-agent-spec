@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixLayer Evidence — same failure, two endings</title>
+  <meta name="description" content="Two real Terminal-Bench trajectories hit the identical git merge failure. One run carried a workaround derived mechanically from the CLI Agent Spec (§13) and fixed it inline. Trace-level evidence.">
+  <meta property="og:title" content="FixLayer Evidence — same failure, two endings">
+  <meta property="og:description" content="A merge conflict, unrecovered vs fixed inline by a spec-derived §13 workaround. Real trace evidence from Terminal-Bench.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <script>(function(){var t=localStorage.getItem('theme');if(t&&t!=='auto')document.documentElement.setAttribute('data-theme',t);}());</script>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --bg3:#21262d;
+    --border:#30363d; --text:#e6edf3; --muted:#8b949e;
+    --red:#f85149; --orange:#f0883e; --green:#3fb950; --accent:#58a6ff; --purple:#bc8cff;
+    --code-bg:#0d1117; --code-text:#a5d6ff;
+    --red-dim:rgba(248,81,73,0.12); --red-line:rgba(248,81,73,0.35);
+    --green-dim:rgba(63,185,80,0.10); --green-line:rgba(63,185,80,0.35);
+    --accent-dim:rgba(88,166,255,0.10); --accent-line:rgba(88,166,255,0.30);
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#ffffff; --bg2:#f6f8fa; --bg3:#eaeef2;
+      --border:#d0d7de; --text:#1f2328; --muted:#57606a;
+      --red:#cf222e; --orange:#bc4c00; --green:#1a7f37; --accent:#0969da; --purple:#8250df;
+      --code-bg:#f6f8fa; --code-text:#24292f;
+      --red-dim:rgba(207,34,46,0.08); --red-line:rgba(207,34,46,0.30);
+      --green-dim:rgba(26,127,55,0.08); --green-line:rgba(26,127,55,0.30);
+      --accent-dim:rgba(9,105,218,0.08); --accent-line:rgba(9,105,218,0.28);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d1117; --bg2:#161b22; --bg3:#21262d;
+    --border:#30363d; --text:#e6edf3; --muted:#8b949e;
+    --red:#f85149; --orange:#f0883e; --green:#3fb950; --accent:#58a6ff; --purple:#bc8cff;
+    --code-bg:#0d1117; --code-text:#a5d6ff;
+    --red-dim:rgba(248,81,73,0.12); --red-line:rgba(248,81,73,0.35);
+    --green-dim:rgba(63,185,80,0.10); --green-line:rgba(63,185,80,0.35);
+    --accent-dim:rgba(88,166,255,0.10); --accent-line:rgba(88,166,255,0.30);
+  }
+  :root[data-theme="light"]{
+    --bg:#ffffff; --bg2:#f6f8fa; --bg3:#eaeef2;
+    --border:#d0d7de; --text:#1f2328; --muted:#57606a;
+    --red:#cf222e; --orange:#bc4c00; --green:#1a7f37; --accent:#0969da; --purple:#8250df;
+    --code-bg:#f6f8fa; --code-text:#24292f;
+    --red-dim:rgba(207,34,46,0.08); --red-line:rgba(207,34,46,0.30);
+    --green-dim:rgba(26,127,55,0.08); --green-line:rgba(26,127,55,0.30);
+    --accent-dim:rgba(9,105,218,0.08); --accent-line:rgba(9,105,218,0.28);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6; font-size:16px;
+    margin:0; padding:0 1.25rem 4rem;
+  }
+  code, pre, .mono{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace}
+  .wrap{max-width:960px; margin:0 auto}
+  .prose{max-width:68ch}
+
+  /* ── Header ── */
+  header{padding:3rem 0 2rem}
+  .badge{
+    display:inline-block; background:var(--accent-dim); border:1px solid var(--accent-line);
+    color:var(--accent); font-size:0.72rem; font-weight:700; padding:0.22rem 0.7rem;
+    border-radius:20px; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:1.1rem;
+  }
+  h1{font-size:2rem; font-weight:800; letter-spacing:-0.02em; margin:0 0 0.6rem; text-wrap:balance; line-height:1.2}
+  h1 em{color:var(--accent); font-style:normal}
+  .sub{color:var(--muted); margin:0 0 1.4rem; max-width:62ch}
+  .meta{font-size:0.8rem; color:var(--muted)}
+  .meta code{background:var(--bg3); padding:0.1rem 0.4rem; border-radius:4px; font-size:0.78rem}
+
+  /* ── Stat strip ── */
+  .stats{display:flex; gap:0.75rem; flex-wrap:wrap; margin:1.6rem 0 0}
+  .stat{
+    flex:1 1 150px; background:var(--bg2); border:1px solid var(--border);
+    border-radius:8px; padding:0.85rem 1rem;
+  }
+  .stat .k{font-size:0.7rem; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--muted)}
+  .stat .v{font-size:1.45rem; font-weight:800; letter-spacing:-0.01em; font-variant-numeric:tabular-nums; margin-top:0.15rem}
+  .stat .v.red{color:var(--red)} .stat .v.green{color:var(--green)} .stat .v.accent{color:var(--accent)}
+  .stat .n{font-size:0.74rem; color:var(--muted); margin-top:0.1rem}
+
+  /* ── Section headings ── */
+  h2{font-size:1.15rem; font-weight:800; letter-spacing:-0.01em; margin:3rem 0 0.4rem}
+  h2 .tick{color:var(--muted); font-weight:400}
+  .lede{color:var(--muted); font-size:0.92rem; margin:0 0 1.2rem; max-width:64ch}
+
+  /* ── Trace steps ── */
+  .trace{display:flex; flex-direction:column; gap:0.5rem}
+  .step{
+    background:var(--bg2); border:1px solid var(--border); border-radius:8px;
+    padding:0.7rem 0.9rem; overflow-x:auto;
+  }
+  .step .who{font-size:0.68rem; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--muted); margin-bottom:0.3rem}
+  .step .who .ok{color:var(--green)} .step .who .bad{color:var(--red)}
+  .step pre{margin:0; font-size:0.78rem; line-height:1.55; color:var(--code-text); white-space:pre}
+  .step pre b{color:var(--text); font-weight:600}
+  .step pre .c{color:var(--muted)}
+  .step pre .r{color:var(--red)} .step pre .g{color:var(--green)}
+  .step.fail{border-color:var(--red-line); background:var(--red-dim)}
+
+  /* ── Divergence fork ── */
+  .fork-label{
+    display:flex; align-items:center; gap:0.8rem; margin:1.8rem 0 1rem;
+    color:var(--muted); font-size:0.75rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
+  }
+  .fork-label::before, .fork-label::after{content:""; flex:1; border-top:1px dashed var(--border)}
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:1rem; align-items:start}
+  @media (max-width:760px){ .split{grid-template-columns:1fr} }
+  .lane{border-radius:10px; border:1px solid var(--border); overflow:hidden}
+  .lane.baseline{border-color:var(--red-line)}
+  .lane.fixed{border-color:var(--green-line)}
+  .lane-head{padding:0.75rem 1rem; display:flex; justify-content:space-between; align-items:baseline; gap:0.5rem; flex-wrap:wrap}
+  .lane.baseline .lane-head{background:var(--red-dim)}
+  .lane.fixed .lane-head{background:var(--green-dim)}
+  .lane-head .t{font-weight:800; font-size:0.92rem}
+  .lane.baseline .lane-head .t{color:var(--red)}
+  .lane.fixed .lane-head .t{color:var(--green)}
+  .lane-head .d{font-size:0.72rem; color:var(--muted)}
+  .lane-body{padding:0.75rem; display:flex; flex-direction:column; gap:0.5rem}
+  .lane .step{border-radius:6px}
+  .verdict{
+    margin:0.25rem 0.75rem 0.85rem; padding:0.6rem 0.8rem; border-radius:6px;
+    font-size:0.82rem; font-weight:600;
+  }
+  .lane.baseline .verdict{background:var(--red-dim); border:1px solid var(--red-line); color:var(--red)}
+  .lane.fixed .verdict{background:var(--green-dim); border:1px solid var(--green-line); color:var(--green)}
+
+  /* ── Injection panel ── */
+  .inject{
+    border:1px solid var(--accent-line); border-radius:10px; overflow:hidden; margin-top:1.2rem;
+  }
+  .inject-head{background:var(--accent-dim); padding:0.75rem 1rem; font-weight:800; font-size:0.92rem; color:var(--accent)}
+  .inject-head span{font-weight:400; color:var(--muted); font-size:0.78rem; margin-left:0.5rem}
+  .inject pre{
+    margin:0; padding:0.9rem 1rem; font-size:0.78rem; line-height:1.6;
+    color:var(--code-text); background:var(--code-bg); overflow-x:auto; white-space:pre;
+  }
+  .inject pre b{color:var(--text)}
+  .pipeline{
+    display:flex; flex-wrap:wrap; gap:0.4rem; align-items:center;
+    font-size:0.78rem; color:var(--muted); padding:0.7rem 1rem; border-top:1px solid var(--border); background:var(--bg2);
+  }
+  .pipeline .chip{background:var(--bg3); border:1px solid var(--border); border-radius:5px; padding:0.12rem 0.5rem; font-size:0.74rem; color:var(--text); font-family:"SFMono-Regular",Consolas,Menlo,monospace}
+  .pipeline .arrow{color:var(--muted)}
+
+  /* ── Results table ── */
+  table{border-collapse:collapse; width:100%; font-size:0.88rem; margin-top:0.4rem}
+  th,td{text-align:left; padding:0.55rem 0.9rem; border-bottom:1px solid var(--border)}
+  th{font-size:0.7rem; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted)}
+  td.num{font-variant-numeric:tabular-nums; font-family:"SFMono-Regular",Consolas,Menlo,monospace; font-size:0.82rem}
+  .pill{display:inline-block; font-size:0.72rem; font-weight:700; border-radius:12px; padding:0.08rem 0.55rem}
+  .pill.pass{background:var(--green-dim); border:1px solid var(--green-line); color:var(--green)}
+  .pill.fail{background:var(--red-dim); border:1px solid var(--red-line); color:var(--red)}
+  .tbl-wrap{overflow-x:auto; border:1px solid var(--border); border-radius:8px; background:var(--bg2)}
+  .tbl-wrap table{margin:0}
+  .tbl-wrap tr:last-child td{border-bottom:none}
+
+  /* ── Caveats ── */
+  .caveats{
+    margin-top:1.1rem; padding:0.85rem 1rem; border:1px solid var(--border);
+    border-radius:8px; background:var(--bg2); font-size:0.84rem; color:var(--muted); max-width:100%;
+  }
+  .caveats b{color:var(--text)}
+
+  footer{margin-top:3rem; font-size:0.76rem; color:var(--muted); border-top:1px solid var(--border); padding-top:1rem}
+  footer code{background:var(--bg3); padding:0.05rem 0.35rem; border-radius:4px}
+
+  @media (prefers-reduced-motion: no-preference){
+    .lane{transition:border-color 0.15s ease}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <div class="badge">FixLayer · Trace Evidence</div>
+  <h1>Same failure, two endings: <em>a merge conflict, fixed inline</em></h1>
+  <p class="sub">Two real Terminal-Bench trajectories for the <b>fix-git</b> task. Both agents hit the identical tool failure. The only difference: the second run carried a workaround derived mechanically from the CLI Agent Spec — no human wrote a word of it for this task.</p>
+  <div class="meta">agent <code>claude-code / claude-haiku-4-5</code> · task <code>terminal-bench-2/fix-git</code> · baseline job <code>2026-05-29__12-40-19</code> · treated job <code>2026-07-06__20-29-45</code></div>
+
+  <div class="stats">
+    <div class="stat"><div class="k">Baseline</div><div class="v red">0 / 1</div><div class="n">merge left unresolved</div></div>
+    <div class="stat"><div class="k">With §13 injected</div><div class="v green">2 / 3</div><div class="n">residual failure: reasoning, not tools</div></div>
+    <div class="stat"><div class="k">Tool-layer failure</div><div class="v green">0 / 3</div><div class="n">recurrences after injection</div></div>
+    <div class="stat"><div class="k">Treated-run cost</div><div class="v accent">$0.084</div><div class="n">3 trials + diagnosis</div></div>
+  </div>
+</header>
+
+<h2>The shared path <span class="tick">— both runs, step for step</span></h2>
+<p class="lede">Same task prompt, same repository state, same model. Both agents find the lost commit in the reflog and try to merge it back. Both hit the same wall.</p>
+
+<div class="trace">
+  <div class="step">
+    <div class="who">user</div>
+    <pre>I just made some changes to my personal site and checked out master,
+but now I can't find those changes. Please help me</pre>
+  </div>
+  <div class="step">
+    <div class="who">agent · bash <span class="ok">✓</span></div>
+    <pre><b>git reflog -20</b>
+d7d3e4b HEAD@{0}: checkout: moving from 650dba42… to master
+<span class="g">650dba4 HEAD@{1}: commit: Move to Stanford</span>
+c4e38a1 HEAD@{2}: checkout: moving from master to HEAD~1</pre>
+  </div>
+  <div class="step fail">
+    <div class="who">agent · bash <span class="bad">✗ exit 1 — the divergence point</span></div>
+    <pre><b>git merge 650dba4</b>
+Auto-merging _includes/about.md
+<span class="r">CONFLICT (content): Merge conflict in _includes/about.md</span>
+<span class="r">Automatic merge failed; fix conflicts and then commit the result.</span></pre>
+  </div>
+</div>
+
+<div class="fork-label">from here, the two runs diverge</div>
+
+<div class="split">
+  <div class="lane baseline">
+    <div class="lane-head"><span class="t">Baseline — no injection</span><span class="d">May 29 · 14.2s · reward 0.0</span></div>
+    <div class="lane-body">
+      <div class="step">
+        <div class="who">agent · read <span class="ok">✓</span></div>
+        <pre>_includes/about.md
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+…I am a PhD student…
+=======
+I am a Postdoctoral Researcher
+at Stanford CS.
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; 650dba4</pre>
+      </div>
+      <div class="step">
+        <div class="who">agent · final message — no more tool calls</div>
+        <pre>"I see — your changes on 650dba4
+updated your bio to 'Postdoctoral
+Researcher at Stanford CS', but
+master has…"</pre>
+      </div>
+    </div>
+    <div class="verdict">✗ Session ends explaining the conflict to the user. Working tree still has conflict markers. Verifier: 0.0</div>
+  </div>
+
+  <div class="lane fixed">
+    <div class="lane-head"><span class="t">With §13 injected</span><span class="d">Jul 6 · 12.1s · reward 1.0</span></div>
+    <div class="lane-body">
+      <div class="step">
+        <div class="who">agent · read <span class="ok">✓</span></div>
+        <pre>_includes/about.md
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD  …  &gt;&gt;&gt;&gt;&gt;&gt;&gt; 650dba4
+<span class="c">(same conflict, same file)</span></pre>
+      </div>
+      <div class="step">
+        <div class="who">agent · edit <span class="ok">✓</span></div>
+        <pre><b>edit _includes/about.md</b>
+<span class="c">conflict markers resolved, keeping
+the "Move to Stanford" changes</span></pre>
+      </div>
+      <div class="step">
+        <div class="who">agent · bash <span class="ok">✓</span></div>
+        <pre><b>git add _includes/about.md &&
+git commit -m "Merge changes
+from Move to Stanford"</b>
+[master 87cac91] Merge changes…</pre>
+      </div>
+      <div class="step">
+        <div class="who">agent · bash <span class="ok">✓ verification</span></div>
+        <pre><b>git log --oneline -3</b>
+<span class="g">87cac91 Merge changes from Move…</span>
+650dba4 Move to Stanford
+d7d3e4b off the job market woo</pre>
+      </div>
+    </div>
+    <div class="verdict">✓ Conflict resolved, merge committed, history verified. Verifier: 1.0</div>
+  </div>
+</div>
+
+<h2>The only changed variable</h2>
+<p class="lede">The instruction below was assembled by the pipeline, not a person: the failing <code>git merge</code> trace was routed against all 74 spec signatures (one Haiku call, ~$0.01), matched <b>§13 Partial Failure &amp; Atomicity</b>, and that challenge file's workaround was injected verbatim into the rerun.</p>
+
+<div class="inject">
+  <div class="inject-head">§13 — Partial Failure &amp; Atomicity <span>injected text, excerpt</span></div>
+  <pre><b>Signature:</b> exit 1 from a multi-step command whose output shows some
+steps succeeded before a failure line
+
+<b>Tier:</b> C (stateful logic; weak models apply the fallback below)
+
+Parse partial-failure output to determine safe retry scope: identify
+what completed, <b>resume from the failed step rather than re-running
+the whole operation</b>, and verify state before any retry.
+
+<b>Limitation:</b> if the tool emits only a text error with no structured
+step information, verify current state before retrying — re-running
+completed steps may cause duplicate side effects</pre>
+  <div class="pipeline">
+    <span class="chip">exit 1 trace</span><span class="arrow">→</span>
+    <span class="chip">signature routing (haiku)</span><span class="arrow">→</span>
+    <span class="chip">§13 match</span><span class="arrow">→</span>
+    <span class="chip">workaround injected</span><span class="arrow">→</span>
+    <span class="chip">rerun</span>
+  </div>
+</div>
+
+<h2>All five trials</h2>
+<div class="tbl-wrap">
+<table>
+  <tr><th>Trial</th><th>Arm</th><th>Outcome</th><th>Failure class</th></tr>
+  <tr><td class="num">fix-git · May 29</td><td>baseline</td><td><span class="pill fail">0.0</span></td><td>merge conflict left unresolved — tool-execution failure</td></tr>
+  <tr><td class="num">fix-git__BYkELMK</td><td>§13 injected</td><td><span class="pill pass">1.0</span></td><td>—</td></tr>
+  <tr><td class="num">fix-git__tjbWRFd</td><td>§13 injected</td><td><span class="pill pass">1.0</span></td><td>—</td></tr>
+  <tr><td class="num">fix-git__RAnHowg</td><td>§13 injected</td><td><span class="pill fail">0.0</span></td><td>wrong_output — reasoning failure, outside tool-layer scope</td></tr>
+  <tr><td class="num">3 × merge conflict</td><td>§13 injected</td><td><span class="pill pass">recovered</span></td><td>tool-layer failure did not recur in any treated trial</td></tr>
+</table>
+</div>
+
+<div class="caveats prose">
+<b>Honest caveats.</b> This is a pilot: one task, three treated trials against a single-trial baseline. The two other May tasks (sanitize-git, configure-git-webserver) fail behaviorally — every tool call succeeds — so the spec arm correctly declines them; that boundary is measured, not asserted. Scaling up means sweeping the ~90 Terminal-Bench tasks, splitting failures into §N vs reasoning classes, and adding a placebo-instruction arm.
+</div>
+
+<footer>
+  Generated from real ATIF trajectories via <code>traj.py</code> · diagnosis by <code>cli-agent-diagnose</code> (schema 1.1) · injection by <code>fix_loop.py --source spec --llm</code> · CLI Agent Spec §13
+</footer>
+</div>
+
+</body>
+</html>
