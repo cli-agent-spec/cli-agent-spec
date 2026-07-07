@@ -57,6 +57,64 @@ def _resolve_challenges_dir() -> Path:
 CHALLENGES_DIR = _resolve_challenges_dir()
 CONFIDENCE_DETERMINISTIC_HIGH = 0.80   # skip LLM; report as-is
 CONFIDENCE_LLM_THRESHOLD = 0.15        # below this: don't send to LLM
+DEFAULT_LLM_MODEL = "claude-haiku-4-5-20251001"
+
+
+class OpenRouterClient:
+    """Anthropic-messages-shaped adapter over the OpenRouter chat completions API.
+
+    Exposes the same `messages.create(...)` surface `_llm_score` and `_llm_route`
+    call on an `anthropic.Anthropic` client, so both providers share one code path.
+    Uses stdlib HTTP only — no extra dependency. The `model` kwarg passed to
+    `create` is ignored; the model bound at construction wins.
+    """
+
+    def __init__(self, api_key: str, model: str):
+        self._api_key = api_key
+        self._model = model
+        self.messages = self
+
+    def create(self, *, model: str, max_tokens: int, temperature: float, messages: list) -> object:
+        import urllib.request
+        from types import SimpleNamespace
+
+        payload = json.dumps({
+            "model": self._model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "messages": messages,
+        }).encode()
+        req = urllib.request.Request(
+            "https://openrouter.ai/api/v1/chat/completions",
+            data=payload,
+            headers={
+                "Authorization": f"Bearer {self._api_key}",
+                "Content-Type": "application/json",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            body = json.loads(resp.read().decode())
+        if "error" in body:
+            raise RuntimeError(f"OpenRouter error: {body['error']}")
+        text = body["choices"][0]["message"]["content"]
+        return SimpleNamespace(content=[SimpleNamespace(text=text)])
+
+
+def build_llm_client(llm_model: str):
+    """Build the LLM client for --llm mode. `openrouter/<model>` routes to
+    OpenRouter (OPENROUTER_API_KEY); anything else is an Anthropic model id."""
+    if llm_model.startswith("openrouter/"):
+        api_key = os.environ.get("OPENROUTER_API_KEY")
+        if not api_key:
+            print("Error: OPENROUTER_API_KEY not set", file=sys.stderr)
+            sys.exit(1)
+        return OpenRouterClient(api_key, llm_model.removeprefix("openrouter/"))
+    import anthropic
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        print("Error: ANTHROPIC_API_KEY not set", file=sys.stderr)
+        sys.exit(1)
+    return anthropic.Anthropic(api_key=api_key)
 
 
 # ---------------------------------------------------------------------------
@@ -796,6 +854,7 @@ def classify_with_llm(
     candidates: tuple[_RawSignal, ...],
     client: _anthropic.Anthropic,
     challenges_dir: Path,
+    llm_model: str = DEFAULT_LLM_MODEL,
 ) -> tuple[SignalMatch, ...]:
     """
     For each candidate §N, issue one focused LLM call.
@@ -824,7 +883,7 @@ def classify_with_llm(
         severity = challenge.severity if challenge else "unknown"
 
         if confidence < CONFIDENCE_DETERMINISTIC_HIGH and challenge is not None:
-            llm_confidence, llm_evidence = _llm_score(event, challenge, client)
+            llm_confidence, llm_evidence = _llm_score(event, challenge, client, llm_model)
             if llm_confidence > confidence:
                 confidence = llm_confidence
             source = "llm"
@@ -858,6 +917,7 @@ def _llm_score(
     event: TraceEvent,
     challenge: _ChallengeContent,
     client: _anthropic.Anthropic,
+    llm_model: str = DEFAULT_LLM_MODEL,
 ) -> tuple[float, str]:
     """Single focused LLM call: does this trace exhibit §N?"""
     # Truncate large outputs before sending
@@ -879,7 +939,7 @@ def _llm_score(
     )
 
     response = client.messages.create(
-        model="claude-haiku-4-5-20251001",
+        model=llm_model,
         max_tokens=256,
         temperature=0,
         messages=[{"role": "user", "content": prompt}],
@@ -910,6 +970,7 @@ def _llm_route(
     catalog: dict[int, str],
     known: frozenset[int],
     client: _anthropic.Anthropic,
+    llm_model: str = DEFAULT_LLM_MODEL,
 ) -> tuple[int, ...]:
     """One LLM call matching the trace against the full signature catalog.
     Extends coverage beyond the deterministic pattern tables to every §N that
@@ -937,7 +998,7 @@ def _llm_route(
     )
 
     response = client.messages.create(
-        model="claude-haiku-4-5-20251001",
+        model=llm_model,
         max_tokens=256,
         temperature=0,
         messages=[{"role": "user", "content": prompt}],
@@ -1023,6 +1084,7 @@ def diagnose(
     *,
     client: _anthropic.Anthropic | None = None,
     challenges_dir: Path = CHALLENGES_DIR,
+    llm_model: str = DEFAULT_LLM_MODEL,
 ) -> DiagnoseResult:
     """
     Full pipeline: parse → extract failures → match signals → (optionally) LLM classify.
@@ -1054,7 +1116,7 @@ def diagnose(
     if client is not None:
         known = frozenset(s.failure_mode_id for s in raw_signals)
         catalog = _load_signature_catalog(challenges_dir)
-        routed = _llm_route(failures[0], catalog, known, client)
+        routed = _llm_route(failures[0], catalog, known, client, llm_model)
         raw_signals = raw_signals + tuple(
             _RawSignal(
                 failure_mode_id=fid,
@@ -1082,7 +1144,7 @@ def diagnose(
 
     if ambiguous and client is not None:
         representative = failures[0]   # use first failure event for LLM context
-        llm_matches = classify_with_llm(representative, ambiguous, client, challenges_dir)
+        llm_matches = classify_with_llm(representative, ambiguous, client, challenges_dir, llm_model)
         final.extend(llm_matches)
     elif ambiguous:
         # No LLM: include ambiguous as deterministic matches with their current confidence
@@ -1281,7 +1343,13 @@ def main() -> None:
     parser.add_argument(
         "--llm",
         action="store_true",
-        help="Enable LLM classification for ambiguous candidates (requires ANTHROPIC_API_KEY)",
+        help="Enable LLM classification for ambiguous candidates (requires ANTHROPIC_API_KEY, or OPENROUTER_API_KEY with an openrouter/ model)",
+    )
+    parser.add_argument(
+        "--llm-model",
+        default=DEFAULT_LLM_MODEL,
+        metavar="MODEL",
+        help=f"LLM for routing and scoring: an Anthropic model id, or openrouter/<vendor>/<model> (default: {DEFAULT_LLM_MODEL})",
     )
     parser.add_argument(
         "--explain",
@@ -1306,16 +1374,9 @@ def main() -> None:
         if not raw:
             parser.error("provide a trace argument, --history FILE, or pipe via stdin")
 
-    client = None
-    if args.llm:
-        import anthropic
-        api_key = os.environ.get("ANTHROPIC_API_KEY")
-        if not api_key:
-            print("Error: ANTHROPIC_API_KEY not set", file=sys.stderr)
-            sys.exit(1)
-        client = anthropic.Anthropic(api_key=api_key)
+    client = build_llm_client(args.llm_model) if args.llm else None
 
-    result = diagnose(raw, client=client, challenges_dir=challenges_dir)
+    result = diagnose(raw, client=client, challenges_dir=challenges_dir, llm_model=args.llm_model)
     print(json.dumps(_result_to_dict(result, explain=args.explain), indent=2))
 
     if result.trace_insufficient:

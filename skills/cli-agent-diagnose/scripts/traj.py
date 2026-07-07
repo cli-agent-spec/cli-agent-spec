@@ -880,7 +880,12 @@ def _emit_jsonl(traj: Trajectory) -> None:
 
 # ── Diagnose integration ──────────────────────────────────────────────────────
 
-def _run_diagnose(traj: Trajectory, challenges_dir: str | None, llm: bool = False) -> None:
+def _run_diagnose(
+    traj: Trajectory,
+    challenges_dir: str | None,
+    llm: bool = False,
+    llm_model: str | None = None,
+) -> None:
     """Run diagnose.py on each failing bash call and aggregate the results.
 
     Passing all calls as a history lump produces false positives because
@@ -911,14 +916,17 @@ def _run_diagnose(traj: Trajectory, challenges_dir: str | None, llm: bool = Fals
         }, indent=2))
         return
 
+    openrouter = bool(llm_model and llm_model.startswith("openrouter/"))
     cmd_base = ["uv", "run"]
-    if llm:
-        cmd_base += ["--with", "anthropic"]
+    if llm and not openrouter:
+        cmd_base += ["--with", "anthropic"]   # OpenRouter path is stdlib-only
     cmd_base.append(str(_DIAGNOSE))
     if challenges_dir:
         cmd_base += ["--challenges-dir", challenges_dir]
     if llm:
         cmd_base.append("--llm")
+        if llm_model:
+            cmd_base += ["--llm-model", llm_model]
 
     # Aggregate matches: de-dup by failure_mode_id, keep highest confidence
     all_matches: dict[int, dict] = {}
@@ -1061,7 +1069,12 @@ def main() -> None:
     parser.add_argument(
         "--llm",
         action="store_true",
-        help="Enable LLM signature routing and scoring in --diagnose (requires ANTHROPIC_API_KEY)",
+        help="Enable LLM signature routing and scoring in --diagnose (requires ANTHROPIC_API_KEY, or OPENROUTER_API_KEY with an openrouter/ model)",
+    )
+    parser.add_argument(
+        "--llm-model",
+        metavar="MODEL",
+        help="LLM for --diagnose routing: an Anthropic model id, or openrouter/<vendor>/<model>",
     )
     args = parser.parse_args()
 
@@ -1080,7 +1093,7 @@ def main() -> None:
         return
 
     if args.diagnose:
-        _run_diagnose(traj, args.challenges_dir, llm=args.llm)
+        _run_diagnose(traj, args.challenges_dir, llm=args.llm, llm_model=args.llm_model)
         return
 
     if args.eval:
