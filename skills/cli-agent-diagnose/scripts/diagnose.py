@@ -78,9 +78,11 @@ class OpenRouterClient:
         import urllib.request
         from types import SimpleNamespace
 
+        # Reasoning models spend tokens on reasoning before content; a budget
+        # sized for the answer alone returns content=null at finish_reason=length
         payload = json.dumps({
             "model": self._model,
-            "max_tokens": max_tokens,
+            "max_tokens": max(max_tokens, 4096),
             "temperature": temperature,
             "messages": messages,
         }).encode()
@@ -96,7 +98,13 @@ class OpenRouterClient:
             body = json.loads(resp.read().decode())
         if "error" in body:
             raise RuntimeError(f"OpenRouter error: {body['error']}")
-        text = body["choices"][0]["message"]["content"]
+        choice = body["choices"][0]
+        text = choice["message"]["content"]
+        if not text:
+            raise RuntimeError(
+                f"OpenRouter returned empty content (finish_reason={choice.get('finish_reason')}); "
+                f"the model may have exhausted max_tokens on reasoning"
+            )
         return SimpleNamespace(content=[SimpleNamespace(text=text)])
 
 
@@ -993,7 +1001,10 @@ def _llm_route(
         f"\nSIGNATURE CATALOG (observable trigger per failure mode):\n"
         f"{catalog_lines}\n"
         f"\nWhich signatures does this trace plausibly exhibit? "
-        f"List at most {_ROUTING_MAX_CANDIDATES} ids, best first; empty list if none.\n"
+        f"Signatures are indicative, not exact-match rules: include any failure mode "
+        f"whose failure family plausibly fits the trace even when the wording differs. "
+        f"Prefer recall over precision; a later scoring stage rejects false positives. "
+        f"List at most {_ROUTING_MAX_CANDIDATES} ids, best first; empty list only if nothing is close.\n"
         f'Respond with JSON only (no prose): {{"failure_mode_ids": [N, ...]}}'
     )
 
