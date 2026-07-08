@@ -163,7 +163,16 @@ else:
 
 **Tier:** B (one observable check, then one command)
 
-**Set pager and editor env vars, redirect stdin, and always apply a timeout:**
+**Prefix the invocation with the non-interactive bundle — one shell line, no scripting required** (canonical form in [`triage.md`](../triage.md)):
+
+```bash
+PAGER=cat GIT_PAGER=cat MANPAGER=cat EDITOR=true VISUAL=true GIT_EDITOR=true \
+CI=true NO_COLOR=1 TERM=dumb timeout 60 tool <args> </dev/null
+```
+
+If a pager is already on screen (`(END)`, `--More--`, a `:` prompt), send `q` to quit it before anything else.
+
+**The same suppression from a Python harness — set env vars, redirect stdin, always apply a timeout:**
 
 ```python
 import os, subprocess
