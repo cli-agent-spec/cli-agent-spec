@@ -181,7 +181,7 @@
 <header>
   <div class="badge">FixLayer · Trace Evidence</div>
   <h1>Same failure, two endings: <em>a merge conflict, fixed inline</em></h1>
-  <p class="sub">Two real Terminal-Bench trajectories for the <b>fix-git</b> task. Both agents hit the identical tool failure. The only difference: the second run carried a workaround derived mechanically from the CLI Agent Spec — no human wrote a word of it for this task.</p>
+  <p class="sub">Two real Terminal-Bench trajectories for the <b>fix-git</b> task. Both agents hit the identical tool failure. The only difference: the second run carried a workaround derived mechanically from the CLI Agent Spec — no human wrote a word of it for this task. Below it: a second case (a weak model trapped in <code>git</code>'s pager) and the measured answer to where instructions stop working and command rewriting must take over.</p>
   <div class="meta">agent <code>claude-code / claude-haiku-4-5</code> · task <code>terminal-bench-2/fix-git</code> · baseline job <code>2026-05-29__12-40-19</code> · treated job <code>2026-07-06__20-29-45</code></div>
 
   <div class="stats">
@@ -316,12 +316,74 @@ completed steps may cause duplicate side effects</pre>
 </table>
 </div>
 
+<h2>Case two: the pager trap <span class="tick">— where instructions stop working</span></h2>
+<p class="lede">Same task, much weaker agent: <b>terminus-2</b> driving a real tmux terminal with <b>nemotron-nano-9b</b> (free tier). In a real TTY, <code>git show</code> opens <code>less</code> — and a 9B model cannot climb out.</p>
+<div class="meta">baseline job <code>2026-07-08__08-33-25</code> · 56 tool calls · zero failing exit codes · verifier 0.0</div>
+
+<div class="trace" style="margin-top:1rem">
+  <div class="step fail">
+    <div class="who">agent · bash <span class="bad">✗ repeated 15× — every call reads as success</span></div>
+    <pre><b>git show 43117c7 --name-only</b>
+<span class="c">(less opens; the pane shows:)</span>
+                   SUMMARY OF LESS COMMANDS
+  q  :q  Q  :Q  ZZ     <span class="r">Exit.</span></pre>
+  </div>
+  <div class="step fail">
+    <div class="who">agent · bash <span class="bad">✗ typed 19 times</span></div>
+    <pre><b>exit</b>
+<span class="c">does nothing inside a pager — the screen above says to press q.
+The agent never presses q. All 900 seconds of budget burn here.</span></pre>
+  </div>
+</div>
+
+<div class="inject" style="margin-top:1.2rem">
+  <div class="inject-head">Diagnosis <span>deterministic, zero LLM cost</span></div>
+  <div class="pipeline" style="border-top:none">
+    <span class="chip">56 exit-0 calls</span><span class="arrow">→</span>
+    <span class="chip">pager UI in output</span><span class="arrow">→</span>
+    <span class="chip">§10 match, confidence 0.92</span><span class="arrow">→</span>
+    <span class="chip">workaround injected</span>
+  </div>
+</div>
+
+<h2>Three arms, one lesson <span class="tick">— instruction injection has a capability floor</span></h2>
+<div class="tbl-wrap">
+<table>
+  <tr><th>Arm</th><th>Pass</th><th>Mechanism observed in the traces</th></tr>
+  <tr><td class="num">untreated</td><td><span class="pill fail">0/1</span></td><td>19× <code>exit</code> inside <code>less</code>; entire budget spent in the pager</td></tr>
+  <tr><td class="num">§10 injected, Python form</td><td><span class="pill fail">0/3</span></td><td>the <code>subprocess.run</code> snippet is unusable in a keystroke world; one trial re-ran <code>git diff 5ddf58a</code> 16×</td></tr>
+  <tr><td class="num">§10 injected, shell form + "press q"</td><td><span class="pill fail">0/3</span></td><td>one trial fully pager-free (14 clean <code>q</code> presses); two still trapped; the env bundle was never typed</td></tr>
+</table>
+</div>
+<p class="lede" style="margin-top:0.8rem">The zero delta is the finding: below a capability floor, a model cannot apply even a one-line workaround it was handed. Round one also caught a spec bug — §10's workaround was written as Python, violating its own Tier B "one command" promise; it now leads with the one-line shell bundle.</p>
+
+<h2>The intervention ladder, measured</h2>
+<p class="lede">Three places to intervene, ordered by how much model cooperation they need. The demo runs the exact trapped commands from the traces two ways: in a raw pty (the agent's world), and through <code>runner.py</code> — which rewrites the command <em>before execution</em> and never allocates a TTY.</p>
+
+<div class="pipeline" style="border:1px solid var(--border); border-radius:8px; background:var(--bg2); margin-bottom:1rem">
+  <span class="chip">before: rewrite the command</span><span class="arrow">works at any model size</span>
+  <span class="chip">during: suppress via environment</span><span class="arrow">needs a harness</span>
+  <span class="chip">after: advise the model</span><span class="arrow">needs a capable model</span>
+</div>
+
+<div class="tbl-wrap">
+<table>
+  <tr><th>Command from the trace</th><th>Raw pty</th><th><code>runner.run()</code></th></tr>
+  <tr><td class="num">git show &lt;sha&gt;</td><td><span class="pill fail">hung in pager</span></td><td class="num">exit 0 in 17ms — ran <code>git --no-pager show</code></td></tr>
+  <tr><td class="num">git diff &lt;sha&gt;^ &lt;sha&gt;</td><td><span class="pill fail">hung in pager</span></td><td class="num">exit 0 in 30ms — <code>git --no-pager diff</code></td></tr>
+  <tr><td class="num">git show -p &lt;sha&gt;</td><td><span class="pill fail">hung in pager</span></td><td class="num">exit 0 in 22ms — <code>git --no-pager show -p</code></td></tr>
+  <tr><td class="num">git log --stat</td><td><span class="pill fail">hung in pager</span></td><td class="num">exit 0 in 27ms — <code>--no-pager --format=%h %s -n 20</code></td></tr>
+  <tr><td class="num">git show &lt;sha&gt; --name-only</td><td><span class="pill pass">fit the screen</span></td><td class="num">exit 0 in 11ms — same rewrite applied</td></tr>
+</table>
+</div>
+<p class="lede" style="margin-top:0.8rem">Every fix came from the existing <code>_PRE_FLIGHT</code> table (<code>§43 pre-flight: added --no-pager</code>), applied before the shell ever saw the command. And because <code>runner.run()</code> captures output instead of allocating a TTY, even commands the table does not know — the <code>git branch</code> that paged in one trial — physically cannot open a pager. The weaker the model, the earlier the intervention must happen.</p>
+
 <div class="caveats prose">
-<b>Honest caveats.</b> This is a pilot: one task, three treated trials against a single-trial baseline. The two other May tasks (sanitize-git, configure-git-webserver) fail behaviorally — every tool call succeeds — so the spec arm correctly declines them; that boundary is measured, not asserted. Scaling up means sweeping the ~90 Terminal-Bench tasks, splitting failures into §N vs reasoning classes, and adding a placebo-instruction arm.
+<b>Honest caveats.</b> Case one is a pilot: one task, three treated trials against a single-trial baseline; the residual failure was reasoning-class. Case two's treated arms scored zero — reported as measured; the value there is the mechanism data and the spec fix, not a reward delta. Across 16 baselines on two agent stacks, exactly two tool-layer failures appeared (§13, §10); most Terminal-Bench failures are reasoning-class, which bounds where this spec applies. Scaling up means more tasks, a placebo-instruction arm, and mid-strength models between the 9B floor and hy3's ceiling.
 </div>
 
 <footer>
-  Generated from real ATIF trajectories via <code>traj.py</code> · diagnosis by <code>cli-agent-diagnose</code> (schema 1.1) · injection by <code>fix_loop.py --source spec --llm</code> · CLI Agent Spec §13
+  Generated from real ATIF trajectories via <code>traj.py</code> · diagnosis by <code>cli-agent-diagnose</code> (schema 1.1) · injection by <code>fix_loop.py --source spec</code> · preflight demo by <code>runner.py</code> (<code>tmp/pager_demo.py</code>) · CLI Agent Spec §13 · §10
 </footer>
 </div>
 
