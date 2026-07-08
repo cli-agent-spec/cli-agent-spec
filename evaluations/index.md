@@ -18,6 +18,7 @@ Real-world CLI tools evaluated against the CLI Agent Spec — scored across crit
 | [neon](neon/README.md) | 2.30.1 | 0.4/3     | 8/15 [C]      | Critical (22 of 71) |
 | [link](link/README.md) | 0.7.1 | 1.2/3     | 10/15 [B]     | Critical (22 of 71) |
 | [resend](resend/README.md) | resend-cli 2.8.1 | 1.2/3     | **14/15 [A]** | Critical (22 of 74) |
+| [temporal](temporal/README.md) | 1.7.2 | 1.1/3     | 3/15 [F]      | Critical (22 of 71) |
 
 ## How Evaluations Work
 
