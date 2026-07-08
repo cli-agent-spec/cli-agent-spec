@@ -42,6 +42,13 @@ _DIAGNOSE = _SCRIPTS_DIR / "diagnose.py"
 
 _EXIT_CODE_RE = re.compile(r"\[exit code:\s*(-?\d+)\]\s*$", re.MULTILINE)
 
+# Pager UI text captured in a terminal pane — the call looks successful while the
+# session is stuck inside less/more (§10); mirrors diagnose.py _PAGER_PATTERNS
+_PAGER_HINT_RE = re.compile(
+    r"SUMMARY OF LESS COMMANDS|\(END\)|^--More--|^Manual page .+ line \d+",
+    re.MULTILINE,
+)
+
 _ERROR_WORDS = (
     "traceback (most recent call last)",
     "error:",
@@ -73,7 +80,7 @@ def _infer_exit_code(content: str, function: str) -> int:
     read_file) don't have exit codes — their content is file data or diffs,
     which will contain code strings that look like error messages but aren't.
     """
-    if function != "bash":
+    if function not in ("bash", "bash_command"):
         return 0
     m = _EXIT_CODE_RE.search(content)
     if m:
@@ -100,7 +107,7 @@ _FILE_OP_SUCCESS = re.compile(
 def _classify_outcome(content: str, exit_code: int, function: str) -> str:
     if exit_code != 0:
         return "fail"
-    if function != "bash":
+    if function not in ("bash", "bash_command"):
         # For file ops: explicit error prefix means failure; otherwise success
         lower = content.lstrip()[:200].lower()
         if lower.startswith(("error", "failed", "permission denied", "no such file")):
@@ -361,7 +368,8 @@ class Trajectory:
 
     @property
     def bash_calls(self) -> list[ToolCall]:
-        return [tc for tc in self.tool_calls if tc.function == "bash"]
+        # "bash" from claude-code trajectories; "bash_command" from terminus-2
+        return [tc for tc in self.tool_calls if tc.function in ("bash", "bash_command")]
 
     @property
     def error_steps(self) -> list[Step]:
@@ -397,15 +405,22 @@ def _load_v16_steps(raw_steps: list[dict]) -> list[Step]:
     steps: list[Step] = []
     for s in raw_steps:
         results_by_id: dict[str, str] = {}
+        unattributed: list[str] = []
         for r in (s.get("observation") or {}).get("results", []):
-            results_by_id[r.get("source_call_id", "")] = r.get("content", "")
+            source_id = r.get("source_call_id")
+            if source_id:
+                results_by_id[source_id] = r.get("content", "")
+            else:
+                # v1.7 (terminus-2): pane content belongs to the step, not a call
+                unattributed.append(r.get("content", ""))
+        step_blob = "\n".join(c for c in unattributed if c)
 
         tool_calls: list[ToolCall] = []
         for tc_raw in s.get("tool_calls", []):
             call_id = tc_raw.get("tool_call_id", "")
             function = _normalise_function(tc_raw.get("function_name", ""))
             arguments = tc_raw.get("arguments", {})
-            content = results_by_id.get(call_id, "")
+            content = results_by_id.get(call_id, "") or step_blob
             exit_code = _infer_exit_code(content, function)
             outcome = _classify_outcome(content, exit_code, function)
             tool_calls.append(ToolCall(
@@ -899,10 +914,11 @@ def _run_diagnose(
         print("no bash tool calls found in trajectory", file=sys.stderr)
         return
 
-    # Only diagnose calls that have a non-zero exit code or non-empty stderr
+    # Diagnose calls that failed — or whose captured output shows pager UI,
+    # which reads as "success" (exit 0) while the session is actually stuck (§10)
     candidates = [
         tc for tc in bash_calls
-        if tc.exit_code != 0 or tc.outcome == "fail"
+        if tc.exit_code != 0 or tc.outcome == "fail" or _PAGER_HINT_RE.search(tc.content)
     ]
 
     if not candidates:
@@ -938,7 +954,8 @@ def _run_diagnose(
         stderr = content if tc.exit_code != 0 else ""
 
         event = {
-            "command": tc.arguments.get("command", ""),
+            # claude-code passes "command"; terminus-2 passes "keystrokes"
+            "command": str(tc.arguments.get("command") or tc.arguments.get("keystrokes", "")).strip(),
             "stdout": stdout,
             "stderr": stderr,
             "exit_code": tc.exit_code,

@@ -459,12 +459,15 @@ _TTY_REQUIREMENT_PATTERNS = [
     ]
 ]
 
-# Pager indicators (stdout)
+# Pager indicators (stdout) — UI text a pager paints on the captured screen
 _PAGER_PATTERNS = [
-    re.compile(p) for p in [
+    re.compile(p, re.MULTILINE) for p in [
         r"\(END\)",
         r"^:$",             # less prompt
         r"^More$",
+        r"^--More--",
+        r"SUMMARY OF LESS COMMANDS",   # less help screen (agent pressed h or flailed)
+        r"^Manual page .+ line \d+",   # man's pager status line
     ]
 ]
 
@@ -561,6 +564,12 @@ def match_signals(events: tuple[TraceEvent, ...]) -> tuple[_RawSignal, ...]:
             for pat in _INTERACTIVE_PATTERNS:
                 if pat.search(combined):
                     _keep(_RawSignal(10, 0.90, f"interactive prompt pattern in output: {pat.pattern!r}", [event]))
+                    break
+            # A pager's UI in captured output means the session is stuck inside
+            # less/more even though the call itself reads as successful
+            for pat in _PAGER_PATTERNS:
+                if pat.search(stdout):
+                    _keep(_RawSignal(10, 0.92, f"pager UI captured in output: {pat.pattern!r} — command opened a pager", [event]))
                     break
 
         # §10 — TTY-requirement errors (explicit "requires a TTY"-style messages in stderr or stdout)
