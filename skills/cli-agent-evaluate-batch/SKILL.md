@@ -49,7 +49,7 @@ Load `evaluations/<cli-name>/environment.md`.
 
 Failure mode metadata lives in `references/challenges/index.md` relative to this skill's directory.
 
-1. Parse the index table — collect all 71 rows: `§N`, title, severity, part.
+1. Parse the index table — collect every failure-mode row: `§N`, title, severity, part.
 2. Apply the scope filter:
    - **Severity filter** (`critical` / `high` / `medium` / `all`): keep rows whose severity matches.
    - **Part filter** (`part N`): keep rows in that numbered part.

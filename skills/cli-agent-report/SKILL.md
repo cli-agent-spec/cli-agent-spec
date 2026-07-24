@@ -68,7 +68,7 @@ No findings found for <cli>. Run /cli-agent-evaluate-batch or /cli-agent-audit f
 
 Run `scripts/aggregate_findings.py evaluations/<cli>/findings.md [--scope <scope>]` to obtain structured findings data. All subsequent steps consume this JSON output — no re-reading of findings.md required.
 
-If findings cover < 20% of all 71 failure modes, warn the user: "Findings are partial — run cli-agent-evaluate-batch for a complete picture."
+If findings cover < 20% of the current failure-mode corpus, warn the user: "Findings are partial — run cli-agent-evaluate-batch for a complete picture."
 
 If `aggregate_findings.py` exits non-zero, treat the message as authoritative. For a Python version error, rerun with Python 3.8+ or `uv run`. Do not freehand report data from `findings.md` unless you still apply the provided templates exactly and preserve every template rule.
 

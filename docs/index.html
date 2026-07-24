@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CLI Agent Spec</title>
-  <meta name="description" content="71 documented failure modes when AI agents call CLI tools. 154 requirements to eliminate them.">
+  <meta name="description" content="74 documented failure modes when AI agents call CLI tools. 158 requirements to eliminate them.">
   <meta property="og:title" content="CLI Agent Spec">
-  <meta property="og:description" content="Your CLI works for humans. For AI agents, it silently hangs, leaks secrets, and exhausts context windows. We catalogued 71 ways this happens.">
+  <meta property="og:description" content="Your CLI works for humans. For AI agents, it silently hangs, leaks secrets, and exhausts context windows. We catalogued 74 ways this happens.">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <style>
@@ -355,7 +355,7 @@
     <a href="#matrix">Coverage</a>
     <a href="#start">Get Started</a>
   </div>
-  <a class="nav-cta" href="https://github.com/romamo/cli-agent-spec">View on GitHub</a>
+  <a class="nav-cta" href="https://github.com/cli-agent-spec/cli-agent-spec">View on GitHub</a>
 </nav>
 
 <!-- HERO -->
@@ -369,11 +369,11 @@
       Then we wrote the spec to fix them.
     </p>
     <div class="hero-actions">
-      <a class="btn-primary" href="https://github.com/romamo/cli-agent-spec">
+      <a class="btn-primary" href="https://github.com/cli-agent-spec/cli-agent-spec">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
         View on GitHub
       </a>
-      <a class="btn-secondary" href="https://github.com/romamo/cli-agent-spec/blob/master/IMPLEMENTING.md">Implement the Spec</a>
+      <a class="btn-secondary" href="https://github.com/cli-agent-spec/cli-agent-spec/blob/master/IMPLEMENTING.md">Implement the Spec</a>
     </div>
     <div class="hero-stat">
       <strong>58%</strong> — maximum coverage by any existing CLI framework.<br>
@@ -448,7 +448,7 @@ $ tool list users --output json
 <section id="spec" style="background: var(--bg2);">
   <div class="container">
     <div class="section-label">The Specification</div>
-    <h2 class="section-title">Three layers. 154 requirements.</h2>
+    <h2 class="section-title">Three layers. 158 requirements.</h2>
     <p class="section-sub">Structured so framework authors, command authors, and application builders each know exactly what they own.</p>
 
     <div class="tiers">
@@ -462,13 +462,13 @@ $ tool list users --output json
         <span class="tier-badge c">REQ-C</span>
         <span class="tier-label">Command Contract</span>
         <span class="tier-desc">Declared by command authors at registration. Exit codes emitted, danger level, dry-run support, idempotency key, input/output schema.</span>
-        <span class="tier-count">28 reqs</span>
+        <span class="tier-count">30 reqs</span>
       </div>
       <div class="tier-row">
         <span class="tier-badge o">REQ-O</span>
         <span class="tier-label">Opt-In</span>
         <span class="tier-desc">Explicitly enabled by the application. <code>--output json</code>, <code>--fields</code>, <code>--limit</code>, <code>tool manifest</code>, <code>--schema</code>, <code>--dry-run</code>, <code>--confirm-destructive</code>.</span>
-        <span class="tier-count">41 reqs</span>
+        <span class="tier-count">50 reqs</span>
       </div>
     </div>
 
@@ -479,7 +479,7 @@ $ tool list users --output json
           <div class="contract-icon blue">🔢</div>
           <div>
             <h3>Exit Code Table</h3>
-            <p>14 named codes (0–13) with machine-readable guarantees per code: <code>retryable: true/false</code>, <code>side_effects: "none" | "partial" | "complete"</code>. An agent receiving exit 7 (<code>CONFLICT</code>) knows it's safe to retry. Receiving exit 6 (<code>PARTIAL_FAILURE</code>) knows to inspect state first.</p>
+            <p>14 named codes (0–13) with machine-readable guarantees per code: <code>retryable: true/false</code>, <code>side_effects: "none" | "partial" | "complete"</code>. An agent receiving exit 11 (<code>CONFLICT</code>) knows it's safe to retry. Receiving exit 6 (<code>PARTIAL_FAILURE</code>) knows to inspect state first.</p>
           </div>
         </div>
         <div class="contract-card">
@@ -545,19 +545,19 @@ $ tool list users --output json
   <div class="container">
     <div class="section-label">Framework Coverage</div>
     <h2 class="section-title">No framework has solved this</h2>
-    <p class="section-sub">Coverage across all 71 failure modes. Partial credit (✓/~) counted proportionally.</p>
+    <p class="section-sub">Coverage across 71 currently mapped failure modes. Partial credit (✓/~) counted proportionally.</p>
 
     <div style="margin-top: 1.5rem;">
-      <div class="matrix-row"><span class="matrix-name">MCP + OpenAPI</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:57.7%;background:var(--green)"></div></div><span class="matrix-pct" style="color:var(--green)">58%</span></div>
-      <div class="matrix-row"><span class="matrix-name">Pydantic</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:45%;background:var(--accent)"></div></div><span class="matrix-pct" style="color:var(--accent)">45%</span></div>
-      <div class="matrix-row"><span class="matrix-name">Click</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:41.5%;background:var(--accent)"></div></div><span class="matrix-pct" style="color:var(--accent)">42%</span></div>
-      <div class="matrix-row"><span class="matrix-name">Cobra</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:41.5%;background:var(--accent)"></div></div><span class="matrix-pct" style="color:var(--accent)">42%</span></div>
-      <div class="matrix-row"><span class="matrix-name">Clap</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:38%;background:var(--yellow)"></div></div><span class="matrix-pct" style="color:var(--yellow)">38%</span></div>
-      <div class="matrix-row"><span class="matrix-name">Typer</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:36%;background:var(--yellow)"></div></div><span class="matrix-pct" style="color:var(--yellow)">36%</span></div>
-      <div class="matrix-row"><span class="matrix-name">argparse</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:32%;background:var(--orange)"></div></div><span class="matrix-pct" style="color:var(--orange)">32%</span></div>
-      <div class="matrix-row"><span class="matrix-name">Commander.js</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:30%;background:var(--orange)"></div></div><span class="matrix-pct" style="color:var(--orange)">30%</span></div>
+      <div class="matrix-row"><span class="matrix-name">MCP</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:58.5%;background:var(--green)"></div></div><span class="matrix-pct" style="color:var(--green)">59%</span></div>
+      <div class="matrix-row"><span class="matrix-name">Pydantic</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:43.7%;background:var(--accent)"></div></div><span class="matrix-pct" style="color:var(--accent)">44%</span></div>
+      <div class="matrix-row"><span class="matrix-name">OpenAPI</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:43%;background:var(--accent)"></div></div><span class="matrix-pct" style="color:var(--accent)">43%</span></div>
+      <div class="matrix-row"><span class="matrix-name">Clap</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:42.3%;background:var(--accent)"></div></div><span class="matrix-pct" style="color:var(--accent)">42%</span></div>
+      <div class="matrix-row"><span class="matrix-name">Cobra</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:40.8%;background:var(--yellow)"></div></div><span class="matrix-pct" style="color:var(--yellow)">41%</span></div>
+      <div class="matrix-row"><span class="matrix-name">jpoehnelt-scale</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:31%;background:var(--yellow)"></div></div><span class="matrix-pct" style="color:var(--yellow)">31%</span></div>
+      <div class="matrix-row"><span class="matrix-name">agentyper</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:31%;background:var(--orange)"></div></div><span class="matrix-pct" style="color:var(--orange)">31%</span></div>
+      <div class="matrix-row"><span class="matrix-name">argparse</span><div class="matrix-bar-wrap"><div class="matrix-bar" style="width:27.5%;background:var(--orange)"></div></div><span class="matrix-pct" style="color:var(--orange)">28%</span></div>
     </div>
-    <p style="margin-top:1.25rem;font-size:0.8rem;color:var(--muted)">Full matrix: <a href="https://github.com/romamo/cli-agent-spec/blob/master/comparison-matrix.md">comparison-matrix.md</a> — 71 failure modes × 12 frameworks</p>
+    <p style="margin-top:1.25rem;font-size:0.8rem;color:var(--muted)">Full matrix: <a href="https://github.com/cli-agent-spec/cli-agent-spec/blob/master/comparison-matrix.md">comparison-matrix.md</a> — 71 currently mapped failure modes × 12 frameworks</p>
   </div>
 </section>
 
@@ -570,22 +570,22 @@ $ tool list users --output json
     <h2 class="section-title">Pick your path</h2>
     <p class="section-sub">Three entry points depending on your role.</p>
     <div class="paths-grid">
-      <a class="path-card" href="https://github.com/romamo/cli-agent-spec/blob/master/challenges/index.md" style="color:inherit">
+      <a class="path-card" href="https://github.com/cli-agent-spec/cli-agent-spec/blob/master/challenges/index.md" style="color:inherit">
         <div class="path-icon">🔍</div>
         <h3>Understand the problem</h3>
-        <p>Browse 71 failure modes by severity. Each one documents the exact impact on agents: token cost, time cost, detectability.</p>
+        <p>Browse 74 failure modes by severity. Each one documents the exact impact on agents: token cost, time cost, detectability.</p>
         <div class="path-meta">challenges/index.md →</div>
       </a>
-      <a class="path-card" href="https://github.com/romamo/cli-agent-spec/blob/master/IMPLEMENTING.md" style="color:inherit">
+      <a class="path-card" href="https://github.com/cli-agent-spec/cli-agent-spec/blob/master/IMPLEMENTING.md" style="color:inherit">
         <div class="path-icon">⚙️</div>
         <h3>Implement the spec</h3>
         <p>Wave-based plan for framework authors. Or start with a goal-based path: fewer retries, less context, less token spend.</p>
         <div class="path-meta">IMPLEMENTING.md →</div>
       </a>
-      <a class="path-card" href="https://github.com/romamo/cli-agent-spec/blob/master/challenges/checklist.md" style="color:inherit">
+      <a class="path-card" href="https://github.com/cli-agent-spec/cli-agent-spec/blob/master/challenges/checklist.md" style="color:inherit">
         <div class="path-icon">✅</div>
         <h3>Evaluate your CLI</h3>
-        <p>Self-assessment checklist derived from the 71 failure modes. Score your tool before and after implementing the spec.</p>
+        <p>Self-assessment checklist derived from the 74 failure modes. Score your tool before and after implementing the spec.</p>
         <div class="path-meta">challenges/checklist.md →</div>
       </a>
     </div>
@@ -597,9 +597,9 @@ $ tool list users --output json
 <footer>
   <p>
     CLI Agent Spec v1.6 &nbsp;·&nbsp;
-    71 failure modes · 154 requirements · 4 schemas &nbsp;·&nbsp;
-    <a href="https://github.com/romamo/cli-agent-spec">GitHub</a> &nbsp;·&nbsp;
-    <a href="https://github.com/romamo/cli-agent-spec/blob/master/AGENTS.md">Contributing</a>
+    74 failure modes · 158 requirements · 5 schemas &nbsp;·&nbsp;
+    <a href="https://github.com/cli-agent-spec/cli-agent-spec">GitHub</a> &nbsp;·&nbsp;
+    <a href="https://github.com/cli-agent-spec/cli-agent-spec/blob/master/AGENTS.md">Contributing</a>
   </p>
 </footer>
 

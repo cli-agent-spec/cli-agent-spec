@@ -1,10 +1,10 @@
 # {{CLI}} — CLI Agent Evaluation
 
-> Evaluated against the [CLI Agent Spec](https://github.com/cli-agent-spec/cli-agent-spec) — a specification defining 71 failure modes for CLI tools used under AI agent orchestration.
+> Evaluated against the [CLI Agent Spec](https://github.com/cli-agent-spec/cli-agent-spec) — a specification defining 74 failure modes for CLI tools used under AI agent orchestration.
 
 **CLI version:** {{VERSION}}
 **Evaluated:** {{DATE}}
-**Scope:** {{SCOPE}} ({{N_FINDINGS}} of 71 failure modes)
+**Scope:** {{SCOPE}} ({{N_FINDINGS}} of 74 failure modes)
 
 ## Scores
 
@@ -34,11 +34,11 @@
 | [report-runtime.md](report-runtime.md) | Compact operational brief — what to set, what to avoid, what to watch for |
 | [report-agent-dev.md](report-agent-dev.md) | Integration guide — invocation invariants and per-gap workarounds for agent developers |
 | [report-dev.md](report-dev.md) | Fix list for CLI authors — what to implement, mapped to spec requirements |
-| [findings.md](findings.md) | Raw scorecard — one row per evaluated failure mode |
-| [issues.md](issues.md) | Observed bugs recorded during live evaluation |
-| [trace.md](trace.md) | Audit trail — exact check commands, exit codes, stdout/stderr per §N |
-| [environment.md](environment.md) | CLI environment profile — binary path, version, flags, timeout method |
-| [readiness.md](readiness.md) | Proactive readiness scores across 5 dimensions |
+| `findings.md` | Raw scorecard — one row per evaluated failure mode |
+| `issues.md` | Observed bugs recorded during live evaluation |
+| `trace.md` | Audit trail — exact check commands, exit codes, stdout/stderr per §N |
+| `environment.md` | CLI environment profile — binary path, version, flags, timeout method |
+| `readiness.md` | Proactive readiness scores across 5 dimensions |
 
 <!-- Omit any row for a file that does not exist (e.g. readiness.md if readiness was skipped) -->
 
