@@ -1,4 +1,4 @@
-# Getting AI Agents to Work Reliably with CLI Tools
+# What 74 CLI Failure Modes Taught Me About AI Agent Tooling
 
 It seems pretty well accepted that AI agents are bad at using tools.
 
@@ -26,9 +26,9 @@ I started with a question to an LLM:
 
 > What problems do you know about when agents execute CLI tools, MCP tools, API wrappers, and shell commands?
 
-My working assumption was simple: the model was trained on a huge amount of tool-use failure. GitHub issues, docs, CI logs, Stack Overflow answers, agent traces, shell snippets, and workaround-heavy code.
+My working assumption was that the model could recall or infer recurring tool-use failures from patterns represented in its learned knowledge and tool-use behavior.
 
-The model cannot show me its training data. But it can surface the patterns it has learned to route around.
+The model cannot reveal its training data, so I treated its answers as hypotheses to review and convert into testable failure modes, not as evidence about its training corpus.
 
 The first answer was basically a wall of pain: bad exit codes, broken JSON, color codes in `stdout`, interactive prompts, pagers, unbounded logs, OAuth browser flows, partial failures, secret leakage, stale schemas, and commands that look successful while doing the wrong thing.
 
@@ -278,7 +278,7 @@ If the framework owns the contract, every command built on top gets better.
 
 ## Recap
 
-The project started as an experiment: ask an LLM what CLI and tool-execution failures it has learned to bypass.
+The project started as an experiment: ask an LLM what CLI and tool-execution failures it could recall or infer.
 
 That turned into a taxonomy.
 
