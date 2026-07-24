@@ -4,7 +4,7 @@
 
 This is a specification for building CLI tools that AI agents can call reliably: **74 documented failure modes**, **158 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
 
-> **No existing CLI framework covers more than 58% of these failure modes.**
+> **No existing CLI framework covers more than 59% of the currently mapped failure modes.**
 
 ---
 
@@ -50,7 +50,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 **5 JSON schemas** — machine-readable type definitions for exit codes, response envelopes, tool manifests, dispatch requests, and error details. Generate typed structs for your language directly from the schemas.
 
-**A comparison matrix** — 12 existing frameworks (argparse, Click, Cobra, Clap, Typer, Commander.js, and more) scored against all 74 failure modes. No framework exceeds 58%.
+**A comparison matrix** — 12 existing frameworks (argparse, Click, Cobra, Clap, Typer, Commander.js, and more) scored against 71 currently mapped failure modes. No framework exceeds 59%.
 
 ---
 
@@ -73,9 +73,9 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 | [`schemas/`](schemas/index.md) | JSON Schema draft-07 definitions for all 5 types |
 | [`guides/`](guides/index.md) | Design guides: positive conventions that cannot be expressed as enforceable requirements |
 | [`IMPLEMENTING.md`](IMPLEMENTING.md) | Implementation guide: wave-based order, goal-based paths, invariants, codegen |
-| [`comparison-matrix.md`](comparison-matrix.md) | 74 failure modes × 12 frameworks coverage table |
+| [`comparison-matrix.md`](comparison-matrix.md) | 71 currently mapped failure modes × 12 frameworks coverage table |
 | [`research/`](research/index.md) | Per-framework analysis and competitive landscape (MCP, OpenAPI, function calling) |
-| [`skills/`](skills.md) | Agent skills for evaluating CLIs and guiding implementation |
+| [`docs/skills.md`](docs/skills.md) | Agent skills for evaluating CLIs and guiding implementation |
 
 ---
 
@@ -128,11 +128,11 @@ Installable skills for Agent Skills-compatible agents (Claude Code, Cursor, Gemi
 
 ```bash
 # Install (run inside your agent)
-npx skills install romamo/cli-agent-spec/skills/cli-agent-audit
-npx skills install romamo/cli-agent-spec/skills/cli-agent-onboard
-npx skills install romamo/cli-agent-spec/skills/cli-agent-evaluate
-npx skills install romamo/cli-agent-spec/skills/cli-agent-implement
-npx skills install romamo/cli-agent-spec/skills/cli-agent-diagnose
+npx skills install cli-agent-spec/cli-agent-spec/skills/cli-agent-audit
+npx skills install cli-agent-spec/cli-agent-spec/skills/cli-agent-onboard
+npx skills install cli-agent-spec/cli-agent-spec/skills/cli-agent-evaluate
+npx skills install cli-agent-spec/cli-agent-spec/skills/cli-agent-implement
+npx skills install cli-agent-spec/cli-agent-spec/skills/cli-agent-diagnose
 ```
 
 ---
@@ -145,4 +145,4 @@ Before contributing, read [`AGENTS.md`](AGENTS.md) for conventions: file format,
 
 ---
 
-*CLI Agent Spec v1.6 — 74 failure modes · 157 requirements · 5 schemas · 12 frameworks evaluated*
+*CLI Agent Spec v1.6 — 74 failure modes · 158 requirements · 5 schemas · 12 frameworks evaluated*

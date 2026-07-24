@@ -3,7 +3,7 @@
 **Generated:** {{DATE}}
 **CLI version:** {{VERSION}}
 **Scope:** {{SCOPE}}
-**Failure modes evaluated:** {{N_FINDINGS}} of 71 _(scope: {{SCOPE}})_
+**Failure modes evaluated:** {{N_FINDINGS}} of 74 _(scope: {{SCOPE}})_
 
 ## Score Summary
 

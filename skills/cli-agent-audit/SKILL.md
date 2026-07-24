@@ -22,7 +22,7 @@ Run the complete evaluation pipeline for a CLI tool in one command.
 - **Scope** _(optional)_ — failure modes to evaluate:
   - `critical` — Critical severity only (default; fastest)
   - `critical+high` — Critical and High severity
-  - `all` — all 71 failure modes (slow; use for full audits)
+  - `all` — all bundled failure modes (slow; use for full audits)
 - **Flags** _(optional)_:
   - `--skip-install` — skip Phase 1; assume CLI is already installed
   - `--skip-readiness` — skip Phase 3; omit readiness score from reports

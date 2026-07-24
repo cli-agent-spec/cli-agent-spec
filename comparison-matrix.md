@@ -54,7 +54,7 @@ How to read: Part 1 is the primary reference table. Parts 2–7 derive analysis 
 
 ## Part 1: Failure Mode Coverage Matrix
 
-Rows are the 71 active failure modes (severity and frequency for priority context). Columns are the twelve solutions. Failure modes §36, §39, and §48 were merged into §10, §3, and §2 respectively and are omitted.
+Rows are the 71 currently mapped failure modes (severity and frequency for priority context). Columns are the twelve solutions. Failure modes §36, §39, and §48 were merged into §10, §3, and §2 respectively and are omitted.
 
 | # | Failure mode | Sev | Freq | argparse | typer | click | python-fire | pydantic | openapi | cobra | clap | commander-js | mcp | agentyper | jpoehnelt-scale |
 |---|-----------|-----|------|----------|-------|-------|-------------|----------|---------|-------|------|--------------|-----|-----------|-----------------|
@@ -190,7 +190,7 @@ Coverage % = (✓ + 0.5 × ~) / 71 × 100, rounded to one decimal place.
 - **OpenAPI rises to #3** (was tied #4) — earns the only ✓ for §74 (Credential Scope Declaration) via native `securitySchemes` + per-operation `security` declarations.
 - **MCP extends to #1 at 58.5%** — earns ✓ for §69 (argument ordering irrelevant in JSON invocation), §72 and §73 (tool definitions are the artifact; drift is structurally impossible), keeping its structural advantage.
 - **Cobra and Clap gain ✓ for §71** (static binary releases are non-interactive by construction) but lose ground on §72/§73 (no artifact generation).
-- No solution exceeds 59% coverage across 71 failure modes. The space remains wide open.
+- No solution exceeds 59% coverage across 71 currently mapped failure modes. The space remains wide open.
 - **Pydantic jumps to #2** (33% → 45%) because the §34–68 challenges include many where pydantic's type system, SecretStr, and immutable-by-default model behaviour provide structural protection (buffer safety, locale invariance, no stdout output, no subprocess invocation, no GUI operations).
 - **MCP extends its lead** (52% → 58%) — protocol-level design protects against most I/O, subprocess, GUI, and locale failure modes structurally.
 - **Cobra and Clap gain ground** due to Go/Rust type-system and stdlib advantages in §60/§61/§51/§57/§56.
@@ -907,7 +907,7 @@ The Go and Rust frameworks (cobra, clap) outperform their Python and JavaScript 
 - Timeouts (recommended but not enforced)
 - Tool schema versioning and drift detection
 
-**Unique position:** MCP scores highest (57.7%) because it solves the hardest problems structurally. Its remaining gaps are in operational reliability (retries, timeouts, concurrency) and completeness (working directory, composition, schema versioning).
+**Unique position:** MCP scores highest (58.5%) because it solves the hardest problems structurally. Its remaining gaps are in operational reliability (retries, timeouts, concurrency) and completeness (working directory, composition, schema versioning).
 
 ---
 
@@ -1094,4 +1094,4 @@ This section maps the P0 requirements from the requirements catalogue to existin
 
 ---
 
-*CLI Agent Spec v1.6 — 71 active failure modes, 12 solutions evaluated. Updated 2026-05-07.*
+*CLI Agent Spec v1.6 — 71 currently mapped failure modes, 12 solutions evaluated. Updated 2026-05-07.*

@@ -33,7 +33,7 @@ while IFS= read -r mdfile; do
     fi
   done < <(perl -ne 'if (/^```/) { $in_code = !$in_code; next } next if $in_code; while (/\[[^\]]*\]\(([^)#]+)\)/g) { print "$1\n" }' "$mdfile" \
            | grep -v '^http' | grep -v '^mailto')
-done < <(find "$ROOT" -name "*.md" \
+done < <(find "$ROOT" -type f -name "*.md" \
            -not -path "*/.git/*" \
            -not -path "*/node_modules/*" \
            -not -path "*/.Codex/plugins/*")
@@ -228,7 +228,7 @@ Counts actual challenge and requirement files on disk and compares to the declar
 ```bash
 ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd) && cd "$ROOT" && ERRORS=0
 
-ACTUAL_CHALLENGES=$(find "$ROOT/challenges" -name "*.md" -not -name "index.md" -not -name "checklist.md" -not -name "sources.md" | xargs grep -L "MERGED" 2>/dev/null | wc -l | tr -d ' ')
+ACTUAL_CHALLENGES=$(find "$ROOT"/challenges/*/ -name "*.md" -not -name "index.md" | xargs grep -L "MERGED" 2>/dev/null | wc -l | tr -d ' ')
 ACTUAL_REQS=$(ls "$ROOT"/requirements/[fco]-*.md 2>/dev/null | wc -l | tr -d ' ')
 
 echo "Actual on disk: $ACTUAL_CHALLENGES challenges, $ACTUAL_REQS requirements"
@@ -284,7 +284,7 @@ After all five scripts, report:
 ### Broken file links      — N errors
 ### Schema ↔ req symmetry  — N errors
 ### Index completeness     — N errors
-### Content completeness   — N/71 failure modes · N/154 requirements fully authored
+### Content completeness   — N/74 failure modes · N/158 requirements fully authored
 ### Counter consistency    — N errors
 
 Total: N errors  (completeness is informational, not an error count)
