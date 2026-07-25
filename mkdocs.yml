@@ -7,8 +7,6 @@ docs_dir: docs
 site_dir: site
 exclude_docs: |
   index.html
-  sessions/
-  yc-application.md
 
 theme:
   name: material
