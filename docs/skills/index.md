@@ -1,4 +1,4 @@
-# Skills — Technical Reference
+# Skills
 
 Ten installable agent skills for evaluating CLIs, implementing the spec, and diagnosing failures at the tool-execution layer. Compatible with any [Agent Skills](https://agentskills.io)-enabled agent: Claude Code, Cursor, Gemini CLI, Copilot, and others.
 
