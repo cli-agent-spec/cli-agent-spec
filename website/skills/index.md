@@ -83,7 +83,7 @@ cli-agent-report (mode=all)
   writes → evaluations/<cli>/README.md
   writes → evaluations/<cli>/linkedin.md        (gitignored)
   writes → evaluations/<cli>/x.md               (gitignored)
-  writes → docs/evaluations/<cli>/.pages
+  writes → website/evaluations/<cli>/.pages
 ```
 
 Single-mode `cli-agent-report` runs (`dev`, `agent-dev`, `runtime`, `issues`) emit output to the conversation only — they never write files.

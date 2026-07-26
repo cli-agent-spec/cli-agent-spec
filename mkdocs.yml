@@ -3,7 +3,7 @@ site_description: 74 failure modes + 158 requirements for building CLIs that AI 
 site_url: https://cli-agent-spec.github.io/
 repo_url: https://github.com/cli-agent-spec/cli-agent-spec
 repo_name: cli-agent-spec/cli-agent-spec
-docs_dir: docs
+docs_dir: website
 site_dir: site
 exclude_docs: |
   index.html

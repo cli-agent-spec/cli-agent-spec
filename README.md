@@ -76,6 +76,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 | [`comparison-matrix.md`](comparison-matrix.md) | 71 currently mapped failure modes × 12 frameworks coverage table |
 | [`research/`](research/index.md) | Per-framework analysis and competitive landscape (MCP, OpenAPI, function calling) |
 | [Agent skills](skills/index.md) | Agent skills for evaluating CLIs and guiding implementation |
+| `website/` | MkDocs website source; canonical specification content remains in the root sections above |
 
 ---
 

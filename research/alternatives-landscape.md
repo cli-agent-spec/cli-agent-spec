@@ -1,6 +1,6 @@
 # Alternative Solutions Landscape
 
-> A comprehensive comparison of existing approaches to the agent-CLI integration problem, evaluated against the 73 failure modes in this specification.
+> A comprehensive comparison of existing approaches to the agent-CLI integration problem, evaluated against the 74 failure modes in this specification.
 
 Researched March 2026.
 
@@ -354,7 +354,7 @@ EvidenceRun emphasizes that failure modes compound in production: prompt injecti
 
 EvidenceRun is post-hoc audit; this spec is design-time prevention. EvidenceRun instruments one workflow, maps failures to the 12-mode taxonomy, and packages the evidence for enterprise buyers. This spec provides the behavioral contracts that make most of those failures structurally impossible or detectable at call time. A CLI built to this spec would score better on modes #1, #2, #8, #10, #11, and #12 by construction — not because the audit rubric changed, but because the failure mode was eliminated at the source.
 
-**The spec as the substrate that makes EvidenceRun findings fixable:** EvidenceRun's 12 modes are high-level; the spec's 73 failure modes are granular sub-cases. "#1 Tool misuse" in EvidenceRun decomposes into at least 8 §N failure modes in the spec. An EvidenceRun audit tells a team which high-level mode fired. The spec tells CLI authors which specific behavioral contract to implement to prevent it from firing again.
+**The spec as the substrate that makes EvidenceRun findings fixable:** EvidenceRun's 12 modes are high-level; the spec's 74 failure modes are granular sub-cases. "#1 Tool misuse" in EvidenceRun decomposes into at least 8 §N failure modes in the spec. An EvidenceRun audit tells a team which high-level mode fired. The spec tells CLI authors which specific behavioral contract to implement to prevent it from firing again.
 
 ---
 

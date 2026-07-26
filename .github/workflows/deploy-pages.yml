@@ -24,6 +24,9 @@ jobs:
       - name: Build site
         run: mkdocs build --strict
 
+      - name: Add repository metadata
+        run: cp README.md LICENSE site/
+
       - name: Deploy to cli-agent-spec.github.io
         uses: peaceiris/actions-gh-pages@v4
         with:
@@ -31,4 +34,4 @@ jobs:
           external_repository: cli-agent-spec/cli-agent-spec.github.io
           publish_branch: main
           publish_dir: ./site
-          keep_files: true
+          keep_files: false
