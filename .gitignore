@@ -12,3 +12,8 @@ tmp/
 evaluations/*/linkedin.md
 evaluations/*/x.md
 /posts/
+
+# Python
+__pycache__/
+.venv/
+.pytest_cache/
