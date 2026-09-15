@@ -141,6 +141,8 @@ npx skills install cli-agent-spec/cli-agent-spec/skills/cli-agent-diagnose
 
 ## Contributing
 
+Changes to contracts are recorded in [`CHANGELOG.md`](CHANGELOG.md), which also defines how spec and schema versions increment.
+
 The spec is a living document. New failure modes are documented when confirmed against real tooling. New requirements follow from new failure modes.
 
 Before contributing, read [`AGENTS.md`](AGENTS.md) for conventions: file format, required sections, naming rules, and how to run `/validate-links` to verify cross-references after any edit.

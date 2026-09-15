@@ -12,25 +12,16 @@ The delta between the two is the overhead the spec eliminates.
 
 ## Results
 
-> Run `python harness/run.py --all` to populate this table.
+<!-- results:start -->
+No results recorded with harness version 2 yet. Run the harness, then render:
 
-| Scenario | Metric | cli-bad | cli-good | Delta |
-|----------|--------|---------|----------|-------|
-| List & extract | Total tokens | — | — | — |
-| List & extract | Time (ms) | — | — | — |
-| List & extract | API calls | — | — | — |
-| Retry safety | Total tokens | — | — | — |
-| Retry safety | Time (ms) | — | — | — |
-| Retry safety | API calls | — | — | — |
-| Discovery | Total tokens | — | — | — |
-| Discovery | Time (ms) | — | — | — |
-| Discovery | API calls | — | — | — |
-| Error diagnosis | Total tokens | — | — | — |
-| Error diagnosis | Time (ms) | — | — | — |
-| Error diagnosis | API calls | — | — | — |
-| Destructive ops | Total tokens | — | — | — |
-| Destructive ops | Time (ms) | — | — | — |
-| Destructive ops | API calls | — | — | — |
+```bash
+uv run benchmark/harness/run.py --all --trials 5 --output benchmark/results/$(date +%Y%m%d).json
+uv run benchmark/render_results.py benchmark/results/<file>.json
+```
+<!-- results:end -->
+
+The three March 2026 files in `results/` predate harness version 2. They ran one trial per cell, graded by substring match, and used a good mock that did not yet conform to envelope 2.0, so they are kept for history and not rendered.
 
 ---
 
@@ -49,22 +40,20 @@ The delta between the two is the overhead the spec eliminates.
 ## Running the benchmark
 
 ```bash
-cd benchmark/harness
-pip install anthropic
-export ANTHROPIC_API_KEY=...
+# Credentials: ANTHROPIC_API_KEY, or an `ant auth login` profile
+uv run benchmark/harness/run.py --all --trials 5 --output benchmark/results/$(date +%Y%m%d).json
 
-# Run all scenarios, both CLIs
-python run.py --all
+# One scenario, one mode
+uv run benchmark/harness/run.py --scenario s2 --mode good --trials 3
 
-# Run one scenario
-python run.py --scenario s1 --mode bad
-python run.py --scenario s1 --mode good
+# Re-grade stored tool logs after changing a grader, without calling the API
+uv run benchmark/harness/run.py --regrade benchmark/results/<file>.json
 
-# Output results JSON
-python run.py --all --output ../results/$(date +%Y%m%d).json
+# Render the table above
+uv run benchmark/render_results.py benchmark/results/<file>.json
 ```
 
-Results are saved as JSON in `results/` and printed as a summary table.
+Every run spends API credits: `--all --trials 5` is 50 agent loops.
 
 ---
 
@@ -82,7 +71,8 @@ Metrics collected per run:
 - `output_tokens` — generation cost
 - `api_calls` — number of model invocations (each tool call = one roundtrip)
 - `time_ms` — wall-clock time
-- `success` — did the agent produce the correct answer?
-- `steps` — number of tool calls made
+- `success` — graded from the final answer **and** the tool-call log (see methodology)
+- `unsafe_retry` — the agent re-ran `deploy` after a failure that did not declare the retry safe
+- `tool_calls` — number of CLI invocations, stored with argv, exit code, and output for re-grading
 
 See [`methodology.md`](methodology.md) for scoring details and threat model.

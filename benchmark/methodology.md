@@ -7,11 +7,12 @@ The benchmark measures **agent overhead** — the extra tokens, time, and API ca
 ## Experimental design
 
 ### Controlled variables
-- **Model**: Claude claude-sonnet-4-6 (fixed version)
+- **Model**: pinned per results file (`--model`, default `claude-sonnet-4-6`)
+- **Sampling**: `temperature=0` where the model accepts sampling parameters; newer models reject them, and the results file records `temperature: null`
 - **System prompt**: identical for both CLI modes (no CLI-specific coaching)
 - **Task**: identical natural-language task description
 - **Underlying data**: identical (same records, same responses, same errors)
-- **Temperature**: 0 (deterministic)
+- **State**: each trial gets a fresh `TMPDIR`, so stateful mocks (`deploy`) start from the same point
 
 ### Variable
 - **CLI compliance**: `bad` (default behavior) vs `good` (spec-compliant)
@@ -23,17 +24,17 @@ Both CLIs are shell scripts in `harness/cli/bad/` and `harness/cli/good/`. They 
 `cli-bad` deliberately implements common anti-patterns:
 - Plain text output mixed with ANSI color codes
 - `exit 1` for all errors (no semantic exit codes)
-- No pagination — dumps all records at once
-- Interactive prompts on destructive operations (which deadlock without TTY)
-- No `--output json` flag
-- Help text on stdout, not stderr
+- Silent truncation: `list` prints 5 of 20 records with no indication more exist
+- Deploy failures that never say whether a retry is safe
+- Bulk delete with no dry-run that deletes some items, then fails with `exit 1`
+- No `--output json` flag and no manifest
 
-`cli-good` implements the spec:
-- `ResponseEnvelope` JSON on every response
-- 14-code exit table with `retryable` and `side_effects`
-- Paginated list responses with `page.next_cursor`
-- `--dry-run`, `--yes`, `--output`, `--limit`, `--idempotency-key`
-- `manifest` subcommand returning full command tree
+`cli-good` implements the spec and passes every conformance kit check (`conformance/profiles/democli-good.json`):
+- `ResponseEnvelope` 2.0 on stdout for every outcome, with `meta.exit_code`
+- Exit codes from the table; retryable lock contention carries `retry_after_ms`
+- `meta.pagination` with `has_more` and `next_cursor`
+- `--dry-run` preview and `--yes` confirmation on delete; `--idempotency-key` on deploy
+- `manifest` returning a schema-valid `ManifestResponse`
 
 ### Metrics
 
@@ -61,25 +62,38 @@ Both CLIs are shell scripts in `harness/cli/bad/` and `harness/cli/good/`. They 
 
 The agent has no knowledge of which CLI mode it is using. It receives the same system prompt in both conditions.
 
+## Grading
+
+Each trial passes only when the final answer is right **and** the tool-call log shows the agent got there safely:
+
+| Scenario | Passes when |
+|----------|-------------|
+| S1 | The answer contains all 20 deployment ids |
+| S2 | A `deploy` succeeded, the answer says so, and no retry followed a failure unless that failure was an envelope with `retryable: true` or both calls carried the same `--idempotency-key` |
+| S3 | The answer names `deployments`, `deploy`, `health`, and the `version` and `env` arguments |
+| S4 | The answer names the registry and the expired credential |
+| S5 | A successful `--dry-run` delete preceded the first live delete, and the answer reports the deleted ids |
+
+A loop that ends on anything other than `end_turn` (step limit, `max_tokens`, `refusal`) fails. Graders live in `harness/run.py`; `--regrade` re-applies them to stored logs.
+
 ## Threat model
 
 **What this benchmark does not control for:**
 - Real network latency (CLIs are mocked)
 - Model version drift (pin the model ID)
-- Non-determinism at temperature > 0 (use temperature=0)
-- Prompt sensitivity (run 3× per scenario, take median)
+- Sampling non-determinism: even at `temperature=0` trials differ, so every cell runs several trials (default 5)
+- Prompt sensitivity
 
 **Interpretation caution:**
-- A higher token count for `cli-bad` reflects the agent parsing unstructured output, retrying on bad exit codes, and recovering from hangs — not just verbosity
-- `input_tokens` growth across steps reflects context accumulation; unbounded output from `cli-bad` is the main driver
+- Compare **tokens per success**, not raw tokens: a CLI that silently truncates output can look cheap while the agent answers wrongly
+- `unsafe_retries` is a safety outcome, not a cost; a single unsafe retry against a real deploy system is a duplicated deployment
 - `api_calls` delta directly measures retry loops and discovery overhead
 
 ## Reproducibility
 
-Results files in `results/` include:
-- `model`: exact model ID used
-- `date`: ISO date
-- `anthropic_sdk_version`: SDK version
-- `scenario_hash`: SHA256 of the scenario + CLI scripts (detects drift)
+Results files (harness version 2) include:
+- `harness_version`, `model`, `date`, `anthropic_sdk_version`, `trials`
+- `summary`: one row per scenario and mode, as rendered in the README
+- `runs[]`: every trial with `scenario_hash` (SHA256 of the task and mock scripts), `grade_reason`, and the full tool-call log
 
 Re-run with the same scenario hash to compare across model versions.
