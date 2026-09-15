@@ -15,7 +15,7 @@ The framework MUST intercept all writes to file descriptor 1 (stdout) that are n
 ## Acceptance Criteria
 
 - A library that calls `print("initialized")` on import does not contaminate the JSON stdout
-- The intercepted string appears as a warning: `{"code": "THIRD_PARTY_STDOUT", "detail": "initialized"}`
+- The intercepted string appears as a warning: `{"code": "THIRD_PARTY_STDOUT", "message": "Third-party code wrote to stdout", "context": {"text": "initialized"}}`
 - `json.loads(stdout_output)` succeeds even when a dependency prints to stdout
 - In debug mode (`--debug`), intercepted stdout is emitted to stderr with source attribution
 
@@ -25,7 +25,7 @@ The framework MUST intercept all writes to file descriptor 1 (stdout) that are n
 
 **Type:** [`response-envelope.md`](../schemas/response-envelope.md)
 
-Intercepted non-JSON writes from third-party libraries appear in the `warnings` array with `code: "THIRD_PARTY_STDOUT"` and the raw text in `detail`.
+Intercepted non-JSON writes from third-party libraries appear in the `warnings` array with `code: "THIRD_PARTY_STDOUT"` and the raw text in `context.text`.
 
 ---
 
@@ -39,10 +39,11 @@ Intercepted non-JSON writes from third-party libraries appear in the `warnings` 
   "warnings": [
     {
       "code": "THIRD_PARTY_STDOUT",
-      "detail": "initialized"
+      "message": "Third-party code wrote to stdout",
+      "context": { "text": "initialized" }
     }
   ],
-  "meta": { "duration_ms": 55 }
+  "meta": { "exit_code": 0, "duration_ms": 55 }
 }
 ```
 
@@ -60,8 +61,8 @@ $ mytool run --json
   "ok": true,
   "data": { "id": "run-99" },
   "error": null,
-  "warnings": [{ "code": "THIRD_PARTY_STDOUT", "detail": "SDK initialized" }],
-  "meta": { "duration_ms": 55 }
+  "warnings": [{ "code": "THIRD_PARTY_STDOUT", "message": "Third-party code wrote to stdout", "context": { "text": "SDK initialized" } }],
+  "meta": { "exit_code": 0, "duration_ms": 55 }
 }
 → json.loads(stdout) succeeds; contamination reclassified as warning
 ```

@@ -41,7 +41,7 @@ $ tool deploy --target staging --validate-only --output json
   "data": null,
   "error": null,
   "warnings": [],
-  "meta": { "validation_only": true, "duration_ms": 4 }
+  "meta": { "exit_code": 0, "validation_only": true, "duration_ms": 4 }
 }
 ```
 
@@ -57,7 +57,7 @@ Validation failure:
     "errors": [{ "field": "target", "message": "Unknown environment 'invalid'" }]
   },
   "warnings": [],
-  "meta": { "validation_only": true, "phase": "validation" }
+  "meta": { "exit_code": 2, "duration_ms": 12, "validation_only": true, "phase": "validation" }
 }
 ```
 

@@ -86,7 +86,7 @@ $ tool migrate-database
   },
   "error": { "code": "DISK_FULL", "message": "Disk full during data migration" },
   "warnings": [],
-  "meta": { "duration_ms": 4210 }
+  "meta": { "exit_code": 3, "duration_ms": 4210 }
 }
 ```
 

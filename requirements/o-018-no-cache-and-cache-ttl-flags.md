@@ -41,7 +41,7 @@ $ tool resolve --no-cache --output json
   "data": { "resolved": "1.2.3" },
   "error": null,
   "warnings": [],
-  "meta": { "cache_used": false, "duration_ms": 1832 }
+  "meta": { "exit_code": 0, "cache_used": false, "duration_ms": 1832 }
 }
 ```
 

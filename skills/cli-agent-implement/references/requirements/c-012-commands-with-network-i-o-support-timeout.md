@@ -14,10 +14,10 @@ Every command that performs network I/O or any potentially long-running blocking
 
 ## Acceptance Criteria
 
-- A command with `has_network_io: true` always accepts `--timeout`.
-- The configured `--timeout` value is passed to all network requests made by the command.
-- A network call with no explicit timeout is flagged by the framework's static analysis rule.
-- `--timeout 0` explicitly opts into no timeout (must be a deliberate choice, not the default).
+- A command with `has_network_io: true` always accepts `--timeout`
+- The configured `--timeout` value is passed to all network requests made by the command
+- A network call with no explicit timeout is flagged by the framework's static analysis rule
+- `--timeout 0` explicitly opts into no timeout (must be a deliberate choice, not the default)
 
 ---
 

@@ -14,9 +14,9 @@ In addition to the pager suppression in REQ-F-010, the framework MUST set the fo
 
 ## Acceptance Criteria
 
-- A subprocess invoked via the framework API cannot open an interactive pager even if the host `PAGER` env var is set to `less`.
-- `git log` invoked via the framework API does not block waiting for pager input in non-TTY mode.
-- The environment variable injection is applied to all levels of subprocess nesting (direct children and grandchildren of the framework process).
+- A subprocess invoked via the framework API cannot open an interactive pager even if the host `PAGER` env var is set to `less`
+- `git log` invoked via the framework API does not block waiting for pager input in non-TTY mode
+- The environment variable injection is applied to all levels of subprocess nesting (direct children and grandchildren of the framework process)
 - The suppression is transparent to command authors: no per-command configuration required
 
 ---

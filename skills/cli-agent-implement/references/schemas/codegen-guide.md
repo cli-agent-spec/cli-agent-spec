@@ -38,22 +38,27 @@ npm --version
 `ajv-cli` validates JSON Schema files and your generated output against the schemas. Install it once regardless of which language you target.
 
 ```bash
-npm install -g ajv-cli
+npm install -g ajv-cli@5
 
 # Verify
-ajv --version
+ajv help
 ```
+
+`--strict=false` is required: the schemas carry `x-enum-varnames` and related `x-` annotations for code generators, which ajv strict mode rejects as unknown keywords.
 
 **Validate a schema file:**
 
 ```bash
-ajv validate -s schemas/response-envelope.json -d output.json
+ajv validate -s schemas/response-envelope.json -d output.json --spec=draft7 --strict=false
+
+# Manifest output references ExitCodeEntry; load it with -r
+ajv validate -s schemas/manifest-response.json -r schemas/exit-code-entry.json -d manifest.json --spec=draft7 --strict=false
 ```
 
-**Validate all schemas are well-formed** (requires `ajv` v6 draft-07 flag):
+**Validate all schemas are well-formed:**
 
 ```bash
-ajv compile -s "schemas/*.json" --spec=draft7
+ajv compile -s "schemas/*.json" --spec=draft7 --strict=false
 ```
 
 ---
@@ -344,7 +349,7 @@ function validateExitCodeEntry(e: ExitCodeEntry): void {
 
 | Language | Tool | Install | Generate |
 |----------|------|---------|----------|
-| Any | `ajv-cli` | `npm install -g ajv-cli` | `ajv validate -s schemas/... -d output.json` |
+| Any | `ajv-cli` | `npm install -g ajv-cli@5` | `ajv validate -s schemas/... -d output.json --spec=draft7 --strict=false` |
 | Python | `datamodel-code-generator` | `pip install datamodel-code-generator` | `datamodel-codegen --input schemas/ --output src/models/` |
 | TypeScript | `json-schema-to-typescript` | `npm install -g json-schema-to-typescript` | `json2ts --input schemas/ --output src/types/` |
 | Rust | `cargo-typify` | `cargo install cargo-typify` | `cargo typify schemas/<name>.json > src/types/<name>.rs` |

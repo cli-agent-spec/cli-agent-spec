@@ -39,7 +39,7 @@ When stdout is not a TTY (or `CI` is set), the framework automatically wraps out
   "data": { "id": "job-7", "status": "queued" },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 18 }
+  "meta": { "exit_code": 0, "duration_ms": 18 }
 }
 ```
 

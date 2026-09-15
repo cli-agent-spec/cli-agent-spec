@@ -14,10 +14,10 @@ The framework MUST provide a `--fields <comma-separated-names>` flag on all comm
 
 ## Acceptance Criteria
 
-- `--fields id,name` returns a `data` object with only `id` and `name` keys.
-- `ok`, `error`, `meta` are always present even with `--fields`.
-- An unknown field name in `--fields` is silently ignored (not an error).
-- `--fields` is available on every command.
+- `--fields id,name` returns a `data` object with only `id` and `name` keys
+- `ok`, `error`, `meta` are always present even with `--fields`
+- An unknown field name in `--fields` is silently ignored (not an error)
+- `--fields` is available on every command
 
 ---
 
@@ -44,7 +44,7 @@ $ tool list-users --fields id,name --output json
   ],
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 42 }
+  "meta": { "exit_code": 0, "duration_ms": 42 }
 }
 ```
 

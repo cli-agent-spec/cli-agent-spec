@@ -10,14 +10,15 @@
 
 ## Description
 
-The framework MUST provide `tool --schema` (full manifest of all commands) and `tool <cmd> --output-schema` (JSON Schema for the `data` field of a specific command's response). Both MUST produce valid, machine-parseable JSON. The schemas MUST be generated automatically from command registration metadata (REQ-C-015). The full manifest MUST include: command name, description, danger level, parameters, output schema, exit codes, and stability tier per field.
+The framework MUST provide `tool --schema` (full manifest of all commands) and `tool <cmd> --output-schema` (JSON Schema for the `data` field of a specific command's response). `tool --print-schema` MUST be accepted as a compatibility alias for `tool --schema`, while `--schema` remains the canonical spelling used in documentation and examples. All schema-discovery outputs MUST produce valid, machine-parseable JSON. The schemas MUST be generated automatically from command registration metadata (REQ-C-015). The full manifest MUST include: command name, description, danger level, parameters, output schema, exit codes, and stability tier per field.
 
 ## Acceptance Criteria
 
-- `tool --schema | python -c "import json,sys; json.load(sys.stdin)"` succeeds.
-- The schema includes `parameters`, `output_schema`, `exit_codes`, and `danger_level` for each command.
-- `tool <cmd> --output-schema` is a valid JSON Schema that the command's `data` field conforms to.
-- The schema output is stable (does not change between invocations absent registration changes).
+- `tool --schema | python -c "import json,sys; json.load(sys.stdin)"` succeeds
+- `tool --print-schema | python -c "import json,sys; json.load(sys.stdin)"` succeeds and returns the same payload as `tool --schema`
+- The schema includes `parameters`, `output_schema`, `exit_codes`, and `danger_level` for each command
+- `tool <cmd> --output-schema` is a valid JSON Schema that the command's `data` field conforms to
+- The schema output is stable (does not change between invocations absent registration changes)
 
 ---
 
@@ -25,7 +26,7 @@ The framework MUST provide `tool --schema` (full manifest of all commands) and `
 
 **Types:** [`manifest-response.md`](../schemas/manifest-response.md) · [`response-envelope.md`](../schemas/response-envelope.md)
 
-`tool --schema` returns a full `ManifestResponse`. `tool <cmd> --output-schema` returns only the JSON Schema for that command's `data` field, wrapped in a `ResponseEnvelope`.
+`tool --schema` returns a full `ManifestResponse`. `tool --print-schema` is a compatibility alias for the same response. `tool <cmd> --output-schema` returns only the JSON Schema for that command's `data` field, wrapped in a `ResponseEnvelope`.
 
 ---
 
@@ -48,7 +49,7 @@ $ tool deploy --output-schema
   },
   "error": null,
   "warnings": [],
-  "meta": { "schema_version": "1.0" }
+  "meta": { "exit_code": 0, "duration_ms": 12, "schema_version": "1.0" }
 }
 ```
 
@@ -60,7 +61,7 @@ Opt-in at the framework level; auto-generated from command registration metadata
 
 ```
 app = Framework("tool")
-app.enable_schema_flag()   # registers --schema and --output-schema globally
+app.enable_schema_flag()   # registers --schema, --print-schema, and --output-schema globally
 
 # Full manifest of all commands:
 $ tool --schema | jq '.data.commands | keys'

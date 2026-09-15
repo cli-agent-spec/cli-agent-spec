@@ -4,12 +4,6 @@
 
 **Severity:** High | **Frequency:** Common | **Detectability:** Hard | **Token Spend:** High | **Time:** High | **Context:** Critical
 
-### Impact
-
-- Unbounded output exhausts agent context window and pipe buffers, causing the call to fail or the agent to process incomplete data
-- No truncation indicator means the agent believes it has all records when it has only the first page
-- Page-number pagination requires the agent to track state across calls; cursor-based pagination does not
-
 ### The Problem
 
 Commands that return large datasets in a single response create multiple problems: the output may be too large to parse, may exceed pipe buffers, or may contain more data than the agent can process in its context.
@@ -34,6 +28,12 @@ $ tool list-users --page 2
 # Requires knowing that page 1 was fetched first
 # No cursor-based alternative
 ```
+
+### Impact
+
+- Unbounded output exhausts agent context window and pipe buffers, causing the call to fail or the agent to process incomplete data
+- No truncation indicator means the agent believes it has all records when it has only the first page
+- Page-number pagination requires the agent to track state across calls; cursor-based pagination does not
 
 ### Solutions
 
@@ -91,6 +91,11 @@ tool list-users --limit 0 # explicit: no limit
 ---
 
 ### Agent Workaround
+
+**Signature:** unbounded stdout (thousands of lines) from a list command; or a round-number item count with no `has_more`, `total`, or `next_cursor` field
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Run `tool <list-args> --limit 50 --output json` and treat the result as a partial subset; if that fails, escalate with the command, exit code, stdout, and stderr
 
 **Always specify `--limit` and loop with `next_cursor` until `has_more` is false:**
 

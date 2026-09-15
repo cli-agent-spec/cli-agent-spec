@@ -2,7 +2,7 @@
 
 > Audit trails, request tracing, and operational visibility.
 
-**Challenges:** 1 active &nbsp;|&nbsp; 🟡 1 medium
+**Failure modes:** 1 active &nbsp;|&nbsp; 🟡 1 medium
 
 ---
 

@@ -44,10 +44,11 @@ Editor invocation intercepted in non-TTY mode:
       { "flag": "--message", "description": "Provide commit message inline" },
       { "flag": "--from-file", "description": "Read message from a file" }
     ],
-    "hint": "Use --message or --from-file to avoid launching an editor"
+    "hint": "Use --message or --from-file to avoid launching an editor",
+    "phase": "execution"
   },
   "warnings": [],
-  "meta": { "phase": "execution" }
+  "meta": { "exit_code": 4, "duration_ms": 12 }
 }
 ```
 

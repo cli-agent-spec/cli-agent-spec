@@ -14,8 +14,8 @@ The framework MUST provide each command invocation with a unique, session-scoped
 
 ## Acceptance Criteria
 
-- Two parallel invocations of the same command never write to the same temp file path.
-- After a command exits (normally or via signal), its session temp directory is removed.
+- Two parallel invocations of the same command never write to the same temp file path
+- After a command exits (normally or via signal), its session temp directory is removed
 - The temp directory path is exposed to the command as an environment variable or framework API call
 
 ---
@@ -39,6 +39,7 @@ The framework MUST provide each command invocation with a unique, session-scoped
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 3102,
     "request_id": "req_01HZ",
     "session_tmp_dir": "/tmp/mytool/req_01HZ"

@@ -14,10 +14,10 @@ The framework MUST provide `--proxy <url>` (override proxy for this invocation) 
 
 ## Acceptance Criteria
 
-- `--proxy http://proxy.example.com:8080` routes all HTTP requests through that proxy.
-- `--no-proxy` results in direct connections regardless of `HTTPS_PROXY` env var.
-- The proxy URL used is reflected in `network_context` in error responses.
-- The flags are absent on commands that declare no network I/O.
+- `--proxy http://proxy.example.com:8080` routes all HTTP requests through that proxy
+- `--no-proxy` results in direct connections regardless of `HTTPS_PROXY` env var
+- The proxy URL used is reflected in `network_context` in error responses
+- The flags are absent on commands that declare no network I/O
 
 ---
 
@@ -43,7 +43,7 @@ No wire-format fields — proxy configuration is not injected into success respo
     }
   },
   "warnings": [],
-  "meta": {}
+  "meta": { "exit_code": 12, "duration_ms": 12 }
 }
 ```
 

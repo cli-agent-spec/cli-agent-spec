@@ -14,10 +14,10 @@ The framework MUST generate a unique `meta.request_id` for every command invocat
 
 ## Acceptance Criteria
 
-- Every response includes `meta.request_id`, which is unique across all invocations.
-- When `TOOL_TRACE_ID=abc123` is set, every response includes `meta.trace_id: "abc123"`.
-- `meta.command` matches the name of the command that was invoked.
-- `meta.timestamp` is a valid ISO 8601 datetime.
+- Every response includes `meta.request_id`, which is unique across all invocations
+- When `TOOL_TRACE_ID=abc123` is set, every response includes `meta.trace_id: "abc123"`
+- `meta.command` matches the name of the command that was invoked
+- `meta.timestamp` is a valid ISO 8601 datetime
 
 ---
 
@@ -40,11 +40,13 @@ Response `meta` with request ID, trace ID, command, and timestamp:
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
+    "duration_ms": 12,
     "request_id":     "01HZ3VWKP8Q7RXTGB5M2N6CDEF",
     "trace_id":       "trace-abc-123",
     "command":        "get-cluster",
     "timestamp":      "2024-06-01T12:00:00.000Z",
-    "schema_version": "1.0.0",
+    "schema_version": "1.0",
     "tool_version":   "2.4.1"
   }
 }

@@ -14,10 +14,10 @@ Commands that support rollback MUST declare `rollback_available: true` and imple
 
 ## Acceptance Criteria
 
-- `--rollback-on-failure` with a mid-step failure triggers the `rollback()` hook.
-- The response includes `rollback_status`.
-- A rollback failure is reported with `rollback_status: "failed"` and details in the response.
-- The exit code after a failed step with successful rollback is `3` (not `0`).
+- `--rollback-on-failure` with a mid-step failure triggers the `rollback()` hook
+- The response includes `rollback_status`
+- A rollback failure is reported with `rollback_status: "failed"` and details in the response
+- The exit code after a failed step with successful rollback is `3` (not `0`)
 
 ---
 
@@ -47,7 +47,7 @@ Failed deployment with successful rollback:
   },
   "error": { "code": "PARTIAL_FAILURE", "message": "Deployment failed at step-3; rollback completed" },
   "warnings": [],
-  "meta": { "duration_ms": 8320 }
+  "meta": { "exit_code": 3, "duration_ms": 8320 }
 }
 ```
 

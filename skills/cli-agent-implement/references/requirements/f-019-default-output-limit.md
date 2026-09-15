@@ -14,10 +14,10 @@ The framework MUST apply a default result limit of 20 items to every list comman
 
 ## Acceptance Criteria
 
-- A list command invoked with no flags returns at most 20 items.
-- `--limit 100` returns at most 100 items.
-- `--limit 0` returns all available items.
-- The default limit is visible in `tool <cmd> --schema`.
+- A list command invoked with no flags returns at most 20 items
+- `--limit 100` returns at most 100 items
+- `--limit 0` returns all available items
+- The default limit is visible in `tool <cmd> --schema`
 
 ---
 
@@ -25,7 +25,7 @@ The framework MUST apply a default result limit of 20 items to every list comman
 
 **Types:** [`response-envelope.md`](../schemas/response-envelope.md)
 
-When a default limit truncates results, the `pagination` object (from REQ-F-018) reflects this via `truncated: true` and `meta` carries no additional fields. The truncation state is fully expressed by `pagination.truncated` and `pagination.total`.
+When a default limit truncates results, `meta.pagination` (from REQ-F-018) reflects this via `truncated: true`. The truncation state is fully expressed by `meta.pagination.truncated` and `meta.pagination.total`.
 
 ---
 
@@ -38,19 +38,21 @@ Response where the default limit of 20 truncates a larger result set:
   "ok": true,
   "data": [
     { "id": "item-1" },
-    "...",
+    { "id": "item-2" },
     { "id": "item-20" }
   ],
-  "pagination": {
-    "total": 150,
-    "returned": 20,
-    "truncated": true,
-    "has_more": true,
-    "next_cursor": "eyJsYXN0X2lkIjoiaXRlbS0yMCJ9"
-  },
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
+    "duration_ms": 12,
+    "pagination": {
+      "total": 150,
+      "returned": 20,
+      "truncated": true,
+      "has_more": true,
+      "next_cursor": "eyJsYXN0X2lkIjoiaXRlbS0yMCJ9"
+    },
     "request_id": "req_05GH",
     "command": "list-items",
     "timestamp": "2024-06-01T12:00:00Z"

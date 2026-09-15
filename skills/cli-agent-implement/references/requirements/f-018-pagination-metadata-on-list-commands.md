@@ -10,14 +10,14 @@
 
 ## Description
 
-The framework MUST automatically inject a `pagination` object into the response envelope for every command declared as a list command. The `pagination` object MUST always contain: `total` (total count if known, or null), `returned` (count of items in this response), `truncated` (boolean), `has_more` (boolean), and `next_cursor` (opaque string token, or null if no more results). This metadata MUST be present even when the result is a complete set (with `truncated: false`).
+The framework MUST automatically inject a `meta.pagination` object into the response envelope for every command declared as a list command. The `pagination` object MUST always contain: `total` (total count if known, or null), `returned` (count of items in this response), `truncated` (boolean), `has_more` (boolean), and `next_cursor` (opaque string token, or null if no more results). This metadata MUST be present even when the result is a complete set (with `truncated: false`).
 
 ## Acceptance Criteria
 
-- Every list command response includes a `pagination` key at the top level of the envelope.
-- When results are truncated, `truncated: true` and `next_cursor` is non-null.
-- When results are complete, `truncated: false` and `next_cursor` is null.
-- Passing `next_cursor` from response N as `--cursor` in the next call returns the subsequent page.
+- Every list command response includes `meta.pagination`; the envelope's five top-level keys never change
+- When results are truncated, `truncated: true` and `next_cursor` is non-null
+- When results are complete, `truncated: false` and `next_cursor` is null
+- Passing `next_cursor` from response N as `--cursor` in the next call returns the subsequent page
 
 ---
 
@@ -25,7 +25,7 @@ The framework MUST automatically inject a `pagination` object into the response 
 
 **Types:** [`response-envelope.md`](../schemas/response-envelope.md)
 
-The `pagination` object is injected at the top level of the envelope alongside `data`, `meta`, `error`, and `warnings`:
+The `Pagination` object is defined in `response-envelope.json` and injected as `meta.pagination`:
 
 ```json
 {
@@ -52,16 +52,18 @@ List command response with pagination metadata (partial result):
     { "id": "user-1", "name": "Alice" },
     { "id": "user-2", "name": "Bob" }
   ],
-  "pagination": {
-    "total": 47,
-    "returned": 20,
-    "truncated": true,
-    "has_more": true,
-    "next_cursor": "eyJsYXN0X2lkIjoidXNlci0yMCJ9"
-  },
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
+    "duration_ms": 12,
+    "pagination": {
+      "total": 47,
+      "returned": 2,
+      "truncated": true,
+      "has_more": true,
+      "next_cursor": "eyJsYXN0X2lkIjoidXNlci0yMCJ9"
+    },
     "request_id": "req_04EF",
     "command": "list-users",
     "timestamp": "2024-06-01T12:00:00Z"
@@ -73,12 +75,14 @@ Complete result (`truncated: false`):
 
 ```json
 {
-  "pagination": {
-    "total": 3,
-    "returned": 3,
-    "truncated": false,
-    "has_more": false,
-    "next_cursor": null
+  "meta": {
+    "pagination": {
+      "total": 3,
+      "returned": 3,
+      "truncated": false,
+      "has_more": false,
+      "next_cursor": null
+    }
   }
 }
 ```

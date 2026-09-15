@@ -62,6 +62,8 @@ Validation failure response (exit code `2`):
   },
   "warnings": [],
   "meta": {
+    "exit_code": 2,
+    "duration_ms": 12,
     "request_id": "req_01HZ",
     "command": "deploy",
     "timestamp": "2024-06-01T12:00:00Z"

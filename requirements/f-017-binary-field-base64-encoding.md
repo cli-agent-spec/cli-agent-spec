@@ -60,6 +60,8 @@ Response containing a base64-encoded binary field:
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
+    "duration_ms": 12,
     "request_id": "req_03CD",
     "command": "get-image",
     "timestamp": "2024-06-01T12:00:00Z"

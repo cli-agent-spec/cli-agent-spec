@@ -14,9 +14,9 @@ The framework MUST provide a `--stable-output` flag that explicitly requests det
 
 ## Acceptance Criteria
 
-- Two invocations of the same command with `--stable-output` and identical arguments produce byte-identical stdout.
-- `meta.request_id` and `meta.timestamp` are omitted when `--stable-output` is passed.
-- `--stable-output` implies all arrays are sorted (REQ-F-020 behavior is always-on, but this flag is a caller signal for caching intent).
+- Two invocations of the same command with `--stable-output` and identical arguments produce byte-identical stdout
+- `meta.request_id` and `meta.timestamp` are omitted when `--stable-output` is passed
+- `--stable-output` implies all arrays are sorted (REQ-F-020 behavior is always-on, but this flag is a caller signal for caching intent)
 
 ---
 
@@ -41,7 +41,7 @@ $ tool list-users --stable-output --output json
   ],
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 44 }
+  "meta": { "exit_code": 0, "duration_ms": 44 }
 }
 ```
 

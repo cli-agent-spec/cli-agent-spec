@@ -36,11 +36,11 @@ This is distinct from challenge #22 (Schema Versioning & Output Stability), whic
 
 ### Impact
 
-- Agent constructs valid (per-wrapper-schema) invocations that fail at the CLI layer with opaque errors.
-- New CLI functionality is silently inaccessible through the wrapper.
-- If the wrapper's `outputSchema` is stale, agent parsing of structured output fails for commands that changed response format.
-- No automated mechanism to detect or alert on schema divergence.
-- Maintenance burden grows linearly with the number of wrapped subcommands and the CLI's development velocity.
+- Agent constructs valid (per-wrapper-schema) invocations that fail at the CLI layer with opaque errors
+- New CLI functionality is silently inaccessible through the wrapper
+- If the wrapper's `outputSchema` is stale, agent parsing of structured output fails for commands that changed response format
+- No automated mechanism to detect or alert on schema divergence
+- Maintenance burden grows linearly with the number of wrapped subcommands and the CLI's development velocity
 
 ### Solutions
 
@@ -73,11 +73,11 @@ def detect_schema_drift(tool_name: str, wrapper_schema: dict) -> list[str]:
 ```
 
 **For framework design:**
-- MCP wrapper generators should pin the `cli_version` in tool annotations and emit a `schema_stale` warning when the CLI version changes.
-- Auto-generate MCP wrapper schemas from CLI `--help` or `--schema` JSON output (where available) rather than requiring manual authoring.
-- Include a `_meta.schema_cli_version` field in tool results so agents can detect version mismatches.
-- When an MCP tool call produces a non-zero exit code with "unknown option" or "unrecognized argument" in the error, the wrapper should emit `{"code": "SCHEMA_STALE", "hint": "The underlying CLI may have changed; wrapper schema may be outdated"}`.
-- MCP protocol: add optional `toolSchemaVersion` annotation to tool definitions, allowing version-to-version compatibility tracking.
+- MCP wrapper generators should pin the `cli_version` in tool annotations and emit a `schema_stale` warning when the CLI version changes
+- Auto-generate MCP wrapper schemas from CLI `--help` or `--schema` JSON output (where available) rather than requiring manual authoring
+- Include a `_meta.schema_cli_version` field in tool results so agents can detect version mismatches
+- When an MCP tool call produces a non-zero exit code with "unknown option" or "unrecognized argument" in the error, the wrapper should emit `{"code": "SCHEMA_STALE", "hint": "The underlying CLI may have changed; wrapper schema may be outdated"}`
+- MCP protocol: add optional `toolSchemaVersion` annotation to tool definitions, allowing version-to-version compatibility tracking
 
 ### Evaluation
 
@@ -93,6 +93,10 @@ def detect_schema_drift(tool_name: str, wrapper_schema: dict) -> list[str]:
 ---
 
 ### Agent Workaround
+
+**Signature:** `unknown option` or `unrecognized argument` for a flag the tool schema declares valid; missing-required error for a parameter absent from the schema
+
+**Tier:** B (one observable check, then one command)
 
 **Call `_wrapper_health` before first use; treat "unknown option" errors as schema staleness:**
 

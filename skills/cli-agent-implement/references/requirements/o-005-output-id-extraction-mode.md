@@ -14,9 +14,9 @@ The framework MUST support `--output id` as a format option on any command that 
 
 ## Acceptance Criteria
 
-- `--output id` on a command that returns `{"data": {"id": 42}}` produces `42\n` on stdout.
-- The output is directly pipeable to another command's stdin.
-- No JSON structure, no whitespace beyond the terminal newline, is present in the output.
+- `--output id` on a command that returns `{"data": {"id": 42}}` produces `42\n` on stdout
+- The output is directly pipeable to another command's stdin
+- No JSON structure, no whitespace beyond the terminal newline, is present in the output
 
 ---
 

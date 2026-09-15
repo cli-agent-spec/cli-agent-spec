@@ -49,8 +49,8 @@ All files live under `evaluations/<cli-name>/`:
 | `evaluations/<cli-name>/README.md` | Write | `all` — entry point: summary, key findings, file directory |
 | `evaluations/<cli-name>/linkedin.md` | Write | `all` — LinkedIn post draft |
 | `evaluations/<cli-name>/x.md` | Write | `all` — X Premium long-form post draft |
-| `docs/evaluations/<cli-name>/.pages` | Write | `all` — MkDocs awesome-pages sidebar config (title + nav order) |
-| `docs/evaluations/.pages` | Write | `all` — parent nav; `<cli>` appended in alphabetical order if absent |
+| `website/evaluations/<cli-name>/.pages` | Write | `all` — MkDocs awesome-pages sidebar config (title + nav order) |
+| `website/evaluations/.pages` | Write | `all` — parent nav; `<cli>` appended in alphabetical order if absent |
 
 Single-mode runs (`dev`, `agent-dev`, `runtime`, `issues`) emit output to the conversation only — they never write files. Only `all` writes files.
 
@@ -182,7 +182,7 @@ Run `dev`, `agent-dev`, `runtime`, and `issues` modes using the pre-loaded artif
 
 Print `✓ <filename> saved` after each file.
 
-Write `docs/evaluations/<cli>/.pages` with exactly this content, substituting the actual CLI name for `<cli-name>`. Create `docs/evaluations/<cli>/` if it does not exist. Print `✓ docs/evaluations/<cli>/.pages saved`.
+Write `website/evaluations/<cli>/.pages` with exactly this content, substituting the actual CLI name for `<cli-name>`. Create `website/evaluations/<cli>/` if it does not exist. Print `✓ website/evaluations/<cli>/.pages saved`.
 
 ```yaml
 title: <cli-name>
@@ -190,7 +190,7 @@ nav:
   - <cli-name>: README.md
 ```
 
-Read `docs/evaluations/.pages`. If `<cli>` is not already present in the `nav:` list, append it in alphabetical order among the directory entries (after `index.md`). Write the file back. Print `✓ docs/evaluations/.pages updated`.
+Read `website/evaluations/.pages`. If `<cli>` is not already present in the `nav:` list, append it in alphabetical order among the directory entries (after `index.md`). Write the file back. Print `✓ website/evaluations/.pages updated`.
 
 #### Step B — Generate the index file
 
@@ -242,8 +242,8 @@ Files written:
   evaluations/<cli>/report-dev.md
   evaluations/<cli>/linkedin.md           ← gitignored, local use only
   evaluations/<cli>/x.md                  ← gitignored, local use only
-  docs/evaluations/<cli>/.pages           ← MkDocs sidebar config
-  docs/evaluations/.pages                ← parent nav updated
+  website/evaluations/<cli>/.pages        ← MkDocs sidebar config
+  website/evaluations/.pages              ← parent nav updated
 
 <N files overwritten: list filenames that already existed and were replaced — omit line if none>
 

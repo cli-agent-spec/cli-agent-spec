@@ -39,6 +39,7 @@ The `ResponseMeta` object carries `timeout_ms` to record the configured limit fo
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 1240,
     "timeout_ms": 30000
   }

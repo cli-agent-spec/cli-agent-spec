@@ -14,10 +14,10 @@ Commands that have undergone breaking schema changes SHOULD support `--schema-ve
 
 ## Acceptance Criteria
 
-- `--schema-version 1` on a v2 command produces output conforming to the v1 schema.
-- A deprecation warning appears in `meta.warnings` when using an old schema version.
-- Requesting a schema version below the minimum supported raises a structured error.
-- The current and minimum supported schema versions are included in `--schema` output.
+- `--schema-version 1` on a v2 command produces output conforming to the v1 schema
+- A `SCHEMA_DEPRECATED` warning appears in `warnings[]` when using an old schema version
+- Requesting a schema version below the minimum supported raises a structured error
+- The current and minimum supported schema versions are included in `--schema` output
 
 ---
 
@@ -41,9 +41,9 @@ $ tool deploy --target staging --schema-version 1 --output json
   "data": { "deployed": true },
   "error": null,
   "warnings": [
-    { "code": "SCHEMA_DEPRECATED", "message": "Schema version 1 is deprecated; current is 2", "current_version": "2", "requested_version": "1" }
+    { "code": "SCHEMA_DEPRECATED", "message": "Schema version 1.0 is deprecated; current is 2.0", "context": { "current_version": "2.0", "requested_version": "1.0" } }
   ],
-  "meta": { "schema_version": "1", "duration_ms": 832 }
+  "meta": { "exit_code": 0, "schema_version": "1.0", "duration_ms": 832 }
 }
 ```
 
@@ -62,7 +62,7 @@ register command "deploy":
 
 # Agent pins schema version to avoid breaking changes:
 $ tool deploy --target staging --schema-version 1
-→ meta.schema_version: "1"
+→ meta.schema_version: "1.0"
 → warnings: [SCHEMA_DEPRECATED]
 ```
 

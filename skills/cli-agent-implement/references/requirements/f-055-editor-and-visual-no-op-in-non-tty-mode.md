@@ -14,10 +14,10 @@ The framework MUST set `EDITOR=true` and `VISUAL=true` (or equivalent no-op comm
 
 ## Acceptance Criteria
 
-- In non-TTY mode, `git commit` invoked via the framework's subprocess API does not open vim.
-- A command that calls `os.environ['EDITOR']` to launch an editor exits with code 4 in non-TTY mode.
-- The exit 4 error includes `alternatives[]` listing non-interactive flags for the same operation.
-- In TTY mode, `$EDITOR` is unmodified and interactive editing works normally.
+- In non-TTY mode, `git commit` invoked via the framework's subprocess API does not open vim
+- A command that calls `os.environ['EDITOR']` to launch an editor exits with code 4 in non-TTY mode
+- The exit 4 error includes `alternatives[]` listing non-interactive flags for the same operation
+- In TTY mode, `$EDITOR` is unmodified and interactive editing works normally
 
 ---
 
@@ -44,10 +44,11 @@ Editor invocation intercepted in non-TTY mode:
       { "flag": "--message", "description": "Provide commit message inline" },
       { "flag": "--from-file", "description": "Read message from a file" }
     ],
-    "hint": "Use --message or --from-file to avoid launching an editor"
+    "hint": "Use --message or --from-file to avoid launching an editor",
+    "phase": "execution"
   },
   "warnings": [],
-  "meta": { "phase": "execution" }
+  "meta": { "exit_code": 4, "duration_ms": 12 }
 }
 ```
 

@@ -20,7 +20,7 @@ Agents that enforce time budgets by sending SIGINT (Ctrl+C equivalent) rely on e
 - Exit code after SIGINT is exactly `130`
 - All framework-managed lock files are released after SIGINT
 - A second SIGINT during cleanup exits immediately with `130`, no duplicate JSON output
-- Exit code `130` is registered in the command's exit code table (REQ-F-001)
+- The framework adds `"130"` to every command's `exit_codes` map with `retryable: false` and `side_effects: "partial"`; signal exits are the only sanctioned use of the shell-reserved range (REQ-F-001)
 
 ---
 
@@ -37,15 +37,18 @@ Cancellation response emitted to stdout on SIGINT:
 ```json
 {
   "ok": false,
-  "partial": true,
-  "data": null,
+  "data": { "partial": true },
   "error": {
     "code": "CANCELLED",
     "message": "Command cancelled by SIGINT",
-    "signal": "SIGINT"
+    "retryable": false,
+    "phase": "execution",
+    "context": { "signal": "SIGINT" }
   },
   "warnings": [],
   "meta": {
+    "exit_code": 130,
+    "duration_ms": 12,
     "request_id": "req_01HZ",
     "command": "deploy",
     "timestamp": "2026-04-01T12:00:00Z"

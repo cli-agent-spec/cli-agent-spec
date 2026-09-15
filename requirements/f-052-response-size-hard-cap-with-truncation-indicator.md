@@ -43,6 +43,8 @@ When a response is truncated, `meta.truncated` is set to `true`, `meta.total_cou
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
+    "duration_ms": 12,
     "truncated": true,
     "total_count": 10000,
     "returned_count": 2,

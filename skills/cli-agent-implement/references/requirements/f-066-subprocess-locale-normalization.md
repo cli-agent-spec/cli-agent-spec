@@ -14,10 +14,10 @@ The framework MUST set `LC_ALL=C` (or `LC_MESSAGES=C` and `LANG=C`) in the envir
 
 ## Acceptance Criteria
 
-- `git` error messages are in English regardless of the system locale.
-- A subprocess that would normally emit `1.234,56` in a German locale emits `1234.56` under framework management.
-- A command with `preserve_locale: true` does not have `LC_ALL=C` injected for its subprocesses.
-- The parent process locale is unaffected; only subprocess environments are modified.
+- `git` error messages are in English regardless of the system locale
+- A subprocess that would normally emit `1.234,56` in a German locale emits `1234.56` under framework management
+- A command with `preserve_locale: true` does not have `LC_ALL=C` injected for its subprocesses
+- The parent process locale is unaffected; only subprocess environments are modified
 
 ---
 

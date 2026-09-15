@@ -39,6 +39,7 @@ The framework MUST provide each command invocation with a unique, session-scoped
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 3102,
     "request_id": "req_01HZ",
     "session_tmp_dir": "/tmp/mytool/req_01HZ"

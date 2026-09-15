@@ -66,9 +66,9 @@ $ tool --schema --full
 ```
 
 **For framework design:**
-- `tool --schema` (REQ-O-013) MUST return the full command tree by default, not just the top-level command.
-- Each command node in the tree includes: name, description, args with types and constraints, flags, required/optional status, subcommands.
-- The full schema export must be a single synchronous call completing in under 500ms regardless of command count.
+- `tool --schema` (REQ-O-013) MUST return the full command tree by default, not just the top-level command
+- Each command node in the tree includes: name, description, args with types and constraints, flags, required/optional status, subcommands
+- The full schema export must be a single synchronous call completing in under 500ms regardless of command count
 
 ### Evaluation
 
@@ -84,6 +84,11 @@ $ tool --schema --full
 ---
 
 ### Agent Workaround
+
+**Signature:** `--help` lists subcommand names only; each subcommand's flags require another `--help` call; no single `--schema` call returns the full command tree
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** `tool --schema --output json`; if that fails, escalate with the command, exit code, stdout, and stderr
 
 **Load the full schema tree in one call at session start; cache it for the session:**
 

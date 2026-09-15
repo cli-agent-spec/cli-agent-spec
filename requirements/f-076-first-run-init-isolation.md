@@ -46,7 +46,9 @@ If init is required and has not been run:
     "message": "Run 'tool init' before first use",
     "retryable": false,
     "next_steps": ["tool init"]
-  }
+  },
+  "warnings": [],
+  "meta": { "exit_code": 4, "duration_ms": 6 }
 }
 ```
 

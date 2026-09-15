@@ -118,11 +118,11 @@ result = subprocess.run(["git", "log", "--oneline"], capture_output=True, timeou
 
 ### Impact
 
-- Complete pipeline hang: agent waits until its own timeout expires (challenge #11), wasting the full timeout budget.
-- No error output: the pager process may not produce any stderr or exit code until killed.
-- Inconsistent behavior: same command may page in one environment and not another, making the problem hard to reproduce.
-- Silent token waste: agent loop burns time without making progress.
-- Downstream tools in a pipeline receive nothing if the pager captures all stdout.
+- Complete pipeline hang: agent waits until its own timeout expires (challenge #11), wasting the full timeout budget
+- No error output: the pager process may not produce any stderr or exit code until killed
+- Inconsistent behavior: same command may page in one environment and not another, making the problem hard to reproduce
+- Silent token waste: agent loop burns time without making progress
+- Downstream tools in a pipeline receive nothing if the pager captures all stdout
 
 ### Solutions
 
@@ -137,10 +137,10 @@ else:
 ```
 
 **For framework design:**
-- Ban `echo_via_pager()` and equivalent calls at the framework level; require authors to use a `output(content, paginate=True)` API that the framework conditionally paginates based on TTY detection.
-- Set `PAGER=cat` in the process environment at framework initialization when `isatty(stdout) == False`.
-- Never invoke external pagers from within the framework's own help or error display.
-- Provide a linter / framework-level assertion that fails at command registration if any registered command's code path calls `echo_via_pager` unconditionally.
+- Ban `echo_via_pager()` and equivalent calls at the framework level; require authors to use a `output(content, paginate=True)` API that the framework conditionally paginates based on TTY detection
+- Set `PAGER=cat` in the process environment at framework initialization when `isatty(stdout) == False`
+- Never invoke external pagers from within the framework's own help or error display
+- Provide a linter / framework-level assertion that fails at command registration if any registered command's code path calls `echo_via_pager` unconditionally
 
 ---
 
@@ -159,7 +159,20 @@ else:
 
 ### Agent Workaround
 
-**Set pager and editor env vars, redirect stdin, and always apply a timeout:**
+**Signature:** process hangs until killed by timeout; last output may be a prompt like `Are you sure? (yes/no):`; same command succeeds in an interactive terminal
+
+**Tier:** B (one observable check, then one command)
+
+**Prefix the invocation with the non-interactive bundle — one shell line, no scripting required** (canonical form in [`triage.md`](../triage.md)):
+
+```bash
+PAGER=cat GIT_PAGER=cat MANPAGER=cat EDITOR=true VISUAL=true GIT_EDITOR=true \
+CI=true NO_COLOR=1 TERM=dumb timeout 60 tool <args> </dev/null
+```
+
+If a pager is already on screen (`(END)`, `--More--`, a `:` prompt), send `q` to quit it before anything else.
+
+**The same suppression from a Python harness — set env vars, redirect stdin, always apply a timeout:**
 
 ```python
 import os, subprocess

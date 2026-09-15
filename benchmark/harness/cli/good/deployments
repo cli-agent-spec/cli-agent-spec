@@ -1,59 +1,66 @@
 #!/usr/bin/env bash
-# cli-good: deployments — spec-compliant implementation
-# ResponseEnvelope JSON, cursor pagination (5/page, 20 total), dry-run, typed exit codes
+# cli-good: deployments — spec-compliant implementation (ResponseEnvelope 2.0)
+# Envelope on stdout for every outcome, meta.pagination, dry-run, typed exit codes
 
 SUBCOMMAND="${1:-}"
 shift || true
 
-OUTPUT="json"; LIMIT=5; CURSOR=""; DRY_RUN=0; FILTER=""; YES=0
+LIMIT=5; CURSOR=""; DRY_RUN=0; FILTER=""; YES=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --output)  OUTPUT="$2";  shift 2 ;;
+    --output)  shift 2 ;;
     --limit)   LIMIT="$2";   shift 2 ;;
     --cursor)  CURSOR="$2";  shift 2 ;;
     --filter)  FILTER="$2";  shift 2 ;;
     --dry-run) DRY_RUN=1;    shift   ;;
     --yes)     YES=1;        shift   ;;
-    *)         shift ;;
+    *)
+      printf '{"ok":false,"data":null,"error":{"code":"UNKNOWN_FLAG","message":"Unknown flag %s","retryable":false,"phase":"validation","fix_required":"Remove the flag; run democli manifest for accepted flags"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n' "$1"
+      exit 2
+      ;;
   esac
 done
+
+item() { printf '{"id":"deploy-%03d","version":"%s","env":"%s","status":"%s","created_at":"%s"}' "$1" "$2" "$3" "$4" "$5"; }
+
+page() {
+  local items="$1" next="$2" has_more="$3"
+  printf '{"ok":true,"data":[%s],"error":null,"warnings":[],"meta":{"exit_code":0,"duration_ms":10,"schema_version":"1.0","pagination":{"total":20,"returned":5,"truncated":%s,"has_more":%s,"next_cursor":%s}}}\n' \
+    "$items" "$has_more" "$has_more" "$next"
+}
 
 case "$SUBCOMMAND" in
   list)
     case "$CURSOR" in
       "")
-        printf '{"ok":true,"data":{"items":[{"id":"deploy-001","version":"1.0.0","env":"staging","status":"retired","created_at":"2026-01-15T10:00:00Z"},{"id":"deploy-002","version":"1.0.1","env":"staging","status":"retired","created_at":"2026-01-22T14:30:00Z"},{"id":"deploy-003","version":"1.1.0","env":"production","status":"retired","created_at":"2026-02-01T09:00:00Z"},{"id":"deploy-004","version":"1.1.1","env":"staging","status":"retired","created_at":"2026-02-05T16:00:00Z"},{"id":"deploy-005","version":"1.2.0","env":"production","status":"active","created_at":"2026-02-10T09:30:00Z"}],"page":{"limit":5,"next_cursor":"cGFnZTI=","total":20}},"error":null,"warnings":[],"meta":{"duration_ms":11,"schema_version":"1.0"}}\n'
-        ;;
+        page "$(item 1 1.0.0 staging retired 2026-01-15T10:00:00Z),$(item 2 1.0.1 staging retired 2026-01-22T14:30:00Z),$(item 3 1.1.0 production retired 2026-02-01T09:00:00Z),$(item 4 1.1.1 staging retired 2026-02-05T16:00:00Z),$(item 5 1.2.0 production active 2026-02-10T09:30:00Z)" '"cGFnZTI="' true ;;
       "cGFnZTI=")
-        printf '{"ok":true,"data":{"items":[{"id":"deploy-006","version":"1.2.1","env":"staging","status":"active","created_at":"2026-02-12T11:00:00Z"},{"id":"deploy-007","version":"1.3.0","env":"staging","status":"active","created_at":"2026-02-18T08:00:00Z"},{"id":"deploy-008","version":"1.3.1","env":"production","status":"active","created_at":"2026-02-20T13:00:00Z"},{"id":"deploy-009","version":"1.4.0","env":"staging","status":"active","created_at":"2026-02-25T10:00:00Z"},{"id":"deploy-010","version":"1.4.1","env":"production","status":"active","created_at":"2026-03-01T09:00:00Z"}],"page":{"limit":5,"next_cursor":"cGFnZTM=","total":20}},"error":null,"warnings":[],"meta":{"duration_ms":9,"schema_version":"1.0"}}\n'
-        ;;
+        page "$(item 6 1.2.1 staging active 2026-02-12T11:00:00Z),$(item 7 1.3.0 staging active 2026-02-18T08:00:00Z),$(item 8 1.3.1 production active 2026-02-20T13:00:00Z),$(item 9 1.4.0 staging active 2026-02-25T10:00:00Z),$(item 10 1.4.1 production active 2026-03-01T09:00:00Z)" '"cGFnZTM="' true ;;
       "cGFnZTM=")
-        printf '{"ok":true,"data":{"items":[{"id":"deploy-011","version":"1.5.0","env":"staging","status":"active","created_at":"2026-03-02T10:00:00Z"},{"id":"deploy-012","version":"1.5.1","env":"staging","status":"active","created_at":"2026-03-04T14:00:00Z"},{"id":"deploy-013","version":"1.6.0","env":"staging","status":"active","created_at":"2026-03-06T11:00:00Z"},{"id":"deploy-014","version":"1.6.1","env":"production","status":"active","created_at":"2026-03-08T09:30:00Z"},{"id":"deploy-015","version":"2.0.0","env":"staging","status":"active","created_at":"2026-03-10T10:00:00Z"}],"page":{"limit":5,"next_cursor":"cGFnZTQ=","total":20}},"error":null,"warnings":[],"meta":{"duration_ms":10,"schema_version":"1.0"}}\n'
-        ;;
+        page "$(item 11 1.5.0 staging active 2026-03-02T10:00:00Z),$(item 12 1.5.1 staging active 2026-03-04T14:00:00Z),$(item 13 1.6.0 staging active 2026-03-06T11:00:00Z),$(item 14 1.6.1 production active 2026-03-08T09:30:00Z),$(item 15 2.0.0 staging active 2026-03-10T10:00:00Z)" '"cGFnZTQ="' true ;;
       "cGFnZTQ=")
-        printf '{"ok":true,"data":{"items":[{"id":"deploy-016","version":"2.0.1","env":"staging","status":"active","created_at":"2026-03-11T12:00:00Z"},{"id":"deploy-017","version":"2.0.2","env":"production","status":"active","created_at":"2026-03-12T08:00:00Z"},{"id":"deploy-018","version":"2.1.0","env":"staging","status":"active","created_at":"2026-03-14T15:00:00Z"},{"id":"deploy-019","version":"2.1.0","env":"staging","status":"active","created_at":"2026-03-15T10:00:00Z"},{"id":"deploy-020","version":"2.1.0","env":"staging","status":"active","created_at":"2026-03-16T09:00:00Z"}],"page":{"limit":5,"next_cursor":null,"total":20}},"error":null,"warnings":[],"meta":{"duration_ms":10,"schema_version":"1.0"}}\n'
-        ;;
+        page "$(item 16 2.0.1 staging active 2026-03-11T12:00:00Z),$(item 17 2.0.2 production active 2026-03-12T08:00:00Z),$(item 18 2.1.0 staging active 2026-03-14T15:00:00Z),$(item 19 2.1.0 staging active 2026-03-15T10:00:00Z),$(item 20 2.1.0 staging active 2026-03-16T09:00:00Z)" 'null' false ;;
       *)
-        printf '{"ok":false,"data":null,"error":{"code":"INVALID_CURSOR","message":"Cursor is invalid or expired","retryable":false,"side_effects":"none"},"warnings":[],"meta":{"duration_ms":2,"schema_version":"1.0"}}\n' >&2
-        exit 3
+        printf '{"ok":false,"data":null,"error":{"code":"INVALID_CURSOR","message":"Cursor is invalid or expired","retryable":false,"phase":"validation","fix_required":"Restart pagination without --cursor"},"warnings":[],"meta":{"exit_code":2,"duration_ms":2}}\n'
+        exit 2
         ;;
     esac
     ;;
 
   delete)
     if [ "$DRY_RUN" -eq 1 ]; then
-      printf '{"ok":true,"data":{"would_delete":[{"id":"deploy-021","env":"staging","age_days":45},{"id":"deploy-034","env":"staging","age_days":38},{"id":"deploy-041","env":"staging","age_days":33}],"count":3},"error":null,"warnings":[],"meta":{"duration_ms":8,"schema_version":"1.0"}}\n'
+      printf '{"ok":true,"data":{"effect":"would_delete","would_affect":{"deployments":[{"id":"deploy-021","env":"staging","age_days":45},{"id":"deploy-034","env":"staging","age_days":38},{"id":"deploy-041","env":"staging","age_days":33}],"count":3}},"error":null,"warnings":[],"meta":{"exit_code":0,"duration_ms":8,"dry_run":true}}\n'
     elif [ "$YES" -eq 1 ]; then
-      printf '{"ok":true,"data":{"steps":[{"id":"deploy-021","status":"completed"},{"id":"deploy-034","status":"completed"},{"id":"deploy-041","status":"completed"}],"deleted":3},"error":null,"warnings":[],"meta":{"duration_ms":145,"schema_version":"1.0"}}\n'
+      printf '{"ok":true,"data":{"effect":"deleted","summary":{"total":3,"succeeded":3,"failed":0},"results":[{"id":"deploy-021","ok":true},{"id":"deploy-034","ok":true},{"id":"deploy-041","ok":true}]},"error":null,"warnings":[],"meta":{"exit_code":0,"duration_ms":145}}\n'
     else
-      printf '{"ok":false,"data":null,"error":{"code":"CONFIRMATION_REQUIRED","message":"Destructive operation requires --yes or --dry-run","retryable":false,"side_effects":"none"},"warnings":[],"meta":{"duration_ms":2,"schema_version":"1.0"}}\n'
-      exit 4
+      printf '{"ok":false,"data":null,"error":{"code":"CONFIRMATION_REQUIRED","message":"Destructive operation requires --yes or --dry-run","retryable":false,"phase":"validation","fix_required":"Re-run with --dry-run to preview, then --yes to execute"},"warnings":[],"meta":{"exit_code":2,"duration_ms":2}}\n'
+      exit 2
     fi
     ;;
 
   *)
-    printf '{"ok":false,"data":null,"error":{"code":"ARG_ERROR","message":"Unknown subcommand. Use: list, delete","retryable":false,"side_effects":"none"},"warnings":[],"meta":{"duration_ms":1,"schema_version":"1.0"}}\n' >&2
-    exit 3
+    printf '{"ok":false,"data":null,"error":{"code":"UNKNOWN_SUBCOMMAND","message":"Unknown subcommand. Use: list, delete","retryable":false,"phase":"validation","fix_required":"Use one of: list, delete"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n'
+    exit 2
     ;;
 esac

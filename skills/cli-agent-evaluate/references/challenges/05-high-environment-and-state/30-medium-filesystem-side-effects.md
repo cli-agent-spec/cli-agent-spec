@@ -114,6 +114,10 @@ $ tool status --show-side-effects --output json
 
 ### Agent Workaround
 
+**Signature:** repeated calls return stale data despite upstream changes; disk usage grows in `~/.cache` or `/tmp` after runs; leftover temp files
+
+**Tier:** B (one observable check, then one command)
+
 **Check for and clean up temp files returned in response; pass `--no-cache` for reproducible reads:**
 
 ```python

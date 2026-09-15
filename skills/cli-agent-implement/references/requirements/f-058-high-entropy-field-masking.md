@@ -14,10 +14,10 @@ The framework MUST automatically detect and mask high-entropy string values in J
 
 ## Acceptance Criteria
 
-- A JWT in a response field is replaced with `[JWT: sub=user_123, exp=2024-03-11T15:00:00Z]` by default.
-- A 256-character base64 string is replaced with `[BASE64: 192 bytes]` by default.
-- `--unmask` produces the raw value.
-- Fields declared `high_entropy: true` in the schema are always masked regardless of content pattern.
+- A JWT in a response field is replaced with `[JWT: sub=user_123, exp=2024-03-11T15:00:00Z]` by default
+- A 256-character base64 string is replaced with `[BASE64: 192 bytes]` by default
+- `--unmask` produces the raw value
+- Fields declared `high_entropy: true` in the schema are always masked regardless of content pattern
 
 ---
 
@@ -41,7 +41,7 @@ High-entropy fields in `data` are replaced with semantic summary strings. The ra
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 14 }
+  "meta": { "exit_code": 0, "duration_ms": 14 }
 }
 ```
 

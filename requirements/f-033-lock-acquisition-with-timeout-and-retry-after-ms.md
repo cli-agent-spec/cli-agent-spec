@@ -45,7 +45,7 @@ Lock contention error response:
     "detail": "lock_file=/tmp/mytool/locks/deploy.lock holder_pid=9001 holder_age_ms=12048"
   },
   "warnings": [],
-  "meta": { "duration_ms": 10002, "request_id": "req_01HZ" }
+  "meta": { "exit_code": 4, "duration_ms": 10002, "request_id": "req_01HZ" }
 }
 ```
 

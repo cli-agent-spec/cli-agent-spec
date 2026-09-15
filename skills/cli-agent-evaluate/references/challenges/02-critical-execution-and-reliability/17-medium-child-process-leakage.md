@@ -131,6 +131,11 @@ child = subprocess.Popen(["daemon"], close_fds=True, stdin=DEVNULL,
 
 ### Agent Workaround
 
+**Signature:** stray processes remain after the CLI exits `0`, accumulating per call; next run fails with `lock held by PID`; extra lines appear on stdout after the final JSON
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** run the `cleanup_command` reported in the previous JSON output; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Track background PIDs from command output and clean them up before the next invocation:**
 
 ```python

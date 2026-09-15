@@ -46,7 +46,7 @@ JSON with invariant number and date formatting — identical output regardless o
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 22 }
+  "meta": { "exit_code": 0, "duration_ms": 22 }
 }
 ```
 

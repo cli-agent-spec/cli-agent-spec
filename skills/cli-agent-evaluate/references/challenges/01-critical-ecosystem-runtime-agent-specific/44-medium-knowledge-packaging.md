@@ -34,12 +34,12 @@ Error: invalid token  # What token? Which env var? Why now?
 
 ### Impact
 
-- Agent fails silently on tasks it could complete with appropriate context.
-- Agents make dangerous operations without understanding that `--dry-run` should be run first.
-- Significant token spend on trial-and-error exploration of tool behavior.
-- Agents learn incorrect generalizations from failed invocations (e.g., "this tool requires `--force` to work" when the real issue was a missing prerequisite).
-- Knowledge locked in human documentation (READMEs, wikis, runbooks) is invisible to agents.
-- Without versioned skill files, agents may use outdated guidance after tool updates.
+- Agent fails silently on tasks it could complete with appropriate context
+- Agents make dangerous operations without understanding that `--dry-run` should be run first
+- Significant token spend on trial-and-error exploration of tool behavior
+- Agents learn incorrect generalizations from failed invocations (e.g., "this tool requires `--force` to work" when the real issue was a missing prerequisite)
+- Knowledge locked in human documentation (READMEs, wikis, runbooks) is invisible to agents
+- Without versioned skill files, agents may use outdated guidance after tool updates
 
 ### Solutions
 
@@ -77,10 +77,10 @@ tools: [bash]
 ```
 
 **For framework design:**
-- Auto-generate a minimal AGENTS.md template from schema metadata at `my-tool --generate-agents-md`.
-- Include in `--schema` output: `"danger_level"`, `"requires"` (prerequisite commands), `"read_only"`, and `"docs_url"` fields.
-- Provide a CLI hook to load and display skill files: `my-tool --skill` returns the tool's OpenClaw skill.
-- Score frameworks against Axis 7 and require at least level 1 (CONTEXT.md or AGENTS.md present) before an "agent-ready" designation.
+- Auto-generate a minimal AGENTS.md template from schema metadata at `my-tool --generate-agents-md`
+- Include in `--schema` output: `"danger_level"`, `"requires"` (prerequisite commands), `"read_only"`, and `"docs_url"` fields
+- Provide a CLI hook to load and display skill files: `my-tool --skill` returns the tool's OpenClaw skill
+- Score frameworks against Axis 7 and require at least level 1 (CONTEXT.md or AGENTS.md present) before an "agent-ready" designation
 
 ### Evaluation
 
@@ -96,6 +96,11 @@ tools: [bash]
 ---
 
 ### Agent Workaround
+
+**Signature:** repeated failures unresolved by changing arguments; error hints at an undocumented prerequisite; no `AGENTS.md` and no `requires` metadata in `--schema`
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Read `AGENTS.md` in the tool's directory before retrying anything; if that fails, escalate with the command, exit code, stdout, and stderr
 
 **Read AGENTS.md before first use; extract `danger_level` and `requires` from schema for safe operation planning:**
 

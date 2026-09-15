@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# cli-good: health — spec-compliant implementation
-# Structured error, typed exit code, stderr clean
+# cli-good: health — spec-compliant implementation (ResponseEnvelope 2.0)
+# Structured auth error with a stable code, structured warning, clean stderr
 
 SUBCOMMAND="${1:-}"
 
 case "$SUBCOMMAND" in
   check)
-    printf '{"ok":false,"data":null,"error":{"code":"AUTH_EXPIRED","message":"Registry credential expired","retryable":false,"side_effects":"none","service":"registry","expired_at":"2026-03-19T09:00:00Z","hint":"auth login --service registry"},"warnings":["cache stale, last updated 4h ago"],"meta":{"duration_ms":28,"schema_version":"1.0"}}\n'
-    exit 10
+    printf '{"ok":false,"data":null,"error":{"code":"TOKEN_EXPIRED","message":"Registry credential expired","retryable":false,"fix_required":"Refresh the registry credential, then re-run the health check","context":{"service":"registry","expired_at":"2026-03-19T09:00:00Z"}},"warnings":[{"code":"CACHE_STALE","message":"Health cache is stale","context":{"age_hours":4}}],"meta":{"exit_code":8,"duration_ms":28}}\n'
+    exit 8
     ;;
   *)
-    printf '{"ok":false,"data":null,"error":{"code":"ARG_ERROR","message":"Unknown subcommand. Use: check","retryable":false,"side_effects":"none"},"warnings":[],"meta":{"duration_ms":1,"schema_version":"1.0"}}\n' >&2
-    exit 3
+    printf '{"ok":false,"data":null,"error":{"code":"UNKNOWN_SUBCOMMAND","message":"Unknown subcommand. Use: check","retryable":false,"phase":"validation"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n'
+    exit 2
     ;;
 esac

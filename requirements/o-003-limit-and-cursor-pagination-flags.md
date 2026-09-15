@@ -10,12 +10,12 @@
 
 ## Description
 
-The framework MUST register `--limit <n>` and `--cursor <token>` as standard flags on all list commands. `--limit` controls maximum items returned. `--cursor` accepts an opaque pagination token from the previous response's `pagination.next_cursor`. The cursor MUST be stateless (self-contained, not dependent on server-side session). The framework MUST reject `--cursor` values that are expired or invalid with a structured error.
+The framework MUST register `--limit <n>` and `--cursor <token>` as standard flags on all list commands. `--limit` controls maximum items returned. `--cursor` accepts an opaque pagination token from the previous response's `meta.pagination.next_cursor`. The cursor MUST be stateless (self-contained, not dependent on server-side session). The framework MUST reject `--cursor` values that are expired or invalid with a structured error.
 
 ## Acceptance Criteria
 
 - `--limit 50` returns at most 50 items
-- Passing `pagination.next_cursor` from response N as `--cursor` returns the next page
+- Passing `meta.pagination.next_cursor` from response N as `--cursor` returns the next page
 - An invalid `--cursor` value returns a structured error, not a crash
 - Cursor tokens are URL-safe strings (base64url or similar encoding)
 
@@ -25,7 +25,7 @@ The framework MUST register `--limit <n>` and `--cursor <token>` as standard fla
 
 **Type:** [`response-envelope.md`](../schemas/response-envelope.md)
 
-Pagination metadata appears in `meta`: `meta.cursor` holds the next-page token, `meta.total` holds the total item count when known, and `meta.page_size` reflects the effective limit used.
+Pagination metadata appears in `meta.pagination` (REQ-F-018): `next_cursor` holds the next-page token, `total` holds the total item count when known, and `returned` reflects the items in this page.
 
 ---
 
@@ -46,7 +46,7 @@ $ tool list-deployments --limit 2 --output json
   ],
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 55, "cursor": "eyJwYWdlIjoyfQ", "page_size": 2, "total": 47 }
+  "meta": { "exit_code": 0, "duration_ms": 55, "pagination": { "total": 47, "returned": 2, "truncated": true, "has_more": true, "next_cursor": "eyJwYWdlIjoyfQ" } }
 }
 ```
 
@@ -65,7 +65,7 @@ $ tool list-deployments --limit 2 --cursor eyJwYWdlIjoyfQ --output json
   ],
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 48, "cursor": "eyJwYWdlIjozfQ", "page_size": 2, "total": 47 }
+  "meta": { "exit_code": 0, "duration_ms": 48, "pagination": { "total": 47, "returned": 2, "truncated": true, "has_more": true, "next_cursor": "eyJwYWdlIjozfQ" } }
 }
 ```
 
@@ -79,7 +79,7 @@ The framework registers `--limit` and `--cursor` on list commands at opt-in time
 app = Framework("tool")
 app.enable_pagination_flags(default_limit=20, max_limit=100)
 
-# tool list-deployments --limit 10  →  first 10 items + meta.cursor
+# tool list-deployments --limit 10  →  first 10 items + meta.pagination.next_cursor
 # tool list-deployments --limit 10 --cursor <token>  →  next 10 items
 ```
 

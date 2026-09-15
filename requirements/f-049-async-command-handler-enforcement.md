@@ -45,7 +45,7 @@ When a command starts a long-running async job and returns immediately, `data.jo
   },
   "error": null,
   "warnings": [],
-  "meta": {}
+  "meta": { "exit_code": 0, "duration_ms": 12 }
 }
 ```
 

@@ -45,8 +45,8 @@ echo "$result" | jq '.data[].id'
 ```
 
 **For framework design:**
-- Document prominently: agents MUST check `.ok` in the JSON envelope, not only the exit code, when piping.
-- Framework SHOULD write `TOOL_FAILED=1` to stderr on failure so pipeline callers can detect failure without `pipefail`.
+- Document prominently: agents MUST check `.ok` in the JSON envelope, not only the exit code, when piping
+- Framework SHOULD write `TOOL_FAILED=1` to stderr on failure so pipeline callers can detect failure without `pipefail`
 
 ### Evaluation
 
@@ -62,6 +62,10 @@ echo "$result" | jq '.data[].id'
 ---
 
 ### Agent Workaround
+
+**Signature:** pipeline exits `0` with empty output; running the tool alone exits non-zero and prints a JSON error envelope with `"ok": false`
+
+**Tier:** B (one observable check, then one command)
 
 **Never pipe structured output directly; always capture and check `.ok` before extracting fields:**
 

@@ -14,8 +14,8 @@ The framework MUST prohibit commands from changing the process working directory
 
 ## Acceptance Criteria
 
-- The process CWD after any command invocation is identical to the CWD before invocation.
-- A command that internally calls `os.chdir()` is flagged by the framework's linter/registration check.
+- The process CWD after any command invocation is identical to the CWD before invocation
+- A command that internally calls `os.chdir()` is flagged by the framework's linter/registration check
 - Operations on files in other directories work correctly using absolute paths constructed from `--cwd` (REQ-O-017)
 
 ---

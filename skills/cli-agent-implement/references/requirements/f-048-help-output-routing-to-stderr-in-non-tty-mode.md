@@ -14,9 +14,9 @@ When stdout is not a TTY, the framework MUST redirect all `--help` output to std
 
 ## Acceptance Criteria
 
-- In non-TTY mode, `command --help` produces valid JSON on stdout.
-- In non-TTY mode, the help text itself appears only on stderr.
-- In TTY mode, `command --help` produces help text on stdout (unchanged from standard behavior).
+- In non-TTY mode, `command --help` produces valid JSON on stdout
+- In non-TTY mode, the help text itself appears only on stderr
+- In TTY mode, `command --help` produces help text on stdout (unchanged from standard behavior)
 - `json.loads(stdout_output)` succeeds on `--help` invocations in non-TTY mode
 
 ---

@@ -14,10 +14,10 @@ Every command that acquires resources (locks, temp files, network connections, c
 
 ## Acceptance Criteria
 
-- A command that acquires a lock has the lock released on normal exit, SIGTERM, and timeout.
-- A `cleanup()` hook called twice produces the same end state as calling it once.
-- A command that does not acquire any resources MAY register a no-op cleanup hook.
-- The framework warns at development time if a command acquires a tracked resource without a cleanup hook.
+- A command that acquires a lock has the lock released on normal exit, SIGTERM, and timeout
+- A `cleanup()` hook called twice produces the same end state as calling it once
+- A command that does not acquire any resources MAY register a no-op cleanup hook
+- The framework warns at development time if a command acquires a tracked resource without a cleanup hook
 
 ---
 

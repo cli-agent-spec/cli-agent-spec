@@ -45,7 +45,7 @@ When normalization fails, the framework emits an `ARG_ERROR (2)` response with `
     "suggestion": "Use the corrected_input value to retry"
   },
   "warnings": [],
-  "meta": { "duration_ms": 3 }
+  "meta": { "exit_code": 2, "duration_ms": 3 }
 }
 ```
 

@@ -41,7 +41,7 @@ $ tool --instance-id agent-1 config set region=us-east-1 --output json
   "data": { "key": "region", "value": "us-east-1", "scope": "instance" },
   "error": null,
   "warnings": [],
-  "meta": { "instance_id": "agent-1", "duration_ms": 4 }
+  "meta": { "exit_code": 0, "instance_id": "agent-1", "duration_ms": 4 }
 }
 ```
 

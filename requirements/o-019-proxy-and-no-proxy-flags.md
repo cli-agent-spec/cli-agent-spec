@@ -43,7 +43,7 @@ No wire-format fields — proxy configuration is not injected into success respo
     }
   },
   "warnings": [],
-  "meta": {}
+  "meta": { "exit_code": 12, "duration_ms": 12 }
 }
 ```
 

@@ -116,6 +116,10 @@ tool list-users --fields id,name --output json
 
 ### Agent Workaround
 
+**Signature:** stdout filled with progress, `[DEBUG]`, or summary prose around a small data payload; verbose lines persist even with `CI=true` set
+
+**Tier:** B (one observable check, then one command)
+
 **Set `CI=true` and `--quiet` to suppress prose; use `--fields` to limit output size:**
 
 ```python

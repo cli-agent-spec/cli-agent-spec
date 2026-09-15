@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "ManifestResponse",
+  "$id": "manifest-response.json",
   "title": "ManifestResponse",
-  "description": "Complete command tree for an agent to discover all available commands, their flags, exit codes, and examples in a single call — without iterating --help per subcommand.",
+  "description": "Complete command tree for an agent to discover all available commands, their flags, exit codes, contracts, and examples in a single call, without iterating --help per subcommand.",
   "type": "object",
   "required": ["schema_version", "framework_version", "etag", "commands"],
   "additionalProperties": false,
@@ -24,12 +24,17 @@
       "type": "object",
       "description": "Flat map from dot-separated command path to CommandEntry. 'deploy.rollback' is the rollback subcommand of deploy. Every registered command appears here, including built-ins.",
       "additionalProperties": { "$ref": "#/definitions/CommandEntry" }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/DependencyEntry" },
+      "description": "External runtime dependencies the tool declares (REQ-O-031). tool doctor checks each entry."
     }
   },
   "definitions": {
     "CommandEntry": {
       "type": "object",
-      "required": ["description", "flags", "exit_codes"],
+      "required": ["description", "danger_level", "required_scopes", "flags", "exit_codes"],
       "additionalProperties": false,
       "properties": {
         "description": {
@@ -41,6 +46,16 @@
           "items": { "type": "string" },
           "description": "Alternative names this command can be invoked with."
         },
+        "danger_level": {
+          "type": "string",
+          "enum": ["safe", "mutating", "destructive"],
+          "description": "Mutation risk level. safe: read-only; mutating: creates or modifies state; destructive: permanently deletes or irreversibly modifies state. Sourced from REQ-C-002."
+        },
+        "required_scopes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Minimal permission strings the command needs from the active credential, most critical first. Empty when no auth is required. Sourced from REQ-C-029."
+        },
         "flags": {
           "type": "object",
           "description": "Map from flag name (without leading --) to FlagEntry.",
@@ -48,19 +63,156 @@
         },
         "exit_codes": {
           "type": "object",
-          "description": "Map from exit code integer (as string key) to ExitCodeEntry. Sourced from REQ-C-001 declarations.",
+          "description": "Map from exit code integer (as string key) to ExitCodeEntry. Sourced from REQ-C-001.",
+          "propertyNames": { "pattern": "^(0|[1-9][0-9]*)$" },
           "additionalProperties": { "$ref": "exit-code-entry.json" }
+        },
+        "output_schema": {
+          "type": "object",
+          "description": "JSON Schema draft-07 object describing the shape of the command's data payload on success. Agents use this to validate responses and detect schema drift. Sourced from REQ-C-015.",
+          "additionalProperties": true
+        },
+        "output_formats": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Format values accepted by --output or --format beyond the framework defaults (json, jsonl, tsv, plain). Omit when only defaults are supported. Sourced from REQ-O-049."
         },
         "examples": {
           "type": "array",
-          "items": { "$ref": "#/definitions/Example" }
+          "items": { "$ref": "#/definitions/Example" },
+          "description": "Complete invocations that demonstrate the command. Agents copy these verbatim as starting points."
         },
         "subcommands": {
           "type": "array",
           "items": { "type": "string" },
           "description": "Dot-separated paths of direct child commands. Resolve each via the top-level commands map."
+        },
+        "option_placement": {
+          "type": "string",
+          "enum": ["any", "strict"],
+          "default": "any",
+          "description": "any: options may appear anywhere among positionals. strict: all options must precede positionals because trailing arguments are forwarded verbatim. Sourced from REQ-C-027."
+        },
+        "interactive": {
+          "type": "boolean",
+          "description": "True if the command may prompt for input in a TTY context; --yes and --non-interactive are then registered. Sourced from REQ-C-005."
+        },
+        "has_network_io": {
+          "type": "boolean",
+          "description": "True if the command makes outbound network connections or long blocking I/O calls; --timeout is then registered. Sourced from REQ-C-012."
+        },
+        "steps": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Ordered step names a multi-step command executes. Responses report completed, failed, and skipped steps by these names. Sourced from REQ-C-008."
+        },
+        "spawns_background_process": {
+          "type": "boolean",
+          "description": "True if the command starts a child process that outlives the invocation. Sourced from REQ-C-010."
+        },
+        "cleanup_command": {
+          "type": "string",
+          "description": "Exact command that stops the background process this command starts. Sourced from REQ-C-010."
+        },
+        "max_lifetime_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum seconds the background process runs before the framework may terminate it. Sourced from REQ-C-010."
+        },
+        "filesystem_side_effects": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/FilesystemSideEffect" },
+          "description": "Every filesystem location the command may write to. Sourced from REQ-C-011."
+        },
+        "secret_env_vars": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Environment variable names that supply secret values for this command. Sourced from REQ-C-016."
+        },
+        "platform": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Supported operating system names such as linux or darwin. Absent means all platforms. Sourced from REQ-C-018."
+        },
+        "required_tools": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "External binaries the command invokes, mapped to the minimum version each needs. Sourced from REQ-C-018."
+        },
+        "subprocess": {
+          "$ref": "#/definitions/SubprocessDeclaration",
+          "description": "How the command builds arguments for a child binary. Sourced from REQ-C-019."
+        },
+        "headless_supported": {
+          "type": "boolean",
+          "description": "Auth commands only: true when the command can authenticate in non-TTY mode without a pre-acquired token. Sourced from REQ-C-021."
+        },
+        "token_env_vars": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Auth commands only: environment variables that supply a pre-acquired token. Required when headless_supported is false. Sourced from REQ-C-021."
+        },
+        "async": {
+          "type": "boolean",
+          "description": "True when the command returns a job descriptor instead of waiting for completion. Sourced from REQ-C-022."
+        },
+        "job_descriptor_schema": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "JSON Schema for the job descriptor returned in data by an async command. Sourced from REQ-C-022."
+        },
+        "requires_editor": {
+          "type": "boolean",
+          "description": "True when the command opens $EDITOR or $VISUAL unless an alternative flag is supplied. Sourced from REQ-C-023."
+        },
+        "non_interactive_alternatives": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Flag names, without leading --, that bypass the editor. Required when requires_editor is true. Sourced from REQ-C-023."
+        },
+        "gui_operations": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Display operations the command performs, such as browser_open or desktop_notification. Sourced from REQ-C-024."
+        },
+        "headless_behavior": {
+          "type": "string",
+          "enum": ["emit_in_output", "skip", "error"],
+          "description": "How gui_operations behave in headless mode. Sourced from REQ-C-024."
+        },
+        "config_write_scope": {
+          "type": "string",
+          "enum": ["local", "global", "session"],
+          "description": "Scope of configuration files the command may write. Sourced from REQ-C-025."
+        },
+        "requires": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/ConditionalRule" },
+          "description": "Conditional argument dependency rules, evaluated in order. Sourced from REQ-C-026."
+        },
+        "streaming_default": {
+          "type": "boolean",
+          "description": "True when the command streams JSONL by default; --no-stream returns a single envelope. Sourced from REQ-O-004."
+        },
+        "safe_default": {
+          "type": "boolean",
+          "description": "True when the command runs in dry-run mode unless --live is passed. Sourced from REQ-O-048."
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": { "required": ["requires_editor"], "properties": { "requires_editor": { "const": true } } },
+          "then": { "required": ["non_interactive_alternatives"] }
+        },
+        {
+          "if": { "required": ["headless_supported"], "properties": { "headless_supported": { "const": false } } },
+          "then": { "required": ["token_env_vars"] }
+        },
+        {
+          "if": { "required": ["gui_operations"] },
+          "then": { "required": ["headless_behavior"] }
+        }
+      ]
     },
     "FlagEntry": {
       "type": "object",
@@ -92,8 +244,18 @@
           "type": "string",
           "maxLength": 1,
           "description": "Single-character shorthand (e.g. 'n' for --dry-run). Omit if none exists."
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Anchored regular expression the value must match. Mutually exclusive with pattern_type. Sourced from REQ-C-020."
+        },
+        "pattern_type": {
+          "type": "string",
+          "enum": ["alphanumeric_id", "uuid", "semver", "filepath", "url"],
+          "description": "Built-in validation preset for resource identifiers. Mutually exclusive with pattern. Sourced from REQ-C-020."
         }
-      }
+      },
+      "not": { "required": ["pattern", "pattern_type"] }
     },
     "Example": {
       "type": "object",
@@ -107,6 +269,113 @@
         "command": {
           "type": "string",
           "description": "Full invocation string an agent can use verbatim."
+        }
+      }
+    },
+    "FilesystemSideEffect": {
+      "type": "object",
+      "required": ["path", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Template or glob for paths the command writes."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["cache", "log", "temp", "credential", "config"],
+          "description": "Category of the side effect."
+        },
+        "ttl_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Seconds until the path is considered stale. Omit when permanent."
+        },
+        "clearable_with": {
+          "type": "string",
+          "description": "Exact command that removes this path."
+        }
+      }
+    },
+    "SubprocessDeclaration": {
+      "type": "object",
+      "required": ["binary"],
+      "additionalProperties": false,
+      "properties": {
+        "binary": {
+          "type": "string",
+          "description": "Executable name the command invokes."
+        },
+        "user_controlled_args": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Flag names whose values are passed to the child process as arguments."
+        },
+        "hardcoded_args": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Argument fragments the framework always passes verbatim."
+        }
+      }
+    },
+    "ConditionalRule": {
+      "description": "One conditional argument dependency. Exactly one of the three shapes applies.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["if_flag", "if_value", "then_required"],
+          "additionalProperties": false,
+          "properties": {
+            "if_flag": { "type": "string", "description": "Flag whose value triggers the rule." },
+            "if_value": { "description": "Value of if_flag that makes then_required mandatory." },
+            "then_required": { "type": "array", "items": { "type": "string" }, "description": "Flags that become required." }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["if_flag", "prohibited"],
+          "additionalProperties": false,
+          "properties": {
+            "if_flag": { "type": "string", "description": "Flag whose presence triggers the rule." },
+            "prohibited": { "type": "array", "items": { "type": "string" }, "description": "Flags that are forbidden when if_flag is present." }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["if_flag", "target_flag", "default"],
+          "additionalProperties": false,
+          "properties": {
+            "if_flag": { "type": "string", "description": "Flag whose absence triggers the rule." },
+            "target_flag": { "type": "string", "description": "Flag whose default changes." },
+            "default": { "description": "Default applied to target_flag when if_flag is absent." }
+          }
+        }
+      ]
+    },
+    "DependencyEntry": {
+      "type": "object",
+      "required": ["name", "check_command", "min_version"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Dependency name, such as terraform or node."
+        },
+        "check_command": {
+          "type": "string",
+          "description": "Exact command that prints the installed version."
+        },
+        "version_regex": {
+          "type": "string",
+          "description": "Regular expression whose first group extracts the version from check_command output."
+        },
+        "min_version": {
+          "type": "string",
+          "description": "Minimum supported version."
+        },
+        "fix_command": {
+          "type": "string",
+          "description": "Exact command that installs or upgrades the dependency."
         }
       }
     }

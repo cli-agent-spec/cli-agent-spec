@@ -46,7 +46,7 @@ $ tool migrate --resume-from step-3 --output json
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 4210 }
+  "meta": { "exit_code": 0, "duration_ms": 4210 }
 }
 ```
 

@@ -10,15 +10,35 @@ There is no build system, test runner, or package manager. All content is markdo
 
 ## Common commands
 
-**Validate cross-links** (broken file references, schema↔requirement symmetry, index completeness):
-```
-/validate-links
+**Validate cross-links, indexes, sections, counters** (also available as `/validate-links`):
+```bash
+uv run scripts/validate_links.py
 ```
 
-**Validate schemas manually:**
+**Regenerate the machine-readable failure mode index** (`challenges/index.json`; CI fails if stale):
 ```bash
-npm install -g ajv-cli
-ajv compile -s "schemas/*.json" --spec=draft7
+uv run scripts/build_failure_index.py
+```
+
+**Run the conformance kit against a CLI profile** (exit `0` pass, `4` failures, `2` bad profile):
+```bash
+uv run conformance/run.py conformance/profiles/democli-good.json
+```
+
+**Check skill reference bundles** (sync with no flag):
+```bash
+scripts/sync-skill-references.sh --check
+```
+
+**Validate schemas and every JSON example in the prose:**
+```bash
+uv run scripts/validate_schemas.py
+```
+
+**Validate schemas with ajv only** (`--strict=false` because of the `x-` annotations):
+```bash
+npm install -g ajv-cli@5
+ajv compile -s "schemas/*.json" --spec=draft7 --strict=false
 ```
 
 **Full autonomous audit (install → onboard → readiness → evaluate → report):**
@@ -65,11 +85,13 @@ ajv compile -s "schemas/*.json" --spec=draft7
 
 ### Directories
 
-- `challenges/` — 74 failure modes in 7 parts (01=critical ecosystem, 02=execution, 03=security, 04=output, 05=environment, 06=errors, 07=observability). Failure modes are referenced as `§N`. `challenges/triage.md` maps observable failure signals (exit code, streams, timing) to §N candidates; it is a routing document, not a failure mode.
+- `challenges/` — 74 failure modes in 7 parts (01=critical ecosystem, 02=execution, 03=security, 04=output, 05=environment, 06=errors, 07=observability). Failure modes are referenced as `§N`. `challenges/triage.md` maps observable failure signals (exit code, streams, timing) to §N candidates; it is a routing document, not a failure mode. `challenges/index.json` is the generated machine-readable taxonomy; never edit it by hand.
 - `requirements/` — 158 requirements in 3 tiers: `f-NNN` (Framework-Automatic), `c-NNN` (Command Contract), `o-NNN` (Opt-In). Referenced as `REQ-{TIER}-{NNN}`.
-- `schemas/` — 4 canonical JSON Schema draft-07 types, each with a `.json` (machine) and `.md` (human) companion: `exit-code`, `exit-code-entry`, `response-envelope`, `manifest-response`. Plus `diagnose-result` (skill-internal, not a canonical spec type).
+- `schemas/` — 5 canonical JSON Schema draft-07 types, each with a `.json` (machine) and `.md` (human) companion: `exit-code`, `exit-code-entry`, `response-envelope`, `manifest-response`, `dispatch-request`. Tooling schemas for skill and script output (`diagnose-result` and others) are listed separately in `schemas/index.md`.
 - `research/` — per-framework analysis (argparse, click, clap, cobra, typer, commander-js, pydantic, MCP, OpenAPI, etc.).
 - `guides/` — design guides for CLI authors: positive conventions that cannot be expressed as enforceable requirements. See `guides/index.md`.
+- `conformance/` — deterministic conformance kit (`run.py`) and probe profiles; the benchmark mocks are its fixtures.
+- `scripts/` — corpus validators and generators run by CI; see Common commands.
 - `comparison-matrix.md` — 74 failure modes × 12 frameworks coverage table.
 
 ### Requirement tiers
@@ -100,7 +122,7 @@ Required sections in order: `### The Problem` → `### Impact` → `### Solution
 - `### Agent Workaround` must include a `**Limitation:**` line; generic only, no tool-specific instructions
 - Evaluation: 0–3 scoring table when four states are meaningful; binary pass/fail otherwise
 
-When adding a failure mode: assign next `§N`, place in correct part folder, add rows to `challenges/index.md` and the part's `index.md`, add row to `challenges/sources.md`, add or extend a `challenges/triage.md` row if the failure has a distinct observable signature, create/update requirements.
+When adding a failure mode: assign next `§N`, place in correct part folder, add rows to `challenges/index.md` and the part's `index.md`, add row to `challenges/sources.md`, add or extend a `challenges/triage.md` row if the failure has a distinct observable signature, create/update requirements, then regenerate `challenges/index.json` with `uv run scripts/build_failure_index.py`.
 
 ## Requirement file format
 
@@ -112,7 +134,7 @@ When adding a requirement: assign next `NNN` within the tier, add row to `requir
 
 Each type needs two files: `<name>.json` + `<name>.md`. The `.md` has 8 sections in order: Title+Used-by → `## Purpose` → `## Values`/field table → `## Examples` → `## Common mistakes` → `## Agent interpretation` → `## Coding agent notes` → `## Implementation notes`
 
-JSON schema rules: draft-07, `$id` matches filename without extension, all properties have `description`, use `$ref` by filename, no language-specific content.
+JSON schema rules: draft-07, `$id` equals the filename including `.json`, all properties have `description`, use `$ref` by filename, no language-specific content.
 
 When adding a schema: create both files, add row to `schemas/index.md`, reference `.json` from requirements that use the type.
 

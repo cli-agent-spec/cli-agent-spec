@@ -14,8 +14,8 @@ The framework's SIGTERM handler (REQ-F-013) MUST forward `SIGTERM` to all childr
 
 ## Acceptance Criteria
 
-- A child process registered with the framework receives `SIGTERM` when the parent receives `SIGTERM`.
-- If a child does not exit within the grace period, the framework sends `SIGKILL` to that child.
+- A child process registered with the framework receives `SIGTERM` when the parent receives `SIGTERM`
+- If a child does not exit within the grace period, the framework sends `SIGKILL` to that child
 - The parent's cancellation JSON output is emitted after children have been signaled
 
 ---

@@ -14,9 +14,9 @@ The framework MUST write an append-only audit log entry for every command invoca
 
 ## Acceptance Criteria
 
-- After any command invocation, the audit log file contains a new JSONL entry.
-- The entry for a command invoked with a secret argument does not contain the secret value.
-- The audit log is valid JSONL (one JSON object per line, newline-delimited).
+- After any command invocation, the audit log file contains a new JSONL entry
+- The entry for a command invoked with a secret argument does not contain the secret value
+- The audit log is valid JSONL (one JSON object per line, newline-delimited)
 - The audit log is written even when the command exits non-zero
 
 ---
@@ -38,6 +38,7 @@ No dedicated schema type — this requirement governs audit log file writes with
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 412,
     "request_id": "req_01HZ",
     "audit_log_path": "/home/user/.local/share/mytool/audit.jsonl"

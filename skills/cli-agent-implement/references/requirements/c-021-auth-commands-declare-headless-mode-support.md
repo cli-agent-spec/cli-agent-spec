@@ -14,10 +14,10 @@ Any command that performs authentication or credential acquisition MUST declare 
 
 ## Acceptance Criteria
 
-- A browser-auth command invoked in non-TTY mode without a token env var exits with code 4 and lists the required env vars.
-- A browser-auth command invoked in non-TTY mode with a valid token in `MY_TOOL_TOKEN` succeeds.
-- The `--schema` output for auth commands includes `headless_supported` and `token_env_vars`.
-- A headless-supported auth command (e.g., device code flow) works in non-TTY mode without any token env var.
+- A browser-auth command invoked in non-TTY mode without a token env var exits with code 4 and lists the required env vars
+- A browser-auth command invoked in non-TTY mode with a valid token in `MY_TOOL_TOKEN` succeeds
+- The `--schema` output for auth commands includes `headless_supported` and `token_env_vars`
+- A headless-supported auth command (e.g., device code flow) works in non-TTY mode without any token env var
 
 ---
 

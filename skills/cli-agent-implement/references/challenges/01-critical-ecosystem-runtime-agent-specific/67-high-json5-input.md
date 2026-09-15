@@ -69,9 +69,9 @@ def normalize_json(s):
 ```
 
 **For framework design:**
-- Framework MUST use a forgiving JSON parser (JSON5 or equivalent) for all `--config`, `--filter`, `--data`, and `--raw-payload` flag inputs.
-- When strict JSON is required (e.g., for schema validation), the framework normalizes the input before validation and emits the corrected form in the error if validation fails.
-- The `corrected_input` field in parse errors enables agents to retry with minimal reasoning.
+- Framework MUST use a forgiving JSON parser (JSON5 or equivalent) for all `--config`, `--filter`, `--data`, and `--raw-payload` flag inputs
+- When strict JSON is required (e.g., for schema validation), the framework normalizes the input before validation and emits the corrected form in the error if validation fails
+- The `corrected_input` field in parse errors enables agents to retry with minimal reasoning
 
 ### Evaluation
 
@@ -87,6 +87,10 @@ def normalize_json(s):
 ---
 
 ### Agent Workaround
+
+**Signature:** immediate rejection with `Invalid JSON` or `Unexpected token` at a position matching a trailing comma, comment, or unquoted key in generated input
+
+**Tier:** B (one observable check, then one command)
 
 **Normalize LLM-generated JSON before passing to the tool; use `corrected_input` from parse errors on retry:**
 

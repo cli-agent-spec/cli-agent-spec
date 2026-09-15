@@ -14,9 +14,9 @@ The framework's built-in HTTP client MUST automatically read and apply `HTTP_PRO
 
 ## Acceptance Criteria
 
-- When `HTTPS_PROXY` is set, all outbound HTTPS requests from the framework's HTTP client use that proxy.
-- When `NO_PROXY=localhost`, requests to `localhost` bypass the proxy.
-- When `REQUESTS_CA_BUNDLE` is set, the specified CA bundle is used for SSL verification.
+- When `HTTPS_PROXY` is set, all outbound HTTPS requests from the framework's HTTP client use that proxy
+- When `NO_PROXY=localhost`, requests to `localhost` bypass the proxy
+- When `REQUESTS_CA_BUNDLE` is set, the specified CA bundle is used for SSL verification
 - A command author who uses the framework's HTTP client does not need to write any proxy handling code
 
 ---

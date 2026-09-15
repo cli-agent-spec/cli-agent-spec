@@ -127,6 +127,10 @@ def sanitize_string(s: str) -> str:
 
 ### Agent Workaround
 
+**Signature:** empty stdout with nonzero exit and `UnicodeDecodeError` or `Traceback` in stderr; or JSON truncated or containing `\u0000` / `\ufffd` characters
+
+**Tier:** B (one observable check, then one command)
+
 **Use `errors="replace"` when decoding tool output; handle JSON parse failures as encoding issues:**
 
 ```python

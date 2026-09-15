@@ -47,7 +47,7 @@ Failed deployment with successful rollback:
   },
   "error": { "code": "PARTIAL_FAILURE", "message": "Deployment failed at step-3; rollback completed" },
   "warnings": [],
-  "meta": { "duration_ms": 8320 }
+  "meta": { "exit_code": 3, "duration_ms": 8320 }
 }
 ```
 

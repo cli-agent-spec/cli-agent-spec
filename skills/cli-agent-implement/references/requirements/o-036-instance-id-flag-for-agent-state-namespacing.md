@@ -14,10 +14,10 @@ The framework MUST provide `--instance-id <string>` as a global flag. When set, 
 
 ## Acceptance Criteria
 
-- `tool --instance-id agent-1 config set region=us-east-1` writes to `~/.tool/instances/agent-1/config.json`.
-- `tool --instance-id agent-2 config set region=eu-west-1` writes to a different path and does not affect agent-1's config.
-- Without `--instance-id`, concurrent config writes use file locking and succeed sequentially.
-- `TOOL_INSTANCE_ID=agent-3` is equivalent to `--instance-id agent-3`.
+- `tool --instance-id agent-1 config set region=us-east-1` writes to `~/.tool/instances/agent-1/config.json`
+- `tool --instance-id agent-2 config set region=eu-west-1` writes to a different path and does not affect agent-1's config
+- Without `--instance-id`, concurrent config writes use file locking and succeed sequentially
+- `TOOL_INSTANCE_ID=agent-3` is equivalent to `--instance-id agent-3`
 
 ---
 
@@ -41,7 +41,7 @@ $ tool --instance-id agent-1 config set region=us-east-1 --output json
   "data": { "key": "region", "value": "us-east-1", "scope": "instance" },
   "error": null,
   "warnings": [],
-  "meta": { "instance_id": "agent-1", "duration_ms": 4 }
+  "meta": { "exit_code": 0, "instance_id": "agent-1", "duration_ms": 4 }
 }
 ```
 

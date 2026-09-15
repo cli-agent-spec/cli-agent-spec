@@ -14,9 +14,9 @@ The framework MUST provide a path output type that commands declare for any fiel
 
 ## Acceptance Criteria
 
-- A command that returns `"./src/index.ts"` as a path field has it resolved to `"/project/src/index.ts"` in the output.
-- The resolved path is absolute regardless of the CWD from which the command was invoked.
-- A relative path returned through the path type is always expanded against the effective CWD at invocation time.
+- A command that returns `"./src/index.ts"` as a path field has it resolved to `"/project/src/index.ts"` in the output
+- The resolved path is absolute regardless of the CWD from which the command was invoked
+- A relative path returned through the path type is always expanded against the effective CWD at invocation time
 
 ---
 
@@ -45,7 +45,7 @@ $ cd /project && tool find-config --output json
   },
   "error": null,
   "warnings": [],
-  "meta": { "cwd": "/project" }
+  "meta": { "exit_code": 0, "duration_ms": 12, "cwd": "/project" }
 }
 ```
 

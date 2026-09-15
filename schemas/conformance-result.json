@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "conformance-result.json",
+  "title": "ConformanceResult",
+  "description": "data payload of the ResponseEnvelope printed by conformance/run.py.",
+  "type": "object",
+  "required": ["schema_version", "tool", "levels", "summary", "checks"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0"],
+      "description": "Version of this result format."
+    },
+    "tool": {
+      "type": "string",
+      "description": "Tool name copied from the profile."
+    },
+    "levels": {
+      "type": "object",
+      "required": ["level_1", "level_2", "level_3"],
+      "additionalProperties": false,
+      "description": "Verdict per conformance level over the mechanically checkable subset. pass: every check at or below the level passed. fail: at least one failed. incomplete: none failed but at least one was skipped.",
+      "properties": {
+        "level_1": { "$ref": "#/definitions/LevelStatus", "description": "Verdict over level 1 checks." },
+        "level_2": { "$ref": "#/definitions/LevelStatus", "description": "Verdict over level 1 and 2 checks." },
+        "level_3": { "$ref": "#/definitions/LevelStatus", "description": "Verdict over all checks." }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["passed", "failed", "skipped"],
+      "additionalProperties": false,
+      "description": "Check counts by status.",
+      "properties": {
+        "passed": { "type": "integer", "minimum": 0, "description": "Checks with status pass." },
+        "failed": { "type": "integer", "minimum": 0, "description": "Checks with status fail." },
+        "skipped": { "type": "integer", "minimum": 0, "description": "Checks with status skip." }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/Check" },
+      "description": "One entry per reported check."
+    }
+  },
+  "definitions": {
+    "LevelStatus": {
+      "type": "string",
+      "enum": ["pass", "fail", "incomplete"],
+      "description": "Aggregate verdict for a level."
+    },
+    "Check": {
+      "type": "object",
+      "required": ["id", "title", "status", "level", "failure_modes", "requirements", "runs_checked", "failures"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$", "description": "Stable check identifier." },
+        "title": { "type": "string", "description": "What the check verifies." },
+        "status": { "type": "string", "enum": ["pass", "fail", "skip"], "description": "Outcome of the check." },
+        "level": { "type": "integer", "enum": [1, 2, 3], "description": "Lowest conformance level that requires this check." },
+        "failure_modes": { "type": "array", "items": { "type": "string", "pattern": "^§[0-9]+$" }, "description": "Failure modes the check detects." },
+        "requirements": { "type": "array", "items": { "type": "string", "pattern": "^REQ-[FCO]-[0-9]{3}$" }, "description": "Requirements the check verifies." },
+        "runs_checked": { "type": "integer", "minimum": 0, "description": "Probe runs this check evaluated." },
+        "failures": { "type": "array", "items": { "$ref": "#/definitions/Evidence" }, "description": "One entry per failing run. Empty when status is pass." },
+        "skipped_reason": { "type": "string", "description": "Why the check did not run. Present only when status is skip." }
+      }
+    },
+    "Evidence": {
+      "type": "object",
+      "required": ["probe", "argv", "stdin", "exit_code", "timed_out", "duration_ms", "detail"],
+      "additionalProperties": false,
+      "properties": {
+        "probe": { "type": "string", "description": "Probe name, with any appended flag." },
+        "argv": { "type": "array", "items": { "type": "string" }, "description": "Full argv that ran, reproducible verbatim." },
+        "stdin": { "type": "string", "enum": ["closed", "open"], "description": "closed: /dev/null. open: a pipe never written to or closed." },
+        "exit_code": { "type": ["integer", "null"], "description": "Process exit code, or null when the run was killed." },
+        "timed_out": { "type": "boolean", "description": "True when the run exceeded timeout_seconds." },
+        "duration_ms": { "type": "integer", "minimum": 0, "description": "Wall-clock time of the run." },
+        "detail": { "type": "string", "description": "Why the run failed the check." }
+      }
+    }
+  }
+}

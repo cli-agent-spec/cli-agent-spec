@@ -28,7 +28,9 @@ Commands that stream by default (see §76) MUST additionally declare `streaming_
 
 ## Schema
 
-No dedicated schema type — this requirement governs streaming output format without adding new wire-format fields. Each line is a self-contained JSON object using the command's declared item type. The final summary line reuses `ResponseMeta` field names.
+**Types:** [`manifest-response.md`](../schemas/manifest-response.md) (`CommandEntry.streaming_default`) · [`response-envelope.md`](../schemas/response-envelope.md) (`ResponseMeta` field names on the summary line)
+
+Each streamed line is a self-contained JSON object using the command's declared item type. The final summary line reuses `ResponseMeta` field names.
 
 ---
 
@@ -57,7 +59,7 @@ $ tool deploy --target staging --stream
   "data": null,
   "error": { "code": "STREAMING_NOT_SUPPORTED", "message": "deploy does not support --stream" },
   "warnings": [],
-  "meta": { "duration_ms": 3 }
+  "meta": { "exit_code": 2, "duration_ms": 3 }
 }
 ```
 

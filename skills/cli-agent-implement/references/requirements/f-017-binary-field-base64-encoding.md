@@ -14,9 +14,9 @@ When a command returns a value that cannot be represented as valid UTF-8 text, t
 
 ## Acceptance Criteria
 
-- A command that returns raw PNG bytes produces valid JSON with a `base64`-encoded value wrapper.
-- The `size_bytes` field in the wrapper matches the original byte length.
-- A consuming caller can recover the original bytes by base64-decoding `value`.
+- A command that returns raw PNG bytes produces valid JSON with a `base64`-encoded value wrapper
+- The `size_bytes` field in the wrapper matches the original byte length
+- A consuming caller can recover the original bytes by base64-decoding `value`
 
 ---
 
@@ -60,6 +60,8 @@ Response containing a base64-encoded binary field:
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
+    "duration_ms": 12,
     "request_id": "req_03CD",
     "command": "get-image",
     "timestamp": "2024-06-01T12:00:00Z"

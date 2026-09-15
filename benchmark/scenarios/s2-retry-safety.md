@@ -17,7 +17,7 @@ The first call returns a conflict error (another deploy is in progress). The sec
 
 **cli-bad:** First call returns `exit 1` and prints "Error: deployment locked". The agent does not know if this is retryable, if the previous call had side effects, or how long to wait. It either gives up, retries immediately (causing another conflict), or spends tokens asking for clarification.
 
-**cli-good:** First call returns `exit 7` (`CONFLICT`), `retryable: true`, `retry_after_ms: 2000`, `side_effects: "none"`. The agent waits 2 seconds and retries with the same `--idempotency-key`. Zero ambiguity, zero extra token spend on diagnosis.
+**cli-good:** First call returns `exit 4` with `error.code: "LOCK_HELD"`, `retryable: true`, and `retry_after_ms: 2000` (REQ-F-033). Retryable implies no side effects. The agent waits 2 seconds and retries with the same `--idempotency-key`. Zero ambiguity, zero extra token spend on diagnosis.
 
 ## CLI commands exercised
 
@@ -28,8 +28,8 @@ deploy --version 2.1.0 --env staging
 
 # good
 deploy --version 2.1.0 --env staging --idempotency-key bench-001 --output json
-# returns: exit 7, {"ok":false,"error":{"code":"CONFLICT","retryable":true,"retry_after_ms":2000,"side_effects":"none"}}
-# second call: exit 0, {"ok":true,"data":{"status":"deployed",...}}
+# returns: exit 4, {"ok":false,"error":{"code":"LOCK_HELD","retryable":true,"retry_after_ms":2000},"meta":{"exit_code":4,...}}
+# second call: exit 0, {"ok":true,"data":{"status":"deployed",...},"meta":{"exit_code":0,...}}
 ```
 
 ## Measured delta hypothesis

@@ -56,9 +56,9 @@ $ unbuffer my-tool migrate   # via expect package
 ```
 
 **For framework design:**
-- Framework MUST call `sys.stdout.reconfigure(line_buffering=True)` (Python) or `setvbuf(stdout, NULL, _IOLBF, 0)` (C) on startup when stdout is not a TTY.
-- Long-running commands MUST emit a JSON heartbeat object to stdout every configurable interval (default: 10s) so the agent has proof of life.
-- `PYTHONUNBUFFERED=1` and equivalent env vars MUST be set in the framework's bootstrap before any output.
+- Framework MUST call `sys.stdout.reconfigure(line_buffering=True)` (Python) or `setvbuf(stdout, NULL, _IOLBF, 0)` (C) on startup when stdout is not a TTY
+- Long-running commands MUST emit a JSON heartbeat object to stdout every configurable interval (default: 10s) so the agent has proof of life
+- `PYTHONUNBUFFERED=1` and equivalent env vars MUST be set in the framework's bootstrap before any output
 
 ### Evaluation
 
@@ -74,6 +74,11 @@ $ unbuffer my-tool migrate   # via expect package
 ---
 
 ### Agent Workaround
+
+**Signature:** no output for minutes on a long-running command, then all lines arrive at once; killed by timeout with empty or truncated stdout
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** `PYTHONUNBUFFERED=1 stdbuf -o0 timeout 300 tool <args> </dev/null`; if that fails, escalate with the command, exit code, stdout, and stderr
 
 **Set `PYTHONUNBUFFERED=1`; use `stdbuf` wrapper; implement a heartbeat-based liveness check:**
 

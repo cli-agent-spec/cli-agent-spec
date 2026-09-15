@@ -41,6 +41,7 @@ In headless mode, commands that would normally open a browser or file picker ret
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 8,
     "headless": true
   }

@@ -86,6 +86,11 @@ Provide a `--non-interactive` flag that suppresses all post-install prompts and 
 
 ### Agent Workaround
 
+**Signature:** install command hangs at a prompt ending in `[y/N]:`; or hangs silently on stdin; sending EOF makes it exit non-zero; occurs on fresh CI or container hosts
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** `CI=true DEBIAN_FRONTEND=noninteractive PIP_NO_INPUT=1 NPM_CONFIG_YES=true timeout 300 <install command> </dev/null`; if that fails, escalate with the command, exit code, stdout, and stderr
+
 Before attempting installation, scan AGENTS.md and README for an explicit non-interactive install command. Prefer commands that include `-y`, `--yes`, `--non-interactive`, `DEBIAN_FRONTEND=noninteractive`, or equivalent flags.
 
 Set these environment variables before running any install command:

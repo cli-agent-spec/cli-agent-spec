@@ -14,10 +14,10 @@ When the tool is wrapped as an MCP server, the framework MUST provide a built-in
 
 ## Acceptance Criteria
 
-- `tool mcp-validate --mcp-schema-file mcp.json` exits 0 if schemas match, non-zero if drift is detected.
-- Drift is reported as a structured JSON diff with `added`, `removed`, and `changed` fields.
-- A new CLI command not present in the MCP schema is reported as a `missing_from_mcp` drift entry.
-- The command can be run in CI to detect schema staleness before deployment.
+- `tool mcp-validate --mcp-schema-file mcp.json` exits 0 if schemas match, non-zero if drift is detected
+- Drift is reported as a structured JSON diff with `added`, `removed`, and `changed` fields
+- A new CLI command not present in the MCP schema is reported as a `missing_from_mcp` drift entry
+- The command can be run in CI to detect schema staleness before deployment
 
 ---
 
@@ -46,16 +46,21 @@ $ tool mcp-validate --mcp-schema-file mcp.json --output json
       "missing_from_mcp": ["delete"]
     }
   },
-  "error": null,
+  "error": {
+    "code": "SCHEMA_DRIFT_DETECTED",
+    "message": "CLI schema and MCP schema differ for 2 commands",
+    "retryable": false,
+    "fix_required": "Regenerate the MCP schema from tool manifest"
+  },
   "warnings": [],
-  "meta": { "duration_ms": 31 }
+  "meta": { "exit_code": 1, "duration_ms": 31 }
 }
 ```
 
 No drift:
 
 ```json
-{ "ok": true, "data": { "drift": { "added": [], "removed": [], "changed": [], "missing_from_mcp": [] } }, "error": null, "warnings": [], "meta": {} }
+{ "ok": true, "data": { "drift": { "added": [], "removed": [], "changed": [], "missing_from_mcp": [] } }, "error": null, "warnings": [], "meta": { "exit_code": 0, "duration_ms": 12 } }
 ```
 
 ---

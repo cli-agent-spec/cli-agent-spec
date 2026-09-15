@@ -73,6 +73,12 @@ tool list-users --output json
 tool list-users --output jsonl   # one JSON object per line for streaming
 tool list-users --output tsv     # tab-separated, good for piping
 tool list-users --output plain   # minimal, no decoration (for humans too)
+
+# Some CLIs use --json as a shorthand (gh, az, etc.)
+tool list-users --json           # equivalent to --output json
+
+# Some CLIs use -o as a short flag (kubectl, helm, etc.)
+tool list-users -o json
 ```
 
 **JSON output schema:**
@@ -160,11 +166,11 @@ The comparison matrix shows REQ-F-004 (Consistent JSON Response Envelope) is ✗
 
 ### Impact
 
-- Agent must write per-tool parsing logic for each command's success and error formats.
-- No generic error handler: agents cannot uniformly check `response.ok` or `response.error.code` across tools.
-- Pagination metadata lives in different fields or different locations per tool, making generic pagination handling impossible.
-- Correlating requests across tools (for debugging) requires per-tool knowledge of where timestamps and IDs live.
-- LLM token spend increases when agents must reason about schema variations rather than applying a known pattern.
+- Agent must write per-tool parsing logic for each command's success and error formats
+- No generic error handler: agents cannot uniformly check `response.ok` or `response.error.code` across tools
+- Pagination metadata lives in different fields or different locations per tool, making generic pagination handling impossible
+- Correlating requests across tools (for debugging) requires per-tool knowledge of where timestamps and IDs live
+- LLM token spend increases when agents must reason about schema variations rather than applying a known pattern
 
 ### Solutions
 
@@ -204,11 +210,11 @@ The comparison matrix shows REQ-F-004 (Consistent JSON Response Envelope) is ✗
 ```
 
 **For framework design:**
-- Make the `ok`/`data`/`error`/`warnings`/`meta` envelope mandatory for all structured JSON output; prohibit raw arrays or bare objects as top-level responses.
-- Framework-generated output functions (`output()`, `echo()`) must serialize through the envelope automatically; direct `print()` / `console.log()` must be prohibited in command handlers.
-- Define a JSON Schema for the envelope itself and publish it as a standard (analogous to JSON:API or JSON-LD) so agents can validate responses against it.
-- The `meta` section must always include `request_id`, `duration_ms`, and `schema_version` without any author effort (framework auto-injects these).
-- `error.code` must be from the standard exit code taxonomy (challenge #1) — machine-readable string constant, not a free-form message.
+- Make the `ok`/`data`/`error`/`warnings`/`meta` envelope mandatory for all structured JSON output; prohibit raw arrays or bare objects as top-level responses
+- Framework-generated output functions (`output()`, `echo()`) must serialize through the envelope automatically; direct `print()` / `console.log()` must be prohibited in command handlers
+- Define a JSON Schema for the envelope itself and publish it as a standard (analogous to JSON:API or JSON-LD) so agents can validate responses against it
+- The `meta` section must always include `request_id`, `duration_ms`, and `schema_version` without any author effort (framework auto-injects these)
+- `error.code` must be from the standard exit code taxonomy (challenge #1) — machine-readable string constant, not a free-form message
 
 ### Evaluation
 
@@ -225,11 +231,32 @@ The comparison matrix shows REQ-F-004 (Consistent JSON Response Envelope) is ✗
 
 ### Agent Workaround
 
+**Signature:** `json.loads(stdout)` raises `JSONDecodeError`; stdout shows box-drawing tables, prose lines around a JSON object, or locale-formatted numbers
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Rerun as `NO_COLOR=1 CI=true tool <args> --output json`; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Always request structured output and detect format violations before parsing:**
 
 ```python
+# Discover the JSON flag from --help before invoking the real command
+_help = subprocess.run([*cmd, "--help"], capture_output=True, text=True)
+help_text = _help.stdout + _help.stderr
+
+JSON_FLAG_PATTERNS = [
+    (r"--output\s+\w*json", ["--output", "json"]),  # --output json / --output-format json
+    (r"--json\b",            ["--json"]),             # gh, az
+    (r"-o\b",                ["-o", "json"]),         # kubectl, helm
+]
+json_flag = next(
+    (flag for pattern, flag in JSON_FLAG_PATTERNS if re.search(pattern, help_text)),
+    None,
+)
+if json_flag is None:
+    raise ValueError(f"No JSON output flag found in --help for: {cmd}")
+
 result = subprocess.run(
-    [*cmd, "--output", "json"],
+    [*cmd, *json_flag],
     capture_output=True, text=True,
     env={**os.environ, "NO_COLOR": "1", "CI": "true"},
 )
@@ -240,18 +267,47 @@ stdout = result.stdout.strip()
 if result.returncode != 0 and any(kw in stdout for kw in ("Usage:", "Options:", "Commands:")):
     raise ValueError(f"Received help text instead of JSON — likely a usage error: {cmd}")
 
-# Parse the last valid JSON line (guards against leading prose)
-for line in reversed(stdout.splitlines()):
-    try:
-        parsed = json.loads(line)
-        break
-    except json.JSONDecodeError:
-        continue
-else:
+# Recover the payload with the canonical extraction rule (defined below)
+parsed = extract_envelope(stdout)
+if parsed is None:
     raise ValueError(f"No valid JSON in output: {stdout[:200]}")
 
 ok = parsed.get("ok", parsed.get("status") == "ok")
 data = parsed.get("data") or parsed.get("result") or parsed
 ```
 
-**Limitation:** If the tool has no `--output json` flag and mixes prose with data in stdout, regex extraction is fragile and environment-dependent — there is no reliable agent-side fix; treat the tool as unstructured and require human review of any extracted values
+**The canonical JSON extraction rule (identical in §3, §41, §68; defined in [triage.md](../triage.md)):**
+
+```python
+import json, re
+
+def extract_envelope(stdout: str):
+    """Canonical JSON extraction rule — defined in challenges/triage.md."""
+    text = re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", stdout)   # 1. strip ANSI codes
+    try:
+        return json.loads(text)                            # 2. fast path: clean stream
+    except json.JSONDecodeError:
+        pass
+    candidates = []                                        # 3. every maximal JSON value
+    decoder = json.JSONDecoder()
+    i = 0
+    while True:
+        starts = [s for s in (text.find(c, i) for c in "{[") if s != -1]
+        if not starts:
+            break
+        start = min(starts)
+        try:
+            obj, end = decoder.raw_decode(text[start:])
+            candidates.append(obj)
+            i = start + end
+        except json.JSONDecodeError:
+            i = start + 1
+    envelopes = [c for c in candidates if isinstance(c, dict) and "ok" in c]
+    if envelopes:
+        return envelopes[-1]                               # 4. last envelope wins
+    if candidates:
+        return candidates[-1]                              # 5. last complete value
+    return None                                            # 6. unstructured: do not guess
+```
+
+**Limitation:** If the tool has no `--output json` flag, the extraction rule still fails when prose interleaves inside a single JSON value — there is no reliable agent-side fix; treat the tool as unstructured and require human review of any extracted values

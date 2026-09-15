@@ -46,16 +46,21 @@ $ tool mcp-validate --mcp-schema-file mcp.json --output json
       "missing_from_mcp": ["delete"]
     }
   },
-  "error": null,
+  "error": {
+    "code": "SCHEMA_DRIFT_DETECTED",
+    "message": "CLI schema and MCP schema differ for 2 commands",
+    "retryable": false,
+    "fix_required": "Regenerate the MCP schema from tool manifest"
+  },
   "warnings": [],
-  "meta": { "duration_ms": 31 }
+  "meta": { "exit_code": 1, "duration_ms": 31 }
 }
 ```
 
 No drift:
 
 ```json
-{ "ok": true, "data": { "drift": { "added": [], "removed": [], "changed": [], "missing_from_mcp": [] } }, "error": null, "warnings": [], "meta": {} }
+{ "ok": true, "data": { "drift": { "added": [], "removed": [], "changed": [], "missing_from_mcp": [] } }, "error": null, "warnings": [], "meta": { "exit_code": 0, "duration_ms": 12 } }
 ```
 
 ---

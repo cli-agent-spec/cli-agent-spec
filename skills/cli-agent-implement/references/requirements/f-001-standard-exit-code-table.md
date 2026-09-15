@@ -30,22 +30,24 @@ The framework MUST define and enforce a fixed, documented exit code table. Comma
 |------|----------|-----------|----------------------|
 | 0 | `SUCCESS` | — | complete |
 | 1 | `GENERAL_ERROR` | depends | unknown |
-| 2 | `ARG_ERROR` | yes | **none** (REQ-F-002) |
+| 2 | `ARG_ERROR` | after fix* | **none** (REQ-F-002) |
 | 3 | `PARTIAL_FAILURE` | no | partial |
-| 4 | `PRECONDITION` | depends | none |
+| 4 | `PRECONDITION` | after fix* | none |
 | 5 | `NOT_FOUND` | no | none |
 | 6 | `CONFLICT` | no | none |
 | 7 | `PERMISSION_DENIED` | no | none |
-| 8 | `AUTH_REQUIRED` | yes* | none |
-| 9 | `PAYMENT_REQUIRED` | yes* | none |
-| 10 | `TIMEOUT` | yes | partial |
+| 8 | `AUTH_REQUIRED` | after fix* | none |
+| 9 | `PAYMENT_REQUIRED` | after fix* | none |
+| 10 | `TIMEOUT` | depends | partial |
 | 11 | `RATE_LIMITED` | yes | none |
 | 12 | `UNAVAILABLE` | yes | none |
-| 13 | `REDIRECTED` | yes | none |
+| 13 | `REDIRECTED` | after fix* | none |
 
-\* Retryable only after the prerequisite condition is resolved.
+\* *after fix*: the identical invocation fails until the caller corrects the stated condition, then reissues. Declared as `retryable: false` in `ExitCodeEntry`; the envelope carries `fix_required` (or `error.redirect`) with the correction.
 
-Reserved ranges: `14–63` framework extensions · `64–78` POSIX sysexits compatibility (optional mapping) · `79–125` command-specific (declare via REQ-C-001) · `126–255` shell-reserved, MUST NOT use.
+Table values `depends` and `unknown` are prose classifications with no `ExitCodeEntry` representation. Declare them conservatively: `retryable: false`, and `side_effects: "partial"` where the table says `unknown`.
+
+Reserved ranges: `14–63` framework extensions · `64–78` POSIX sysexits compatibility (optional mapping) · `79–125` command-specific (declare via REQ-C-001) · `126–255` shell-reserved: commands MUST NOT emit these; only framework signal handlers emit `128 + N` (REQ-F-013, REQ-F-069).
 
 ---
 
@@ -57,13 +59,13 @@ Reserved ranges: `14–63` framework extensions · `64–78` POSIX sysexits comp
 {
   "exit_codes": {
     "0":  { "name": "SUCCESS",     "description": "Operation completed as intended",          "retryable": false, "side_effects": "complete" },
-    "1":  { "name": "GENERAL_ERROR","description": "Unclassified failure — use specific code when available", "retryable": false, "side_effects": "unknown" },
-    "2":  { "name": "ARG_ERROR",      "description": "Input validation failed before any side effect",           "retryable": true,  "side_effects": "none"    },
+    "1":  { "name": "GENERAL_ERROR","description": "Unclassified failure — use specific code when available", "retryable": false, "side_effects": "partial" },
+    "2":  { "name": "ARG_ERROR",      "description": "Input validation failed before any side effect",           "retryable": false, "side_effects": "none"    },
     "3":  { "name": "PARTIAL_FAILURE","description": "Operation ran but failed mid-way; partial writes occurred", "retryable": false, "side_effects": "partial"  },
-    "10": { "name": "TIMEOUT",     "description": "Operation exceeded its configured time limit",     "retryable": true,  "side_effects": "partial"  },
+    "10": { "name": "TIMEOUT",     "description": "Operation exceeded its configured time limit",     "retryable": false, "side_effects": "partial"  },
     "11": { "name": "RATE_LIMITED","description": "Server-side rate limit reached",                  "retryable": true,  "side_effects": "none"     },
     "12": { "name": "UNAVAILABLE", "description": "Service temporarily unavailable",                 "retryable": true,  "side_effects": "none"     },
-    "13": { "name": "REDIRECTED",  "description": "Command was renamed; use error.redirect.command", "retryable": true,  "side_effects": "none"     }
+    "13": { "name": "REDIRECTED",  "description": "Command was renamed; use error.redirect.command", "retryable": false, "side_effects": "none"     }
   }
 }
 ```
@@ -91,6 +93,6 @@ raise CommandError(5, "User not found")
 |-------------|------|--------------|
 | [REQ-F-002](f-002-exit-code-2-reserved-for-validation-failures.md) | F | Specializes: enforces reserved semantics for `ARG_ERROR (2)` — zero side effects guarantee |
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Consumes: commands declare which `ExitCode` values they may emit |
-| [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Composes: JSON error responses carry an `ExitCode` value in `error.code` |
+| [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Composes: error responses carry the emitted code in `meta.exit_code`; `error.code` may reuse its name |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Composes: envelope `ok` is derived from whether exit code is `SUCCESS` |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Exposes: manifest includes the exit code table per command |

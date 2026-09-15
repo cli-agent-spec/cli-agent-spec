@@ -14,10 +14,10 @@ Every command with `danger_level` of `mutating` or `destructive` MUST include an
 
 ## Acceptance Criteria
 
-- A mutating command response always includes `"effect"` at the top level of the envelope.
-- `effect: "noop"` is returned when the operation was a no-op (e.g., already at desired state).
-- `effect: "created"` vs `effect: "updated"` is accurate (not always one or the other).
-- The framework raises a registration or runtime error if a mutating command omits `effect`.
+- A mutating command response always includes `"effect"` at the top level of the envelope
+- `effect: "noop"` is returned when the operation was a no-op (e.g., already at desired state)
+- `effect: "created"` vs `effect: "updated"` is accurate (not always one or the other)
+- The framework raises a registration or runtime error if a mutating command omits `effect`
 
 ---
 
@@ -55,7 +55,7 @@ $ tool create-order --amount 100 --idempotency-key abc123
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 84 }
+  "meta": { "exit_code": 0, "duration_ms": 84 }
 }
 ```
 
@@ -71,7 +71,7 @@ Second call with same key:
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 12 }
+  "meta": { "exit_code": 0, "duration_ms": 12 }
 }
 ```
 

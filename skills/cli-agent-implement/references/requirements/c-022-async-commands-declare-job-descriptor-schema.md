@@ -14,10 +14,10 @@ Any command that initiates an asynchronous operation (one that does not complete
 
 ## Acceptance Criteria
 
-- An async command's `--schema` output includes `async: true` and the job descriptor schema.
-- The job descriptor returned at invocation time includes all required fields.
-- `tool job status <id>` exits 0 for complete, 3 for still-running, 4 for failed, 5 for not-found.
-- Attempting to register an async command without a job descriptor schema raises a framework error.
+- An async command's `--schema` output includes `async: true` and the job descriptor schema
+- The job descriptor returned at invocation time includes all required fields
+- `tool job status <id>` exits 0 for complete, 3 for still-running, 4 for failed, 5 for not-found
+- Attempting to register an async command without a job descriptor schema raises a framework error
 
 ---
 
@@ -92,7 +92,7 @@ Initial response when the command is invoked:
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 22 }
+  "meta": { "exit_code": 0, "duration_ms": 22 }
 }
 ```
 

@@ -14,10 +14,10 @@ The framework MUST provide `--no-config` as a standard flag on every command. Wh
 
 ## Acceptance Criteria
 
-- `--no-config` causes no config file to be read, regardless of what files exist.
-- Environment variables still take effect with `--no-config`.
-- `meta.config_sources` is an empty array when `--no-config` is passed.
-- `--no-config` is present in every command's `--help` output.
+- `--no-config` causes no config file to be read, regardless of what files exist
+- Environment variables still take effect with `--no-config`
+- `meta.config_sources` is an empty array when `--no-config` is passed
+- `--no-config` is present in every command's `--help` output
 
 ---
 
@@ -41,7 +41,7 @@ $ tool deploy --target staging --no-config --output json
   "data": { "deployed": true },
   "error": null,
   "warnings": [],
-  "meta": { "config_sources": [], "duration_ms": 941 }
+  "meta": { "exit_code": 0, "config_sources": [], "duration_ms": 941 }
 }
 ```
 

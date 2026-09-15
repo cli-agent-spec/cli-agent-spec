@@ -62,9 +62,9 @@ $ tool config set key=value   # instead of tool config edit
 ```
 
 **For framework design:**
-- Framework MUST set `EDITOR=true` (a no-op) and `VISUAL=true` in the subprocess environment when in non-TTY mode, preventing any spawned subprocess from launching an interactive editor.
-- Commands that use `$EDITOR` MUST declare `requires_editor: true` in their schema and provide a `--content` or `--from-file` alternative for non-TTY operation.
-- Framework MUST detect editor invocations in non-TTY mode and intercept them with exit 4 and a structured error listing the non-interactive alternative.
+- Framework MUST set `EDITOR=true` (a no-op) and `VISUAL=true` in the subprocess environment when in non-TTY mode, preventing any spawned subprocess from launching an interactive editor
+- Commands that use `$EDITOR` MUST declare `requires_editor: true` in their schema and provide a `--content` or `--from-file` alternative for non-TTY operation
+- Framework MUST detect editor invocations in non-TTY mode and intercept them with exit 4 and a structured error listing the non-interactive alternative
 
 ### Evaluation
 
@@ -80,6 +80,10 @@ $ tool config set key=value   # instead of tool config edit
 ---
 
 ### Agent Workaround
+
+**Signature:** process hangs emitting raw escape sequences like `\x1b[?1049h`; or exits with `Vim: Warning: Input is not from a terminal`; occurs when `-m`/`--file` omitted
+
+**Tier:** B (one observable check, then one command)
 
 **Override `$EDITOR` with a no-op; always use non-interactive alternatives for editor-requiring commands:**
 

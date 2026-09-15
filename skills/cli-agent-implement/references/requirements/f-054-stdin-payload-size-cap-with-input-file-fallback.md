@@ -14,10 +14,10 @@ The framework MUST enforce a maximum stdin read size (default: 65536 bytes, conf
 
 ## Acceptance Criteria
 
-- A stdin payload of 65537 bytes exits with code 2 and `error.code: "STDIN_TOO_LARGE"`.
-- The error includes `hint` pointing to `--input-file`.
-- A command that declares `stdin_input: true` automatically has `--input-file` registered as a flag.
-- A payload of 65535 bytes is accepted and processed normally.
+- A stdin payload of 65537 bytes exits with code 2 and `error.code: "STDIN_TOO_LARGE"`
+- The error includes `hint` pointing to `--input-file`
+- A command that declares `stdin_input: true` automatically has `--input-file` registered as a flag
+- A payload of 65535 bytes is accepted and processed normally
 
 ---
 
@@ -25,7 +25,7 @@ The framework MUST enforce a maximum stdin read size (default: 65536 bytes, conf
 
 **Types:** [`response-envelope.md`](../schemas/response-envelope.md)
 
-On oversized stdin, the framework exits with code 3 (`ARG_ERROR`) and emits a structured error with `code: "STDIN_TOO_LARGE"` and a `hint` field.
+On oversized stdin, the framework exits with code 2 (`ARG_ERROR`) and emits a structured error with `code: "STDIN_TOO_LARGE"` and a `hint` field.
 
 ---
 
@@ -45,10 +45,11 @@ $ echo "$(python3 -c "print('x'*65537)")" | tool process --output json
     "code": "STDIN_TOO_LARGE",
     "message": "Stdin payload exceeds 65536-byte limit",
     "hint": "Write the payload to a file and use --input-file <path> instead",
+    "phase": "validation",
     "context": { "received_bytes": 65537, "limit_bytes": 65536 }
   },
   "warnings": [],
-  "meta": { "phase": "validation", "duration_ms": 1 }
+  "meta": { "exit_code": 2, "duration_ms": 1 }
 }
 ```
 

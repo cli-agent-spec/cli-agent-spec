@@ -14,8 +14,8 @@ When a command spawns any child process using the framework's process-spawning A
 
 ## Acceptance Criteria
 
-- After a command that spawns a child process exits, no orphaned child processes remain in the process table.
-- The session tracking file exists and is readable while children are running.
+- After a command that spawns a child process exits, no orphaned child processes remain in the process table
+- The session tracking file exists and is readable while children are running
 - `SIGTERM` to the parent causes the framework to send `SIGTERM` to all tracked children before the parent exits
 
 ---
@@ -39,6 +39,7 @@ When a command spawns any child process using the framework's process-spawning A
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 5210,
     "request_id": "req_01HZ",
     "session_pid_file": "/tmp/mytool/sessions/req_01HZ.pids"

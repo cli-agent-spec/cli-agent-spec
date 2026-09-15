@@ -14,10 +14,10 @@ Any command that performs authentication MUST support `--headless` and `--token-
 
 ## Acceptance Criteria
 
-- `command login --headless --token-env-var MY_TOKEN` reads `MY_TOKEN` from environment without opening a browser.
-- `command login --headless` without a token exits with code 4, listing the expected env var.
-- In non-TTY mode, browser auth is suppressed automatically (equivalent to `--headless`).
-- `--token-env-var` accepts any valid env var name; the framework reads that variable's value as the token.
+- `command login --headless --token-env-var MY_TOKEN` reads `MY_TOKEN` from environment without opening a browser
+- `command login --headless` without a token exits with code 4, listing the expected env var
+- In non-TTY mode, browser auth is suppressed automatically (equivalent to `--headless`)
+- `--token-env-var` accepts any valid env var name; the framework reads that variable's value as the token
 
 ---
 
@@ -43,7 +43,7 @@ Success:
   "data": { "logged_in": true, "user": "alice@example.com" },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 312 }
+  "meta": { "exit_code": 0, "duration_ms": 312 }
 }
 ```
 
@@ -59,7 +59,7 @@ Headless failure (token not found):
     "auth_methods": [{ "type": "env_var", "name": "MY_TOKEN", "hint": "Set MY_TOKEN to your API token" }]
   },
   "warnings": [],
-  "meta": {}
+  "meta": { "exit_code": 8, "duration_ms": 12 }
 }
 ```
 

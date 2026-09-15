@@ -116,7 +116,7 @@ Full ladder — every agent from the weakest to the strongest takes the same cor
     "fix_command": "tool auth refresh"
   },
   "warnings": [],
-  "meta": { "duration_ms": 120 }
+  "meta": { "exit_code": 8, "duration_ms": 120 }
 }
 ```
 

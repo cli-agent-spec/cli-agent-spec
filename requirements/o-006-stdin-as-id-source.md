@@ -38,7 +38,7 @@ $ tool list-users --output id | tool delete-user --id -
   "data": { "deleted_count": 3 },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 120 }
+  "meta": { "exit_code": 0, "duration_ms": 120 }
 }
 ```
 
@@ -59,7 +59,7 @@ $ echo -n | tool delete-user --id -
     "phase": "validation"
   },
   "warnings": [],
-  "meta": { "duration_ms": 2 }
+  "meta": { "exit_code": 2, "duration_ms": 2 }
 }
 ```
 

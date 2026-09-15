@@ -82,6 +82,10 @@ date -u +%Y-%m-%dT%H:%M:%SZ  # portable
 
 ### Agent Workaround
 
+**Signature:** command works on one OS but fails on another with `exit 127`, `invalid option`, or `command not found`; no structured JSON error
+
+**Tier:** B (one observable check, then one command)
+
 **Always run `tool doctor` before the first command; inspect platform context in errors:**
 
 ```python

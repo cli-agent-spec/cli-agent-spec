@@ -15,8 +15,8 @@ The framework MUST detect and report data truncation rather than silently return
 ## Acceptance Criteria
 
 - Writing a 500-byte value to a field declared `max_bytes: 255` exits 2 with a structured error before writing
-- Reading a pre-truncated value from a backend produces `meta.truncated: true` and a `TRUNCATION` warning
-- The warning includes `field`, `returned_bytes`, and (where known) `original_bytes`
+- Reading a pre-truncated value from a backend produces `meta.truncated: true` and a `FIELD_TRUNCATED` warning
+- The warning `context` includes `field`, `truncated_length`, and (where known) `original_length`
 - `json.loads(stdout)` succeeds even when truncation is present — the response envelope is always complete
 
 ---
@@ -41,12 +41,12 @@ Truncation is signaled via `meta.truncated: true` and a `FIELD_TRUNCATED` entry 
   "warnings": [
     {
       "code": "FIELD_TRUNCATED",
-      "field": "data.description",
-      "original_length": 8192,
-      "truncated_length": 255
+      "message": "Field value was truncated by the backend",
+      "context": { "field": "data.description", "original_length": 8192, "truncated_length": 255 }
     }
   ],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 34,
     "truncated": true
   }
@@ -66,8 +66,8 @@ $ mytool issue get 42 --json
   "ok": true,
   "data": { "body": "First 255 chars of the issue body..." },
   "error": null,
-  "warnings": [{ "code": "FIELD_TRUNCATED", "field": "data.body", "original_length": 4200, "truncated_length": 255 }],
-  "meta": { "duration_ms": 34, "truncated": true }
+  "warnings": [{ "code": "FIELD_TRUNCATED", "message": "Field value was truncated by the backend", "context": { "field": "data.body", "original_length": 4200, "truncated_length": 255 } }],
+  "meta": { "exit_code": 0, "duration_ms": 34, "truncated": true }
 }
 → agent knows data.body is incomplete; can paginate or fetch full field
 

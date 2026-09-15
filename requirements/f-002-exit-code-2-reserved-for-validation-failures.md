@@ -45,7 +45,7 @@ JSON error response for a command that exits `2` (`ARG_ERROR`) — `phase` field
     "suggestion": "Provide a value greater than 0"
   },
   "warnings": [],
-  "meta": { "duration_ms": 3 }
+  "meta": { "exit_code": 2, "duration_ms": 3 }
 }
 ```
 

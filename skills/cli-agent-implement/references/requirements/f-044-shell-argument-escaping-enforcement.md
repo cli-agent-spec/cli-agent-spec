@@ -14,9 +14,9 @@ The framework MUST provide subprocess invocation APIs that never construct shell
 
 ## Acceptance Criteria
 
-- A subprocess invocation via the framework API with a user-supplied argument containing `; rm -rf /` succeeds or rejects the argument cleanly — it MUST NOT execute the injected command.
-- The framework's subprocess API raises a registration error if `shell=True` is passed.
-- An argument containing a newline character is rejected in Phase 1 with exit code 2.
+- A subprocess invocation via the framework API with a user-supplied argument containing `; rm -rf /` succeeds or rejects the argument cleanly — it MUST NOT execute the injected command
+- The framework's subprocess API raises a registration error if `shell=True` is passed
+- An argument containing a newline character is rejected in Phase 1 with exit code 2
 - Shell metacharacter rejection is documented in the framework's command author guide
 
 ---

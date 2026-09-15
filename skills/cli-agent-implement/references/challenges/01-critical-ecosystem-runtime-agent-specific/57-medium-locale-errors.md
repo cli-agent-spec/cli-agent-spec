@@ -40,8 +40,8 @@ except OSError as e:
 **Framework normalizes OS errors to English (`LC_MESSAGES=C`) before serialization.**
 
 **For framework design:**
-- The framework's exception handler MUST normalize all OS/runtime error messages to English before placing them in `error.message`.
-- `error.code` is the ONLY field agents should use for error classification; `error.message` is human-readable context only.
+- The framework's exception handler MUST normalize all OS/runtime error messages to English before placing them in `error.message`
+- `error.code` is the ONLY field agents should use for error classification; `error.message` is human-readable context only
 
 ### Evaluation
 
@@ -57,6 +57,10 @@ except OSError as e:
 ---
 
 ### Agent Workaround
+
+**Signature:** error text in stderr or `error.message` appears in a non-English language; text pattern matching that works on other hosts fails on this one
+
+**Tier:** A (one safe command, no branching)
 
 **Always classify errors by `error.code`, never by `error.message` text; set `LC_MESSAGES=C` in the subprocess environment:**
 

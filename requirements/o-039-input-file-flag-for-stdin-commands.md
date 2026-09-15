@@ -41,7 +41,7 @@ $ tool process --input-file ./payload.json --output json
   "data": { "processed": true, "items": 1024 },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 412 }
+  "meta": { "exit_code": 0, "duration_ms": 412 }
 }
 ```
 

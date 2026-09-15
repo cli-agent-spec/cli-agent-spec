@@ -65,6 +65,7 @@ $ tool deploy --env prod --version 1.2.3 --notify-slack "#invalid channel" --wor
   },
   "warnings": [],
   "meta": {
+    "exit_code": 2,
     "errors": [
       { "param": "--notify-slack", "code": "INPUT_PARAM_INVALID", "message": "Channel name must start with #", "value": "#invalid channel" },
       { "param": "--workers",      "code": "INPUT_PARAM_INVALID", "message": "Expected integer, got 'abc'",    "value": "abc" }

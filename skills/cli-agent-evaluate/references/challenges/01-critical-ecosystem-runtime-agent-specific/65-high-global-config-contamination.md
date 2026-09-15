@@ -75,9 +75,9 @@ $ tool config set --global region=us-east-1
 ```
 
 **For framework design:**
-- Framework MUST default all config writes to the nearest `.tool-config` file in the working directory hierarchy, not to `~/.config/`.
-- Global config writes MUST require an explicit `--global` flag and MUST emit a `GLOBAL_CONFIG_MODIFIED` warning in the JSON response.
-- Auto-migrations MUST be opt-in: `tool migrate-config --confirm` rather than running silently on startup.
+- Framework MUST default all config writes to the nearest `.tool-config` file in the working directory hierarchy, not to `~/.config/`
+- Global config writes MUST require an explicit `--global` flag and MUST emit a `GLOBAL_CONFIG_MODIFIED` warning in the JSON response
+- Auto-migrations MUST be opt-in: `tool migrate-config --confirm` rather than running silently on startup
 
 ### Evaluation
 
@@ -93,6 +93,10 @@ $ tool config set --global region=us-east-1
 ---
 
 ### Agent Workaround
+
+**Signature:** `exit 0` on a config command but files under `~/.config/` or `~/.tool/` change; subsequent sessions show different defaults, formats, or accounts
+
+**Tier:** B (one observable check, then one command)
 
 **Check `warnings[]` for `GLOBAL_CONFIG_MODIFIED`; prefer session-scoped or local config commands:**
 

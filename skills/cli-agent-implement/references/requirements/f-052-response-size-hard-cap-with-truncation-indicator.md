@@ -14,9 +14,9 @@ The framework MUST enforce a maximum output size for all command responses. The 
 
 ## Acceptance Criteria
 
-- A command that returns 10,000 items is automatically truncated at the cap with `meta.truncated: true`.
-- `meta.truncation_hint` contains a valid command invocation to retrieve the next page.
-- A response under the cap does not include `meta.truncated` or includes it as `false`.
+- A command that returns 10,000 items is automatically truncated at the cap with `meta.truncated: true`
+- `meta.truncation_hint` contains a valid command invocation to retrieve the next page
+- A response under the cap does not include `meta.truncated` or includes it as `false`
 - Setting `TOOL_MAX_OUTPUT_BYTES=5242880` raises the cap to 5 MB for all commands
 
 ---
@@ -43,6 +43,8 @@ When a response is truncated, `meta.truncated` is set to `true`, `meta.total_cou
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
+    "duration_ms": 12,
     "truncated": true,
     "total_count": 10000,
     "returned_count": 2,

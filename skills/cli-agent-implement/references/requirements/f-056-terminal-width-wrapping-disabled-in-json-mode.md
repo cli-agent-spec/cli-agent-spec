@@ -14,10 +14,10 @@ The framework MUST disable all terminal-width-based text wrapping when JSON outp
 
 ## Acceptance Criteria
 
-- A 200-character URL in a JSON field is serialized as a single unbroken string, not split across lines.
-- `$COLUMNS=40` does not cause any JSON string value to contain a newline character.
-- `json.loads(stdout_output)` succeeds on all JSON mode output regardless of terminal width settings.
-- In TTY mode with `--width=80`, prose output on stderr wraps at 80 characters (unchanged behavior).
+- A 200-character URL in a JSON field is serialized as a single unbroken string, not split across lines
+- `$COLUMNS=40` does not cause any JSON string value to contain a newline character
+- `json.loads(stdout_output)` succeeds on all JSON mode output regardless of terminal width settings
+- In TTY mode with `--width=80`, prose output on stderr wraps at 80 characters (unchanged behavior)
 
 ---
 

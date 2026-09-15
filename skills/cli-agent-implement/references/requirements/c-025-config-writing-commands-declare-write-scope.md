@@ -14,10 +14,10 @@ Any command that writes to a configuration file MUST declare `config_write_scope
 
 ## Acceptance Criteria
 
-- A config-write command without `--global` writes to `./.tool-config`, not `~/.config/tool/`.
-- `--global` causes a write to `~/.config/tool/` AND emits `GLOBAL_CONFIG_MODIFIED` in `warnings[]`.
-- Omitting `config_write_scope` from a config-writing command raises a framework registration warning.
-- A global config write interrupted mid-way leaves the previous config intact (atomic rename).
+- A config-write command without `--global` writes to `./.tool-config`, not `~/.config/tool/`
+- `--global` causes a write to `~/.config/tool/` AND emits `GLOBAL_CONFIG_MODIFIED` in `warnings[]`
+- Omitting `config_write_scope` from a config-writing command raises a framework registration warning
+- A global config write interrupted mid-way leaves the previous config intact (atomic rename)
 
 ---
 
@@ -54,7 +54,7 @@ $ tool config set --schema
   },
   "exit_codes": {
     "0": { "name": "SUCCESS",   "description": "Config value written",                    "retryable": false, "side_effects": "complete" },
-    "3": { "name": "ARG_ERROR", "description": "Key or value failed validation",           "retryable": true,  "side_effects": "none"     }
+    "2": { "name": "ARG_ERROR", "description": "Key or value failed validation",           "retryable": false, "side_effects": "none"     }
   }
 }
 ```
@@ -66,8 +66,8 @@ Global write response:
   "ok": true,
   "data": { "key": "output.format", "value": "json", "scope": "global", "path": "/Users/alice/.config/tool/config.toml" },
   "error": null,
-  "warnings": ["GLOBAL_CONFIG_MODIFIED: wrote to /Users/alice/.config/tool/config.toml"],
-  "meta": { "duration_ms": 18 }
+  "warnings": [{ "code": "GLOBAL_CONFIG_MODIFIED", "message": "Wrote to the global config file", "context": { "path": "/Users/alice/.config/tool/config.toml" } }],
+  "meta": { "exit_code": 0, "duration_ms": 18 }
 }
 ```
 

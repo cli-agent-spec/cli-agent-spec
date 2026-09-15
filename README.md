@@ -45,10 +45,10 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 | Tier | Count | Who implements it |
 |------|-------|------------------|
 | **F** — Framework-Automatic | 78 | The framework enforces it; command authors get it for free |
-| **C** — Command Contract | 29 | Command authors declare it at registration |
+| **C** — Command Contract | 30 | Command authors declare it at registration |
 | **O** — Opt-In | 50 | Applications enable it explicitly |
 
-**5 JSON schemas** — machine-readable type definitions for exit codes, response envelopes, tool manifests, dispatch requests, and error details. Generate typed structs for your language directly from the schemas.
+**5 canonical JSON schemas** — machine-readable type definitions for `ExitCode`, `ExitCodeEntry`, `ResponseEnvelope`, `ManifestResponse`, and `DispatchRequest`. Generate typed structs for your language directly from the schemas. Every JSON example in the spec prose is validated against them in CI.
 
 **A comparison matrix** — 12 existing frameworks (argparse, Click, Cobra, Clap, Typer, Commander.js, and more) scored against 71 currently mapped failure modes. No framework exceeds 59%.
 
@@ -56,9 +56,9 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 ## The three contracts that matter most
 
-**Exit codes** — 14 named codes (0–13) with machine-readable guarantees per code: `retryable: true/false`, `side_effects: "none" | "partial" | "complete"`. An agent receiving exit 11 (`CONFLICT`) knows the operation is safe to retry. Receiving exit 6 (`PARTIAL_FAILURE`) knows it must inspect state before retrying. See [`exit-code.json`](schemas/exit-code.json).
+**Exit codes** — 14 named codes (0–13) with machine-readable guarantees per code: `retryable: true/false`, `side_effects: "none" | "partial" | "complete"`. An agent receiving exit 11 (`RATE_LIMITED`) knows nothing was written and the call is safe to retry after back-off. Receiving exit 3 (`PARTIAL_FAILURE`) knows some writes happened and it must inspect state before retrying. Receiving exit 6 (`CONFLICT`) knows the resource already exists and a retry cannot succeed. See [`exit-code.json`](schemas/exit-code.json).
 
-**Response envelope** — every command wraps its output in `{ ok, data, error, warnings, meta }`. The same keys are always present. Agents never parse free-text to determine success or failure. See [`response-envelope.json`](schemas/response-envelope.json).
+**Response envelope** — every command wraps its output in `{ ok, data, error, warnings, meta }`. The same keys are always present, and `meta.exit_code` repeats the process exit code so an agent holding only stdout can still classify the outcome. Errors and warnings carry stable codes; agents never parse free text to determine success or failure. See [`response-envelope.json`](schemas/response-envelope.json).
 
 **Tool manifest** — `tool manifest --output json` returns the complete command tree: every subcommand, flag, type, description, exit code map, and example. One call replaces O(N) `--help` iterations and eliminates trial-and-error argument discovery. See [`manifest-response.json`](schemas/manifest-response.json).
 
@@ -68,14 +68,16 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 | Path | Contents |
 |------|----------|
-| [`challenges/`](challenges/index.md) | 74 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround |
-| [`requirements/`](requirements/index.md) | 158 requirements with acceptance criteria, wire format, and examples |
+| [`challenges/`](challenges/index.md) | 74 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround; [`index.json`](challenges/index.json) carries the same taxonomy as data |
+| [`requirements/`](requirements/index.md) | 158 requirements with acceptance criteria, wire format, and examples, grouped into three [conformance levels](requirements/levels.md) |
+| [`conformance/`](conformance/README.md) | Deterministic conformance kit: probes a CLI and reports pass or fail per check and per level |
 | [`schemas/`](schemas/index.md) | JSON Schema draft-07 definitions for all 5 types |
 | [`guides/`](guides/index.md) | Design guides: positive conventions that cannot be expressed as enforceable requirements |
 | [`IMPLEMENTING.md`](IMPLEMENTING.md) | Implementation guide: wave-based order, goal-based paths, invariants, codegen |
 | [`comparison-matrix.md`](comparison-matrix.md) | 71 currently mapped failure modes × 12 frameworks coverage table |
 | [`research/`](research/index.md) | Per-framework analysis and competitive landscape (MCP, OpenAPI, function calling) |
-| [`docs/skills.md`](docs/skills.md) | Agent skills for evaluating CLIs and guiding implementation |
+| [Agent skills](skills/index.md) | Agent skills for evaluating CLIs and guiding implementation |
+| `website/` | MkDocs website source; canonical specification content remains in the root sections above |
 
 ---
 
@@ -106,7 +108,7 @@ This spec is AX research applied to the CLI layer. CLIs are the most underserved
 - [Less context consumed](IMPLEMENTING.md#path-b-less-context-consumed) — 14 requirements
 - [Less token spend](IMPLEMENTING.md#path-c-less-token-spend) — 12 requirements
 
-**I want to evaluate my existing CLI** → use the agent skills below, or read [`challenges/checklist.md`](challenges/checklist.md) for a self-assessment.
+**I want to evaluate my existing CLI** → run the deterministic [conformance kit](conformance/README.md) against it, aim for [Level 1](requirements/levels.md) first, then use the agent skills below for the judgment-based failure modes. [`challenges/checklist.md`](challenges/checklist.md) is a manual self-assessment.
 
 **I want to audit any interface for agent-friendliness** → the failure mode taxonomy applies beyond CLIs. REST APIs, SDKs, MCP servers, and RPC interfaces share the same failure categories: ambiguous error signaling (§1), interactive blocking (§10), missing machine-readable schemas (§21), over-verbose output (§43), credential leakage (§30). Use [`challenges/index.md`](challenges/index.md) as a lens and substitute "interface" for "CLI" — the problem statement holds. For subprocess-callable tools, run `cli-agent-audit` directly; for other interfaces, apply the `### Evaluation` rubrics manually against your integration layer.
 
@@ -139,10 +141,12 @@ npx skills install cli-agent-spec/cli-agent-spec/skills/cli-agent-diagnose
 
 ## Contributing
 
+Changes to contracts are recorded in [`CHANGELOG.md`](CHANGELOG.md), which also defines how spec and schema versions increment.
+
 The spec is a living document. New failure modes are documented when confirmed against real tooling. New requirements follow from new failure modes.
 
 Before contributing, read [`AGENTS.md`](AGENTS.md) for conventions: file format, required sections, naming rules, and how to run `/validate-links` to verify cross-references after any edit.
 
 ---
 
-*CLI Agent Spec v1.6 — 74 failure modes · 158 requirements · 5 schemas · 12 frameworks evaluated*
+*CLI Agent Spec v1.7 — 74 failure modes · 158 requirements · 5 canonical schemas · 12 frameworks evaluated*

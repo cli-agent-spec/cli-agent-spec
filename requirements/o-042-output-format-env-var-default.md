@@ -48,7 +48,7 @@ $ TOOL_OUTPUT=table tool list --output json
   "data": [{ "id": "1", "name": "alice" }],
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 12 }
+  "meta": { "exit_code": 0, "duration_ms": 12 }
 }
 ```
 

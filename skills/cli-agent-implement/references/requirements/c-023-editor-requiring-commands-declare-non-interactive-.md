@@ -14,10 +14,10 @@ Any command that invokes `$EDITOR` or `$VISUAL` MUST declare `requires_editor: t
 
 ## Acceptance Criteria
 
-- A command with `requires_editor: true` but no declared alternative raises a registration error.
-- In non-TTY mode, `git commit` equivalent exits 4 with `hint: "use --message <text> instead"`.
-- Passing `--message "text"` in non-TTY mode bypasses the editor and proceeds normally.
-- In TTY mode, the editor is invoked normally when neither alternative flag is provided.
+- A command with `requires_editor: true` but no declared alternative raises a registration error
+- In non-TTY mode, `git commit` equivalent exits 4 with `hint: "use --message <text> instead"`
+- Passing `--message "text"` in non-TTY mode bypasses the editor and proceeds normally
+- In TTY mode, the editor is invoked normally when neither alternative flag is provided
 
 ---
 

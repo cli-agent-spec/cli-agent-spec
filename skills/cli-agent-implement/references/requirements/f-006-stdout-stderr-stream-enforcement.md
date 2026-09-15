@@ -14,9 +14,9 @@ The framework MUST provide separate output primitives: `output()` writes to stdo
 
 ## Acceptance Criteria
 
-- When a command is run with `1>/dev/null`, no data output is lost.
-- When a command is run with `2>/dev/null`, the structured result is still received on stdout.
-- Stack traces from uncaught exceptions appear only on stderr, never on stdout.
+- When a command is run with `1>/dev/null`, no data output is lost
+- When a command is run with `2>/dev/null`, the structured result is still received on stdout
+- Stack traces from uncaught exceptions appear only on stderr, never on stdout
 - A command that calls only `log()` and `output()` produces valid JSON stdout with zero prose contamination
 
 ---

@@ -14,10 +14,10 @@ The framework MUST provide `--<name>-from-env <VAR_NAME>` and `--<name>-from-fil
 
 ## Acceptance Criteria
 
-- `--token-from-env MY_TOKEN` reads the token from `$MY_TOKEN` without exposing it in `ps aux`.
-- `--token-from-file /run/secrets/token` reads the token from the file.
-- A missing env var or file causes exit `2` with a validation error before any side effects.
-- The secret value never appears in the audit log (REQ-F-034 redaction applies).
+- `--token-from-env MY_TOKEN` reads the token from `$MY_TOKEN` without exposing it in `ps aux`
+- `--token-from-file /run/secrets/token` reads the token from the file
+- A missing env var or file causes exit `2` with a validation error before any side effects
+- The secret value never appears in the audit log (REQ-F-034 redaction applies)
 
 ---
 
@@ -39,7 +39,7 @@ $ tool deploy --token-from-env MY_DEPLOY_TOKEN --target staging
   "data": { "deployed": "staging" },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 512 }
+  "meta": { "exit_code": 0, "duration_ms": 512 }
 }
 ```
 
@@ -56,10 +56,10 @@ $ tool deploy --token-from-env MISSING_VAR --target staging
   "error": {
     "code": "ARG_ERROR",
     "message": "Environment variable MISSING_VAR is not set",
-    "detail": { "flag": "--token-from-env", "var": "MISSING_VAR" }
+    "context": { "flag": "--token-from-env", "var": "MISSING_VAR" }
   },
   "warnings": [],
-  "meta": { "duration_ms": 1 }
+  "meta": { "exit_code": 2, "duration_ms": 1 }
 }
 ```
 

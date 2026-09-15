@@ -14,10 +14,10 @@ The framework MUST provide a built-in `tool audit-log` command that queries the 
 
 ## Acceptance Criteria
 
-- `tool audit-log --since 1h --output jsonl` returns all invocations from the past hour, one per line.
-- `tool audit-log --trace-id abc123` returns only entries with that trace ID.
-- Secret field values are redacted in all audit log query results.
-- `--limit 100` returns at most 100 entries.
+- `tool audit-log --since 1h --output jsonl` returns all invocations from the past hour, one per line
+- `tool audit-log --trace-id abc123` returns only entries with that trace ID
+- Secret field values are redacted in all audit log query results
+- `--limit 100` returns at most 100 entries
 
 ---
 

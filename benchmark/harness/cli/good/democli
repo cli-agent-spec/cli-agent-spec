@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# cli-good: democli — single entry point dispatching to the per-command scripts
+# Bare invocation and --help print usage to stderr and exit 0 (REQ-F-048)
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+COMMAND="${1:-}"
+
+usage() {
+  cat >&2 <<'TXT'
+democli — demo deployment tool
+
+Commands:
+  deployments list|delete   Manage deployments
+  deploy                    Deploy an application version
+  health check              Check service health
+  manifest                  Print the full command tree as JSON
+TXT
+}
+
+case "$COMMAND" in
+  ""|--help|-h|help) usage; exit 0 ;;
+  deployments|deploy|health|manifest) shift; exec "$HERE/$COMMAND" "$@" ;;
+  *)
+    printf '{"ok":false,"data":null,"error":{"code":"UNKNOWN_COMMAND","message":"Unknown command %s","retryable":false,"phase":"validation","fix_required":"Run democli manifest for available commands"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n' "$COMMAND"
+    exit 2
+    ;;
+esac

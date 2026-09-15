@@ -14,10 +14,10 @@ Any command that operates on a batch of items MUST include a `summary` object in
 
 ## Acceptance Criteria
 
-- A batch command response includes `summary.total`, `summary.succeeded`, `summary.failed`.
-- Each item in `results[]` includes `ok: true/false` and, when false, an `error` object.
-- The item-level `error` object follows the standard error structure (code, message, retryable).
-- The exit code for a partial batch success is non-zero (not `0`).
+- A batch command response includes `summary.total`, `summary.succeeded`, `summary.failed`
+- Each item in `results[]` includes `ok: true/false` and, when false, an `error` object
+- The item-level `error` object follows the standard error structure (code, message, retryable)
+- The exit code for a partial batch success is non-zero (not `0`)
 
 ---
 
@@ -79,7 +79,7 @@ $ tool send-notifications --users 1,2,3,4,5
   },
   "error": { "code": "PARTIAL_FAILURE", "message": "2 of 5 notifications failed" },
   "warnings": [],
-  "meta": { "duration_ms": 312 }
+  "meta": { "exit_code": 3, "duration_ms": 312 }
 }
 ```
 
@@ -97,7 +97,7 @@ register command "send-notifications":
   exit_codes:
     SUCCESS        (0): description: "All notifications sent",       retryable: false, side_effects: complete
     PARTIAL_FAILURE(3): description: "Some notifications failed",    retryable: false, side_effects: partial
-    ARG_ERROR      (2): description: "Invalid --users value",        retryable: true,  side_effects: none
+    ARG_ERROR      (2): description: "Invalid --users value",        retryable: false, side_effects: none
 
   execute(args):
     results = []

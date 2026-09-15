@@ -14,10 +14,10 @@ Commands MUST NOT declare parameters intended to receive secret values (tokens, 
 
 ## Acceptance Criteria
 
-- No framework-based command accepts `--password`, `--token`, or `--api-key` as a direct argument containing the secret value.
-- Commands that need a secret declare it via `--token-from-env` or `--token-from-file` pattern.
-- The framework raises a registration error if a command declares a secret-named argument as a direct value argument.
-- Environment variable names used for secrets are documented in the command's `--schema` output.
+- No framework-based command accepts `--password`, `--token`, or `--api-key` as a direct argument containing the secret value
+- Commands that need a secret declare it via `--token-from-env` or `--token-from-file` pattern
+- The framework raises a registration error if a command declares a secret-named argument as a direct value argument
+- Environment variable names used for secrets are documented in the command's `--schema` output
 
 ---
 

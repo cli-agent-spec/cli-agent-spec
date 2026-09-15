@@ -39,6 +39,7 @@ The framework MUST automatically inject `meta.cwd` (the process working director
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 38,
     "request_id": "req_01HZ",
     "cwd": "/home/user/myproject/packages/core",

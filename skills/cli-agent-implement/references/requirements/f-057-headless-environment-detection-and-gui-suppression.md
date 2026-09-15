@@ -14,10 +14,10 @@ The framework MUST detect headless execution environments on startup by checking
 
 ## Acceptance Criteria
 
-- In a container without `$DISPLAY`, `xdg-open https://example.com` via framework API does not block; URL appears in `data.open_url`.
-- `meta.headless: true` is set in all responses when headless mode is active.
-- A command that declares `gui_operations: []` and attempts a GUI launch without headless behavior declared triggers a framework registration error.
-- In TTY mode with `$DISPLAY` set, GUI launches proceed normally.
+- In a container without `$DISPLAY`, `xdg-open https://example.com` via framework API does not block; URL appears in `data.open_url`
+- `meta.headless: true` is set in all responses when headless mode is active
+- A command that declares `gui_operations: []` and attempts a GUI launch without headless behavior declared triggers a framework registration error
+- In TTY mode with `$DISPLAY` set, GUI launches proceed normally
 
 ---
 
@@ -41,6 +41,7 @@ In headless mode, commands that would normally open a browser or file picker ret
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 8,
     "headless": true
   }

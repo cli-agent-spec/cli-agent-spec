@@ -42,7 +42,7 @@ $ tool fetch --url https://api.example.com/data
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 88 }
+  "meta": { "exit_code": 0, "duration_ms": 88 }
 }
 ```
 
@@ -59,8 +59,8 @@ $ tool fetch --url https://internal.corp/config --no-injection-protection
     "content": "Hello world"
   },
   "error": null,
-  "warnings": ["--no-injection-protection was active; external data returned without trust markers"],
-  "meta": { "duration_ms": 91, "injection_protection": false }
+  "warnings": [{ "code": "INJECTION_PROTECTION_DISABLED", "message": "--no-injection-protection was active; external data returned without trust markers" }],
+  "meta": { "exit_code": 0, "duration_ms": 91, "injection_protection": false }
 }
 ```
 

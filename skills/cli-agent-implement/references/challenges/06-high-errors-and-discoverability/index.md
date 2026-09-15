@@ -2,7 +2,7 @@
 
 > Error quality, retry guidance, schema discovery, and versioning.
 
-**Challenges:** 5 active &nbsp;|&nbsp; 🟠 3 high · 🟡 2 medium
+**Failure modes:** 5 active &nbsp;|&nbsp; 🟠 3 high · 🟡 2 medium
 
 ---
 

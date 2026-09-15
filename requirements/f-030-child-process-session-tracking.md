@@ -39,6 +39,7 @@ When a command spawns any child process using the framework's process-spawning A
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 5210,
     "request_id": "req_01HZ",
     "session_pid_file": "/tmp/mytool/sessions/req_01HZ.pids"

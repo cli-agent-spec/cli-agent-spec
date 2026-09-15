@@ -14,10 +14,10 @@ Every command MUST declare a complete input schema (all parameters: name, type, 
 
 ## Acceptance Criteria
 
-- `tool <cmd> --schema` returns valid JSON containing `parameters` and `output_schema`.
-- `tool --schema` returns a manifest of all commands with their parameter and output schemas.
-- Adding a parameter to a command automatically appears in `--schema` without separate documentation effort.
-- The `output_schema` is a valid JSON Schema object.
+- `tool <cmd> --schema` returns valid JSON containing `parameters` and `output_schema`
+- `tool --schema` returns a manifest of all commands with their parameter and output schemas
+- Adding a parameter to a command automatically appears in `--schema` without separate documentation effort
+- The `output_schema` is a valid JSON Schema object
 
 ---
 
@@ -57,7 +57,7 @@ $ tool deploy --schema
   },
   "exit_codes": {
     "0":  { "name": "SUCCESS",   "description": "Deployment completed",       "retryable": false, "side_effects": "complete" },
-    "3":  { "name": "ARG_ERROR", "description": "Invalid target environment", "retryable": true,  "side_effects": "none"     },
+    "2":  { "name": "ARG_ERROR", "description": "Invalid target environment", "retryable": false, "side_effects": "none"     },
     "10": { "name": "TIMEOUT",   "description": "Deployment timed out",       "retryable": false, "side_effects": "partial"  }
   }
 }

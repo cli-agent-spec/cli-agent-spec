@@ -14,8 +14,8 @@ The framework MUST set `PAGER=cat` and `GIT_PAGER=cat` in the process environmen
 
 ## Acceptance Criteria
 
-- Running any command with a large output does not block on pager input.
-- `echo $PAGER` in a child shell spawned by a framework command returns `cat`.
+- Running any command with a large output does not block on pager input
+- `echo $PAGER` in a child shell spawned by a framework command returns `cat`
 - `git log` executed as a sub-command from within a framework command does not open a pager
 
 ---

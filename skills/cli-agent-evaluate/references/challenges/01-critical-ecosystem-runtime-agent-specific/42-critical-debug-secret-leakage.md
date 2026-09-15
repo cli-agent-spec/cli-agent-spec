@@ -34,11 +34,11 @@ user 12345 ... my-tool deploy --api-key sk-abc123 --region us-east-1
 
 ### Impact
 
-- Secrets (API keys, tokens, passwords) exposed in debug output that may be captured by log collectors, audit systems, or LLM context.
-- Process table exposure makes secrets visible to all users on the system during command execution.
-- Error messages that echo back argument values can expose partial secrets.
-- If the LLM context receives a trace with a secret, the secret may be included in future prompts, embeddings, or log entries.
-- Particularly dangerous when agents run in shared infrastructure (CI/CD, multi-tenant environments).
+- Secrets (API keys, tokens, passwords) exposed in debug output that may be captured by log collectors, audit systems, or LLM context
+- Process table exposure makes secrets visible to all users on the system during command execution
+- Error messages that echo back argument values can expose partial secrets
+- If the LLM context receives a trace with a secret, the secret may be included in future prompts, embeddings, or log entries
+- Particularly dangerous when agents run in shared infrastructure (CI/CD, multi-tenant environments)
 
 ### Solutions
 
@@ -60,12 +60,12 @@ class SecretAction(argparse.Action):
 ```
 
 **For framework design:**
-- Apply name-based heuristics to automatically redact argument values whose names match `token|secret|password|key|credential|auth|apikey` in all trace/debug output.
-- Never echo argument values in error messages for arguments marked `sensitive=True` or matching the redaction pattern.
-- Provide a framework-level `--trace-safe` mode that produces a trace with sensitive fields replaced by `[REDACTED]`.
-- For `--trace` or `--debug` modes: require explicit `--no-redact` opt-out to expose sensitive values.
-- Use environment variables (not CLI flags) as the preferred injection mechanism for secrets — they are not visible in `process.argv` or process tables.
-- Document in `--schema` output which arguments are marked sensitive: `"sensitive": true`.
+- Apply name-based heuristics to automatically redact argument values whose names match `token|secret|password|key|credential|auth|apikey` in all trace/debug output
+- Never echo argument values in error messages for arguments marked `sensitive=True` or matching the redaction pattern
+- Provide a framework-level `--trace-safe` mode that produces a trace with sensitive fields replaced by `[REDACTED]`
+- For `--trace` or `--debug` modes: require explicit `--no-redact` opt-out to expose sensitive values
+- Use environment variables (not CLI flags) as the preferred injection mechanism for secrets — they are not visible in `process.argv` or process tables
+- Document in `--schema` output which arguments are marked sensitive: `"sensitive": true`
 
 ### Evaluation
 
@@ -81,6 +81,10 @@ class SecretAction(argparse.Action):
 ---
 
 ### Agent Workaround
+
+**Signature:** stdout or stderr from a `--debug`/`--trace`/`--verbose` run echoes a secret flag value verbatim; secret also visible in `ps` output while the command runs
+
+**Tier:** A (one safe command, no branching)
 
 **Always inject secrets via environment variables, never via CLI flags; scan output for leaked secrets:**
 

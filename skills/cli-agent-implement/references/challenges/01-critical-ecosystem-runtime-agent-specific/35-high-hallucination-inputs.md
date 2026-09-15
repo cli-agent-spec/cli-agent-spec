@@ -9,11 +9,11 @@
 AI agents make systematically different input errors than human operators. Human typos are random character substitutions; agent hallucinations follow predictable patterns rooted in training data. A CLI designed to be robust against human error (spelling corrections, range checks) will nonetheless accept agent hallucinations silently.
 
 The jpoehnelt rubric uniquely identifies these agent-specific hallucination patterns:
-- **Path traversal segments**: agents sometimes generate `../` prefixes when constructing file paths, especially when combining a base directory variable with a relative sub-path.
-- **Percent-encoded segments**: agents trained on URL handling may percent-encode resource identifiers (e.g., passing `my%2Fresource` as a resource ID where `/` is a literal part of the expected format).
-- **Embedded query parameters**: agents confuse REST URL patterns with CLI argument patterns, generating arguments like `users?active=true` or `repos/main#readme`.
-- **Embedded newlines and null bytes**: agents sometimes include `\n`, `\r\n`, or `\x00` in string arguments when generating multi-line values.
-- **Overly-literal type coercion**: agents pass `"null"`, `"undefined"`, `"None"`, `"NaN"`, `"Infinity"` as string values where they intend empty/absent/numeric-overflow semantics.
+- **Path traversal segments**: agents sometimes generate `../` prefixes when constructing file paths, especially when combining a base directory variable with a relative sub-path
+- **Percent-encoded segments**: agents trained on URL handling may percent-encode resource identifiers (e.g., passing `my%2Fresource` as a resource ID where `/` is a literal part of the expected format)
+- **Embedded query parameters**: agents confuse REST URL patterns with CLI argument patterns, generating arguments like `users?active=true` or `repos/main#readme`
+- **Embedded newlines and null bytes**: agents sometimes include `\n`, `\r\n`, or `\x00` in string arguments when generating multi-line values
+- **Overly-literal type coercion**: agents pass `"null"`, `"undefined"`, `"None"`, `"NaN"`, `"Infinity"` as string values where they intend empty/absent/numeric-overflow semantics
 
 These patterns pass standard type validation (`type=str` accepts all of them) but produce semantically invalid operations that may execute partially before failing obscurely.
 
@@ -30,11 +30,11 @@ my-tool export --output "../../etc/cron.d/backdoor"
 
 ### Impact
 
-- Silent mis-execution: the command runs, returns exit 0 or a non-obvious error, and the agent reasons incorrectly about the result.
-- Security: path traversal + write operations can escape sandboxed working directories.
-- Retry waste: agent retries with the same hallucinated input pattern, consuming tokens and time before a human notices.
-- Different failure modes than human-facing errors — existing error messages ("file not found") do not help the agent self-correct because the underlying cause is the encoding mismatch, not a missing file.
-- Validation designed for human typos (e.g., Levenshtein "did you mean?") is irrelevant for these patterns.
+- Silent mis-execution: the command runs, returns exit 0 or a non-obvious error, and the agent reasons incorrectly about the result
+- Security: path traversal + write operations can escape sandboxed working directories
+- Retry waste: agent retries with the same hallucinated input pattern, consuming tokens and time before a human notices
+- Different failure modes than human-facing errors — existing error messages ("file not found") do not help the agent self-correct because the underlying cause is the encoding mismatch, not a missing file
+- Validation designed for human typos (e.g., Levenshtein "did you mean?") is irrelevant for these patterns
 
 ### Solutions
 
@@ -71,11 +71,11 @@ def validate_resource_id(value: str) -> str:
 ```
 
 **For framework design:**
-- Implement an `agent_hardening=True` flag on `Argument` / `Option` declarations that enables the full Axis 5 level 2 check set by default.
-- For string arguments representing names, IDs, or paths: reject `../`, `./`, `%XX` sequences, `?`, `#`, null bytes, and the string literals `"null"`, `"undefined"`, `"None"` by default (override with `allow_unsafe=True`).
+- Implement an `agent_hardening=True` flag on `Argument` / `Option` declarations that enables the full Axis 5 level 2 check set by default
+- For string arguments representing names, IDs, or paths: reject `../`, `./`, `%XX` sequences, `?`, `#`, null bytes, and the string literals `"null"`, `"undefined"`, `"None"` by default (override with `allow_unsafe=True`)
 - Error messages for these rejections must explain *why* the value was rejected in terms an LLM can act on — not just "invalid value."
-- Include the decoded/normalized form in the error `suggestion` field so the agent can self-correct without a retry.
-- Consider jpoehnelt's "agent is not a trusted operator" as a default security posture: apply stricter validation to agent-invoked CLIs than to human-interactive ones.
+- Include the decoded/normalized form in the error `suggestion` field so the agent can self-correct without a retry
+- Consider jpoehnelt's "agent is not a trusted operator" as a default security posture: apply stricter validation to agent-invoked CLIs than to human-interactive ones
 
 ### Evaluation
 
@@ -91,6 +91,10 @@ def validate_resource_id(value: str) -> str:
 ---
 
 ### Agent Workaround
+
+**Signature:** not-found or invalid-value error for a resource that exists; the passed value contains `%2F`, `?`, `#`, `../`, or literal `null`/`undefined`
+
+**Tier:** B (one observable check, then one command)
 
 **Normalize LLM-generated values before passing to the CLI; retry once with the tool's `suggestion` on rejection:**
 

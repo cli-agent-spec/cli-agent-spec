@@ -44,13 +44,13 @@ Worse: the same high-entropy strings appear across multiple tool responses (reso
 ```
 
 **Framework detects high-entropy strings automatically:**
-- Strings matching `^[A-Za-z0-9+/]{40,}={0,2}$` (base64) or JWT pattern (`xxx.yyy.zzz`) are masked unless `--unmask` is passed.
-- Instead of the raw value, output: entropy type, meaningful metadata extracted from the payload (expiry, subject), and the flag to retrieve the raw value.
+- Strings matching `^[A-Za-z0-9+/]{40,}={0,2}$` (base64) or JWT pattern (`xxx.yyy.zzz`) are masked unless `--unmask` is passed
+- Instead of the raw value, output: entropy type, meaningful metadata extracted from the payload (expiry, subject), and the flag to retrieve the raw value
 
 **For framework design:**
-- Framework MUST provide a `high_entropy` field type with automatic masking in non-`--unmask` mode.
-- The mask replacement MUST include the semantic metadata from the string (JWT: expiry + claims summary; UUID: just the ID truncated; API key: first 8 chars + `...`).
-- `--unmask` flag explicitly opts into showing raw high-entropy values.
+- Framework MUST provide a `high_entropy` field type with automatic masking in non-`--unmask` mode
+- The mask replacement MUST include the semantic metadata from the string (JWT: expiry + claims summary; UUID: just the ID truncated; API key: first 8 chars + `...`)
+- `--unmask` flag explicitly opts into showing raw high-entropy values
 
 ### Evaluation
 
@@ -66,6 +66,11 @@ Worse: the same high-entropy strings appear across multiple tool responses (reso
 ---
 
 ### Agent Workaround
+
+**Signature:** stdout contains long opaque strings: JWT segments starting `eyJ`, base64 blobs, hex hashes; hundreds of tokens per field with no readable content
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Extract only the needed field, e.g. `tool auth token --show --output json | jq '.data.expires_at'`, and discard the raw token; if that fails, escalate with the command, exit code, stdout, and stderr
 
 **Extract only the semantic metadata the agent needs; request `--unmask` only when the raw value is operationally required:**
 

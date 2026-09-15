@@ -71,9 +71,9 @@ exit 5  = job ID not found / expired
 ```
 
 **For framework design:**
-- Provide a first-class `AsyncJob` return type; framework automatically generates `job status <id>` and `job cancel <id>` subcommands.
-- The job descriptor schema (status_command, cancel_command, poll_interval_ms, timeout_ms) must be part of the standard response envelope for any async operation.
-- Document the exit code contract for status commands prominently as part of the framework's standard.
+- Provide a first-class `AsyncJob` return type; framework automatically generates `job status <id>` and `job cancel <id>` subcommands
+- The job descriptor schema (status_command, cancel_command, poll_interval_ms, timeout_ms) must be part of the standard response envelope for any async operation
+- Document the exit code contract for status commands prominently as part of the framework's standard
 
 ### Evaluation
 
@@ -89,6 +89,11 @@ exit 5  = job ID not found / expired
 ---
 
 ### Agent Workaround
+
+**Signature:** long-running command blocks silently until timeout; or returns a job ID with `exit 0` and the status query also exits `0` while the job still runs
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** `timeout 600 tool <args> </dev/null` run synchronously without `--async`; if that fails, escalate with the command, exit code, stdout, and stderr
 
 **Use the `status_command` from the job descriptor; poll with `terminal` field; respect `poll_interval_ms`:**
 

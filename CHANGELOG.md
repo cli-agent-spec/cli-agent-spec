@@ -1,0 +1,66 @@
+# Changelog
+
+> Every change that alters a canonical schema, a requirement's acceptance criteria, or the failure mode taxonomy is recorded here.
+
+## Versioning
+
+- **Spec version** (`MAJOR.MINOR.PATCH`, git tag `vX.Y.Z`) versions the corpus as a whole. `MINOR` releases add or change failure modes, requirements, or schemas. `PATCH` releases fix prose, examples, and tooling without changing any contract. `MAJOR` is reserved for restructuring the taxonomy or the tier model
+- **Contract version** (`MAJOR.MINOR`, per canonical schema, listed in `schemas/index.md`) versions each wire contract independently. A change that can reject a previously valid instance, or change what a field means, increments the contract's `MAJOR`. Additive optional fields increment `MINOR`
+- A contract `MAJOR` increment always ships in a spec `MINOR` release with a migration section in this file
+- `meta.schema_version` inside a response is neither: it versions one command's output shape (REQ-F-022)
+
+## 1.7.0 — unreleased
+
+### Breaking: ResponseEnvelope 2.0
+
+- `meta.exit_code` is required and must equal the process exit code; `ok` is derived from it and the schema enforces the relationship
+- `warnings` items are `WarningDetail` objects (`code`, `message`, optional `context`) instead of strings
+- `meta.pagination` (`total`, `returned`, `truncated`, `has_more`, `next_cursor`) replaces the top-level `pagination` object and `meta.cursor`
+- `tool exec` output lines carry `_cmd` and `_line` in `meta`, not at the top level
+- `ErrorDetail` declares `cause`, `context`, and `docs_url`; structured facts move from `detail` objects to `context`
+- `error.code` is a domain code that may reuse an `ExitCode` name; the exit code travels in `meta.exit_code`
+- `data` on failure is `null` unless the command declares a failure payload (REQ-C-009, REQ-C-028, REQ-O-026)
+
+**Migration:** set `meta.exit_code` in the envelope factory; wrap each warning string as `{ "code": "...", "message": "<old string>" }`; move `pagination` and `cursor` under `meta.pagination`; move `_cmd`/`_line` into `meta`; rename object-valued `error.detail` to `error.context`.
+
+### Breaking: ManifestResponse 2.0
+
+- `CommandEntry.required_scopes` is required (the doc already said so; the JSON did not)
+- `CommandEntry` and `FlagEntry` declare every field the Command Contract and Opt-In requirements add; unknown fields remain rejected
+- `exit_codes` keys must be integer strings
+
+**Migration:** emit `required_scopes: []` for commands without auth; rename any undeclared extension fields to the names in `schemas/manifest-response.md`.
+
+### Schema mechanics
+
+- Every schema `$id` equals its filename, so `$ref` by filename resolves in ajv and jsonschema
+- `DispatchRequest._opts` values use `anyOf`; integer overrides validate
+- New tooling schemas: `FailureModeIndex`, `ConformanceProfile`, `ConformanceResult`
+
+### Contract fixes
+
+- Framework signal handlers may exit `130` (SIGINT) and `143` (SIGTERM); commands still may not use `126–255`
+- `exit-code.md` no longer calls `126–255` safe to retry; signal exits require state inspection
+- On any disagreement between envelope and process exit code, failure wins (resolves a contradiction with triage row 2)
+- REQ-F-045 rejects hallucinated input with exit `2`, not `3`
+- REQ-C-028 uses `CONFLICT (6)` with `error.code: "ALREADY_EXISTS"`
+- REQ-O-041 example moves `TIMEOUT` to code `10` with `retryable: false`
+- REQ-F-022 `meta.schema_version` is `MAJOR.MINOR`
+- IMPLEMENTING.md Path A no longer calls timeouts retryable
+- README exit code example names the right codes
+
+### Added
+
+- `requirements/levels.md`: conformance levels 1 (12 requirements), 2 (all `P0`), 3 (all)
+- `conformance/run.py`: deterministic conformance kit with eleven checks and level verdicts
+- `challenges/index.json`: generated machine-readable failure mode taxonomy
+- CI gate: link, section, counter, snippet, level, schema, and example validation; skill bundle drift check; tests; ajv compile
+- Benchmark harness v2: trials per cell, tool-log grading, per-trial state isolation, `--regrade`, rendered results
+
+### Known gaps
+
+- §70 (single-argument arity) has no requirement
+
+## 1.6.0
+
+Baseline before this changelog: 74 failure modes, 158 requirements, triage and recovery layer (Signature, Tier, Fallback lines; `fix_command`; `extract_envelope`).

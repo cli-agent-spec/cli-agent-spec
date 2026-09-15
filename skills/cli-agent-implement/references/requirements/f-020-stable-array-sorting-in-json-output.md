@@ -14,9 +14,9 @@ In JSON output mode, the framework MUST sort all array fields in a stable, deter
 
 ## Acceptance Criteria
 
-- Two invocations of the same command with the same arguments produce byte-identical JSON output (excluding `meta` volatile fields).
-- A string array output field is always in lexicographic order.
-- An object array output field is always sorted by the declared primary key.
+- Two invocations of the same command with the same arguments produce byte-identical JSON output (excluding `meta` volatile fields)
+- A string array output field is always in lexicographic order
+- An object array output field is always sorted by the declared primary key
 
 ---
 

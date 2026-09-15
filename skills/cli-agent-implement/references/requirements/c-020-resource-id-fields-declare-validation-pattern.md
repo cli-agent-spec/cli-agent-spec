@@ -14,10 +14,10 @@ Any command argument declared as a resource identifier (e.g., ID, slug, name, ke
 
 ## Acceptance Criteria
 
-- A command argument declared as type `alphanumeric_id` automatically rejects inputs containing `/`, `.`, `?`, `#`, and `%`.
-- A command argument with a custom regex `^[a-z0-9-]{3,64}$` rejects inputs that do not match.
-- A command argument with no declared pattern for a resource ID field triggers a framework registration warning.
-- Pattern validation failures exit with code 2 and include the argument name and the expected pattern in the error.
+- A command argument declared as type `alphanumeric_id` automatically rejects inputs containing `/`, `.`, `?`, `#`, and `%`
+- A command argument with a custom regex `^[a-z0-9-]{3,64}$` rejects inputs that do not match
+- A command argument with no declared pattern for a resource ID field triggers a framework registration warning
+- Pattern validation failures exit with code 2 and include the argument name and the expected pattern in the error
 
 ---
 
@@ -63,7 +63,7 @@ $ tool deploy --schema
   },
   "exit_codes": {
     "0": { "name": "SUCCESS",   "description": "Deployment completed",                "retryable": false, "side_effects": "complete" },
-    "3": { "name": "ARG_ERROR", "description": "Resource ID failed pattern validation", "retryable": true,  "side_effects": "none"     }
+    "2": { "name": "ARG_ERROR", "description": "Resource ID failed pattern validation", "retryable": false, "side_effects": "none"     }
   }
 }
 ```

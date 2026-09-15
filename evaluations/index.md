@@ -6,17 +6,20 @@ Real-world CLI tools evaluated against the CLI Agent Spec — scored across crit
 
 | CLI | Version | Score     | Readiness     | Scope |
 |---|---|-----------|---------------|---|
+| [cube](cube/README.md) | 1.7.16 | 0.8/3     | 7/15 [C]      | Critical (22 of 74) |
 | [docuseal](docuseal/README.md) | 1.0.3 | 0.72/3    | 7/15 [C]      | All (71 of 71) |
 | [gh](gh/README.md) | 2.88.1 | **1.8/3** | 7/15 [D]      | Critical (13 of 71) |
 | [gws](gws/README.md) | 0.22.5 | 1.23/3    | 7/15 [C]      | Critical (22 of 71) |
 | [dokploy](dokploy/README.md) | 0.3.0 | 1.1/3     | 7/15 [C]      | Critical (22 of 71) |
 | [langfuse](langfuse/README.md) | 0.0.10 | 1.4/3     | 9/15 [C]      | Critical (22 of 71) |
 | [firecrawl](firecrawl/README.md) | 1.18.1 | 0.48/3    | 7/15 [C]      | Critical (22 of 71) |
-| [omd](omd/README.md) | 0.1.1 | 1.5/3     | **12/15 [B]** | Critical (22 of 71) |
+| [omd](omd/README.md) | 0.1.1 | 1.5/3     | 12/15 [B]     | Critical (22 of 71) |
 | [shopify](shopify/README.md) | @shopify/cli 4.1.0 | 0.6/3     | 6/15 [D]      | Critical (22 of 71) |
 | [hevn](hevn/README.md) | hevn-cli 0.1.0 | 0.9/3     | 7/15 [C]      | Critical (22 of 71) |
 | [neon](neon/README.md) | 2.30.1 | 0.4/3     | 8/15 [C]      | Critical (22 of 71) |
 | [link](link/README.md) | 0.7.1 | 1.2/3     | 10/15 [B]     | Critical (22 of 71) |
+| [resend](resend/README.md) | resend-cli 2.8.1 | 1.2/3     | **14/15 [A]** | Critical (22 of 74) |
+| [temporal](temporal/README.md) | 1.7.2 | 1.1/3     | 3/15 [F]      | Critical (22 of 71) |
 
 ## How Evaluations Work
 

@@ -14,10 +14,10 @@ The framework MUST provide `--context <name>` (select a named context from the c
 
 ## Acceptance Criteria
 
-- `--config /tmp/isolated.json` causes the command to load config only from that file.
-- `--context staging` causes the command to use the `staging` context from the loaded config.
-- Two concurrent invocations with different `--config` paths do not share any mutable state.
-- `meta.config_sources` reflects the `--config` path when passed.
+- `--config /tmp/isolated.json` causes the command to load config only from that file
+- `--context staging` causes the command to use the `staging` context from the loaded config
+- Two concurrent invocations with different `--config` paths do not share any mutable state
+- `meta.config_sources` reflects the `--config` path when passed
 
 ---
 
@@ -40,6 +40,7 @@ $ tool deploy --config /tmp/agent-session-7/config.json --context staging --targ
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 310,
     "config_sources": ["/tmp/agent-session-7/config.json"],
     "context": "staging"

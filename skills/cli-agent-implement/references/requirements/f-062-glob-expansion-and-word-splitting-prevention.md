@@ -14,10 +14,10 @@ The framework's subprocess API MUST always invoke external processes using array
 
 ## Acceptance Criteria
 
-- An argument containing spaces (e.g., `"hello world"`) is received by the subprocess as a single argument, not split into two.
-- An argument containing `*` (e.g., `"*.json"`) is passed literally to the subprocess, not expanded by the shell.
-- Passing a shell-string to the subprocess API raises a framework `SHELL_STRING_PROHIBITED` error at registration time.
-- In debug mode, subprocess invocations are logged as JSON arrays: `["git", "commit", "-m", "hello world"]`.
+- An argument containing spaces (e.g., `"hello world"`) is received by the subprocess as a single argument, not split into two
+- An argument containing `*` (e.g., `"*.json"`) is passed literally to the subprocess, not expanded by the shell
+- Passing a shell-string to the subprocess API raises a framework `SHELL_STRING_PROHIBITED` error at registration time
+- In debug mode, subprocess invocations are logged as JSON arrays: `["git", "commit", "-m", "hello world"]`
 
 ---
 

@@ -14,10 +14,10 @@ The framework MUST provide `--quiet` (suppress all stderr; stdout JSON only), `-
 
 ## Acceptance Criteria
 
-- `--quiet` produces zero bytes on stderr (even for warnings).
-- `--verbose` produces progress messages on stderr and the JSON result on stdout.
-- `--debug` produces full diagnostic trace on stderr including all HTTP requests and config resolution steps.
-- Passing `--verbose` with `CI=true` overrides the auto-quiet mode.
+- `--quiet` produces zero bytes on stderr (even for warnings)
+- `--verbose` produces progress messages on stderr and the JSON result on stdout
+- `--debug` produces full diagnostic trace on stderr including all HTTP requests and config resolution steps
+- Passing `--verbose` with `CI=true` overrides the auto-quiet mode
 
 ---
 
@@ -41,7 +41,7 @@ $ tool deploy --target staging --quiet --output json
   "data": { "id": "deploy-42", "status": "complete" },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 340 }
+  "meta": { "exit_code": 0, "duration_ms": 340 }
 }
 ```
 
@@ -65,7 +65,7 @@ stdout:
   "data": { "id": "deploy-42", "status": "complete" },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 340, "debug": { "config_file": "/home/user/.config/tool/config.yaml" } }
+  "meta": { "exit_code": 0, "duration_ms": 340, "debug": { "config_file": "/home/user/.config/tool/config.yaml" } }
 }
 ```
 

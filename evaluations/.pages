@@ -1,6 +1,7 @@
 title: Evaluations
 nav:
   - index.md
+  - cube
   - docuseal
   - dokploy
   - firecrawl
@@ -11,4 +12,6 @@ nav:
   - link
   - neon
   - omd
+  - resend
   - shopify
+  - temporal

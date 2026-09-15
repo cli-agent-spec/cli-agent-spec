@@ -121,6 +121,10 @@ tool fetch-data --no-proxy   # bypass proxy for this call
 
 ### Agent Workaround
 
+**Signature:** network command fails with `connection refused`, `407`, or `certificate verify failed` while `HTTPS_PROXY` is set and the target service is up
+
+**Tier:** B (one observable check, then one command)
+
 **Propagate proxy env vars explicitly to subprocesses; diagnose network errors using `network_context`:**
 
 ```python

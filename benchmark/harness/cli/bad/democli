@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# cli-bad: democli — single entry point dispatching to the per-command scripts
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+COMMAND="${1:-}"
+case "$COMMAND" in
+  deployments|deploy|health) shift; exec "$HERE/$COMMAND" "$@" ;;
+  *) echo "Usage: democli <deployments|deploy|health> [args]"; exit 1 ;;
+esac

@@ -14,9 +14,9 @@ In non-TTY mode and when `CI` is set, the framework MUST suppress all update/upg
 
 ## Acceptance Criteria
 
-- A command that uses a library with a built-in update notifier produces no update notification on stdout or stderr in non-TTY mode.
-- The suppression environment variables are set before any command execution.
-- `CI=1` is set in the subprocess environment for all child processes spawned by the framework.
+- A command that uses a library with a built-in update notifier produces no update notification on stdout or stderr in non-TTY mode
+- The suppression environment variables are set before any command execution
+- `CI=1` is set in the subprocess environment for all child processes spawned by the framework
 - In TTY mode, update notifications are unaffected (shown as normal)
 
 ---

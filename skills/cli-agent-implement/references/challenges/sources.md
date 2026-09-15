@@ -12,6 +12,7 @@ This file documents where each challenge came from, how confident the source is,
 | **TD** | Training data pattern | Absorbed from GitHub issues, blog posts, Stack Overflow, CLI library docs, forum threads during training | Medium (anecdotal, unverifiable) |
 | **RA** | Research artifact | Read from specific real source code, docs, or spec during this project's research phase | High (verifiable) |
 | **TD+FP** | Both | Attested in training data AND independently derivable from first principles | Very High |
+| **EP** | Empirical publication | Quantitative evidence from a peer-reviewed or pre-print research paper; claims are reproducible and verifiable by reference | High (verifiable, quantitative) |
 
 ---
 
@@ -30,6 +31,7 @@ This file documents where each challenge came from, how confident the source is,
 | [§7](04-critical-output-and-parsing/07-medium-output-nondeterminism.md) | Output Non-Determinism | TD+FP | Non-deterministic output breaking diffing is a known CI/CD problem; agent retry-loop consequence is first-principles inference |
 | [§8](04-critical-output-and-parsing/08-high-ansi-leakage.md) | ANSI & Color Code Leakage | TD+FP | Extremely common complaint in both CI and agent contexts; structurally guaranteed if agent reads stdout |
 | [§9](04-critical-output-and-parsing/09-high-binary-encoding.md) | Binary & Encoding Safety | TD | Binary-in-JSON encoding issues documented in API design guides and CLI output handling discussions |
+| [§76](04-critical-output-and-parsing/76-high-streaming-default-incompatibility.md) | Streaming-Default JSONL Incompatibility | FP | Structurally guaranteed: `json.loads(stdout)` is the dominant agent parsing pattern; JSONL-default without declaration breaks it by construction |
 
 ### Part II: Execution & Reliability
 
@@ -61,6 +63,8 @@ This file documents where each challenge came from, how confident the source is,
 | [§23](03-critical-security/23-critical-destructive-ops.md) | Side Effects & Destructive Operations | TD+FP | Dry-run and confirmation patterns are well-documented; agent-specific "no human to catch mistakes" risk framing from agent safety discussions |
 | [§24](03-critical-security/24-critical-auth-secrets.md) | Authentication & Secret Handling | TD+FP | Secret-in-env-var pattern is documented in 12-factor app, CI/CD guides; agent-specific leakage vectors from agent security training data |
 | [§25](03-critical-security/25-critical-prompt-injection.md) | Prompt Injection via Output | TD | Prompt injection via tool output is documented in LLM security research (Greshake et al., similar papers absorbed in training) |
+| [§74](03-critical-security/74-critical-credential-scope-declaration.md) | Credential Scope Declaration Absence | FP | Observed during gh evaluation: personal PAT grants full account access to agent; OAuth scope minimization is standard security practice but absent from CLI design guides |
+| [§75](03-critical-security/75-critical-safe-default-execution.md) | Safe-Default Execution Mode Absent | FP | Observed in trading bot scenario: --dry-run is available (§23) but not the default; agents that omit the flag cause real trades; Terraform plan/apply split is the established model for safe-default execution |
 
 ### Part V: Environment & State
 
@@ -80,7 +84,7 @@ This file documents where each challenge came from, how confident the source is,
 |---|-----------|--------|-------|
 | [§33](07-medium-observability/33-medium-observability.md) | Observability & Audit Trail | TD | Structured logging, request IDs, and audit trails are documented in production engineering guides; agent-specific trace propagation from OpenTelemetry and agent SDK discussions |
 
-### Part VII: Ecosystem, Runtime & Agent-Specific (§34–47, §49–68)
+### Part VII: Ecosystem, Runtime & Agent-Specific (§34–47, §49–70)
 
 Discovered by reading specific real artifacts during the research phase of this project.
 
@@ -135,6 +139,8 @@ Discovered by reviewing two external agent-native CLI projects.
 | [§66](01-critical-ecosystem-runtime-agent-specific/66-high-symlink-loop.md) | Symlink Loop and Recursive Traversal Exhaustion | RA | Antigravity: Environment & Execution — Symlink Death Spirals; inode tracking solution |
 | [§67](01-critical-ecosystem-runtime-agent-specific/67-high-json5-input.md) | Agent-Generated Input Syntax Rejection | RA | Antigravity: Schema & Discoverability — Input Syntax Rigidity; JSON5 forgiving parser solution; REQ-48 |
 | [§68](01-critical-ecosystem-runtime-agent-specific/68-high-stdout-pollution.md) | Third-Party Library Stdout Pollution | RA | Gemini AMI: Output & Context; Antigravity: I/O & Formatting — fd-level interception solution |
+| [§69](01-critical-ecosystem-runtime-agent-specific/69-high-argument-order-ambiguity.md) | Argument Order Ambiguity | FP | Derived from parser mode differences across argparse/Click/Cobra/Commander.js |
+| [§70](01-critical-ecosystem-runtime-agent-specific/70-high-single-argument-arity.md) | Single-Argument Arity Forcing Agent Loop Overhead | FP | Derived from observed agent error: `ws delete` passed multiple paths, argparse rejected extras; UNIX convention (rm/cp/mv accept nargs=+) creates universal agent expectation |
 
 ---
 
@@ -170,4 +176,27 @@ Discovered by reviewing two external agent-native CLI projects.
 
 ---
 
-*Written 2026-03-13. Revised 2026-03-13: §36, §39, §48 marked merged; confidence counts corrected to 30/18/17; personal paths removed; active links added. Revised 2026-03-19: §69 added. Revised 2026-03-26: §70 added. Covers CLI Agent Spec v1.6 — 67 active challenges (70 original, 3 merged).*
+## Empirical Publication Sources
+
+The following peer-reviewed or pre-print papers provide **quantitative evidence** for challenges in this spec. EP sources strengthen existing challenge entries without replacing their primary source category — they add measured effect sizes where the spec previously had only structural or anecdotal evidence.
+
+### SkillOpt: Executive Strategy for Self-Evolving Agent Skills
+
+**Citation:** Yang et al., Microsoft Research + Shanghai Jiao Tong / Tongji / Fudan universities. arXiv:2605.23904, May 2026.
+
+**What it measures:** Performance gains from optimized skill documents across 6 benchmarks, 7 target models, and 3 execution harnesses (direct chat, Codex CLI, Claude Code). 52/52 best-or-tied evaluated cells.
+
+**Challenges it provides EP-level evidence for:**
+
+| Challenge | What SkillOpt measures | Effect |
+|---|---|---|
+| [§44 Agent Knowledge Packaging Absence](01-critical-ecosystem-runtime-agent-specific/44-medium-knowledge-packaging.md) | Zero-shot frontier models vs. optimized-skill frontier models on procedural benchmarks — the gap is the cost of missing knowledge | GPT-5.5: 33–42% no-skill → 67–81% with optimized skill on SpreadsheetBench, OfficeQA, LiveMathBench |
+| [§2 Output Format & Parseability](04-critical-output-and-parsing/02-critical-output-format.md) | CLIs with automatic verifiers (parseable exit codes + structured output) support a held-out gate that produces stable gains; CLIs without them cannot train | The validation gate is the single most impactful SkillOpt component; removing it collapses training |
+| [§4 Verbosity & Token Cost](04-critical-output-and-parsing/04-medium-verbosity.md) | Training cost per test-point gain varies by an order of magnitude with trajectory length | SearchQA (longer trajectories): 37.9M tokens/point; SpreadsheetBench (shorter): 0.6M tokens/point |
+| [§18 Error Message Quality](06-high-errors-and-discoverability/18-high-error-quality.md) | Failure minibatches are the primary source of useful edits; the optimizer identifies recurring error patterns and encodes procedures to avoid them | Removing the rejected-edit buffer (which captures recurring failure patterns) costs 4.6 points on SpreadsheetBench |
+
+**The partition SkillOpt reveals:** challenges split into *behavioral* (can be partially remediated by a well-trained skill) and *structural* (abort rollouts before any trajectory is logged). §10, §11, §25, §34, §45, §60 are structural — no amount of skill optimization can work around them. This partition is now documented in `guides/skill-optimizable-design.md`.
+
+---
+
+*Written 2026-03-13. Revised 2026-03-13: §36, §39, §48 marked merged; confidence counts corrected to 30/18/17; personal paths removed; active links added. Revised 2026-03-19: §69 added. Revised 2026-03-26: §70 added. Revised 2026-05-07: §71 (FP), §72 (FP), §73 (FP) added; active total updated to 70. Revised 2026-05-07: §74 (FP) added; active total updated to 71. Revised 2026-05-09: §75 (FP) added; active total updated to 72. Revised 2026-05-26: EP source category added; SkillOpt (arXiv:2605.23904) added as EP source for §44, §2, §4, §18. Covers CLI Agent Spec v1.7 — 72 active challenges (75 original, 3 merged).*

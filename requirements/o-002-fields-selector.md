@@ -44,7 +44,7 @@ $ tool list-users --fields id,name --output json
   ],
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 42 }
+  "meta": { "exit_code": 0, "duration_ms": 42 }
 }
 ```
 

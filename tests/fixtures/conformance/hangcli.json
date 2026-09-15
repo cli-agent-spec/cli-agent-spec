@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "tool": "hangcli",
+  "command": ["./hangcli"],
+  "timeout_seconds": 1,
+  "probes": [
+    { "name": "wait for stdin", "argv": ["wait-stdin"], "kind": "read" },
+    { "name": "prompt forever", "argv": ["prompt"], "kind": "read" },
+    { "name": "odd exit", "argv": ["odd-exit"], "kind": "read" },
+    { "name": "exit mismatch", "argv": ["mismatch"], "kind": "read" }
+  ]
+}

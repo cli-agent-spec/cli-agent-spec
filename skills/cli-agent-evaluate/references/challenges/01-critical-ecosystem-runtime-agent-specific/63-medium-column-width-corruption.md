@@ -50,13 +50,13 @@ $ tool describe resource --width=0 --output json
 ```
 
 **JSON output mode MUST never hard-wrap string values:**
-- In JSON output mode, the framework serializes all strings without newline injection.
-- Table/human output mode may wrap; JSON output mode MUST NOT.
+- In JSON output mode, the framework serializes all strings without newline injection
+- Table/human output mode may wrap; JSON output mode MUST NOT
 
 **For framework design:**
-- Framework MUST disable all terminal-width-based formatting when JSON output mode is active.
-- Framework MUST NOT inject newlines into string field values during serialization regardless of `$COLUMNS` value.
-- The `--width` flag (default: `0` in non-TTY, terminal width in TTY) MUST be respected by all formatting functions.
+- Framework MUST disable all terminal-width-based formatting when JSON output mode is active
+- Framework MUST NOT inject newlines into string field values during serialization regardless of `$COLUMNS` value
+- The `--width` flag (default: `0` in non-TTY, terminal width in TTY) MUST be respected by all formatting functions
 
 ### Evaluation
 
@@ -72,6 +72,10 @@ $ tool describe resource --width=0 --output json
 ---
 
 ### Agent Workaround
+
+**Signature:** JSON parse fails on output where long strings (URLs, paths) are split across lines at a fixed column (often 80); break point shifts with `COLUMNS`
+
+**Tier:** B (one observable check, then one command)
 
 **Set `COLUMNS=0` and `--width=0` to suppress terminal-width wrapping; strip any injected newlines from string values:**
 

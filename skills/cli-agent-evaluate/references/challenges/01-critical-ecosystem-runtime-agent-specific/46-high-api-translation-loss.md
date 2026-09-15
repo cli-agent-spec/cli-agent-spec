@@ -43,11 +43,11 @@ The translation loss creates errors when:
 
 ### Impact
 
-- Agents working with both an API and its CLI wrapper must maintain two mental models of the same interface.
-- Lossy translations silently truncate or corrupt complex values (arrays containing separator characters, deeply nested objects).
-- API fields not yet mapped to CLI flags are inaccessible without falling back to raw HTTP clients.
-- Schema divergence grows over time as the API evolves faster than the CLI wrapper.
-- Agents that have successfully used the API directly may construct incorrect CLI invocations because they apply API schema knowledge to CLI flag patterns incorrectly.
+- Agents working with both an API and its CLI wrapper must maintain two mental models of the same interface
+- Lossy translations silently truncate or corrupt complex values (arrays containing separator characters, deeply nested objects)
+- API fields not yet mapped to CLI flags are inaccessible without falling back to raw HTTP clients
+- Schema divergence grows over time as the API evolves faster than the CLI wrapper
+- Agents that have successfully used the API directly may construct incorrect CLI invocations because they apply API schema knowledge to CLI flag patterns incorrectly
 
 ### Solutions
 
@@ -70,11 +70,11 @@ my-tool api POST /users --body '{"user": {"name": "Alice", "roles": [...]}}'
 ```
 
 **For framework design:**
-- For every mutating command, accept `--json <payload>` as an alternative to individual flags, where the payload maps directly to the underlying API request body.
-- Expose a `--raw-api` mode (jpoehnelt Axis 2 level 3) that accepts the API request body directly and performs no flag-to-body translation.
-- Validate that the `--json` payload passes the same JSON Schema as the API request body (i.e., the CLI's JSON Schema and the API's JSON Schema are identical for mutating operations).
-- `--schema` output should include both the CLI flag schema and, where applicable, the underlying API JSON Schema with a reference to where translation occurs.
-- Generate CLI wrappers from OpenAPI specs (rather than hand-writing them) to guarantee zero initial translation loss.
+- For every mutating command, accept `--json <payload>` as an alternative to individual flags, where the payload maps directly to the underlying API request body
+- Expose a `--raw-api` mode (jpoehnelt Axis 2 level 3) that accepts the API request body directly and performs no flag-to-body translation
+- Validate that the `--json` payload passes the same JSON Schema as the API request body (i.e., the CLI's JSON Schema and the API's JSON Schema are identical for mutating operations)
+- `--schema` output should include both the CLI flag schema and, where applicable, the underlying API JSON Schema with a reference to where translation occurs
+- Generate CLI wrappers from OpenAPI specs (rather than hand-writing them) to guarantee zero initial translation loss
 
 ### Evaluation
 
@@ -90,6 +90,10 @@ my-tool api POST /users --body '{"user": {"name": "Alice", "roles": [...]}}'
 ---
 
 ### Agent Workaround
+
+**Signature:** comma-containing value arrives split into multiple items; API-documented field has no corresponding flag; `unknown option` for fields the API accepts
+
+**Tier:** A (one safe command, no branching)
 
 **Use `--json` to bypass flag-based translation for complex structured inputs:**
 

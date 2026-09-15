@@ -1,0 +1,45 @@
+name: Validate
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install tooling
+        run: uv sync --locked
+
+      - name: Cross-links, indexes, sections, counts, snippets
+        run: uv run scripts/validate_links.py
+
+      - name: Schemas and every JSON example in the prose
+        run: uv run scripts/validate_schemas.py
+
+      - name: Machine-readable failure mode index is current
+        run: uv run scripts/build_failure_index.py --check
+
+      - name: Skill reference bundles match the repo root
+        run: scripts/sync-skill-references.sh --check
+
+      - name: Tests
+        run: uv run pytest -q
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Schemas compile under ajv (the command the docs publish)
+        run: npx --yes ajv-cli@5 compile -s "schemas/*.json" --spec=draft7 --strict=false

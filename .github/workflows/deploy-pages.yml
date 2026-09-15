@@ -1,7 +1,9 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
+  workflow_run:
+    workflows: [Validate]
+    types: [completed]
     branches: [master]
   workflow_dispatch:
 
@@ -10,6 +12,7 @@ permissions:
 
 jobs:
   deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,6 +27,9 @@ jobs:
       - name: Build site
         run: mkdocs build --strict
 
+      - name: Add repository metadata
+        run: cp README.md LICENSE site/
+
       - name: Deploy to cli-agent-spec.github.io
         uses: peaceiris/actions-gh-pages@v4
         with:
@@ -31,4 +37,4 @@ jobs:
           external_repository: cli-agent-spec/cli-agent-spec.github.io
           publish_branch: main
           publish_dir: ./site
-          keep_files: true
+          keep_files: false

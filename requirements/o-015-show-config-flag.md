@@ -49,7 +49,7 @@ $ tool --show-config --output json
   },
   "error": null,
   "warnings": [],
-  "meta": { "cwd": "/project" }
+  "meta": { "exit_code": 0, "duration_ms": 12, "cwd": "/project" }
 }
 ```
 

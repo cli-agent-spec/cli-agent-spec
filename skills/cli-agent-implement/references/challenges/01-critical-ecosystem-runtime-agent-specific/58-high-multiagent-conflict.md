@@ -44,9 +44,9 @@ $ tool --instance-id agent-1 config set region=us-east-1
 ```
 
 **For framework design:**
-- All config and state writes MUST use advisory file locking with configurable timeout (default 5s).
-- Config writes MUST use atomic rename to prevent partial-write corruption.
-- Framework MUST provide `--instance-id <id>` to namespace all per-instance state so parallel agents operate without interference.
+- All config and state writes MUST use advisory file locking with configurable timeout (default 5s)
+- Config writes MUST use atomic rename to prevent partial-write corruption
+- Framework MUST provide `--instance-id <id>` to namespace all per-instance state so parallel agents operate without interference
 
 ### Evaluation
 
@@ -62,6 +62,11 @@ $ tool --instance-id agent-1 config set region=us-east-1
 ---
 
 ### Agent Workaround
+
+**Signature:** `exit 0` on a config write but a later read returns a different or missing value; auth calls suddenly fail with `401` after another session ran
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Pass a unique `--instance-id <id>` on every invocation to namespace state and do not retry conflicted config writes; if that fails, escalate with the command, exit code, stdout, and stderr
 
 **Use `--instance-id` for state isolation; serialize config writes via an external lock; detect `CONCURRENT_MODIFICATION` errors:**
 

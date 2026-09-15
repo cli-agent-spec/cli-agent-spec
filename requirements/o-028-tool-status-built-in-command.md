@@ -49,7 +49,7 @@ $ tool status --show-state-files --output json
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 5 }
+  "meta": { "exit_code": 0, "duration_ms": 5 }
 }
 ```
 
