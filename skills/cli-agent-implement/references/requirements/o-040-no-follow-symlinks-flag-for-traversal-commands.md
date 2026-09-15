@@ -14,10 +14,10 @@ The framework MUST auto-register `--no-follow-symlinks` and `--max-depth <n>` (d
 
 ## Acceptance Criteria
 
-- `tool delete --recursive --no-follow-symlinks /tmp/a` skips symlinks and completes without following circular references.
-- `tool delete --recursive --max-depth 3 /deep/tree` exits 4 with `DEPTH_EXCEEDED` if the tree is deeper than 3 levels.
-- Without `--no-follow-symlinks`, the inode tracking from REQ-F-061 provides the loop protection.
-- `--schema` for recursive commands lists `no-follow-symlinks` and `max-depth` flags.
+- `tool delete --recursive --no-follow-symlinks /tmp/a` skips symlinks and completes without following circular references
+- `tool delete --recursive --max-depth 3 /deep/tree` exits 4 with `DEPTH_EXCEEDED` if the tree is deeper than 3 levels
+- Without `--no-follow-symlinks`, the inode tracking from REQ-F-061 provides the loop protection
+- `--schema` for recursive commands lists `no-follow-symlinks` and `max-depth` flags
 
 ---
 
@@ -41,7 +41,7 @@ $ tool delete --recursive --no-follow-symlinks /tmp/a --output json
   "data": { "deleted_count": 42, "symlinks_skipped": 3 },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 18 }
+  "meta": { "exit_code": 0, "duration_ms": 18 }
 }
 ```
 
@@ -59,7 +59,7 @@ $ tool delete --recursive --no-follow-symlinks /tmp/a --output json
     "hint": "Use --max-depth to adjust the limit"
   },
   "warnings": [],
-  "meta": {}
+  "meta": { "exit_code": 4, "duration_ms": 12 }
 }
 ```
 

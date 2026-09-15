@@ -43,7 +43,7 @@ Success:
   "data": { "logged_in": true, "user": "alice@example.com" },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 312 }
+  "meta": { "exit_code": 0, "duration_ms": 312 }
 }
 ```
 
@@ -59,7 +59,7 @@ Headless failure (token not found):
     "auth_methods": [{ "type": "env_var", "name": "MY_TOKEN", "hint": "Set MY_TOKEN to your API token" }]
   },
   "warnings": [],
-  "meta": {}
+  "meta": { "exit_code": 8, "duration_ms": 12 }
 }
 ```
 

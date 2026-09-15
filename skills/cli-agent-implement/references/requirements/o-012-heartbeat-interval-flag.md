@@ -14,10 +14,10 @@ For long-running commands, the framework MUST provide `--heartbeat-interval <sec
 
 ## Acceptance Criteria
 
-- `--heartbeat-interval 5` causes a progress message to stderr every 5 seconds.
-- The heartbeat message includes elapsed time and the most recent status from the command's `progress()` call.
-- Heartbeat messages are plain text, never JSON (they are diagnostic, not structured output).
-- With `--quiet`, heartbeat messages are suppressed.
+- `--heartbeat-interval 5` causes a progress message to stderr every 5 seconds
+- The heartbeat message includes elapsed time and the most recent status from the command's `progress()` call
+- Heartbeat messages are plain text, never JSON (they are diagnostic, not structured output)
+- With `--quiet`, heartbeat messages are suppressed
 
 ---
 

@@ -44,7 +44,7 @@ The framework maps HTTP 401/403 responses to structured `ErrorDetail` objects. C
     "refresh_command": "mytool auth refresh"
   },
   "warnings": [],
-  "meta": { "duration_ms": 120 }
+  "meta": { "exit_code": 8, "duration_ms": 120 }
 }
 ```
 

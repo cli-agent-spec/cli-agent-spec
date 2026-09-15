@@ -26,11 +26,11 @@ The MCP-wrapped CLI pattern specifically calls out that the wrapper layer is the
 
 ### Impact
 
-- An agent with write access to a system can accidentally or intentionally execute unintended shell commands, including file deletion, network exfiltration, or privilege escalation.
-- Path traversal arguments (`../../etc/passwd`) passed to file-operating commands can escape intended working directories.
-- Hallucinated arguments containing `?`, `#`, `;`, `&&`, `||` can be silently interpreted as shell operators or URL fragments.
-- The failure is typically silent: the command exits non-zero or produces unexpected output with no indication that injection occurred.
-- Hard to detect because the injected commands may succeed (exit 0) with outputs that appear plausible.
+- An agent with write access to a system can accidentally or intentionally execute unintended shell commands, including file deletion, network exfiltration, or privilege escalation
+- Path traversal arguments (`../../etc/passwd`) passed to file-operating commands can escape intended working directories
+- Hallucinated arguments containing `?`, `#`, `;`, `&&`, `||` can be silently interpreted as shell operators or URL fragments
+- The failure is typically silent: the command exits non-zero or produces unexpected output with no indication that injection occurred
+- Hard to detect because the injected commands may succeed (exit 0) with outputs that appear plausible
 
 ### Solutions
 
@@ -58,11 +58,11 @@ const result = await execFile(args[0], args.slice(1));  // ✓ never shell=True
 ```
 
 **For framework design:**
-- Reject arguments containing `../`, `./`, percent-encoded characters (`%[0-9a-fA-F]{2}`), embedded query string markers (`?`, `#`), and shell metacharacters (`;`, `&&`, `||`, backtick, `$()`) by default.
-- Provide a whitelist-based argument sanitizer as a framework primitive: `@arg(pattern=r'^[\w\-\.]+$')`.
-- Default to `subprocess.run(args_list)` (never `shell=True`) in all generated subprocess calls.
-- Apply jpoehnelt Axis 5 level 2 checks at argument parsing time, before any execution.
-- MCP wrappers: always receive arguments as typed JSON objects, never concatenate into shell strings.
+- Reject arguments containing `../`, `./`, percent-encoded characters (`%[0-9a-fA-F]{2}`), embedded query string markers (`?`, `#`), and shell metacharacters (`;`, `&&`, `||`, backtick, `$()`) by default
+- Provide a whitelist-based argument sanitizer as a framework primitive: `@arg(pattern=r'^[\w\-\.]+$')`
+- Default to `subprocess.run(args_list)` (never `shell=True`) in all generated subprocess calls
+- Apply jpoehnelt Axis 5 level 2 checks at argument parsing time, before any execution
+- MCP wrappers: always receive arguments as typed JSON objects, never concatenate into shell strings
 
 ### Evaluation
 
@@ -78,6 +78,10 @@ const result = await execFile(args[0], args.slice(1));  // ✓ never shell=True
 ---
 
 ### Agent Workaround
+
+**Signature:** command whose values contain `;`, `&&`, `$()`, or `../` produces unexpected output or side effects; may still exit `0` with plausible-looking result
+
+**Tier:** A (one safe command, no branching)
 
 **Always use exec-array (list form) for subprocess calls; validate LLM-generated values before passing them:**
 

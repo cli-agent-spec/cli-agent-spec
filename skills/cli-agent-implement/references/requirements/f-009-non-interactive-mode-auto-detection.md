@@ -14,8 +14,8 @@ The framework MUST automatically detect non-interactive execution by checking wh
 
 ## Acceptance Criteria
 
-- A command that would prompt for input in TTY mode exits immediately with exit code 4 and a JSON error when stdin is `/dev/null`.
-- No command hangs waiting for stdin input when `isatty(stdin) == false`.
+- A command that would prompt for input in TTY mode exits immediately with exit code 4 and a JSON error when stdin is `/dev/null`
+- No command hangs waiting for stdin input when `isatty(stdin) == false`
 - The JSON error for this condition includes `"code": "INPUT_REQUIRED"` and a `suggestion` field
 
 ---

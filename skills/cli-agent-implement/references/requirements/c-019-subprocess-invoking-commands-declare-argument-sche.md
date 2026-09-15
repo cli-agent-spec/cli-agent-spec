@@ -14,10 +14,10 @@ Any command that invokes a subprocess with arguments derived from user input MUS
 
 ## Acceptance Criteria
 
-- A command using the framework's `subprocess()` API with a user-supplied argument is automatically protected by REQ-F-044.
-- A command that uses `os.system()` directly is flagged by the framework's registration linter.
-- The `--schema` output for subprocess-invoking commands includes a `subprocess` section listing the binary and user-controlled arguments.
-- An attempt to pass a shell metacharacter in a user-derived subprocess argument is rejected with exit code 2.
+- A command using the framework's `subprocess()` API with a user-supplied argument is automatically protected by REQ-F-044
+- A command that uses `os.system()` directly is flagged by the framework's registration linter
+- The `--schema` output for subprocess-invoking commands includes a `subprocess` section listing the binary and user-controlled arguments
+- An attempt to pass a shell metacharacter in a user-derived subprocess argument is rejected with exit code 2
 
 ---
 
@@ -53,7 +53,7 @@ $ tool run --schema
   },
   "exit_codes": {
     "0": { "name": "SUCCESS",   "description": "Script completed successfully", "retryable": false, "side_effects": "complete" },
-    "3": { "name": "ARG_ERROR", "description": "Shell metacharacter in argument", "retryable": true, "side_effects": "none" }
+    "2": { "name": "ARG_ERROR", "description": "Shell metacharacter in argument", "retryable": false,"side_effects": "none" }
   }
 }
 ```

@@ -14,9 +14,9 @@ Every command with `danger_level: "mutating"` or `"destructive"` MUST accept an 
 
 ## Acceptance Criteria
 
-- Invoking a mutating command twice with the same `--idempotency-key` returns `effect: "noop"` on the second call.
-- The second call's response `data` matches the first call's response `data`.
-- An auto-generated idempotency key is deterministic for the same command arguments within a session.
+- Invoking a mutating command twice with the same `--idempotency-key` returns `effect: "noop"` on the second call
+- The second call's response `data` matches the first call's response `data`
+- An auto-generated idempotency key is deterministic for the same command arguments within a session
 
 ---
 
@@ -54,7 +54,7 @@ $ tool create-order --amount 100 --idempotency-key order-abc123
   "data": { "effect": "created", "id": 42, "amount": 100 },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 91 }
+  "meta": { "exit_code": 0, "duration_ms": 91 }
 }
 ```
 
@@ -70,7 +70,7 @@ $ tool create-order --amount 100 --idempotency-key order-abc123
   "data": { "effect": "noop", "id": 42, "amount": 100 },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 9, "idempotency_hit": true }
+  "meta": { "exit_code": 0, "duration_ms": 9, "idempotency_hit": true }
 }
 ```
 
@@ -85,7 +85,7 @@ register command "create-order":
   danger_level: mutating
   exit_codes:
     SUCCESS  (0): description: "Order created or already existed", retryable: false, side_effects: complete
-    ARG_ERROR(3): description: "Invalid amount",                   retryable: true,  side_effects: none
+    ARG_ERROR(2): description: "Invalid amount",                   retryable: false, side_effects: none
 
   execute(args):
     cached = idempotency_store.get(args.idempotency_key)

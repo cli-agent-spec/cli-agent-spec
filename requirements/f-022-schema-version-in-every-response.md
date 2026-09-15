@@ -10,12 +10,12 @@
 
 ## Description
 
-The framework MUST automatically inject `meta.schema_version` (semver string) into every response. The schema version MUST correspond to the version of the response contract for that command, not the overall tool version. Callers MUST be able to detect schema changes by comparing `meta.schema_version` values across responses.
+The framework MUST automatically inject `meta.schema_version` (a `MAJOR.MINOR` string) into every response. The schema version MUST correspond to the version of the response contract for that command, not the overall tool version. Callers MUST be able to detect schema changes by comparing `meta.schema_version` values across responses.
 
 ## Acceptance Criteria
 
-- Every response JSON object includes `meta.schema_version` as a semver string
-- When a command's output schema changes in a breaking way, `meta.schema_version` increments the major version component
+- Every response JSON object includes `meta.schema_version` as a `MAJOR.MINOR` string
+- When a command's output schema changes in a breaking way, `meta.schema_version` increments the major component; additive changes increment the minor component
 - `meta.schema_version` is stable across invocations of the same command version
 
 ---
@@ -24,7 +24,7 @@ The framework MUST automatically inject `meta.schema_version` (semver string) in
 
 **Types:** [`response-envelope.md`](../schemas/response-envelope.md)
 
-`meta.schema_version` is a semver string injected by the framework into every response's `meta` object.
+`meta.schema_version` is a `MAJOR.MINOR` string injected by the framework into every response's `meta` object.
 
 ---
 
@@ -39,10 +39,12 @@ Response `meta` with `schema_version`:
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
+    "duration_ms": 12,
     "request_id":     "req_07KL",
     "command":        "get-user",
     "timestamp":      "2024-06-01T12:00:00Z",
-    "schema_version": "1.3.0",
+    "schema_version": "1.3",
     "tool_version":   "2.4.1"
   }
 }
@@ -55,7 +57,7 @@ Response `meta` with `schema_version`:
 Framework-Automatic: no command author action needed. The framework reads the schema version declared at command registration and injects it into every response.
 
 ```
-# Command registered with schema_version "1.3.0"
+# Command registered with schema_version "1.3"
 $ tool get-user --id 1
 → meta.schema_version: "1.3.0"
 

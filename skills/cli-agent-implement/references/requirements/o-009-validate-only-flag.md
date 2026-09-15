@@ -14,10 +14,10 @@ The framework MUST provide `--validate-only` as a standard flag on every command
 
 ## Acceptance Criteria
 
-- `--validate-only` with valid args exits `0` with a JSON response indicating validation passed.
-- `--validate-only` with invalid args exits `2` with all validation errors listed.
-- `--validate-only` never causes any side effects, even when called with perfectly valid args.
-- The `--validate-only` flag is present in every command's `--help` output.
+- `--validate-only` with valid args exits `0` with a JSON response indicating validation passed
+- `--validate-only` with invalid args exits `2` with all validation errors listed
+- `--validate-only` never causes any side effects, even when called with perfectly valid args
+- The `--validate-only` flag is present in every command's `--help` output
 
 ---
 
@@ -41,7 +41,7 @@ $ tool deploy --target staging --validate-only --output json
   "data": null,
   "error": null,
   "warnings": [],
-  "meta": { "validation_only": true, "duration_ms": 4 }
+  "meta": { "exit_code": 0, "validation_only": true, "duration_ms": 4 }
 }
 ```
 
@@ -57,7 +57,7 @@ Validation failure:
     "errors": [{ "field": "target", "message": "Unknown environment 'invalid'" }]
   },
   "warnings": [],
-  "meta": { "validation_only": true, "phase": "validation" }
+  "meta": { "exit_code": 2, "duration_ms": 12, "validation_only": true, "phase": "validation" }
 }
 ```
 

@@ -40,6 +40,7 @@ $ tool deploy --config /tmp/agent-session-7/config.json --context staging --targ
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 310,
     "config_sources": ["/tmp/agent-session-7/config.json"],
     "context": "staging"

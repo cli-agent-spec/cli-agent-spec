@@ -30,11 +30,11 @@ Pydantic's weakness note identifies this as "no standard paginated response mode
 
 ### Impact
 
-- Context window overflow: a single large result can consume the entire remaining context window, preventing further reasoning.
-- Forced truncation: agents that truncate large outputs mid-stream may corrupt structured data (e.g., cutting JSON in the middle).
-- Token spend: even if the context window is large, reading 400K tokens of log output at token prices is expensive.
-- No recovery path: unlike list pagination (where the agent can request the next page), there is no "next chunk" for a single large result.
-- Agents cannot pre-flight the size before calling the tool.
+- Context window overflow: a single large result can consume the entire remaining context window, preventing further reasoning
+- Forced truncation: agents that truncate large outputs mid-stream may corrupt structured data (e.g., cutting JSON in the middle)
+- Token spend: even if the context window is large, reading 400K tokens of log output at token prices is expensive
+- No recovery path: unlike list pagination (where the agent can request the next page), there is no "next chunk" for a single large result
+- Agents cannot pre-flight the size before calling the tool
 
 ### Solutions
 
@@ -53,11 +53,11 @@ my-tool get-record --id 12345 --max-length 10000 --truncate-mode head
 ```
 
 **For framework design:**
-- Implement a default output size limit per command (e.g., 50KB of text content) with the excess truncated and `meta.truncated: true` set.
-- Provide a `--max-output` flag (injected automatically on all commands) that the agent can set to control output size.
-- For large string fields in responses, automatically truncate at a configurable `max_field_length` (default: 10,000 chars) and add a `"_truncated": true` marker on the field.
-- In MCP tool definitions, expose `maxOutputBytes` as a tool annotation so clients can pre-negotiate output size.
-- Schema should declare `"max_output_bytes": 51200` as a tool property, allowing agents to assess expected output size before calling.
+- Implement a default output size limit per command (e.g., 50KB of text content) with the excess truncated and `meta.truncated: true` set
+- Provide a `--max-output` flag (injected automatically on all commands) that the agent can set to control output size
+- For large string fields in responses, automatically truncate at a configurable `max_field_length` (default: 10,000 chars) and add a `"_truncated": true` marker on the field
+- In MCP tool definitions, expose `maxOutputBytes` as a tool annotation so clients can pre-negotiate output size
+- Schema should declare `"max_output_bytes": 51200` as a tool property, allowing agents to assess expected output size before calling
 
 ### Evaluation
 
@@ -73,6 +73,10 @@ my-tool get-record --id 12345 --max-length 10000 --truncate-mode head
 ---
 
 ### Agent Workaround
+
+**Signature:** single invocation returns very large stdout (tens of KB to MB) with no `meta.truncated` marker; output overflows context or arrives cut mid-structure
+
+**Tier:** B (one observable check, then one command)
 
 **Estimate output size before processing; use `--max-output` to bound large results; always check `meta.truncated`:**
 

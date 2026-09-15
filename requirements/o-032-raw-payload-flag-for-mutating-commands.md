@@ -41,7 +41,7 @@ $ tool create --raw-payload '{"name":"prod","region":"us-east-1"}' --output json
   "data": { "id": "env-abc123", "name": "prod", "region": "us-east-1" },
   "error": null,
   "warnings": [],
-  "meta": { "effect": "created", "duration_ms": 241 }
+  "meta": { "exit_code": 0, "effect": "created", "duration_ms": 241 }
 }
 ```
 
@@ -53,7 +53,7 @@ Conflict when `--raw-payload` and individual flags are both supplied:
   "data": null,
   "error": { "code": "ARG_ERROR", "message": "Cannot combine --raw-payload with individual flags" },
   "warnings": [],
-  "meta": { "phase": "validation" }
+  "meta": { "exit_code": 2, "duration_ms": 12, "phase": "validation" }
 }
 ```
 

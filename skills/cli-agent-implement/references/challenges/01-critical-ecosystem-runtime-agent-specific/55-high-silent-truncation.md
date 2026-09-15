@@ -52,8 +52,8 @@ $ tool tag-resource --id res_1 --tags a,b,c,d,e,f,g,h,i,j,k  # 11 tags, limit is
 ```
 
 **For framework design:**
-- Schema MUST declare `max_length`, `max_items`, `max_bytes` for all bounded fields; Phase 1 rejects inputs exceeding these limits.
-- If backend silently truncates anyway, framework MUST compare returned vs sent value and inject `FIELD_TRUNCATED` warning automatically.
+- Schema MUST declare `max_length`, `max_items`, `max_bytes` for all bounded fields; Phase 1 rejects inputs exceeding these limits
+- If backend silently truncates anyway, framework MUST compare returned vs sent value and inject `FIELD_TRUNCATED` warning automatically
 
 ### Evaluation
 
@@ -69,6 +69,11 @@ $ tool tag-resource --id res_1 --tags a,b,c,d,e,f,g,h,i,j,k  # 11 tags, limit is
 ---
 
 ### Agent Workaround
+
+**Signature:** `exit 0` with `"ok": true` but the returned field value is shorter than the value sent; array items missing from the created resource
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** After each write returning `ok: true`, compare every returned field value in `data` to the value sent and treat any shortened value as truncation; if that fails, escalate with the command, exit code, stdout, and stderr
 
 **Check `warnings[]` after every write operation; validate field lengths against schema before sending:**
 

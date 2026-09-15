@@ -19,11 +19,11 @@ The declaration is consumed by `tool manifest` (REQ-O-041) and `--schema` (REQ-O
 - Commands forwarding args to a subprocess declare `option_placement: "strict"` at registration
 - `tool manifest` includes an `option_placement` field for every command
 - Commands without the declaration default to `"any"` (interspersed accepted)
-- A strict-placement command rejects options after positional args with exit code 3 (`ARG_ERROR`) and a structured error — never silently misparsing them
+- A strict-placement command rejects options after positional args with exit code 2 (`ARG_ERROR`) and a structured error — never silently misparsing them
 
 ## Schema
 
-No dedicated schema type. `option_placement` is a string enum field (`"any"` | `"strict"`) in the command registration metadata exposed via the manifest.
+**Types:** [`manifest-response.md`](../schemas/manifest-response.md) — `option_placement` is a string enum (`"any"` | `"strict"`) on `CommandEntry`; absent means `"any"`
 
 ## Wire Format
 
@@ -35,18 +35,31 @@ $ tool manifest --output json
 {
   "ok": true,
   "data": {
-    "commands": [
-      {
-        "name": "run",
+    "schema_version": "1.0",
+    "framework_version": "2.1.0",
+    "etag": "sha256:7c1e0b",
+    "commands": {
+      "run": {
+        "description": "Run a target, forwarding trailing arguments verbatim to the target process",
+        "danger_level": "mutating",
+        "required_scopes": [],
         "option_placement": "strict",
-        "note": "Trailing args forwarded verbatim to the target process"
+        "flags": {},
+        "exit_codes": { "0": { "name": "SUCCESS", "description": "Target process exited 0", "retryable": false, "side_effects": "complete" } }
       },
-      {
-        "name": "list",
-        "option_placement": "any"
+      "list": {
+        "description": "List available targets",
+        "danger_level": "safe",
+        "required_scopes": [],
+        "option_placement": "any",
+        "flags": {},
+        "exit_codes": { "0": { "name": "SUCCESS", "description": "Targets listed", "retryable": false, "side_effects": "none" } }
       }
-    ]
-  }
+    }
+  },
+  "error": null,
+  "warnings": [],
+  "meta": { "exit_code": 0, "duration_ms": 9 }
 }
 ```
 

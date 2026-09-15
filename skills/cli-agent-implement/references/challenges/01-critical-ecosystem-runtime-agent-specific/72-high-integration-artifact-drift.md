@@ -97,6 +97,11 @@ Generate integration artifacts automatically from the registered command schema 
 
 ### Agent Workaround
 
+**Signature:** `unknown flag` or `unknown command` (exit 2) for invocations copied from an OpenAPI spec, skill file, or companion doc; `--help` shows a different name
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Ignore the artifact and construct the invocation from `<binary> <subcommand> --help` output only; if that fails, escalate with the command, exit code, stdout, and stderr
+
 Before using any integration artifact, extract its declared version and compare against `<binary> --version`. If they differ or no version is declared, treat the artifact as potentially stale.
 
 Cross-check critical details against live `--help` before constructing any invocation based on artifact content:

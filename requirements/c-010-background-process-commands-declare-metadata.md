@@ -78,7 +78,7 @@ $ tool start-watcher --dir /project
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 18 }
+  "meta": { "exit_code": 0, "duration_ms": 18 }
 }
 ```
 

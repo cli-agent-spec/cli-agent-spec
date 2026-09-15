@@ -36,11 +36,11 @@ The correct call is `await program.parseAsync()`, but this requires the calling 
 
 ### Impact
 
-- Agent believes operation succeeded when it silently failed to execute; downstream operations proceed on a false premise.
-- No error output to detect: exit 0, empty stdout/stderr — indistinguishable from a legitimately empty-result command.
-- Affects every Commander.js-based tool that has async action handlers and uses `parse()` — a large fraction of the Node.js CLI ecosystem.
-- The bug may only appear under timing-dependent conditions (fast machines may accidentally complete the async work before process exit; slow machines always silently fail).
-- Testing typically catches obvious failures but this specific race often passes unit tests if the async work is not awaited in the test either.
+- Agent believes operation succeeded when it silently failed to execute; downstream operations proceed on a false premise
+- No error output to detect: exit 0, empty stdout/stderr — indistinguishable from a legitimately empty-result command
+- Affects every Commander.js-based tool that has async action handlers and uses `parse()` — a large fraction of the Node.js CLI ecosystem
+- The bug may only appear under timing-dependent conditions (fast machines may accidentally complete the async work before process exit; slow machines always silently fail)
+- Testing typically catches obvious failures but this specific race often passes unit tests if the async work is not awaited in the test either
 
 ### Solutions
 
@@ -66,10 +66,10 @@ The correct call is `await program.parseAsync()`, but this requires the calling 
 ```
 
 **For framework design:**
-- Auto-detect async action handlers and require `parseAsync()` (emit a compile-time or startup-time error if `parse()` is called with async handlers).
-- TypeScript: use return-type overloading to make `parse()` return `void` for sync handlers and a compile error for async handlers, forcing `parseAsync()`.
-- Runtime check: if any registered action handler is async and `parse()` is called, emit a warning to stderr: `"Warning: async action handler detected; use parseAsync() to ensure completion"`.
-- Framework-level test harnesses should always use `parseAsync()` and await results.
+- Auto-detect async action handlers and require `parseAsync()` (emit a compile-time or startup-time error if `parse()` is called with async handlers)
+- TypeScript: use return-type overloading to make `parse()` return `void` for sync handlers and a compile error for async handlers, forcing `parseAsync()`
+- Runtime check: if any registered action handler is async and `parse()` is called, emit a warning to stderr: `"Warning: async action handler detected; use parseAsync() to ensure completion"`
+- Framework-level test harnesses should always use `parseAsync()` and await results
 
 ### Evaluation
 
@@ -85,6 +85,10 @@ The correct call is `await program.parseAsync()`, but this requires the calling 
 ---
 
 ### Agent Workaround
+
+**Signature:** `exit 0` with empty stdout and stderr from a command expected to produce output; the operation's side effect never occurred; may be intermittent across machines
+
+**Tier:** B (one observable check, then one command)
 
 **Treat exit 0 + empty stdout as a potential async race; require explicit JSON confirmation of completion:**
 

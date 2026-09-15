@@ -173,7 +173,7 @@ Every shared type has two files: a `.json` (machine-consumable) and a `.md` (hum
 
 **`.json` file rules:**
 - JSON Schema draft-07
-- `$id` matches the file name without extension (e.g. `"$id": "ExitCode"`)
+- `$id` equals the file name including the extension (e.g. `"$id": "exit-code.json"`), so `$ref` by filename resolves in every validator
 - All properties have a `description`
 - Use `$ref` to reference other schemas by filename (e.g. `"$ref": "exit-code.json"`)
 - No language-specific content

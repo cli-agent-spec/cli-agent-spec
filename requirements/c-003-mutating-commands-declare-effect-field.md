@@ -55,7 +55,7 @@ $ tool create-order --amount 100 --idempotency-key abc123
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 84 }
+  "meta": { "exit_code": 0, "duration_ms": 84 }
 }
 ```
 
@@ -71,7 +71,7 @@ Second call with same key:
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 12 }
+  "meta": { "exit_code": 0, "duration_ms": 12 }
 }
 ```
 

@@ -41,7 +41,7 @@ $ tool deploy --target staging --quiet --output json
   "data": { "id": "deploy-42", "status": "complete" },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 340 }
+  "meta": { "exit_code": 0, "duration_ms": 340 }
 }
 ```
 
@@ -65,7 +65,7 @@ stdout:
   "data": { "id": "deploy-42", "status": "complete" },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 340, "debug": { "config_file": "/home/user/.config/tool/config.yaml" } }
+  "meta": { "exit_code": 0, "duration_ms": 340, "debug": { "config_file": "/home/user/.config/tool/config.yaml" } }
 }
 ```
 

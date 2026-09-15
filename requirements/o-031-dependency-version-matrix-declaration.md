@@ -43,9 +43,14 @@ Declared dependencies appear in the manifest's `dependencies` field and in `tool
       { "name": "terraform", "check_command": "terraform version", "version_regex": "Terraform v(\\d+\\.\\d+)", "min_version": "1.5.0", "found_version": null, "ok": false, "fix_command": "brew install terraform" }
     ]
   },
-  "error": null,
+  "error": {
+    "code": "DOCTOR_CHECKS_FAILED",
+    "message": "1 of 2 declared dependencies failed",
+    "retryable": false,
+    "fix_required": "Apply the fix listed for each failed check in data.dependencies"
+  },
   "warnings": [],
-  "meta": { "duration_ms": 412 }
+  "meta": { "exit_code": 4, "duration_ms": 412 }
 }
 ```
 

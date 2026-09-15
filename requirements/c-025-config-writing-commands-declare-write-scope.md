@@ -66,8 +66,8 @@ Global write response:
   "ok": true,
   "data": { "key": "output.format", "value": "json", "scope": "global", "path": "/Users/alice/.config/tool/config.toml" },
   "error": null,
-  "warnings": ["GLOBAL_CONFIG_MODIFIED: wrote to /Users/alice/.config/tool/config.toml"],
-  "meta": { "duration_ms": 18 }
+  "warnings": [{ "code": "GLOBAL_CONFIG_MODIFIED", "message": "Wrote to the global config file", "context": { "path": "/Users/alice/.config/tool/config.toml" } }],
+  "meta": { "exit_code": 0, "duration_ms": 18 }
 }
 ```
 

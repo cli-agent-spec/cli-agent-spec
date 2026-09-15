@@ -14,9 +14,9 @@ The framework MUST install a SIGPIPE handler that suppresses the default behavio
 
 ## Acceptance Criteria
 
-- `tool list-large | head -1` exits cleanly with no error output on stderr.
-- Exit code after SIGPIPE from a pipe consumer closing early is `0`.
-- No `BrokenPipeError` traceback appears on stderr.
+- `tool list-large | head -1` exits cleanly with no error output on stderr
+- Exit code after SIGPIPE from a pipe consumer closing early is `0`
+- No `BrokenPipeError` traceback appears on stderr
 
 ---
 

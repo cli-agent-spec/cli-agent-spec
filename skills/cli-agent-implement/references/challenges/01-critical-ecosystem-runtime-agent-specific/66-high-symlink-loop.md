@@ -66,9 +66,9 @@ def safe_walk(path):
 ```
 
 **For framework design:**
-- Framework's filesystem traversal utilities MUST track visited inodes and exit with a structured `SYMLINK_LOOP` error (exit 4) immediately upon detection.
-- `--no-follow-symlinks` flag MUST be auto-provided for all recursive traversal commands.
-- Maximum traversal depth (`--max-depth`, default: 50) MUST be enforced as a second defense layer.
+- Framework's filesystem traversal utilities MUST track visited inodes and exit with a structured `SYMLINK_LOOP` error (exit 4) immediately upon detection
+- `--no-follow-symlinks` flag MUST be auto-provided for all recursive traversal commands
+- Maximum traversal depth (`--max-depth`, default: 50) MUST be enforced as a second defense layer
 
 ### Evaluation
 
@@ -84,6 +84,10 @@ def safe_walk(path):
 ---
 
 ### Agent Workaround
+
+**Signature:** recursive command (delete, archive, search) hangs with growing memory or disk use; killed by timeout or OOM with a signal exit code and no structured error
+
+**Tier:** B (one observable check, then one command)
 
 **Pass `--no-follow-symlinks` and `--max-depth` on all recursive commands; handle `SYMLINK_LOOP` errors as partial success:**
 

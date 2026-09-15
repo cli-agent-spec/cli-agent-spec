@@ -136,7 +136,7 @@
 
 ## Opt-In (O)
 
-**49 requirements** &nbsp;|&nbsp; P0: 6 · P1: 19 · P2: 18 · P3: 6
+**50 requirements** &nbsp;|&nbsp; P0: 6 · P1: 19 · P2: 19 · P3: 6
 
 | ID | Priority | Title | Failure mode(s) |
 |----|----------|-------|-------------|

@@ -79,7 +79,7 @@ $ tool send-notifications --users 1,2,3,4,5
   },
   "error": { "code": "PARTIAL_FAILURE", "message": "2 of 5 notifications failed" },
   "warnings": [],
-  "meta": { "duration_ms": 312 }
+  "meta": { "exit_code": 3, "duration_ms": 312 }
 }
 ```
 

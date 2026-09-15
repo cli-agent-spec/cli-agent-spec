@@ -1,18 +1,18 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "ResponseEnvelope",
+  "$id": "response-envelope.json",
   "title": "ResponseEnvelope",
-  "description": "Standard wrapper for all command stdout output in JSON mode. Shape is invariant — the same keys are always present regardless of success, failure, or result count.",
+  "description": "Standard wrapper for all command stdout output in JSON mode. Shape is invariant: the same five keys are always present regardless of success, failure, or result count. The envelope is self-describing: meta.exit_code carries the process exit code, so a consumer that only sees stdout can still classify the outcome.",
   "type": "object",
   "required": ["ok", "data", "error", "warnings", "meta"],
   "additionalProperties": false,
   "properties": {
     "ok": {
       "type": "boolean",
-      "description": "True if and only if the exit code is SUCCESS (0). Derived field — do not allow commands to set this independently."
+      "description": "True if and only if meta.exit_code is SUCCESS (0). Derived field; commands never set it independently."
     },
     "data": {
-      "description": "Primary command output. Present on success; null on failure. Never absent. Shape is command-specific and declared in that command's output schema (REQ-C-015).",
+      "description": "Primary command output on success, shaped by the command's output schema (REQ-C-015). On failure, null unless the command's output schema declares a failure payload: partial results (REQ-C-009), the conflicting resource (REQ-C-028), or a failed check report (REQ-O-026). Agents read error before acting on a failure payload. Never absent.",
       "oneOf": [
         { "type": "null" },
         { "type": "object" },
@@ -28,12 +28,21 @@
     },
     "warnings": {
       "type": "array",
-      "items": { "type": "string" },
-      "description": "Non-fatal diagnostic messages. May be empty. Never null."
+      "items": { "$ref": "#/definitions/WarningDetail" },
+      "description": "Non-fatal diagnostics as structured objects. May be empty. Never null."
     },
     "meta": {
       "$ref": "#/definitions/ResponseMeta"
     }
+  },
+  "if": {
+    "properties": { "meta": { "properties": { "exit_code": { "const": 0 } } } }
+  },
+  "then": {
+    "properties": { "ok": { "const": true }, "error": { "type": "null" } }
+  },
+  "else": {
+    "properties": { "ok": { "const": false }, "error": { "type": "object" } }
   },
   "definitions": {
     "ErrorDetail": {
@@ -43,19 +52,33 @@
       "properties": {
         "code": {
           "type": "string",
-          "description": "Stable, machine-readable error identifier. Must not change between versions. Used by agents to branch on error type."
+          "pattern": "^[A-Z][A-Z0-9_]+$",
+          "description": "Stable, machine-readable domain error identifier such as NOT_FOUND or TOKEN_EXPIRED. May equal an ExitCode name but is not required to; the exit code itself lives in meta.exit_code. Must not change between versions. Agents branch on this value."
         },
         "message": {
           "type": "string",
-          "description": "Human-readable summary. May be localized. Agents should not parse this — use 'code' instead."
+          "description": "Human-readable summary. May be localized. Agents do not parse this; they use code."
         },
         "detail": {
           "type": "string",
-          "description": "Extended explanation, stack context, or raw upstream error. Optional."
+          "description": "Extended explanation or raw upstream error text. Optional."
+        },
+        "cause": {
+          "type": "string",
+          "description": "Underlying system error that triggered this failure, such as 'Connection refused (ECONNREFUSED)'. Optional."
+        },
+        "context": {
+          "type": "object",
+          "description": "Structured key-value facts about the failure (host, port, missing scopes, affected ids). Agents read these instead of parsing message.",
+          "additionalProperties": true
+        },
+        "docs_url": {
+          "type": "string",
+          "description": "URL of documentation for this error code. Optional."
         },
         "retryable": {
           "type": "boolean",
-          "description": "True if re-running the identical invocation unchanged may succeed; implies no side effects occurred. Mirrors ExitCodeEntry.retryable for the emitted code. False for caller-correctable failures — see fix_required."
+          "description": "True if re-running the identical invocation unchanged may succeed; implies no side effects occurred. Mirrors ExitCodeEntry.retryable for the emitted code. False for caller-correctable failures; see fix_required."
         },
         "retry_after_ms": {
           "type": "integer",
@@ -90,6 +113,27 @@
         }
       }
     },
+    "WarningDetail": {
+      "type": "object",
+      "required": ["code", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]+$",
+          "description": "Stable machine-readable warning identifier such as DEPRECATED_FLAG or FIELD_TRUNCATED. Agents branch on this value."
+        },
+        "message": {
+          "type": "string",
+          "description": "Human-readable summary. Agents do not parse this; they use code and context."
+        },
+        "context": {
+          "type": "object",
+          "description": "Structured facts about the warning (field path, byte counts, versions, intercepted text).",
+          "additionalProperties": true
+        }
+      }
+    },
     "Redirect": {
       "type": "object",
       "required": ["command", "permanent"],
@@ -101,7 +145,7 @@
         },
         "permanent": {
           "type": "boolean",
-          "description": "True if the mapping is permanent — agent should memorize and never call the old form again. False if temporary — use the replacement only for this request."
+          "description": "True if the mapping is permanent: the agent memorizes it and never calls the old form again. False if temporary: the replacement applies to this request only."
         },
         "reason": {
           "type": "string",
@@ -110,11 +154,46 @@
         }
       }
     },
+    "Pagination": {
+      "type": "object",
+      "required": ["total", "returned", "truncated", "has_more", "next_cursor"],
+      "additionalProperties": false,
+      "properties": {
+        "total": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Total number of items across all pages, or null when the backend cannot count them."
+        },
+        "returned": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of items in this response's data array."
+        },
+        "truncated": {
+          "type": "boolean",
+          "description": "True when a limit (default or --limit) cut the result set short."
+        },
+        "has_more": {
+          "type": "boolean",
+          "description": "True when at least one further page exists."
+        },
+        "next_cursor": {
+          "type": ["string", "null"],
+          "description": "Opaque token to pass as --cursor for the next page. Null when has_more is false."
+        }
+      }
+    },
     "ResponseMeta": {
       "type": "object",
-      "required": ["duration_ms"],
+      "required": ["exit_code", "duration_ms"],
       "additionalProperties": true,
       "properties": {
+        "exit_code": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255,
+          "description": "Process exit code of this invocation. Identical to the code the process returns. Lets stdout-only consumers classify the outcome when the real exit code is lost to a pipeline, wrapper, or log."
+        },
         "duration_ms": {
           "type": "integer",
           "minimum": 0,
@@ -127,7 +206,7 @@
         "schema_version": {
           "type": "string",
           "pattern": "^\\d+\\.\\d+$",
-          "description": "Semantic version of the response envelope schema. Allows agents to detect breaking changes."
+          "description": "MAJOR.MINOR version of this command's output contract (REQ-F-022). Major increments on breaking changes; minor on additive ones."
         },
         "not_modified": {
           "type": "boolean",
@@ -135,11 +214,20 @@
         },
         "truncated": {
           "type": "boolean",
-          "description": "True when the output was capped by the framework's size limit. Agents should paginate or narrow the query."
+          "description": "True when the framework's byte size cap cut the output (REQ-F-052). Agents narrow the query or paginate."
         },
-        "cursor": {
+        "pagination": {
+          "$ref": "#/definitions/Pagination",
+          "description": "Present on every list command response (REQ-F-018), including complete result sets."
+        },
+        "_cmd": {
           "type": "string",
-          "description": "Opaque pagination token. Pass as --cursor on the next call to retrieve the next page."
+          "description": "Dispatched command path echoed from the DispatchRequest. Present only on tool exec output lines (REQ-O-050)."
+        },
+        "_line": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "1-based index of the input line this response answers. Present only on tool exec output lines (REQ-O-050)."
         }
       }
     }

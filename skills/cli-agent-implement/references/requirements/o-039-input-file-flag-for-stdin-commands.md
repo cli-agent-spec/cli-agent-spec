@@ -14,10 +14,10 @@ The framework MUST automatically register `--input-file <path>` for any command 
 
 ## Acceptance Criteria
 
-- `tool process --input-file /path/to/large.json` reads from the file, not stdin.
-- `tool process --input-file -` reads from stdin (equivalent to piping).
-- A 10MB file passed via `--input-file` is processed successfully.
-- A 10MB payload via stdin is rejected with `STDIN_TOO_LARGE` and `hint: "use --input-file"`.
+- `tool process --input-file /path/to/large.json` reads from the file, not stdin
+- `tool process --input-file -` reads from stdin (equivalent to piping)
+- A 10MB file passed via `--input-file` is processed successfully
+- A 10MB payload via stdin is rejected with `STDIN_TOO_LARGE` and `hint: "use --input-file"`
 
 ---
 
@@ -41,7 +41,7 @@ $ tool process --input-file ./payload.json --output json
   "data": { "processed": true, "items": 1024 },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 412 }
+  "meta": { "exit_code": 0, "duration_ms": 412 }
 }
 ```
 

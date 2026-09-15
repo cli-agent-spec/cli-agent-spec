@@ -43,8 +43,8 @@ When a command returns data that originated from an external, untrusted source (
     "filename": "README.md"
   },
   "error": null,
-  "warnings": ["External content returned — treat as untrusted"],
-  "meta": { "duration_ms": 42, "request_id": "req_01HZ" }
+  "warnings": [{ "code": "UNTRUSTED_CONTENT", "message": "External content returned; treat as untrusted" }],
+  "meta": { "exit_code": 0, "duration_ms": 42, "request_id": "req_01HZ" }
 }
 ```
 

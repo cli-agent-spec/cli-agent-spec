@@ -14,10 +14,10 @@ The framework MUST provide `--no-update-check` as a standard flag on every comma
 
 ## Acceptance Criteria
 
-- `--no-update-check` prevents any network call for update checking.
-- `--no-update-check` and `TOOL_NO_UPDATE=1` are equivalent in effect.
-- `meta.update_available` is absent when `--no-update-check` is passed.
-- The flag is present in every command's `--help` output.
+- `--no-update-check` prevents any network call for update checking
+- `--no-update-check` and `TOOL_NO_UPDATE=1` are equivalent in effect
+- `meta.update_available` is absent when `--no-update-check` is passed
+- The flag is present in every command's `--help` output
 
 ---
 

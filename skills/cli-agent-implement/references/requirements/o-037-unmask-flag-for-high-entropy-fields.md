@@ -14,10 +14,10 @@ The framework MUST provide `--unmask` as a global flag that disables the high-en
 
 ## Acceptance Criteria
 
-- Without `--unmask`, a JWT field is returned as `[JWT: sub=..., exp=...]`.
-- With `--unmask`, the same field returns the full raw JWT string.
-- `--unmask` cannot be activated via environment variable.
-- `--schema` documents `--unmask` and notes that it exposes sensitive values.
+- Without `--unmask`, a JWT field is returned as `[JWT: sub=..., exp=...]`
+- With `--unmask`, the same field returns the full raw JWT string
+- `--unmask` cannot be activated via environment variable
+- `--schema` documents `--unmask` and notes that it exposes sensitive values
 
 ---
 

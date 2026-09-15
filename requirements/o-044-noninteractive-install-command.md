@@ -30,7 +30,7 @@ A CLI MUST document a fully non-interactive, idempotent installation command in 
 
 ## Wire Format
 
-```markdown
+````markdown
 ## Installation
 
 ```bash
@@ -39,7 +39,7 @@ my-cli --version              # verify: prints "2.1.0", exits 0
 ```
 
 > Agent note: set `PIP_NO_INPUT=1` and `CI=true` before running install.
-```
+````
 
 ---
 

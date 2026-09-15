@@ -45,10 +45,11 @@ $ echo "$(python3 -c "print('x'*65537)")" | tool process --output json
     "code": "STDIN_TOO_LARGE",
     "message": "Stdin payload exceeds 65536-byte limit",
     "hint": "Write the payload to a file and use --input-file <path> instead",
+    "phase": "validation",
     "context": { "received_bytes": 65537, "limit_bytes": 65536 }
   },
   "warnings": [],
-  "meta": { "phase": "validation", "duration_ms": 1 }
+  "meta": { "exit_code": 2, "duration_ms": 1 }
 }
 ```
 

@@ -15,10 +15,15 @@ There is no build system, test runner, or package manager. All content is markdo
 /validate-links
 ```
 
-**Validate schemas manually:**
+**Validate schemas and every JSON example in the prose:**
 ```bash
-npm install -g ajv-cli
-ajv compile -s "schemas/*.json" --spec=draft7
+uv run scripts/validate_schemas.py
+```
+
+**Validate schemas with ajv only** (`--strict=false` because of the `x-` annotations):
+```bash
+npm install -g ajv-cli@5
+ajv compile -s "schemas/*.json" --spec=draft7 --strict=false
 ```
 
 **Full autonomous audit (install → onboard → readiness → evaluate → report):**
@@ -67,7 +72,7 @@ ajv compile -s "schemas/*.json" --spec=draft7
 
 - `challenges/` — 74 failure modes in 7 parts (01=critical ecosystem, 02=execution, 03=security, 04=output, 05=environment, 06=errors, 07=observability). Failure modes are referenced as `§N`. `challenges/triage.md` maps observable failure signals (exit code, streams, timing) to §N candidates; it is a routing document, not a failure mode.
 - `requirements/` — 158 requirements in 3 tiers: `f-NNN` (Framework-Automatic), `c-NNN` (Command Contract), `o-NNN` (Opt-In). Referenced as `REQ-{TIER}-{NNN}`.
-- `schemas/` — 4 canonical JSON Schema draft-07 types, each with a `.json` (machine) and `.md` (human) companion: `exit-code`, `exit-code-entry`, `response-envelope`, `manifest-response`. Plus `diagnose-result` (skill-internal, not a canonical spec type).
+- `schemas/` — 5 canonical JSON Schema draft-07 types, each with a `.json` (machine) and `.md` (human) companion: `exit-code`, `exit-code-entry`, `response-envelope`, `manifest-response`, `dispatch-request`. Tooling schemas for skill and script output (`diagnose-result` and others) are listed separately in `schemas/index.md`.
 - `research/` — per-framework analysis (argparse, click, clap, cobra, typer, commander-js, pydantic, MCP, OpenAPI, etc.).
 - `guides/` — design guides for CLI authors: positive conventions that cannot be expressed as enforceable requirements. See `guides/index.md`.
 - `comparison-matrix.md` — 74 failure modes × 12 frameworks coverage table.
@@ -112,7 +117,7 @@ When adding a requirement: assign next `NNN` within the tier, add row to `requir
 
 Each type needs two files: `<name>.json` + `<name>.md`. The `.md` has 8 sections in order: Title+Used-by → `## Purpose` → `## Values`/field table → `## Examples` → `## Common mistakes` → `## Agent interpretation` → `## Coding agent notes` → `## Implementation notes`
 
-JSON schema rules: draft-07, `$id` matches filename without extension, all properties have `description`, use `$ref` by filename, no language-specific content.
+JSON schema rules: draft-07, `$id` equals the filename including `.json`, all properties have `description`, use `$ref` by filename, no language-specific content.
 
 When adding a schema: create both files, add row to `schemas/index.md`, reference `.json` from requirements that use the type.
 

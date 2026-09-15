@@ -117,6 +117,11 @@ tool update --check  # check only, don't apply
 
 ### Agent Workaround
 
+**Signature:** output contains `Checking for updates` or an update banner; every call pauses seconds before output; response format changes mid-session
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Run `CI=true TOOL_NO_UPDATE=1 tool <args>`; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Disable auto-update via env vars; pin tool version and verify `meta.tool_version` in responses:**
 
 ```python

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "ExitCodeEntry",
+  "$id": "exit-code-entry.json",
   "title": "ExitCodeEntry",
   "description": "Metadata for one exit code a command may emit. Used as the value type in the exit_codes map; the integer exit code is the map key, not a field in this object.",
   "type": "object",

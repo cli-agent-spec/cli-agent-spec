@@ -14,10 +14,10 @@ The framework MUST provide a built-in `tool changelog` command that outputs a st
 
 ## Acceptance Criteria
 
-- `tool changelog --output json` returns a valid JSON array of version entries.
-- Each entry includes `version`, `date`, `breaking` (boolean), `added`, `removed`, `changed`.
-- `--since 1.0.0` returns only entries for versions after `1.0.0`.
-- Breaking changes are correctly flagged as `"breaking": true`.
+- `tool changelog --output json` returns a valid JSON array of version entries
+- Each entry includes `version`, `date`, `breaking` (boolean), `added`, `removed`, `changed`
+- `--since 1.0.0` returns only entries for versions after `1.0.0`
+- Breaking changes are correctly flagged as `"breaking": true`
 
 ---
 
@@ -60,7 +60,7 @@ $ tool changelog --since 1.0.0 --output json
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 2 }
+  "meta": { "exit_code": 0, "duration_ms": 2 }
 }
 ```
 

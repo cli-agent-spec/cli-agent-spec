@@ -14,10 +14,10 @@ Commands that implement the step manifest contract (REQ-C-008) SHOULD support `-
 
 ## Acceptance Criteria
 
-- `--resume-from step-3` begins execution at step 3, having skipped steps 1 and 2.
-- Skipped steps appear in the response's `skipped_steps` array.
-- The response `effect` correctly reflects only the work done during the resumed execution.
-- Passing an invalid step name to `--resume-from` exits `2` with a validation error.
+- `--resume-from step-3` begins execution at step 3, having skipped steps 1 and 2
+- Skipped steps appear in the response's `skipped_steps` array
+- The response `effect` correctly reflects only the work done during the resumed execution
+- Passing an invalid step name to `--resume-from` exits `2` with a validation error
 
 ---
 
@@ -46,7 +46,7 @@ $ tool migrate --resume-from step-3 --output json
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 4210 }
+  "meta": { "exit_code": 0, "duration_ms": 4210 }
 }
 ```
 

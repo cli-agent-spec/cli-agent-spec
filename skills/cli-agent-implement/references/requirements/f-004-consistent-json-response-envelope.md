@@ -10,14 +10,16 @@
 
 ## Description
 
-The framework MUST wrap all command output in a standard JSON envelope. The envelope MUST always contain: `ok` (boolean), `data` (the command's primary output — present even when null or empty array), `error` (null on success, structured object on failure), `warnings` (array, may be empty), and `meta` (object with framework-populated fields). The schema of this envelope MUST NOT vary based on result count, command type, or success/failure state — the same top-level keys MUST always be present.
+The framework MUST wrap all command output in a standard JSON envelope. The envelope MUST always contain: `ok` (boolean), `data` (the command's primary output — present even when null or empty array), `error` (null on success, structured object on failure), `warnings` (array of `WarningDetail` objects, may be empty), and `meta` (object with framework-populated fields, always including `exit_code` and `duration_ms`). The schema of this envelope MUST NOT vary based on result count, command type, or success/failure state — the same top-level keys MUST always be present.
 
 ## Acceptance Criteria
 
-- A JSON schema validator for the envelope passes on every command's stdout output in JSON mode.
-- `data` key is present and non-absent on both success and failure responses.
-- `error` key is present on all responses (null on success, structured object on failure).
-- Single-result and multi-result commands produce structurally identical envelopes.
+- A JSON schema validator for the envelope passes on every command's stdout output in JSON mode
+- `data` key is present and non-absent on both success and failure responses
+- `error` key is present on all responses (null on success, structured object on failure)
+- `meta.exit_code` is present on every response and equals the process exit code
+- `ok` is `true` if and only if `meta.exit_code` is `0`
+- Single-result and multi-result commands produce structurally identical envelopes
 
 ---
 
@@ -38,7 +40,7 @@ Full envelope structure — all five top-level keys are always present regardles
   "data": { "id": "deploy-42", "status": "complete" },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 340, "request_id": "req_abc123" }
+  "meta": { "exit_code": 0, "duration_ms": 340, "request_id": "req_abc123" }
 }
 ```
 
@@ -53,7 +55,7 @@ Full envelope structure — all five top-level keys are always present regardles
     "retryable": false
   },
   "warnings": [],
-  "meta": { "duration_ms": 8 }
+  "meta": { "exit_code": 5, "duration_ms": 8 }
 }
 ```
 

@@ -14,9 +14,9 @@ The framework's internal logger MUST automatically rotate log files when they ex
 
 ## Acceptance Criteria
 
-- A log file that exceeds the size limit is rotated and a new file is started.
-- Rotated files beyond the retention count are deleted automatically.
-- Log files older than the maximum age are deleted on framework startup.
+- A log file that exceeds the size limit is rotated and a new file is started
+- Rotated files beyond the retention count are deleted automatically
+- Log files older than the maximum age are deleted on framework startup
 - Disk usage from framework logs is bounded even across unlimited invocations
 
 ---

@@ -14,9 +14,9 @@ The framework MUST automatically activate structured JSON output when stdout is 
 
 ## Acceptance Criteria
 
-- When `isatty(stdout) == false`, output is valid JSON without any additional configuration.
-- When `CI=true`, output is valid JSON regardless of TTY state.
-- A command author who calls only the framework's `output()` function never produces invalid JSON in non-TTY contexts.
+- When `isatty(stdout) == false`, output is valid JSON without any additional configuration
+- When `CI=true`, output is valid JSON regardless of TTY state
+- A command author who calls only the framework's `output()` function never produces invalid JSON in non-TTY contexts
 - `python -c "import json,sys; json.load(sys.stdin)"` succeeds on every line of stdout in non-TTY mode
 
 ---
@@ -39,7 +39,7 @@ When stdout is not a TTY (or `CI` is set), the framework automatically wraps out
   "data": { "id": "job-7", "status": "queued" },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 18 }
+  "meta": { "exit_code": 0, "duration_ms": 18 }
 }
 ```
 

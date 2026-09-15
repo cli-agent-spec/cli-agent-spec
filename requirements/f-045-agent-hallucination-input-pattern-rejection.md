@@ -31,7 +31,7 @@ When an argument is rejected, the framework emits a structured error with `code:
 
 ## Wire Format
 
-`tool <cmd> --resource-id "../etc/passwd"` → error response (exit 3):
+`tool <cmd> --resource-id "../etc/passwd"` → error response (exit 2):
 
 ```json
 {
@@ -44,7 +44,7 @@ When an argument is rejected, the framework emits a structured error with `code:
     "rejected_pattern": "path_traversal"
   },
   "warnings": [],
-  "meta": {}
+  "meta": { "exit_code": 2, "duration_ms": 12 }
 }
 ```
 
@@ -61,10 +61,10 @@ register argument "resource_id":
 
 # Framework rejects hallucinated input before any side effect
 tool files get --resource-id "../etc/passwd"
-→ exit 3: INVALID_AGENT_INPUT — argument contains path_traversal pattern
+→ exit 2: INVALID_AGENT_INPUT — argument contains path_traversal pattern
 
 tool files get --resource-id "files%2fetc%2fpasswd"
-→ exit 3: INVALID_AGENT_INPUT — argument contains percent_encoded_separator pattern
+→ exit 2: INVALID_AGENT_INPUT — argument contains percent_encoded_separator pattern
 
 # Valid input passes through unchanged
 tool files get --resource-id "usr-a1b2c3"

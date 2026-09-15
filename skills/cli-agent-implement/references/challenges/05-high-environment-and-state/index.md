@@ -2,7 +2,7 @@
 
 > Session state, configuration, working directory, filesystem, network, and runtime environment.
 
-**Challenges:** 7 active &nbsp;|&nbsp; 🟠 4 high · 🟡 3 medium
+**Failure modes:** 7 active &nbsp;|&nbsp; 🟠 4 high · 🟡 3 medium
 
 ---
 

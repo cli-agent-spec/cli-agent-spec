@@ -91,6 +91,10 @@ $ tool build --show-requirements --output json
 
 ### Agent Workaround
 
+**Signature:** `exit 127` or `command not found` in stderr mid-execution; each re-run surfaces one more missing prerequisite; no `fix` hint in the error
+
+**Tier:** B (one observable check, then one command)
+
 **Run `tool doctor --output json` before first use; act on `fix` fields from failing checks:**
 
 ```python

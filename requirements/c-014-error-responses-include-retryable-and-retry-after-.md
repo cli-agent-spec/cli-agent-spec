@@ -54,7 +54,7 @@ $ tool deploy --target prod
     "retry_strategy": "exponential_backoff"
   },
   "warnings": [],
-  "meta": { "duration_ms": 8 }
+  "meta": { "exit_code": 11, "duration_ms": 8 }
 }
 ```
 
@@ -72,7 +72,7 @@ Timeout error from a command that declared `TIMEOUT` with `side_effects: "none"`
     "retry_strategy": "immediate"
   },
   "warnings": [],
-  "meta": { "duration_ms": 30001 }
+  "meta": { "exit_code": 10, "duration_ms": 30001 }
 }
 ```
 
@@ -91,7 +91,7 @@ Validation error (identical retry fails; fix the input, then reissue):
     "suggestion": "Valid values: prod, staging, dev"
   },
   "warnings": [],
-  "meta": { "duration_ms": 3 }
+  "meta": { "exit_code": 2, "duration_ms": 3 }
 }
 ```
 

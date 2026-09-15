@@ -2,7 +2,7 @@
 
 > Agent-specific patterns discovered from real frameworks, libraries, and multi-agent deployments.
 
-**Challenges:** 32 active · 3 merged elsewhere &nbsp;|&nbsp; 🔴 11 critical · 🟠 17 high · 🟡 4 medium
+**Failure modes:** 37 active · 3 merged elsewhere &nbsp;|&nbsp; 🔴 12 critical · 🟠 21 high · 🟡 4 medium
 
 ---
 
@@ -19,6 +19,7 @@
 | [61-critical-pipe-payload-deadlock.md](61-critical-pipe-payload-deadlock.md) | 🔴 Critical | UNIX pipes have a finite kernel buffer (typically 64KB on Linux) |
 | [62-critical-editor-trap.md](62-critical-editor-trap.md) | 🔴 Critical | Distinct from §37 (REPL triggering), many CLI tools invoke the user's `$EDITOR` or `$VISUAL` environment variable to ... |
 | [64-critical-headless-gui.md](64-critical-headless-gui.md) | 🔴 Critical | Distinct from §45 (OAuth browser flow), many CLI tools launch GUI applications for operations unrelated to authentica... |
+| [71-critical-noninteractive-installation.md](71-critical-noninteractive-installation.md) | 🔴 Critical | Agents operating in fresh environments must install the CLI before use; interactive install steps (license prompts, w... |
 | [35-high-hallucination-inputs.md](35-high-hallucination-inputs.md) | 🟠 High | AI agents make systematically different input errors than human operators |
 | [38-high-dependency-version-mismatch.md](38-high-dependency-version-mismatch.md) | 🟠 High | CLI tools written in interpreted languages (Python, Node |
 | [40-high-async-race-condition.md](40-high-async-race-condition.md) | 🟠 High | Commander |
@@ -36,6 +37,10 @@
 | [66-high-symlink-loop.md](66-high-symlink-loop.md) | 🟠 High | When a CLI tool performs recursive directory traversal (copy, delete, archive, search) and encounters a circular syml... |
 | [67-high-json5-input.md](67-high-json5-input.md) | 🟠 High | LLMs frequently generate near-valid structured input that strict parsers reject: JSON with trailing commas, inline co... |
 | [68-high-stdout-pollution.md](68-high-stdout-pollution.md) | 🟠 High | Distinct from §3 (command author stream discipline) and §41 (update notifiers), this challenge is about deeply embedd... |
+| [69-high-argument-order-ambiguity.md](69-high-argument-order-ambiguity.md) | 🟠 High | CLI parsers differ on whether options may appear after positional arguments or subcommands — agents construct invocations in LLM-natural order, causing silent misparsing or outright rejection |
+| [70-high-single-argument-arity.md](70-high-single-argument-arity.md) | 🟠 High | Commands that accept only one positional argument force agents to loop N times for N items — each iteration a separate process launch, auth check, and round trip — instead of one variadic call |
+| [72-high-integration-artifact-drift.md](72-high-integration-artifact-drift.md) | 🟠 High | Agent-facing integration artifacts (OpenAPI specs, AGENTS.md, skill files) drift from the CLI binary as it evolves — ... |
+| [73-high-documentation-accuracy-drift.md](73-high-documentation-accuracy-drift.md) | 🟠 High | AGENTS.md and agent-facing docs become inaccurate over time — flag names change, commands are removed, env vars rename... |
 | [44-medium-knowledge-packaging.md](44-medium-knowledge-packaging.md) | 🟡 Medium | Agents consuming a CLI tool have two information sources: the tool's `--help` text (or `--schema` if available) and a... |
 | [52-medium-command-tree-discovery.md](52-medium-command-tree-discovery.md) | 🟡 Medium | Most CLIs require N+1 help calls to discover the full command surface: one call to list top-level subcommands, then o... |
 | [57-medium-locale-errors.md](57-medium-locale-errors.md) | 🟡 Medium | Distinct from §2 (locale-invariant serialization of numbers/dates), many CLI tools embed raw OS or runtime error mess... |
@@ -81,6 +86,11 @@
 | [§66](66-high-symlink-loop.md) | 🟠 High | Situational | Hard | Medium | Critical | Low |
 | [§67](67-high-json5-input.md) | 🟠 High | Common | Easy | High | Medium | Low |
 | [§68](68-high-stdout-pollution.md) | 🟠 High | Common | Medium | Medium | Low | High |
+| [§69](69-high-argument-order-ambiguity.md) | 🟠 High | Common | Medium | Medium | Medium | Low |
+| [§70](70-high-single-argument-arity.md) | 🟠 High | Common | Easy | Medium | Medium | Low |
+| [§71](71-critical-noninteractive-installation.md) | 🔴 Critical | Common | Easy | Low | Critical | Low |
+| [§72](72-high-integration-artifact-drift.md) | 🟠 High | Common | Medium | High | Medium | Low |
+| [§73](73-high-documentation-accuracy-drift.md) | 🟠 High | Common | Hard | High | Medium | Low |
 | [§44](44-medium-knowledge-packaging.md) | 🟡 Medium | Very Common | Easy | High | High | Medium |
 | [§52](52-medium-command-tree-discovery.md) | 🟡 Medium | Very Common | Easy | High | Medium | High |
 | [§57](57-medium-locale-errors.md) | 🟡 Medium | Situational | Easy | High | Low | Medium |

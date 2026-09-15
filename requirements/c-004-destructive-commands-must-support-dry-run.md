@@ -62,7 +62,7 @@ $ tool delete-account --user 42 --dry-run
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 31 }
+  "meta": { "exit_code": 0, "duration_ms": 31 }
 }
 ```
 

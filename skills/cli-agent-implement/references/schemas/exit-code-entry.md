@@ -8,7 +8,7 @@
 
 ## Purpose
 
-`ExitCodeEntry` is the per-code declaration a command makes at registration time. It is the contract an agent reads — before calling the command — to pre-plan retry and rollback strategies without waiting for a failure to occur. The map key identifies which code; each entry answers: what is the human-readable name, what happened to system state, and is it safe to retry?
+`ExitCodeEntry` is the per-code declaration a command makes at registration time. It is the contract an agent reads — before calling the command — to pre-plan retry and rollback strategies without waiting for a failure to occur. The map key identifies which code; each entry answers: what is the human-readable name, what happened to system state, and may the identical call be re-run unchanged?
 
 ---
 
@@ -20,7 +20,7 @@ The integer exit code is the **map key**, not a field inside the entry. Each ent
 |-------|------|----------|-------------|
 | `name` | string | no† | Named constant for this code (e.g. `"ARG_ERROR"`). For framework codes `0–13`: derived from `ExitCode` enum if omitted. For command-specific codes `79–125`: must be provided — there is no enum to derive from |
 | `description` | string ≤ 120 | yes | Present-tense, agent-readable. What state is the system in? |
-| `retryable` | boolean | yes | Safe to retry without cleanup? |
+| `retryable` | boolean | yes | May the identical unchanged re-run succeed? `true` implies no side effects occurred |
 | `side_effects` | `"none"` \| `"partial"` \| `"complete"` | yes | How much work was committed before this exit |
 
 † Required for command-specific codes (`79–125`); optional for framework codes (`0–13`) where the framework derives it from the `ExitCode` enum.
@@ -38,9 +38,9 @@ In all examples, the integer code is the surrounding map key; entries do not con
 { "name": "SUCCESS", "description": "Deployment completed", "retryable": false, "side_effects": "complete" }
 ```
 
-**Valid — retryable input error, zero side effects (map key `"2"`)**
+**Valid — input error, zero side effects, fix then reissue (map key `"2"`)**
 ```json
-{ "name": "ARG_ERROR", "description": "Invalid target environment", "retryable": true, "side_effects": "none" }
+{ "name": "ARG_ERROR", "description": "Invalid target environment", "retryable": false, "side_effects": "none" }
 ```
 
 **Valid — timeout declared as non-retryable because side effects are possible (map key `"10"`)**
@@ -72,6 +72,7 @@ Violation: `retryable` and `side_effects` are required.
 - **Omitting the `SUCCESS` entry (map key `"0"`).** Every command must declare it — even if the success path is obvious. The manifest and `--schema` output require it
 - **Using vague descriptions like `"Error"` or `"Failed"`.** The description must state the condition specifically so an agent can act without reading message text
 - **Setting `retryable: true` when side effects may have occurred.** The invariant is a hard guarantee. If any write could have occurred, `side_effects` must be `"partial"` and `retryable` must be `false`
+- **Setting `retryable: true` on validation errors.** Safe is not the same as useful: the identical call fails deterministically until the input changes. Declare `retryable: false`; the envelope carries `fix_required` for the correction
 - **Using `side_effects: "complete"` on failure codes.** `"complete"` means the intended operation finished — it is only appropriate for `SUCCESS (0)`
 - **Declaring only the happy path.** Every code the command may emit must have an entry. An undeclared code emitted at runtime is a contract violation
 - **Omitting `name` for command-specific codes (`79–125`).** For framework codes `0–13`, the framework can derive the constant name from the `ExitCode` enum. For command-specific codes, there is no enum — omitting `name` leaves agents with no readable label for the code
@@ -83,7 +84,7 @@ Violation: `retryable` and `side_effects` are required.
 Rules for agents reading `ExitCodeEntry` values from a command's `--schema` output or manifest before invoking the command.
 
 **Using entries to plan retries**
-- If an entry has `retryable: true` and `side_effects: "none"` — the retry is always safe; no state inspection needed
+- If an entry has `retryable: true` and `side_effects: "none"` — the identical call may be re-run directly; no state inspection needed
 - If an entry has `retryable: true` and `side_effects: "partial"` — this is a schema violation (see invariant in **Values** above); treat conservatively as non-retryable until state is inspected
 - If no entry exists for the received exit code — the command violated its contract; treat as `GENERAL_ERROR` behavior
 

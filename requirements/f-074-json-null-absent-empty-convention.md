@@ -37,7 +37,7 @@ The framework MUST never substitute one for another. A field that was present in
 ## Wire Format
 
 Correct:
-```json
+```jsonc
 {
   "name": "my-resource",
   "description": null,      ← supported, currently unset
@@ -47,7 +47,7 @@ Correct:
 ```
 
 Incorrect:
-```json
+```jsonc
 {
   "name": "my-resource",
   "description": "",        ← wrong: empty string ≠ unset

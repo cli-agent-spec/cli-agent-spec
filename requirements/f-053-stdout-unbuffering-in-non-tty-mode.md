@@ -36,7 +36,7 @@ Heartbeat lines (emitted via REQ-O-038) are JSON objects on stdout when enabled:
 ```json
 {"status": "running", "heartbeat": true, "elapsed_ms": 10012}
 {"status": "running", "heartbeat": true, "elapsed_ms": 20031}
-{"ok": true, "data": {"result": "done"}, "error": null, "warnings": [], "meta": {"duration_ms": 22418}}
+{"ok": true, "data": {"result": "done"}, "error": null, "warnings": [], "meta": { "exit_code": 0,"duration_ms": 22418}}
 ```
 
 ---

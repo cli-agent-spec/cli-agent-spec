@@ -76,7 +76,7 @@ $ tool deploy --target staging --output json
   "data": { "id": "deploy-42", "status": "complete", "target": "staging" },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 340 }
+  "meta": { "exit_code": 0, "duration_ms": 340 }
 }
 ```
 

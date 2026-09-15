@@ -41,7 +41,7 @@ High-entropy fields in `data` are replaced with semantic summary strings. The ra
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 14 }
+  "meta": { "exit_code": 0, "duration_ms": 14 }
 }
 ```
 

@@ -14,9 +14,9 @@ The framework MUST automatically inject `meta.config_sources` (array of config f
 
 ## Acceptance Criteria
 
-- Every response includes `meta.config_sources` as an array of absolute path strings.
-- `meta.effective_config_hash` changes when any config file is modified.
-- `meta.effective_config_hash` is stable when no config has changed.
+- Every response includes `meta.config_sources` as an array of absolute path strings
+- `meta.effective_config_hash` changes when any config file is modified
+- `meta.effective_config_hash` is stable when no config has changed
 - The array is empty (not absent) when no config files were loaded
 
 ---
@@ -40,6 +40,7 @@ The framework MUST automatically inject `meta.config_sources` (array of config f
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 204,
     "request_id": "req_01HZ",
     "config_sources": [

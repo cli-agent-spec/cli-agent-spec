@@ -49,6 +49,8 @@ $ tool manifest
     "commands": {
       "deploy": {
         "description": "Deploy a build to a target environment",
+        "danger_level": "mutating",
+        "required_scopes": ["deploy:write"],
         "flags": {
           "target":  { "type": "string",  "required": true,  "description": "Target environment name" },
           "dry-run": { "type": "boolean", "required": false, "default": false, "description": "Validate without executing" },
@@ -57,18 +59,30 @@ $ tool manifest
         "exit_codes": {
           "0": { "name": "SUCCESS",   "description": "Deployment completed",       "retryable": false, "side_effects": "complete" },
           "2": { "name": "ARG_ERROR", "description": "Invalid target environment", "retryable": false, "side_effects": "none"     },
-          "7": { "name": "TIMEOUT",   "description": "Deployment timed out",       "retryable": true,  "side_effects": "partial"  }
+          "10": { "name": "TIMEOUT",  "description": "Deployment timed out; partial writes may have occurred", "retryable": false, "side_effects": "partial" }
         },
         "examples": [
           { "description": "Deploy to staging", "command": "tool deploy --target staging" }
         ],
         "subcommands": ["deploy.rollback"]
+      },
+      "deploy.rollback": {
+        "description": "Roll back the most recent deployment",
+        "danger_level": "mutating",
+        "required_scopes": ["deploy:write"],
+        "flags": {
+          "target": { "type": "string", "required": true, "description": "Target environment name" }
+        },
+        "exit_codes": {
+          "0": { "name": "SUCCESS",   "description": "Rollback completed",          "retryable": false, "side_effects": "complete" },
+          "5": { "name": "NOT_FOUND", "description": "No previous deployment found", "retryable": false, "side_effects": "none"     }
+        }
       }
     }
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 12 }
+  "meta": { "exit_code": 0, "duration_ms": 12 }
 }
 ```
 
@@ -78,7 +92,7 @@ Etag cache hit:
 $ tool manifest --etag sha256:a3f9c1...
 ```
 ```json
-{ "ok": true, "data": null, "error": null, "warnings": [], "meta": { "not_modified": true } }
+{ "ok": true, "data": null, "error": null, "warnings": [], "meta": { "exit_code": 0, "duration_ms": 12, "not_modified": true } }
 ```
 
 ---

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "ExitCode",
+  "$id": "exit-code.json",
   "title": "ExitCode",
   "description": "Reserved integer codes for all framework-managed exit conditions. Commands MUST reference named constants; literal integers are not permitted",
   "type": "integer",
@@ -51,6 +51,6 @@
     "14-63":   "framework extensions — reserved for future use",
     "64-78":   "POSIX sysexits compatibility (optional mapping)",
     "79-125":  "command-specific — must be declared per REQ-C-001",
-    "126-255": "shell-reserved — MUST NOT be used"
+    "126-255": "shell-reserved — commands MUST NOT emit these; only framework signal handlers emit 128 + signal number (130 SIGINT per REQ-F-069, 143 SIGTERM per REQ-F-013)"
   }
 }

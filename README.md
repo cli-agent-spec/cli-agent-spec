@@ -45,10 +45,10 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 | Tier | Count | Who implements it |
 |------|-------|------------------|
 | **F** — Framework-Automatic | 78 | The framework enforces it; command authors get it for free |
-| **C** — Command Contract | 29 | Command authors declare it at registration |
+| **C** — Command Contract | 30 | Command authors declare it at registration |
 | **O** — Opt-In | 50 | Applications enable it explicitly |
 
-**5 JSON schemas** — machine-readable type definitions for exit codes, response envelopes, tool manifests, dispatch requests, and error details. Generate typed structs for your language directly from the schemas.
+**5 canonical JSON schemas** — machine-readable type definitions for `ExitCode`, `ExitCodeEntry`, `ResponseEnvelope`, `ManifestResponse`, and `DispatchRequest`. Generate typed structs for your language directly from the schemas. Every JSON example in the spec prose is validated against them in CI.
 
 **A comparison matrix** — 12 existing frameworks (argparse, Click, Cobra, Clap, Typer, Commander.js, and more) scored against 71 currently mapped failure modes. No framework exceeds 59%.
 
@@ -56,9 +56,9 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 ## The three contracts that matter most
 
-**Exit codes** — 14 named codes (0–13) with machine-readable guarantees per code: `retryable: true/false`, `side_effects: "none" | "partial" | "complete"`. An agent receiving exit 11 (`CONFLICT`) knows the operation is safe to retry. Receiving exit 6 (`PARTIAL_FAILURE`) knows it must inspect state before retrying. See [`exit-code.json`](schemas/exit-code.json).
+**Exit codes** — 14 named codes (0–13) with machine-readable guarantees per code: `retryable: true/false`, `side_effects: "none" | "partial" | "complete"`. An agent receiving exit 11 (`RATE_LIMITED`) knows nothing was written and the call is safe to retry after back-off. Receiving exit 3 (`PARTIAL_FAILURE`) knows some writes happened and it must inspect state before retrying. Receiving exit 6 (`CONFLICT`) knows the resource already exists and a retry cannot succeed. See [`exit-code.json`](schemas/exit-code.json).
 
-**Response envelope** — every command wraps its output in `{ ok, data, error, warnings, meta }`. The same keys are always present. Agents never parse free-text to determine success or failure. See [`response-envelope.json`](schemas/response-envelope.json).
+**Response envelope** — every command wraps its output in `{ ok, data, error, warnings, meta }`. The same keys are always present, and `meta.exit_code` repeats the process exit code so an agent holding only stdout can still classify the outcome. Errors and warnings carry stable codes; agents never parse free text to determine success or failure. See [`response-envelope.json`](schemas/response-envelope.json).
 
 **Tool manifest** — `tool manifest --output json` returns the complete command tree: every subcommand, flag, type, description, exit code map, and example. One call replaces O(N) `--help` iterations and eliminates trial-and-error argument discovery. See [`manifest-response.json`](schemas/manifest-response.json).
 
@@ -146,4 +146,4 @@ Before contributing, read [`AGENTS.md`](AGENTS.md) for conventions: file format,
 
 ---
 
-*CLI Agent Spec v1.6 — 74 failure modes · 158 requirements · 5 schemas · 12 frameworks evaluated*
+*CLI Agent Spec v1.7 — 74 failure modes · 158 requirements · 5 canonical schemas · 12 frameworks evaluated*

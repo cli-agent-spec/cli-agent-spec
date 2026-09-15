@@ -41,7 +41,7 @@ $ tool list-users --stable-output --output json
   ],
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 44 }
+  "meta": { "exit_code": 0, "duration_ms": 44 }
 }
 ```
 

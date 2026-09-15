@@ -47,7 +47,7 @@ $ tool cleanup --scope temp --output json
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 28 }
+  "meta": { "exit_code": 0, "duration_ms": 28 }
 }
 ```
 

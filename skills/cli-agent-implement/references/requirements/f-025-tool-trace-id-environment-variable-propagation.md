@@ -14,9 +14,9 @@ The framework MUST read `TOOL_TRACE_ID` from the environment at startup and asso
 
 ## Acceptance Criteria
 
-- A child process spawned by the framework inherits `TOOL_TRACE_ID`.
-- Framework-emitted log lines (stderr) include the trace ID when `TOOL_TRACE_ID` is set.
-- Audit log entries include the trace ID.
+- A child process spawned by the framework inherits `TOOL_TRACE_ID`
+- Framework-emitted log lines (stderr) include the trace ID when `TOOL_TRACE_ID` is set
+- Audit log entries include the trace ID
 
 ---
 
@@ -39,6 +39,8 @@ Response showing `meta.trace_id` propagated from the `TOOL_TRACE_ID` environment
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
+    "duration_ms": 12,
     "request_id":   "01HZ5PQRS",
     "trace_id":     "span-pipeline-42",
     "command":      "deploy",

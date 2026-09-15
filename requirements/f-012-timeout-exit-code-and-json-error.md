@@ -45,6 +45,7 @@ JSON error response emitted to stdout before the process exits with code `10`. H
   },
   "warnings": [],
   "meta": {
+    "exit_code": 10,
     "duration_ms": 30012,
     "timeout_ms": 30000
   }
@@ -64,7 +65,7 @@ With partial step progress (when REQ-C-008 step manifest was emitted). Partial w
     "phase": "execution"
   },
   "warnings": [],
-  "meta": { "duration_ms": 30015, "timeout_ms": 30000 }
+  "meta": { "exit_code": 10, "duration_ms": 30015, "timeout_ms": 30000 }
 }
 ```
 

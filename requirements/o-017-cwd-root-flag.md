@@ -44,7 +44,7 @@ $ tool lint --cwd /project --output json
   },
   "error": null,
   "warnings": [],
-  "meta": { "cwd": "/project", "duration_ms": 312 }
+  "meta": { "exit_code": 0, "cwd": "/project", "duration_ms": 312 }
 }
 ```
 
@@ -56,7 +56,7 @@ Non-existent `--cwd` value:
   "data": null,
   "error": { "code": "ARG_ERROR", "message": "--cwd path does not exist: /nonexistent" },
   "warnings": [],
-  "meta": { "phase": "validation" }
+  "meta": { "exit_code": 2, "duration_ms": 12, "phase": "validation" }
 }
 ```
 

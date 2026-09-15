@@ -67,7 +67,7 @@ Headless response (`headless_behavior: "emit_in_output"`):
   "data": { "open_url": "https://example.com/dashboard" },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 5, "headless": true }
+  "meta": { "exit_code": 0, "duration_ms": 5, "headless": true }
 }
 ```
 

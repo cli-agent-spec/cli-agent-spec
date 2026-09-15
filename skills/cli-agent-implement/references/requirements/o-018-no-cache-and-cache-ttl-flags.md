@@ -14,10 +14,10 @@ For commands that write to caches, the framework MUST provide `--no-cache` (skip
 
 ## Acceptance Criteria
 
-- `--no-cache` causes the command to bypass all declared cache files.
-- `--cache-ttl 0` is equivalent to `--no-cache`.
-- Cache files older than `--cache-ttl` seconds are treated as missing (re-fetched).
-- The flags are absent on commands that declare no cache side effects.
+- `--no-cache` causes the command to bypass all declared cache files
+- `--cache-ttl 0` is equivalent to `--no-cache`
+- Cache files older than `--cache-ttl` seconds are treated as missing (re-fetched)
+- The flags are absent on commands that declare no cache side effects
 
 ---
 
@@ -41,7 +41,7 @@ $ tool resolve --no-cache --output json
   "data": { "resolved": "1.2.3" },
   "error": null,
   "warnings": [],
-  "meta": { "cache_used": false, "duration_ms": 1832 }
+  "meta": { "exit_code": 0, "cache_used": false, "duration_ms": 1832 }
 }
 ```
 

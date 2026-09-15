@@ -37,8 +37,10 @@ $ tool list items --output json --limit 5
 ```json
 {
   "ok": true,
-  "data": { "items": [...] },
-  "meta": { "page": { "limit": 5 } }
+  "data": [{ "id": "item-1" }, { "id": "item-2" }],
+  "error": null,
+  "warnings": [],
+  "meta": { "exit_code": 0, "duration_ms": 14, "pagination": { "total": 2, "returned": 2, "truncated": false, "has_more": false, "next_cursor": null } }
 }
 ```
 

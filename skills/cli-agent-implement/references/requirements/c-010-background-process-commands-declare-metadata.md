@@ -14,9 +14,9 @@ Any command that intentionally spawns a long-running background process MUST dec
 
 ## Acceptance Criteria
 
-- The `--schema` output for commands that spawn background processes includes `spawns_background_process: true`.
-- The response `data` includes `background_pid` (integer) and `cleanup_command` (string).
-- The framework refuses to register a command that spawns a background process without declaring this metadata.
+- The `--schema` output for commands that spawn background processes includes `spawns_background_process: true`
+- The response `data` includes `background_pid` (integer) and `cleanup_command` (string)
+- The framework refuses to register a command that spawns a background process without declaring this metadata
 
 ---
 
@@ -78,7 +78,7 @@ $ tool start-watcher --dir /project
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 18 }
+  "meta": { "exit_code": 0, "duration_ms": 18 }
 }
 ```
 

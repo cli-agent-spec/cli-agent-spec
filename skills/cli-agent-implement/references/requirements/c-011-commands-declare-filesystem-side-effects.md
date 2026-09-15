@@ -14,9 +14,9 @@ Command authors MUST declare all filesystem side effects in the command's regist
 
 ## Acceptance Criteria
 
-- A command that writes to a cache directory declares that path in `filesystem_side_effects`.
-- `tool status --show-side-effects` lists all paths declared by registered commands.
-- `tool cleanup` removes all paths declared as `type: "temp"` or `type: "cache"`.
+- A command that writes to a cache directory declares that path in `filesystem_side_effects`
+- `tool status --show-side-effects` lists all paths declared by registered commands
+- `tool cleanup` removes all paths declared as `type: "temp"` or `type: "cache"`
 
 ---
 

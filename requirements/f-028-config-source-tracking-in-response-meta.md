@@ -40,6 +40,7 @@ The framework MUST automatically inject `meta.config_sources` (array of config f
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 204,
     "request_id": "req_01HZ",
     "config_sources": [

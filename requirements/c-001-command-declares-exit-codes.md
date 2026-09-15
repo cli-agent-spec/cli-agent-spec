@@ -24,7 +24,7 @@ Every command MUST declare a complete, exhaustive map of all exit codes it may e
 
 ## Schema
 
-**Types:** [`exit-code-entry.md`](../schemas/exit-code-entry.md) · [`exit-code.md`](../schemas/exit-code.md)
+**Types:** [`exit-code-entry.md`](../schemas/exit-code-entry.md) · [`exit-code.md`](../schemas/exit-code.md) · [`manifest-response.md`](../schemas/manifest-response.md) (`CommandEntry.exit_codes`)
 
 Requirement-specific constraints on top of the base `ExitCodeEntry` schema:
 
@@ -37,7 +37,7 @@ Requirement-specific constraints on top of the base `ExitCodeEntry` schema:
       "pattern": "^(0|[1-9][0-9]*)$",
       "description": "Keys are integer exit codes serialized as strings."
     },
-    "additionalProperties": { "$ref": "ExitCodeEntry" },
+    "additionalProperties": { "$ref": "exit-code-entry.json" },
     "required": ["0"],
     "description": "Must include an entry for ExitCode.SUCCESS (key '0')."
   }

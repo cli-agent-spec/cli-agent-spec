@@ -64,9 +64,9 @@ result = framework.run(["my-tool", "process", filename])
 ```
 
 **For framework design:**
-- The framework's subprocess API MUST use exec-array (not shell string) — this fully prevents the problem for tool-to-tool invocations.
+- The framework's subprocess API MUST use exec-array (not shell string) — this fully prevents the problem for tool-to-tool invocations
 - Document prominently in the agent guide: "never construct shell strings; always use exec-array invocation."
-- Tools that accept file paths MUST validate existence and emit a distinct `FILE_NOT_FOUND` error to surface word-split mistakes.
+- Tools that accept file paths MUST validate existence and emit a distinct `FILE_NOT_FOUND` error to surface word-split mistakes
 
 ### Evaluation
 
@@ -82,6 +82,10 @@ result = framework.run(["my-tool", "process", filename])
 ---
 
 ### Agent Workaround
+
+**Signature:** error names only the first word of a space-containing path; shell prints `no matches found`; tool receives literal `*.json` or zero args yet may exit `0`
+
+**Tier:** B (one observable check, then one command)
 
 **Always use exec-array (list form) for subprocess calls; pre-validate file paths before passing them:**
 

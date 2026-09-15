@@ -14,9 +14,9 @@ The framework MUST disable any auto-update behavior (including update checks tha
 
 ## Acceptance Criteria
 
-- No update check occurs when `CI=true`.
-- No update check occurs when stdout is not a TTY.
-- Setting `TOOL_NO_UPDATE=1` disables all update behavior including background checks.
+- No update check occurs when `CI=true`
+- No update check occurs when stdout is not a TTY
+- Setting `TOOL_NO_UPDATE=1` disables all update behavior including background checks
 - No measurable latency is added to any command due to update checking in non-interactive mode
 
 ---

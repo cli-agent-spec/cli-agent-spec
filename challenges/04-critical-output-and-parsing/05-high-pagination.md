@@ -4,12 +4,6 @@
 
 **Severity:** High | **Frequency:** Common | **Detectability:** Hard | **Token Spend:** High | **Time:** High | **Context:** Critical
 
-### Impact
-
-- Unbounded output exhausts agent context window and pipe buffers, causing the call to fail or the agent to process incomplete data
-- No truncation indicator means the agent believes it has all records when it has only the first page
-- Page-number pagination requires the agent to track state across calls; cursor-based pagination does not
-
 ### The Problem
 
 Commands that return large datasets in a single response create multiple problems: the output may be too large to parse, may exceed pipe buffers, or may contain more data than the agent can process in its context.
@@ -34,6 +28,12 @@ $ tool list-users --page 2
 # Requires knowing that page 1 was fetched first
 # No cursor-based alternative
 ```
+
+### Impact
+
+- Unbounded output exhausts agent context window and pipe buffers, causing the call to fail or the agent to process incomplete data
+- No truncation indicator means the agent believes it has all records when it has only the first page
+- Page-number pagination requires the agent to track state across calls; cursor-based pagination does not
 
 ### Solutions
 

@@ -14,10 +14,10 @@ The framework MUST disable OS-level stdout buffering when stdout is not a TTY. I
 
 ## Acceptance Criteria
 
-- A command that emits one log line per second is received by the agent one line at a time, not in a single flush after the process exits.
-- `PYTHONUNBUFFERED=1` is set in the process environment before the first `output()` call.
-- A 30-second command with heartbeats enabled emits at least 2 heartbeat JSON objects to stdout before completing.
-- Heartbeat objects are valid JSON matching `{"status": "running", "heartbeat": true, "elapsed_ms": N}`.
+- A command that emits one log line per second is received by the agent one line at a time, not in a single flush after the process exits
+- `PYTHONUNBUFFERED=1` is set in the process environment before the first `output()` call
+- A 30-second command with heartbeats enabled emits at least 2 heartbeat JSON objects to stdout before completing
+- Heartbeat objects are valid JSON matching `{"status": "running", "heartbeat": true, "elapsed_ms": N}`
 
 ---
 
@@ -36,7 +36,7 @@ Heartbeat lines (emitted via REQ-O-038) are JSON objects on stdout when enabled:
 ```json
 {"status": "running", "heartbeat": true, "elapsed_ms": 10012}
 {"status": "running", "heartbeat": true, "elapsed_ms": 20031}
-{"ok": true, "data": {"result": "done"}, "error": null, "warnings": [], "meta": {"duration_ms": 22418}}
+{"ok": true, "data": {"result": "done"}, "error": null, "warnings": [], "meta": { "exit_code": 0,"duration_ms": 22418}}
 ```
 
 ---

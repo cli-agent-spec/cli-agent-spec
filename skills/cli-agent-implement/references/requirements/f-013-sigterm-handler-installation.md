@@ -14,10 +14,10 @@ The framework MUST install a SIGTERM signal handler for every command at startup
 
 ## Acceptance Criteria
 
-- `kill -TERM <pid>` on a running command causes stdout to contain a valid JSON cancellation response.
-- Exit code after SIGTERM is exactly `143`.
-- All framework-managed lock files are released after SIGTERM.
-- A second SIGTERM during cleanup does not produce duplicate JSON output.
+- `kill -TERM <pid>` on a running command causes stdout to contain a valid JSON cancellation response
+- Exit code after SIGTERM is exactly `143`
+- All framework-managed lock files are released after SIGTERM
+- A second SIGTERM during cleanup does not produce duplicate JSON output
 
 ---
 
@@ -34,14 +34,17 @@ Cancellation response emitted to stdout on SIGTERM:
 ```json
 {
   "ok": false,
-  "partial": true,
-  "data": null,
+  "data": { "partial": true },
   "error": {
     "code": "CANCELLED",
-    "message": "Command cancelled by SIGTERM"
+    "message": "Command cancelled by SIGTERM",
+    "retryable": false,
+    "phase": "execution"
   },
   "warnings": [],
   "meta": {
+    "exit_code": 143,
+    "duration_ms": 12,
     "request_id": "req_01HZ",
     "command": "deploy",
     "timestamp": "2024-06-01T12:00:00Z"

@@ -24,7 +24,7 @@ Every error response MUST include an `error` object with: `code` (string, `DOMAI
 
 ## Schema
 
-**Types:** [`exit-code.md`](../schemas/exit-code.md) · [`response-envelope.md`](../schemas/response-envelope.md) — `error.code` carries an `ExitCode` value; the full error object is defined in `ResponseEnvelope.ErrorDetail`
+**Types:** [`exit-code.md`](../schemas/exit-code.md) · [`response-envelope.md`](../schemas/response-envelope.md) — `error.code` is a stable domain code that may equal an `ExitCode` name (`NOT_FOUND`) or refine it (`CONNECTION_REFUSED`); the exit code itself travels in `meta.exit_code`. The full error object is defined in `ResponseEnvelope.ErrorDetail`
 
 ---
 
@@ -51,7 +51,7 @@ $ tool connect --host db.example.com
     }
   },
   "warnings": [],
-  "meta": { "duration_ms": 5003 }
+  "meta": { "exit_code": 12, "duration_ms": 5003 }
 }
 ```
 
@@ -101,6 +101,6 @@ register command "connect":
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Provides: `ResponseEnvelope.ErrorDetail` is the schema type carrying all fields defined here |
-| [REQ-F-001](f-001-standard-exit-code-table.md) | F | Provides: `ExitCode` constants used in `error.code` for well-known failure categories |
-| [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: every exit code in `error.code` must be declared in the command's `exit_codes` map |
+| [REQ-F-001](f-001-standard-exit-code-table.md) | F | Provides: `ExitCode` names that `error.code` may reuse for well-known failure categories |
+| [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: the exit code in `meta.exit_code` must be declared in the command's `exit_codes` map |
 | [REQ-C-014](c-014-error-responses-include-retryable-and-retry-after-.md) | C | Extends: adds `retryable` and `retry_after_ms` fields to the error object defined here |

@@ -4,12 +4,6 @@
 
 **Severity:** High | **Frequency:** Situational | **Detectability:** Hard | **Token Spend:** Medium | **Time:** Medium | **Context:** Low
 
-### Impact
-
-- Parallel agent tool calls silently corrupt shared state — config writes lost, temp files overwritten
-- Lock conflicts produce unstructured errors with no retry guidance
-- Non-deterministic failures are hard to reproduce and hard to diagnose from logs
-
 ### The Problem
 
 Agents may invoke multiple tool calls in parallel. CLI tools designed for single-user sequential use can corrupt shared state when called concurrently.
@@ -39,6 +33,12 @@ $ tool config set key1 val1   # reads config, writes key1
 $ tool config set key2 val2   # reads config (before key1 written), writes key2
 # Result: key1 is lost
 ```
+
+### Impact
+
+- Parallel agent tool calls silently corrupt shared state — config writes lost, temp files overwritten
+- Lock conflicts produce unstructured errors with no retry guidance
+- Non-deterministic failures are hard to reproduce and hard to diagnose from logs
 
 ### Solutions
 
@@ -78,6 +78,11 @@ Error: {
 ---
 
 ### Agent Workaround
+
+**Signature:** `lock file exists` or `LOCK_HELD` in stderr only when calls run in parallel; parallel runs both exit `0` but outputs or config keys silently vanish
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** run tool invocations one at a time, never in parallel; if that fails, escalate with the command, exit code, stdout, and stderr
 
 **Serialize parallel calls when a tool does not support concurrent invocation:**
 

@@ -92,7 +92,7 @@ Initial response when the command is invoked:
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 22 }
+  "meta": { "exit_code": 0, "duration_ms": 22 }
 }
 ```
 

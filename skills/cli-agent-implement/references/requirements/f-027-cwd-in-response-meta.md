@@ -14,8 +14,8 @@ The framework MUST automatically inject `meta.cwd` (the process working director
 
 ## Acceptance Criteria
 
-- Every response includes `meta.cwd` as an absolute path string.
-- `meta.cwd` matches the result of `pwd` in the shell that invoked the command.
+- Every response includes `meta.cwd` as an absolute path string
+- `meta.cwd` matches the result of `pwd` in the shell that invoked the command
 - Commands that resolve a project root include `meta.project_root` as an absolute path
 
 ---
@@ -39,6 +39,7 @@ The framework MUST automatically inject `meta.cwd` (the process working director
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 38,
     "request_id": "req_01HZ",
     "cwd": "/home/user/myproject/packages/core",

@@ -14,10 +14,10 @@ The framework MUST provide `--cwd <path>` as a standard flag on all commands tha
 
 ## Acceptance Criteria
 
-- `--cwd /project` causes all relative path resolution to be based on `/project`.
-- `meta.cwd` reflects the value of `--cwd` when passed.
-- A non-existent `--cwd` path causes exit `2` with a validation error before any side effects.
-- `--cwd` does not change the process's actual working directory (REQ-F-041).
+- `--cwd /project` causes all relative path resolution to be based on `/project`
+- `meta.cwd` reflects the value of `--cwd` when passed
+- A non-existent `--cwd` path causes exit `2` with a validation error before any side effects
+- `--cwd` does not change the process's actual working directory (REQ-F-041)
 
 ---
 
@@ -44,7 +44,7 @@ $ tool lint --cwd /project --output json
   },
   "error": null,
   "warnings": [],
-  "meta": { "cwd": "/project", "duration_ms": 312 }
+  "meta": { "exit_code": 0, "cwd": "/project", "duration_ms": 312 }
 }
 ```
 
@@ -56,7 +56,7 @@ Non-existent `--cwd` value:
   "data": null,
   "error": { "code": "ARG_ERROR", "message": "--cwd path does not exist: /nonexistent" },
   "warnings": [],
-  "meta": { "phase": "validation" }
+  "meta": { "exit_code": 2, "duration_ms": 12, "phase": "validation" }
 }
 ```
 

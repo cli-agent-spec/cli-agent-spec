@@ -14,9 +14,9 @@ Commands that have platform-specific requirements MUST declare them in their reg
 
 ## Acceptance Criteria
 
-- `tool doctor` reports a check failure for each missing or outdated required tool.
-- Invoking a Linux-only command on macOS emits a compatibility warning in `meta.warnings`.
-- The `--schema` output for each command includes `platform` and `required_tools`.
+- `tool doctor` reports a check failure for each missing or outdated required tool
+- Invoking a Linux-only command on macOS emits a compatibility warning in `meta.warnings`
+- The `--schema` output for each command includes `platform` and `required_tools`
 
 ---
 

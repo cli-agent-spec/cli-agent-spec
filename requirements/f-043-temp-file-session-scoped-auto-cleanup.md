@@ -51,6 +51,8 @@ The `meta` object carries `session_tmp_dir` when a command produces caller-facin
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
+    "duration_ms": 12,
     "session_tmp_dir": "/tmp/mycli/session-a1b2c3"
   }
 }

@@ -14,10 +14,10 @@ When the framework invokes multi-stage shell pipelines internally, it MUST use `
 
 ## Acceptance Criteria
 
-- A pipeline where the first stage fails exits with the first stage's non-zero code, not 0.
-- The framework's subprocess API raises an error for any pipeline stage failure, not just the last.
-- A pipeline `cmd1 | cmd2` where `cmd1` exits 1 and `cmd2` exits 0 results in overall exit 1.
-- Framework startup emits a warning when `pipefail` is not set in the parent shell environment.
+- A pipeline where the first stage fails exits with the first stage's non-zero code, not 0
+- The framework's subprocess API raises an error for any pipeline stage failure, not just the last
+- A pipeline `cmd1 | cmd2` where `cmd1` exits 1 and `cmd2` exits 0 results in overall exit 1
+- Framework startup emits a warning when `pipefail` is not set in the parent shell environment
 
 ---
 

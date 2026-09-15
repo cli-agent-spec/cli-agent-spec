@@ -38,6 +38,7 @@ No dedicated schema type — this requirement governs audit log file writes with
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 412,
     "request_id": "req_01HZ",
     "audit_log_path": "/home/user/.local/share/mytool/audit.jsonl"

@@ -14,10 +14,10 @@ The framework MUST automatically inject `meta.tool_version` (semver string of th
 
 ## Acceptance Criteria
 
-- Every response includes `meta.tool_version`.
-- `meta.tool_version` matches the output of `tool --version`.
-- `meta.update_available` is absent (not null, absent) when no update is available or check failed.
-- The update check does not add measurable latency to command execution.
+- Every response includes `meta.tool_version`
+- `meta.tool_version` matches the output of `tool --version`
+- `meta.update_available` is absent (not null, absent) when no update is available or check failed
+- The update check does not add measurable latency to command execution
 
 ---
 
@@ -40,10 +40,12 @@ Response `meta` with `tool_version` and optional `update_available`:
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
+    "duration_ms": 12,
     "request_id":       "req_08MN",
     "command":          "deploy",
     "timestamp":        "2024-06-01T12:00:00Z",
-    "schema_version":   "1.0.0",
+    "schema_version":   "1.0",
     "tool_version":     "2.4.1",
     "update_available": "2.5.0"
   }

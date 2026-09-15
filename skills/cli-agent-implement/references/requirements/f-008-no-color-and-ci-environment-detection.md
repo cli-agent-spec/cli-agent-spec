@@ -14,8 +14,8 @@ The framework MUST check for `NO_COLOR` (any value, including empty, per no-colo
 
 ## Acceptance Criteria
 
-- When `NO_COLOR=` (empty string), all ANSI output is disabled.
-- A child process spawned by the framework inherits `NO_COLOR=1`.
+- When `NO_COLOR=` (empty string), all ANSI output is disabled
+- A child process spawned by the framework inherits `NO_COLOR=1`
 - `TERM=dumb` alone is sufficient to disable all color output
 
 ---

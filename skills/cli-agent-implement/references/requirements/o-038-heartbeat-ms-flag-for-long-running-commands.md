@@ -14,10 +14,10 @@ The framework MUST provide `--heartbeat-ms <milliseconds>` (default: `10000`) fo
 
 ## Acceptance Criteria
 
-- A 25-second command with `--heartbeat-ms 10000` emits at least 2 heartbeat objects before the final result.
-- Each heartbeat is a valid JSON object parseable independently.
-- The final response (success or failure) is also a valid JSON object and is distinguishable from heartbeats by `"heartbeat": false` or absence of the `heartbeat` field.
-- `--heartbeat-ms 0` produces no heartbeat objects.
+- A 25-second command with `--heartbeat-ms 10000` emits at least 2 heartbeat objects before the final result
+- Each heartbeat is a valid JSON object parseable independently
+- The final response (success or failure) is also a valid JSON object and is distinguishable from heartbeats by `"heartbeat": false` or absence of the `heartbeat` field
+- `--heartbeat-ms 0` produces no heartbeat objects
 
 ---
 

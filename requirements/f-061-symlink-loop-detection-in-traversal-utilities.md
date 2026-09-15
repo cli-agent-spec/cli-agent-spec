@@ -45,7 +45,7 @@ The framework emits a `PRECONDITION (4)` error response with `error.code: "SYMLI
     "completed_count": 142
   },
   "warnings": [],
-  "meta": { "duration_ms": 80 }
+  "meta": { "exit_code": 4, "duration_ms": 80 }
 }
 ```
 

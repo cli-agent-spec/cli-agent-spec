@@ -12,12 +12,17 @@
 
 The framework MUST automatically clean up the session-scoped temp directory (REQ-F-032) on normal command exit. For commands that produce output files intended for the caller to consume, the framework MUST include a `cleanup` object in the response containing `command` (the exact shell command to delete the file) and `auto_cleanup_after_seconds` (time after which the framework will delete the file if cleanup was not called). Background cleanup MUST NOT be implemented via a daemon; instead it MUST occur on next framework invocation.
 
+The framework MUST create all temp files and directories with restrictive permissions: mode `0600` for files, mode `0700` for directories. World-readable temp files containing credentials, tokens, or intermediate command output are a credential exposure vector on shared systems.
+
 ## Acceptance Criteria
 
-- After a command exits normally, its session temp directory no longer exists.
-- A response that includes a caller-facing output file includes a `cleanup` object.
-- `cleanup.command` is a valid, directly executable shell command.
+- After a command exits normally, its session temp directory no longer exists
+- A response that includes a caller-facing output file includes a `cleanup` object
+- `cleanup.command` is a valid, directly executable shell command
 - Files older than `auto_cleanup_after_seconds` are pruned when any framework command next runs
+- All temp files are created with mode `0600` (verified with `stat` or equivalent)
+- All temp directories are created with mode `0700`
+- `umask` does not widen permissions — framework uses explicit mode arguments, not umask-relative defaults
 
 ---
 
@@ -46,6 +51,8 @@ The `meta` object carries `session_tmp_dir` when a command produces caller-facin
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
+    "duration_ms": 12,
     "session_tmp_dir": "/tmp/mycli/session-a1b2c3"
   }
 }

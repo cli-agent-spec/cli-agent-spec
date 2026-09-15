@@ -14,10 +14,10 @@ The framework MUST use a forgiving JSON parser for all structured input flags (`
 
 ## Acceptance Criteria
 
-- `--config '{"key": "value",}'` (trailing comma) is accepted and parsed correctly.
-- `--config '{"key": "value" /* comment */}'` is accepted and parsed correctly.
-- A malformed input that cannot be normalized produces an error with `corrected_input` showing the closest valid form.
-- Normalized inputs pass JSON schema validation identically to equivalent strict JSON.
+- `--config '{"key": "value",}'` (trailing comma) is accepted and parsed correctly
+- `--config '{"key": "value" /* comment */}'` is accepted and parsed correctly
+- A malformed input that cannot be normalized produces an error with `corrected_input` showing the closest valid form
+- Normalized inputs pass JSON schema validation identically to equivalent strict JSON
 
 ---
 
@@ -38,13 +38,14 @@ When normalization fails, the framework emits an `ARG_ERROR (2)` response with `
   "error": {
     "code": "INVALID_JSON",
     "message": "Input could not be normalized to valid JSON",
-    "retryable": true,
+    "retryable": false,
+    "fix_required": "Reissue with the corrected_input value",
     "phase": "validation",
     "corrected_input": "{\"key\": \"value\"}",
     "suggestion": "Use the corrected_input value to retry"
   },
   "warnings": [],
-  "meta": { "duration_ms": 3 }
+  "meta": { "exit_code": 2, "duration_ms": 3 }
 }
 ```
 
@@ -72,7 +73,8 @@ $ mytool deploy --config '{env prod}' --json
     "code": "INVALID_JSON",
     "message": "Input could not be normalized to valid JSON",
     "corrected_input": "{\"env\": \"prod\"}",
-    "retryable": true,
+    "retryable": false,
+    "fix_required": "Reissue with the corrected_input value",
     "phase": "validation"
   },
   ...

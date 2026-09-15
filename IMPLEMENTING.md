@@ -63,7 +63,7 @@ The `schemas/` directory contains JSON Schema draft-07 files. Generate language-
 
 | Language | Tool | Install | Generate |
 |----------|------|---------|----------|
-| Any | `ajv-cli` | `npm install -g ajv-cli` | `ajv validate -s schemas/... -d output.json` |
+| Any | `ajv-cli` | `npm install -g ajv-cli@5` | `ajv validate -s schemas/... -d output.json --spec=draft7 --strict=false` |
 | Python | `datamodel-code-generator` | `pip install datamodel-code-generator` | `datamodel-codegen --input schemas/ --output src/models/` |
 | TypeScript | `json-schema-to-typescript` | `npm install -g json-schema-to-typescript` | `json2ts --input schemas/ --output src/types/` |
 | Rust | `cargo-typify` | `cargo install cargo-typify` | `cargo typify schemas/<name>.json > src/types/<name>.rs` |
@@ -73,9 +73,11 @@ The `schemas/` directory contains JSON Schema draft-07 files. Generate language-
 **Always validate before generating:**
 
 ```bash
-npm install -g ajv-cli
-ajv compile -s "schemas/*.json" --spec=draft7
+npm install -g ajv-cli@5
+ajv compile -s "schemas/*.json" --spec=draft7 --strict=false
 ```
+
+`--strict=false` is required: the schemas carry `x-enum-varnames` and related `x-` annotations for code generators, which ajv strict mode rejects as unknown keywords.
 
 **Post-generation invariant:** Code generators do not enforce the `ExitCodeEntry` constraint that `retryable: true` implies `side_effects: "none"`. After generating, add the validation snippet for your language — see the "Validation after generation" section in [`schemas/codegen-guide.md`](schemas/codegen-guide.md).
 
@@ -112,7 +114,7 @@ After completing any path, continue with the full [wave plan](#suggested-impleme
 | [REQ-F-001](requirements/f-001-standard-exit-code-table.md) | Standard Exit Code Table | 14 typed codes with `retryable` flag — no guessing from exit int |
 | [REQ-F-002](requirements/f-002-exit-code-2-reserved-for-validation-failures.md) | Exit Code 2 Reserved for Validation Failures | Validation failures are always side-effect-free → always safe to retry |
 | [REQ-F-011](requirements/f-011-default-timeout-per-command.md) | Default Timeout Per Command | Prevents infinite hang; agent always gets a response |
-| [REQ-F-012](requirements/f-012-timeout-exit-code-and-json-error.md) | Timeout Exit Code and JSON Error | Timeout emits `retryable: true` + elapsed time for backoff |
+| [REQ-F-012](requirements/f-012-timeout-exit-code-and-json-error.md) | Timeout Exit Code and JSON Error | Timeout emits a structured `TIMEOUT` error whose `retryable` comes from the command's declaration: `true` only for side-effect-free commands |
 | [REQ-F-013](requirements/f-013-sigterm-handler-installation.md) | SIGTERM Handler Installation | Cancellation produces a clean JSON error, not a crash |
 | [REQ-F-015](requirements/f-015-validate-before-execute-phase-order.md) | Validate-Before-Execute Phase Order | No side effects during validation → safe to fix args and retry |
 | [REQ-F-045](requirements/f-045-agent-hallucination-input-pattern-rejection.md) | Agent Hallucination Input Pattern Rejection | Rejects `<placeholder>` inputs at phase 1 before any side effect |

@@ -41,10 +41,12 @@ Clean JSON output after sanitization (invalid bytes replaced with U+FFFD `\ufffd
   },
   "error": null,
   "warnings": [
-    "1 invalid UTF-8 sequence replaced with U+FFFD in field 'filename'",
-    "1 null byte replaced with U+FFFD in field 'content'"
+    { "code": "INVALID_UTF8_REPLACED", "message": "1 invalid UTF-8 sequence replaced with U+FFFD", "context": { "field": "data.filename", "count": 1 } },
+    { "code": "NULL_BYTE_REPLACED", "message": "1 null byte replaced with U+FFFD", "context": { "field": "data.content", "count": 1 } }
   ],
   "meta": {
+    "exit_code": 0,
+    "duration_ms": 12,
     "request_id": "req_02AB",
     "command": "read-file",
     "timestamp": "2024-06-01T12:00:00Z"

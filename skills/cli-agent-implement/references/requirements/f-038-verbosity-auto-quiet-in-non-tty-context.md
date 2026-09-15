@@ -14,9 +14,9 @@ When stdout is not a TTY or when `CI` is set, the framework MUST automatically s
 
 ## Acceptance Criteria
 
-- In a non-TTY context, `progress()` calls produce no output.
-- In a non-TTY context, `log()` calls at level INFO and below produce no stderr output.
-- Error-level `log()` calls are always emitted regardless of TTY state.
+- In a non-TTY context, `progress()` calls produce no output
+- In a non-TTY context, `log()` calls at level INFO and below produce no stderr output
+- Error-level `log()` calls are always emitted regardless of TTY state
 - Explicitly passing `--verbose` overrides auto-quiet mode
 
 ---

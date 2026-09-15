@@ -14,10 +14,10 @@ Any command that would prompt the user for confirmation or input in interactive 
 
 ## Acceptance Criteria
 
-- A command that prompts for confirmation in interactive mode accepts `--yes` and proceeds without prompting.
-- With `--non-interactive`, a command that would prompt exits with exit code 4 and a JSON error.
-- The `--yes` flag is idempotent: passing it to a command that never prompts has no effect.
-- The `--schema` output for interactive commands includes `interactive: true`.
+- A command that prompts for confirmation in interactive mode accepts `--yes` and proceeds without prompting
+- With `--non-interactive`, a command that would prompt exits with exit code 4 and a JSON error
+- The `--yes` flag is idempotent: passing it to a command that never prompts has no effect
+- The `--schema` output for interactive commands includes `interactive: true`
 
 ---
 

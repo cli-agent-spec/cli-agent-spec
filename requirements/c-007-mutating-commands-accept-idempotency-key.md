@@ -54,7 +54,7 @@ $ tool create-order --amount 100 --idempotency-key order-abc123
   "data": { "effect": "created", "id": 42, "amount": 100 },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 91 }
+  "meta": { "exit_code": 0, "duration_ms": 91 }
 }
 ```
 
@@ -70,7 +70,7 @@ $ tool create-order --amount 100 --idempotency-key order-abc123
   "data": { "effect": "noop", "id": 42, "amount": 100 },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 9, "idempotency_hit": true }
+  "meta": { "exit_code": 0, "duration_ms": 9, "idempotency_hit": true }
 }
 ```
 

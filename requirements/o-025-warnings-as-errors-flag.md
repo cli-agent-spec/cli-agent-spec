@@ -43,7 +43,7 @@ $ tool build --warnings-as-errors
   "data": { "artifact": "build/output.zip" },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 120 }
+  "meta": { "exit_code": 0, "duration_ms": 120 }
 }
 ```
 
@@ -61,8 +61,8 @@ $ tool build --warnings-as-errors
     "code": "WARNINGS_AS_ERRORS",
     "message": "Command produced warnings; treated as errors due to --warnings-as-errors"
   },
-  "warnings": ["Deprecated flag --old-format used; switch to --format json"],
-  "meta": { "duration_ms": 118 }
+  "warnings": [{ "code": "DEPRECATED_FLAG", "message": "Deprecated flag --old-format used; switch to --format json", "context": { "flag": "--old-format", "replacement": "--format json" } }],
+  "meta": { "exit_code": 1, "duration_ms": 118 }
 }
 ```
 

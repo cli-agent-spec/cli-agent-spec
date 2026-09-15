@@ -60,7 +60,7 @@ $ tool changelog --since 1.0.0 --output json
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 2 }
+  "meta": { "exit_code": 0, "duration_ms": 2 }
 }
 ```
 

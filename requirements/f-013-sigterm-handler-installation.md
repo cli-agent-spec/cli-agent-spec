@@ -34,14 +34,17 @@ Cancellation response emitted to stdout on SIGTERM:
 ```json
 {
   "ok": false,
-  "partial": true,
-  "data": null,
+  "data": { "partial": true },
   "error": {
     "code": "CANCELLED",
-    "message": "Command cancelled by SIGTERM"
+    "message": "Command cancelled by SIGTERM",
+    "retryable": false,
+    "phase": "execution"
   },
   "warnings": [],
   "meta": {
+    "exit_code": 143,
+    "duration_ms": 12,
     "request_id": "req_01HZ",
     "command": "deploy",
     "timestamp": "2024-06-01T12:00:00Z"

@@ -14,8 +14,8 @@ The framework MUST strip all ANSI escape sequences from every string value befor
 
 ## Acceptance Criteria
 
-- No byte in the range `\x1b` appears in the JSON output when in JSON mode.
-- A string value that was injected with color codes by a third-party dependency is clean in the JSON output.
+- No byte in the range `\x1b` appears in the JSON output when in JSON mode
+- A string value that was injected with color codes by a third-party dependency is clean in the JSON output
 - JSON output passes `jq '.'` without error even when the process was invoked with a TTY
 
 ---

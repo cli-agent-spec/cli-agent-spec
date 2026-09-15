@@ -60,9 +60,9 @@ This is the mechanism for per-line dry-run, per-line output target, or per-line 
 Each dispatched line emits one response to stdout. The shape is `ResponseEnvelope` with two additions in `meta`: `_cmd` (echoed from the request) and `_line` (1-based line index in the input stream).
 
 ```jsonl
-{"_cmd":"account.create","_line":1,"ok":true,"data":{"id":"acct_123"},"error":null,"warnings":[],"meta":{"duration_ms":4}}
-{"_cmd":"transaction.add","_line":2,"ok":true,"data":{"id":"txn_456","draft":true},"error":null,"warnings":[],"meta":{"duration_ms":11}}
-{"_cmd":"commodity.create","_line":3,"ok":false,"data":null,"error":{"code":"ALREADY_EXISTS","message":"BTC already registered","retryable":false},"warnings":[],"meta":{"duration_ms":2}}
+{"ok":true,"data":{"id":"acct_123"},"error":null,"warnings":[],"meta":{"exit_code":0,"duration_ms":4,"_cmd":"account.create","_line":1}}
+{"ok":true,"data":{"id":"txn_456","draft":true},"error":null,"warnings":[],"meta":{"exit_code":0,"duration_ms":11,"_cmd":"transaction.add","_line":2}}
+{"ok":false,"data":null,"error":{"code":"ALREADY_EXISTS","message":"BTC already registered","retryable":false},"warnings":[],"meta":{"exit_code":6,"duration_ms":2,"_cmd":"commodity.create","_line":3}}
 ```
 
 The `_line` field is the correlation key. When an agent processes the output stream and a line fails, `_line` maps the failure back to the exact input object without requiring the agent to maintain a parallel counter.

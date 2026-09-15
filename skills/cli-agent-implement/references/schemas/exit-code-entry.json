@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "ExitCodeEntry",
+  "$id": "exit-code-entry.json",
   "title": "ExitCodeEntry",
   "description": "Metadata for one exit code a command may emit. Used as the value type in the exit_codes map; the integer exit code is the map key, not a field in this object.",
   "type": "object",
@@ -19,7 +19,7 @@
     },
     "retryable": {
       "type": "boolean",
-      "description": "True if the agent may safely retry the exact same call without cleanup or rollback. Must be false whenever side_effects is 'partial' or 'complete'"
+      "description": "True if re-running the exact same call unchanged may succeed; implies no side effects occurred. False when the caller must first correct input, credentials, or state. Must be false whenever side_effects is 'partial' or 'complete'"
     },
     "side_effects": {
       "type": "string",

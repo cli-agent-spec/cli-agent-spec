@@ -29,11 +29,11 @@ The MCP HTTP transport requires OAuth 2.1 with PKCE, which is correct for securi
 
 ### Impact
 
-- Complete authentication failure in headless agent environments.
-- No structured error output: many tools just hang waiting for the browser (challenge #10 compound).
-- Even if the agent detects the hang and kills the process, it has no machine-readable information about what authentication mechanism to use.
-- Expired credentials produce auth errors that are indistinguishable from permission errors without a structured error code.
-- Single-sign-on and enterprise SSO flows are particularly problematic: they may require multi-factor authentication that is inherently interactive.
+- Complete authentication failure in headless agent environments
+- No structured error output: many tools just hang waiting for the browser (challenge #10 compound)
+- Even if the agent detects the hang and kills the process, it has no machine-readable information about what authentication mechanism to use
+- Expired credentials produce auth errors that are indistinguishable from permission errors without a structured error code
+- Single-sign-on and enterprise SSO flows are particularly problematic: they may require multi-factor authentication that is inherently interactive
 
 ### Solutions
 
@@ -60,11 +60,11 @@ else:
 ```
 
 **For framework design:**
-- Any command that triggers authentication must check `isatty()` and return a structured `AUTH_REQUIRED` error in non-interactive mode, never hang.
-- The `AUTH_REQUIRED` error must include `auth_methods` — an array of structured objects describing how to authenticate non-interactively (env var name, config file format, token endpoint).
-- Schema output should include `"requires_auth": true` and `"auth_methods": [...]` so agents can determine how to authenticate before first invocation.
-- Support `--token` / `--api-key` as universal authentication flags that bypass stored credentials for headless use.
-- Credential expiry should produce `{"code": "AUTH_EXPIRED"}` distinct from `AUTH_REQUIRED`, with instructions for renewal that work in headless mode.
+- Any command that triggers authentication must check `isatty()` and return a structured `AUTH_REQUIRED` error in non-interactive mode, never hang
+- The `AUTH_REQUIRED` error must include `auth_methods` — an array of structured objects describing how to authenticate non-interactively (env var name, config file format, token endpoint)
+- Schema output should include `"requires_auth": true` and `"auth_methods": [...]` so agents can determine how to authenticate before first invocation
+- Support `--token` / `--api-key` as universal authentication flags that bypass stored credentials for headless use
+- Credential expiry should produce `{"code": "AUTH_EXPIRED"}` distinct from `AUTH_REQUIRED`, with instructions for renewal that work in headless mode
 
 ### Evaluation
 
@@ -80,6 +80,10 @@ else:
 ---
 
 ### Agent Workaround
+
+**Signature:** process hangs after printing `Opening browser...` or a device-code URL; or blocks on an `Enter your API token:` prompt; ends only when killed by timeout
+
+**Tier:** B (one observable check, then one command)
 
 **Pre-check authentication before any command; act on `auth_methods` from `AUTH_REQUIRED` errors:**
 

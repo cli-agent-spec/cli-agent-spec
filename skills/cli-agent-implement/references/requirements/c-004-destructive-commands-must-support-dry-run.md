@@ -14,10 +14,10 @@ Every command with `danger_level: "destructive"` MUST implement a `--dry-run` mo
 
 ## Acceptance Criteria
 
-- A destructive command with `--dry-run` never modifies any external state.
-- The dry-run response includes `effect` with a `"would_"` prefix.
-- The dry-run response includes a `would_affect` object with human-readable and machine-readable impact description.
-- The framework raises a registration error if a destructive command does not implement `--dry-run`.
+- A destructive command with `--dry-run` never modifies any external state
+- The dry-run response includes `effect` with a `"would_"` prefix
+- The dry-run response includes a `would_affect` object with human-readable and machine-readable impact description
+- The framework raises a registration error if a destructive command does not implement `--dry-run`
 
 ---
 
@@ -62,7 +62,7 @@ $ tool delete-account --user 42 --dry-run
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 31 }
+  "meta": { "exit_code": 0, "duration_ms": 31 }
 }
 ```
 

@@ -41,8 +41,11 @@ Response after 2 internal retries:
 ```json
 {
   "ok": true,
-  "data": {...},
+  "data": { "id": "deploy-42" },
+  "error": null,
+  "warnings": [],
   "meta": {
+    "exit_code": 0,
     "request_id": "req_01HZ",
     "command": "deploy",
     "duration_ms": 3420,
@@ -64,7 +67,10 @@ Error after exhausting retries:
     "retryable": false,
     "retries_exhausted": 3
   },
+  "warnings": [],
   "meta": {
+    "exit_code": 12,
+    "duration_ms": 9240,
     "retries": 3
   }
 }

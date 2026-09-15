@@ -14,9 +14,9 @@ When any network operation fails, the framework MUST include a `network_context`
 
 ## Acceptance Criteria
 
-- A connection failure error includes `error.network_context.proxy_used`.
-- When no proxy is configured, `error.network_context.proxy_used` is null (not absent).
-- `error.network_context.suggestion` contains an executable shell command for diagnosing the failure.
+- A connection failure error includes `error.network_context.proxy_used`
+- When no proxy is configured, `error.network_context.proxy_used` is null (not absent)
+- `error.network_context.suggestion` contains an executable shell command for diagnosing the failure
 - The network_context block is absent for non-network errors
 
 ---
@@ -52,7 +52,7 @@ Network error response with `network_context` block:
     }
   },
   "warnings": [],
-  "meta": { "duration_ms": 30012, "request_id": "req_01HZ" }
+  "meta": { "exit_code": 12, "duration_ms": 30012, "request_id": "req_01HZ" }
 }
 ```
 

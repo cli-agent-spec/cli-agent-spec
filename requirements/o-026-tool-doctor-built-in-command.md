@@ -17,7 +17,7 @@ The framework MUST provide a built-in `tool doctor` command that runs all regist
 - `tool doctor --output json` returns a structured JSON object with a `checks` array
 - Each failed check includes a `fix` field with an executable shell command
 - A missing required dependency appears as a failed check with `ok: false`
-- `tool doctor` exit code is `0` iff all checks pass
+- `tool doctor` exit code is `0` iff all checks pass; otherwise it exits `4` (`PRECONDITION`) with `error.code: "DOCTOR_CHECKS_FAILED"` and the full report in `data`
 
 ---
 
@@ -44,9 +44,14 @@ $ tool doctor --output json
       { "name": "aws-cli", "ok": false, "version": null, "required": ">=2.0.0", "error": "not found in PATH", "fix": "brew install awscli" }
     ]
   },
-  "error": null,
+  "error": {
+    "code": "DOCTOR_CHECKS_FAILED",
+    "message": "1 of 2 environment checks failed",
+    "retryable": false,
+    "fix_required": "Apply the fix listed for each failed check in data.checks"
+  },
   "warnings": [],
-  "meta": { "duration_ms": 412 }
+  "meta": { "exit_code": 4, "duration_ms": 412 }
 }
 ```
 

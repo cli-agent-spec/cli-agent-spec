@@ -14,9 +14,9 @@ The framework MUST place all volatile fields (timestamps, durations, request IDs
 
 ## Acceptance Criteria
 
-- Two responses for the same operation with the same arguments have byte-identical `data` objects (absent business-state changes).
-- All `meta` fields are volatile by definition and are excluded from diff-based change detection.
-- A command that attempts to put a timestamp directly in `data` triggers a framework validation warning at registration time.
+- Two responses for the same operation with the same arguments have byte-identical `data` objects (absent business-state changes)
+- All `meta` fields are volatile by definition and are excluded from diff-based change detection
+- A command that attempts to put a timestamp directly in `data` triggers a framework validation warning at registration time
 
 ---
 
@@ -44,13 +44,14 @@ Response showing stable `data` alongside volatile `meta`:
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "request_id":     "req_06IJ",
     "trace_id":       "trace-abc",
     "command":        "get-user",
     "timestamp":      "2024-06-01T12:00:05Z",
     "duration_ms":    18,
     "tool_version":   "2.4.1",
-    "schema_version": "1.0.0"
+    "schema_version": "1.0"
   }
 }
 ```

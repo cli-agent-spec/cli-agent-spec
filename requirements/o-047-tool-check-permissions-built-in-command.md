@@ -12,7 +12,7 @@
 
 The framework MUST provide a `check-permissions` built-in command. When invoked with `--for <command>`, it resolves the active credential's scopes, compares them against the target command's `required_scopes` (REQ-C-029), and returns a machine-readable report. Without `--for`, it returns a full coverage table across all registered commands.
 
-The command MUST always exit 0 — over-privilege is a warning, not a blocking error. Insufficient scopes cause exit `8` (`AUTH_ERROR`) with the missing scopes listed in `error.detail.missing_scopes`.
+The command MUST always exit 0 — over-privilege is a warning, not a blocking error. Insufficient scopes cause exit `8` (`AUTH_REQUIRED`) with the missing scopes listed in `error.detail.missing_scopes`.
 
 The framework MUST also emit a structured `warnings[]` entry whenever a command is invoked and the active credential's scopes exceed the command's `required_scopes`. This runtime warning fires automatically — no per-invocation flag needed — once the opt-in is activated.
 
@@ -31,7 +31,7 @@ The framework MUST also emit a structured `warnings[]` entry whenever a command 
 
 **Types:** [`response-envelope.md`](../schemas/response-envelope.md) · [`manifest-response.md`](../schemas/manifest-response.md)
 
-The `check-permissions` response uses the standard `ResponseEnvelope` with a `data` object carrying the scope report. `warnings[]` entries use the standard warning string format.
+The `check-permissions` response uses the standard `ResponseEnvelope` with a `data` object carrying the scope report. `warnings[]` entries use the standard `WarningDetail` shape with `code: "CREDENTIAL_OVER_PRIVILEGED"`.
 
 ```json
 {
@@ -78,7 +78,7 @@ $ tool check-permissions --for "issue list"
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 42 }
+  "meta": { "exit_code": 0, "duration_ms": 42 }
 }
 ```
 
@@ -99,9 +99,9 @@ $ tool check-permissions --for "issue list"
   },
   "error": null,
   "warnings": [
-    "Credential has scopes beyond what 'issue list' requires — consider a token scoped to [repo:read] only"
+    { "code": "CREDENTIAL_OVER_PRIVILEGED", "message": "Credential has scopes beyond what 'issue list' requires", "context": { "command": "issue list", "excess_scopes": ["repo:write", "admin:org"], "required_scopes": ["repo:read"] } }
   ],
-  "meta": { "duration_ms": 38 }
+  "meta": { "exit_code": 0, "duration_ms": 38 }
 }
 ```
 
@@ -116,9 +116,9 @@ $ tool check-permissions --for "repo delete"
   "ok": false,
   "data": null,
   "error": {
-    "code": "AUTH_ERROR",
+    "code": "INSUFFICIENT_SCOPES",
     "message": "Active credential is missing required scopes",
-    "detail": {
+    "context": {
       "command": "repo delete",
       "required_scopes": ["delete_repo"],
       "active_scopes": ["repo:read"],
@@ -126,7 +126,7 @@ $ tool check-permissions --for "repo delete"
     }
   },
   "warnings": [],
-  "meta": { "duration_ms": 29 }
+  "meta": { "exit_code": 8, "duration_ms": 29 }
 }
 ```
 
@@ -148,9 +148,9 @@ $ tool check-permissions
   },
   "error": null,
   "warnings": [
-    "Credential is over-privileged for: issue list, issue create"
+    { "code": "CREDENTIAL_OVER_PRIVILEGED", "message": "Credential is over-privileged for 2 commands", "context": { "commands": ["issue list", "issue create"] } }
   ],
-  "meta": { "duration_ms": 91 }
+  "meta": { "exit_code": 0, "duration_ms": 91 }
 }
 ```
 
@@ -163,12 +163,12 @@ $ tool issue list --repo my-org/my-repo
 ```json
 {
   "ok": true,
-  "data": [ ... ],
+  "data": [{ "number": 42, "title": "Fix login timeout" }],
   "error": null,
   "warnings": [
-    "Credential has scopes beyond what 'issue list' requires — consider a token scoped to [repo:read] only"
+    { "code": "CREDENTIAL_OVER_PRIVILEGED", "message": "Credential has scopes beyond what 'issue list' requires", "context": { "command": "issue list", "excess_scopes": ["repo:write", "admin:org"], "required_scopes": ["repo:read"] } }
   ],
-  "meta": { "duration_ms": 203 }
+  "meta": { "exit_code": 0, "duration_ms": 203 }
 }
 ```
 

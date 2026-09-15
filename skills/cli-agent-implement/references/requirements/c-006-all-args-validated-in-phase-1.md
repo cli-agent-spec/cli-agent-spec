@@ -14,10 +14,10 @@ Command authors MUST implement all argument and precondition validation within t
 
 ## Acceptance Criteria
 
-- A command with multiple invalid arguments reports all validation errors in a single invocation.
-- A validation hook that attempts to write a file is caught by the framework's side-effect detector (if implemented) or flagged in code review by the framework's linting rules.
-- The validation phase completes in under 100ms for all commands (no network calls in validate()).
-- Validation errors reference the specific parameter name and value that failed.
+- A command with multiple invalid arguments reports all validation errors in a single invocation
+- A validation hook that attempts to write a file is caught by the framework's side-effect detector (if implemented) or flagged in code review by the framework's linting rules
+- The validation phase completes in under 100ms for all commands (no network calls in validate())
+- Validation errors reference the specific parameter name and value that failed
 
 ---
 
@@ -65,6 +65,7 @@ $ tool deploy --env prod --version 1.2.3 --notify-slack "#invalid channel" --wor
   },
   "warnings": [],
   "meta": {
+    "exit_code": 2,
     "errors": [
       { "param": "--notify-slack", "code": "INPUT_PARAM_INVALID", "message": "Channel name must start with #", "value": "#invalid channel" },
       { "param": "--workers",      "code": "INPUT_PARAM_INVALID", "message": "Expected integer, got 'abc'",    "value": "abc" }
@@ -87,7 +88,7 @@ register command "deploy":
   danger_level: mutating
   exit_codes:
     SUCCESS  (0): description: "Deployment completed",          retryable: false, side_effects: complete
-    ARG_ERROR(2): description: "Argument validation failed",    retryable: true,  side_effects: none
+    ARG_ERROR(2): description: "Argument validation failed",    retryable: false, side_effects: none
 
   validate(args) → []error:
     errors = []

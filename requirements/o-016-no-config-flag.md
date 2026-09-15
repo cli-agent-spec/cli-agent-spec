@@ -41,7 +41,7 @@ $ tool deploy --target staging --no-config --output json
   "data": { "deployed": true },
   "error": null,
   "warnings": [],
-  "meta": { "config_sources": [], "duration_ms": 941 }
+  "meta": { "exit_code": 0, "config_sources": [], "duration_ms": 941 }
 }
 ```
 

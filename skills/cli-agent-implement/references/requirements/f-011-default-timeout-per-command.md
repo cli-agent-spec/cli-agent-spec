@@ -14,8 +14,8 @@ The framework MUST apply a default wall-clock timeout to every command execution
 
 ## Acceptance Criteria
 
-- A command that sleeps indefinitely exits within `default_timeout + 5s` without manual intervention.
-- The framework's timeout mechanism works even if the command's code is blocked on I/O.
+- A command that sleeps indefinitely exits within `default_timeout + 5s` without manual intervention
+- The framework's timeout mechanism works even if the command's code is blocked on I/O
 - The timeout value used for each execution is recorded in `meta.timeout_ms`
 
 ---
@@ -39,6 +39,7 @@ The `ResponseMeta` object carries `timeout_ms` to record the configured limit fo
   "error": null,
   "warnings": [],
   "meta": {
+    "exit_code": 0,
     "duration_ms": 1240,
     "timeout_ms": 30000
   }

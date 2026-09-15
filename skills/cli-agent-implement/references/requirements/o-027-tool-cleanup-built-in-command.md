@@ -14,10 +14,10 @@ The framework MUST provide a built-in `tool cleanup` command that removes all kn
 
 ## Acceptance Criteria
 
-- `tool cleanup --scope temp` removes all paths declared as `type: "temp"` in command schemas.
-- `tool cleanup --output json` returns a list of removed paths and total bytes freed.
-- `tool cleanup --min-age 3600` does not remove any file or directory created in the last hour.
-- `tool cleanup --scope cache` does not affect logs or temp files.
+- `tool cleanup --scope temp` removes all paths declared as `type: "temp"` in command schemas
+- `tool cleanup --output json` returns a list of removed paths and total bytes freed
+- `tool cleanup --min-age 3600` does not remove any file or directory created in the last hour
+- `tool cleanup --scope cache` does not affect logs or temp files
 
 ---
 
@@ -47,7 +47,7 @@ $ tool cleanup --scope temp --output json
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 28 }
+  "meta": { "exit_code": 0, "duration_ms": 28 }
 }
 ```
 

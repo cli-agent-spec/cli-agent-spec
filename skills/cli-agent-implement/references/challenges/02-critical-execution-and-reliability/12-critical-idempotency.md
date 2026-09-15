@@ -95,6 +95,11 @@ tool deploy --version 1.2.3 --dry-run
 
 ### Agent Workaround
 
+**Signature:** retrying a mutating command duplicates the side effect; repeat run exits `0` with output identical to the first, no `effect` field to tell deploy from no-op
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** do not retry the mutating command; escalate with the command, exit code, stdout, and stderr
+
 **Generate a deterministic idempotency key per logical operation and check `effect` on retry:**
 
 ```python

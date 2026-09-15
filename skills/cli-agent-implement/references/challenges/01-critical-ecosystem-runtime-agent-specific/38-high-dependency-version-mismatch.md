@@ -36,11 +36,11 @@ The problem is especially acute because:
 
 ### Impact
 
-- Complete command failure with opaque error messages that point to runtime internals rather than the version requirement.
-- Agent spends tokens attempting to fix its argument construction when the problem is environmental.
-- CI/CD environments often have pinned, older runtime versions; tools work on developer machines but fail in agent environments.
-- Multiple failure modes (startup crash vs. subtle behavioral difference) make consistent detection hard.
-- Static binary languages (Go, Rust) do not have this problem; the asymmetry creates reliability differences across the tool ecosystem.
+- Complete command failure with opaque error messages that point to runtime internals rather than the version requirement
+- Agent spends tokens attempting to fix its argument construction when the problem is environmental
+- CI/CD environments often have pinned, older runtime versions; tools work on developer machines but fail in agent environments
+- Multiple failure modes (startup crash vs. subtle behavioral difference) make consistent detection hard
+- Static binary languages (Go, Rust) do not have this problem; the asymmetry creates reliability differences across the tool ecosystem
 
 ### Solutions
 
@@ -72,10 +72,10 @@ if (major < 18) {
 ```
 
 **For framework design:**
-- Emit a structured `{"code": "RUNTIME_VERSION"}` error as the first output when minimum version check fails, before any other initialization.
-- Include `"requirement"` and `"actual"` fields in the error so agents can surface the mismatch to operators.
-- Expose minimum runtime requirements in `--schema` output: `"runtime": {"python": ">=3.10"}`.
-- Prefer packaging tools as self-contained binaries when possible (PyInstaller, pkg for Node.js) to eliminate runtime dependency entirely.
+- Emit a structured `{"code": "RUNTIME_VERSION"}` error as the first output when minimum version check fails, before any other initialization
+- Include `"requirement"` and `"actual"` fields in the error so agents can surface the mismatch to operators
+- Expose minimum runtime requirements in `--schema` output: `"runtime": {"python": ">=3.10"}`
+- Prefer packaging tools as self-contained binaries when possible (PyInstaller, pkg for Node.js) to eliminate runtime dependency entirely
 
 ### Evaluation
 
@@ -91,6 +91,10 @@ if (major < 18) {
 ---
 
 ### Agent Workaround
+
+**Signature:** immediate crash with `SyntaxError`, `ImportError`, or missing-export error referencing runtime internals before any command output; fails on every invocation
+
+**Tier:** B (one observable check, then one command)
 
 **Check runtime version before running; parse `RUNTIME_VERSION` errors and surface them as environment issues:**
 

@@ -39,7 +39,7 @@ $ tool deploy --token-from-env MY_DEPLOY_TOKEN --target staging
   "data": { "deployed": "staging" },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 512 }
+  "meta": { "exit_code": 0, "duration_ms": 512 }
 }
 ```
 
@@ -56,10 +56,10 @@ $ tool deploy --token-from-env MISSING_VAR --target staging
   "error": {
     "code": "ARG_ERROR",
     "message": "Environment variable MISSING_VAR is not set",
-    "detail": { "flag": "--token-from-env", "var": "MISSING_VAR" }
+    "context": { "flag": "--token-from-env", "var": "MISSING_VAR" }
   },
   "warnings": [],
-  "meta": { "duration_ms": 1 }
+  "meta": { "exit_code": 2, "duration_ms": 1 }
 }
 ```
 

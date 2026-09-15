@@ -1,6 +1,6 @@
 # Agent-Compatible CLI Checklist
 
-> A condensed implementation checklist derived from the CLI Agent Spec's 67 documented failure modes.
+> A condensed implementation checklist derived from the CLI Agent Spec's 74 documented failure modes.
 > Use this to audit an existing CLI tool or verify a new one before agent deployment.
 
 ---
@@ -155,4 +155,4 @@ challenges/
 
 ---
 
-*CLI Agent Spec v1.6 — 2026-04-01. Full failure mode reference: [challenges/index.md](index.md). Requirements: [requirements/index.md](../../../../requirements/index.md)*
+*CLI Agent Spec v1.6 — 2026-04-01. Full failure mode reference: [challenges/index.md](index.md). Requirements: [requirements/index.md](../requirements/index.md)*

@@ -73,7 +73,7 @@ Codes are sequential and grouped by category. The group boundaries are visible i
 - `14–63` framework extensions
 - `64–78` POSIX sysexits compatibility (optional mapping)
 - `79–125` command-specific (declare per REQ-C-001)
-- `126–255` shell-reserved — MUST NOT use
+- `126–255` shell-reserved: commands MUST NOT emit these; framework signal handlers alone emit `128 + N` (`130` on SIGINT per REQ-F-069, `143` on SIGTERM per REQ-F-013), declared in every command's `exit_codes` with `retryable: false` and `side_effects: "partial"`
 
 ---
 
@@ -86,22 +86,26 @@ Codes are sequential and grouped by category. The group boundaries are visible i
 11
 ```
 
-**Invalid — and why**
+**Schema-valid but wrong by convention**
 
 ```json
 1
 ```
 Violation: `GENERAL_ERROR` is a last resort. If the condition matches any specific code (3–13), use that code instead.
 
+**Invalid — framework extension range**
+
 ```json
 14
 ```
-Violation: code `14` is in the framework extensions range (`14–63`) — reserved for future use. Commands must not emit it.
+Violation: code `14` is in the framework extensions range (`14–63`), reserved for future use. Commands must not emit it.
+
+**Invalid — shell-reserved range**
 
 ```json
 130
 ```
-Violation: shell-reserved (`128 + SIGINT`). Codes `126–255` MUST NOT be used by framework commands.
+Violation: `128 + SIGINT` is shell-reserved. A command must not choose it; only the framework's SIGINT handler emits it (REQ-F-069).
 
 ---
 
@@ -127,12 +131,13 @@ Rules for agents consuming exit codes at runtime. Apply these when the response 
 - Code in `14–63` — framework extension; treat as `GENERAL_ERROR (1)` behavior: inspect `error.detail`, do not assume retryability
 - Code in `64–78` — POSIX sysexit; look up the POSIX meaning; treat as non-retryable unless the meaning clearly indicates a transient condition
 - Code in `79–125` — command-specific; consult that command's `exit_codes` declaration from the manifest before acting
-- Code in `126–255` — shell signal or exec error; the command likely never ran; safe to retry after investigating the environment
+- Code `126` or `127` — the binary could not be executed or was not found; the command never ran; fix the environment, then reissue
+- Code in `129–159` (`128 + signal`) — the process was killed or cancelled mid-run (outer timeout, OOM, SIGINT, SIGTERM); side effects may be partial; inspect state before any retry
 - Code outside `0–255` — treat as `GENERAL_ERROR (1)`; log for investigation
 
 **Contradictory signals**
-- `ok: true` but exit code is non-zero — trust the exit code; discard `ok`
-- `ok: false` but exit code is `0` — treat as success; `ok` field is derived and may be stale in proxied responses
+- Envelope and process exit code disagree in either direction — treat the call as failed; the side that reports failure wins
+- `ok: false` but process exit code is `0` — a pipeline or wrapper masked the code (§56); use `meta.exit_code` for classification
 - Exit code says retryable but `error.retryable: false` — trust `error.retryable`; it is the more specific signal
 
 **Retry budget**

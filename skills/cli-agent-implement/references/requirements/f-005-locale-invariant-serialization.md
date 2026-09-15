@@ -14,9 +14,9 @@ The framework's JSON serializer MUST always use invariant formatting: period (`.
 
 ## Acceptance Criteria
 
-- Output produced on a `de_DE` locale system is byte-for-byte identical to output on an `en_US` system for the same inputs.
-- All date fields in output match the regex `\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}`.
-- Numeric fields in output contain no comma thousands separators.
+- Output produced on a `de_DE` locale system is byte-for-byte identical to output on an `en_US` system for the same inputs
+- All date fields in output match the regex `\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}`
+- Numeric fields in output contain no comma thousands separators
 - Boolean fields in output are exactly `true` or `false`
 
 ---
@@ -46,7 +46,7 @@ JSON with invariant number and date formatting — identical output regardless o
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 22 }
+  "meta": { "exit_code": 0, "duration_ms": 22 }
 }
 ```
 

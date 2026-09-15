@@ -4,12 +4,6 @@
 
 **Severity:** Medium | **Frequency:** Common | **Detectability:** Easy | **Token Spend:** Medium | **Time:** Low | **Context:** Low
 
-### Impact
-
-- Agent must write fragile JSON extraction logic for every inter-command data transfer
-- No stdin support forces use of temporary files or shell variable extraction, both error-prone
-- Commands that don't accept `-` for stdin cannot participate in streaming pipelines
-
 ### The Problem
 
 Agents often need to chain commands: get an ID from one command, pass it to another. Poor composition support forces the agent to do text extraction and reformatting.
@@ -32,6 +26,12 @@ $ tool delete-user --id $ID
 $ tool get-user-id --name Alice | tool send-email
 # send-email ignores stdin, requires --user-id argument
 ```
+
+### Impact
+
+- Agent must write fragile JSON extraction logic for every inter-command data transfer
+- No stdin support forces use of temporary files or shell variable extraction, both error-prone
+- Commands that don't accept `-` for stdin cannot participate in streaming pipelines
 
 ### Solutions
 
@@ -78,6 +78,10 @@ $ tool send-welcome-email --from-file /tmp/user.json
 ---
 
 ### Agent Workaround
+
+**Signature:** piped chain `tool a | tool b` exits with a missing-argument usage error while data sits on stdin; `-` rejected as an ID argument value
+
+**Tier:** B (one observable check, then one command)
 
 **Extract IDs explicitly with `jq` or inline Python rather than shell pipes:**
 

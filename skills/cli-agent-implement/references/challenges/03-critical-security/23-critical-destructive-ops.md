@@ -103,6 +103,11 @@ $ tool delete-account --user 42 --dry-run
 
 ### Agent Workaround
 
+**Signature:** destructive-sounding command (`delete`, `reset`, `purge`) exits `0` with terse output (`Deleted.`); `--dry-run` rejected as unknown flag
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Do not run further destructive commands; escalate with the command, exit code, stdout, and stderr
+
 **Always run `--dry-run` before executing destructive commands:**
 
 ```python

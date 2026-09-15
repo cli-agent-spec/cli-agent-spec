@@ -14,10 +14,10 @@ The framework MUST provide `tool --show-config` as a built-in invocation that ou
 
 ## Acceptance Criteria
 
-- `tool --show-config --output json | python -c "import json,sys; json.load(sys.stdin)"` succeeds.
-- Each key in `sources` maps to the file path or env var name that provided its value.
-- `precedence_order` is present and lists all config layers in order.
-- The output reflects the actual resolved state, including any env var overrides.
+- `tool --show-config --output json | python -c "import json,sys; json.load(sys.stdin)"` succeeds
+- Each key in `sources` maps to the file path or env var name that provided its value
+- `precedence_order` is present and lists all config layers in order
+- The output reflects the actual resolved state, including any env var overrides
 
 ---
 
@@ -49,7 +49,7 @@ $ tool --show-config --output json
   },
   "error": null,
   "warnings": [],
-  "meta": { "cwd": "/project" }
+  "meta": { "exit_code": 0, "duration_ms": 12, "cwd": "/project" }
 }
 ```
 

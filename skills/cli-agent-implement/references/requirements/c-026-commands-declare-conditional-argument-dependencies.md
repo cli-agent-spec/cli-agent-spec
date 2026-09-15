@@ -14,10 +14,10 @@ Commands MUST declare all conditional argument requirements in their registratio
 
 ## Acceptance Criteria
 
-- A command with `requires: [{if: "--format=csv", then: "--separator"}]` exits 2 with a structured error when `--format csv` is passed without `--separator`.
-- The `--schema` output includes the full conditional dependency graph.
-- Mutually exclusive flags are enforced in Phase 1: passing both produces exit 2 before any I/O.
-- An agent calling `--schema` can determine all required flags for a given combination of values without making a failing call first.
+- A command with `requires: [{if: "--format=csv", then: "--separator"}]` exits 2 with a structured error when `--format csv` is passed without `--separator`
+- The `--schema` output includes the full conditional dependency graph
+- Mutually exclusive flags are enforced in Phase 1: passing both produces exit 2 before any I/O
+- An agent calling `--schema` can determine all required flags for a given combination of values without making a failing call first
 
 ---
 
@@ -61,7 +61,7 @@ $ tool export --schema
   ],
   "exit_codes": {
     "0": { "name": "SUCCESS",   "description": "Export completed",                 "retryable": false, "side_effects": "complete" },
-    "3": { "name": "ARG_ERROR", "description": "Conditional argument rule violated", "retryable": true,  "side_effects": "none"     }
+    "2": { "name": "ARG_ERROR", "description": "Conditional argument rule violated", "retryable": false, "side_effects": "none"     }
   }
 }
 ```

@@ -49,7 +49,7 @@ $ tool deploy --output-schema
   },
   "error": null,
   "warnings": [],
-  "meta": { "schema_version": "1.0" }
+  "meta": { "exit_code": 0, "duration_ms": 12, "schema_version": "1.0" }
 }
 ```
 

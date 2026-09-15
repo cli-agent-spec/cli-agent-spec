@@ -14,10 +14,10 @@ The framework MUST provide a built-in `tool generate-skills` command that genera
 
 ## Acceptance Criteria
 
-- `tool generate-skills --output-dir ./skills` creates `CONTEXT.md` and one `SKILL-*.md` per command.
-- Each skill file includes a YAML frontmatter block with command name, description, and argument schema.
-- Each skill file includes at least three example invocations derived from the command's `--schema` output.
-- The generated files pass validation by an OpenClaw-compatible skill loader.
+- `tool generate-skills --output-dir ./skills` creates `CONTEXT.md` and one `SKILL-*.md` per command
+- Each skill file includes a YAML frontmatter block with command name, description, and argument schema
+- Each skill file includes at least three example invocations derived from the command's `--schema` output
+- The generated files pass validation by an OpenClaw-compatible skill loader
 
 ---
 
@@ -47,7 +47,7 @@ $ tool generate-skills --output-dir ./skills --output json
   },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 48 }
+  "meta": { "exit_code": 0, "duration_ms": 48 }
 }
 ```
 

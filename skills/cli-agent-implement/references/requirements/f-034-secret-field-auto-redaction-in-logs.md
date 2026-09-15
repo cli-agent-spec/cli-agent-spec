@@ -14,9 +14,9 @@ The framework MUST automatically redact any argument or field whose name matches
 
 ## Acceptance Criteria
 
-- An argument `--api-token abc123` appears as `--api-token [REDACTED]` in the audit log.
-- A response field `"password": "secret"` appears as `"password": "[REDACTED]"` in the audit log.
-- The actual command execution is not affected by redaction (redaction is log-layer only).
+- An argument `--api-token abc123` appears as `--api-token [REDACTED]` in the audit log
+- A response field `"password": "secret"` appears as `"password": "[REDACTED]"` in the audit log
+- The actual command execution is not affected by redaction (redaction is log-layer only)
 - Redaction applies to field names matched case-insensitively
 
 ---

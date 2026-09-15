@@ -52,7 +52,7 @@ Network error response with `network_context` block:
     }
   },
   "warnings": [],
-  "meta": { "duration_ms": 30012, "request_id": "req_01HZ" }
+  "meta": { "exit_code": 12, "duration_ms": 30012, "request_id": "req_01HZ" }
 }
 ```
 

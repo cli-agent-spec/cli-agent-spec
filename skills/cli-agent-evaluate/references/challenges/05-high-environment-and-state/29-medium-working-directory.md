@@ -107,6 +107,11 @@ old_cwd = os.getcwd()
 
 ### Agent Workaround
 
+**Signature:** same command run from different directories returns different results or relative paths; stored paths later fail with `No such file or directory`
+
+**Tier:** C (stateful logic; weak models apply the fallback below)
+**Fallback:** Run the command with `--cwd <absolute-project-root>` from that same directory; if that fails, escalate with the command, exit code, stdout, and stderr
+
 **Always pass `--cwd` explicitly; verify `meta.cwd` in response matches intent:**
 
 ```python

@@ -26,11 +26,11 @@ Beyond Python Fire, this pattern appears in:
 
 ### Impact
 
-- Process hangs until the agent's external timeout fires (challenge #11), consuming the full timeout budget.
-- The agent may interpret the hung process as a slow operation and retry, creating multiple hanging processes (challenge #17).
-- Unlike `prompt()` which produces visible output ("Enter value:"), a REPL may produce a welcome banner that the agent misinterprets as success output.
-- On some terminals, the REPL changes terminal state (raw mode), potentially corrupting subsequent output.
-- No structured error is produced — the hang is silent from the framework's perspective.
+- Process hangs until the agent's external timeout fires (challenge #11), consuming the full timeout budget
+- The agent may interpret the hung process as a slow operation and retry, creating multiple hanging processes (challenge #17)
+- Unlike `prompt()` which produces visible output ("Enter value:"), a REPL may produce a welcome banner that the agent misinterprets as success output
+- On some terminals, the REPL changes terminal state (raw mode), potentially corrupting subsequent output
+- No structured error is produced — the hang is silent from the framework's perspective
 
 ### Solutions
 
@@ -62,10 +62,10 @@ result = subprocess.run(cmd, stdin=subprocess.DEVNULL, capture_output=True, time
 ```
 
 **For framework design:**
-- Any command flagged as `interactive=True` or `mode="repl"` must gate on `sys.stdin.isatty()` and return a structured error if the check fails, rather than attempting to launch.
-- Provide a framework-level `REPL_GUARD` decorator that wraps REPL-launching commands.
-- Default `stdin=subprocess.DEVNULL` in all framework-generated subprocess calls and test harnesses.
-- Document in `--schema` output which commands require interactive mode, so agents can skip them.
+- Any command flagged as `interactive=True` or `mode="repl"` must gate on `sys.stdin.isatty()` and return a structured error if the check fails, rather than attempting to launch
+- Provide a framework-level `REPL_GUARD` decorator that wraps REPL-launching commands
+- Default `stdin=subprocess.DEVNULL` in all framework-generated subprocess calls and test harnesses
+- Document in `--schema` output which commands require interactive mode, so agents can skip them
 
 ### Evaluation
 
@@ -81,6 +81,10 @@ result = subprocess.run(cmd, stdin=subprocess.DEVNULL, capture_output=True, time
 ---
 
 ### Agent Workaround
+
+**Signature:** process hangs and never exits; stdout shows a REPL banner or prompt (`IPython`, `>>>`, `mysql>`) instead of command output; ends only when killed by timeout
+
+**Tier:** B (one observable check, then one command)
 
 **Always set `stdin=DEVNULL` and scan for REPL-triggering flags before first invocation:**
 

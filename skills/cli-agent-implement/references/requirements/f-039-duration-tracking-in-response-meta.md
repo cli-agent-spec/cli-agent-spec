@@ -14,9 +14,9 @@ The framework MUST automatically measure wall-clock execution time for every com
 
 ## Acceptance Criteria
 
-- Every response (success, failure, timeout, cancellation) includes `meta.duration_ms`.
-- `meta.duration_ms` is a non-negative integer.
-- For a command that sleeps 1 second, `meta.duration_ms` is between 1000 and 1200.
+- Every response (success, failure, timeout, cancellation) includes `meta.duration_ms`
+- `meta.duration_ms` is a non-negative integer
+- For a command that sleeps 1 second, `meta.duration_ms` is between 1000 and 1200
 
 ---
 
@@ -36,7 +36,7 @@ The framework MUST automatically measure wall-clock execution time for every com
   "data": { "deployed": true },
   "error": null,
   "warnings": [],
-  "meta": { "duration_ms": 1247, "timeout_ms": 30000 }
+  "meta": { "exit_code": 0, "duration_ms": 1247, "timeout_ms": 30000 }
 }
 ```
 
@@ -48,7 +48,7 @@ Timeout failure (duration still present):
   "data": null,
   "error": { "code": "TIMEOUT", "message": "Command exceeded timeout of 30000ms" },
   "warnings": [],
-  "meta": { "duration_ms": 30041, "timeout_ms": 30000 }
+  "meta": { "exit_code": 10, "duration_ms": 30041, "timeout_ms": 30000 }
 }
 ```
 

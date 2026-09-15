@@ -46,7 +46,7 @@ When REPL entry is blocked, the framework emits a structured error with `code: "
     "hint": "Pass a subcommand explicitly, e.g. `tool help` to list available commands"
   },
   "warnings": [],
-  "meta": {}
+  "meta": { "exit_code": 4, "duration_ms": 12 }
 }
 ```
 

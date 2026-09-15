@@ -47,7 +47,7 @@ The framework MUST define and enforce a fixed, documented exit code table. Comma
 
 Table values `depends` and `unknown` are prose classifications with no `ExitCodeEntry` representation. Declare them conservatively: `retryable: false`, and `side_effects: "partial"` where the table says `unknown`.
 
-Reserved ranges: `14–63` framework extensions · `64–78` POSIX sysexits compatibility (optional mapping) · `79–125` command-specific (declare via REQ-C-001) · `126–255` shell-reserved, MUST NOT use.
+Reserved ranges: `14–63` framework extensions · `64–78` POSIX sysexits compatibility (optional mapping) · `79–125` command-specific (declare via REQ-C-001) · `126–255` shell-reserved: commands MUST NOT emit these; only framework signal handlers emit `128 + N` (REQ-F-013, REQ-F-069).
 
 ---
 
@@ -93,6 +93,6 @@ raise CommandError(5, "User not found")
 |-------------|------|--------------|
 | [REQ-F-002](f-002-exit-code-2-reserved-for-validation-failures.md) | F | Specializes: enforces reserved semantics for `ARG_ERROR (2)` — zero side effects guarantee |
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Consumes: commands declare which `ExitCode` values they may emit |
-| [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Composes: JSON error responses carry an `ExitCode` value in `error.code` |
+| [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Composes: error responses carry the emitted code in `meta.exit_code`; `error.code` may reuse its name |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Composes: envelope `ok` is derived from whether exit code is `SUCCESS` |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Exposes: manifest includes the exit code table per command |

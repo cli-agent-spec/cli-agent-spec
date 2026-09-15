@@ -14,9 +14,9 @@ When `--debug`, `--trace`, `--verbose`, or any elevated verbosity flag is active
 
 ## Acceptance Criteria
 
-- An HTTP request log in debug mode shows `Authorization: [REDACTED]`, not the actual token.
-- Environment variable dumps in trace mode show `AWS_SECRET_ACCESS_KEY=[REDACTED]`.
-- An argument declared as `secret: true` is never echoed in any verbosity level.
+- An HTTP request log in debug mode shows `Authorization: [REDACTED]`, not the actual token
+- Environment variable dumps in trace mode show `AWS_SECRET_ACCESS_KEY=[REDACTED]`
+- An argument declared as `secret: true` is never echoed in any verbosity level
 - The redaction applies to both stderr debug output and any audit log entries created during debug mode
 
 ---

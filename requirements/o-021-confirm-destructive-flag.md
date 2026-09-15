@@ -52,13 +52,13 @@ $ tool delete --resource my-db
   "error": {
     "code": "CONFIRMATION_REQUIRED",
     "message": "Pass --confirm-destructive to proceed",
-    "detail": {
+    "context": {
       "would_affect": ["my-db"],
       "danger_level": "destructive"
     }
   },
   "warnings": [],
-  "meta": { "duration_ms": 3 }
+  "meta": { "exit_code": 2, "duration_ms": 3 }
 }
 ```
 
@@ -74,7 +74,7 @@ $ tool delete --resource my-db --confirm-destructive
   "data": { "deleted": "my-db" },
   "error": null,
   "warnings": [],
-  "meta": { "confirmed": true, "duration_ms": 241 }
+  "meta": { "exit_code": 0, "confirmed": true, "duration_ms": 241 }
 }
 ```
 

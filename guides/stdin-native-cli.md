@@ -71,13 +71,16 @@ When `--input-file` is omitted in a non-TTY context, the command must fail immed
 ```json
 {
   "ok": false,
+  "data": null,
   "error": {
     "code":    "STDIN_REQUIRED",
     "message": "Argument '--input-file' is required when stdin is not a TTY",
     "hint":    "Pass --input-file <path> or pipe: cat file.csv | bean commodity import --input-file -",
     "retryable": false,
     "phase":   "validation"
-  }
+  },
+  "warnings": [],
+  "meta": { "exit_code": 4, "duration_ms": 3 }
 }
 ```
 

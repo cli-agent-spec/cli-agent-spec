@@ -114,6 +114,10 @@ os.environ["ANSIBLE_FORCE_COLOR"] = "0"
 
 ### Agent Workaround
 
+**Signature:** piped stdout contains escape bytes `\x1b[` (hex `1b 5b`); JSON parse fails on a leading escape; `\r` or bold codes survive `--no-color`
+
+**Tier:** A (one safe command, no branching)
+
 **Set environment variables to suppress color before invocation, then strip any residual sequences:**
 
 ```python
