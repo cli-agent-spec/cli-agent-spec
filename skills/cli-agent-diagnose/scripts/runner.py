@@ -301,11 +301,8 @@ def run(
     fixed_cmd, fixed_kwargs = fix_args
     fixed_result = subprocess.run(fixed_cmd, timeout=timeout, **fixed_kwargs)
 
-    try:
-        challenge = _load_challenge(top.failure_mode_id, challenges_dir)
-        note = f"§{top.failure_mode_id} post-flight ({challenge.title}): {top.evidence}"
-    except FileNotFoundError:
-        note = f"§{top.failure_mode_id} post-flight: {top.evidence}"
+    challenge = _load_challenge(top.failure_mode_id, challenges_dir)
+    note = f"§{top.failure_mode_id} post-flight ({challenge.title}): {top.evidence}"
 
     combined_note = f"{pre_note}; {note}" if pre_note else note
     return FixedResult.from_completed(

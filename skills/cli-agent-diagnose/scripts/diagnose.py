@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import os
 import re
@@ -424,94 +425,30 @@ def extract_failures(trace: TraceInput) -> tuple[TraceEvent, ...]:
 # ---------------------------------------------------------------------------
 
 # ANSI escape code pattern
-_ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]|\x1b[()][AB012]")
-
-# Interactive prompt indicators (stdout or stderr)
-_INTERACTIVE_PATTERNS = [
-    re.compile(p, re.IGNORECASE) for p in [
-        r"\[y/n\]",
-        r"\[Y/n\]",
-        r"\(yes/no\)",
-        r"Are you sure",
-        r"Press any key",
-        r"Password:",
-        r"Enter passphrase",
-        r"Confirm:",
-        r"\[enter to continue\]",
-        r"continue\?",
-        r"proceed\?",
-    ]
-]
-
-# TTY-requirement errors — explicit error messages when a command requires an interactive terminal
-_TTY_REQUIREMENT_PATTERNS = [
-    re.compile(p, re.IGNORECASE) for p in [
-        r"requires?\s+a\s+tty",
-        r"not\s+a\s+tty",
-        r"no\s+tty\s+present",
-        r"input\s+device\s+is\s+not\s+a\s+tty",
-        r"stdin\s+is\s+not\s+a\s+terminal",
-        r"must\s+be\s+connected\s+to\s+a\s+terminal",
-        r"terminal\s+required",
-        r"tty\s+required",
-        r"inappropriate\s+ioctl\s+for\s+device",
-        r"device\s+or\s+resource\s+busy.*tty",
-    ]
-]
-
-# Pager indicators (stdout) — UI text a pager paints on the captured screen
-_PAGER_PATTERNS = [
-    re.compile(p, re.MULTILINE) for p in [
-        r"\(END\)",
-        r"^:$",             # less prompt
-        r"^More$",
-        r"^--More--",
-        r"SUMMARY OF LESS COMMANDS",   # less help screen (agent pressed h or flailed)
-        r"^Manual page .+ line \d+",   # man's pager status line
-    ]
-]
-
-# Runtime version mismatch signals (stderr or stdout)
-_VERSION_PATTERNS = [
-    re.compile(p, re.IGNORECASE) for p in [
-        r"SyntaxError:.*module",
-        r"RUNTIME_VERSION",
-        r"requires\s+(?:python|node|ruby|go)\s+\d",
-        r"incompatible.*version",
-        r"version.*incompatible",
-        r"requires\s+version",
-        r"minimum.*version",
-    ]
-]
-
-# Command tree discovery failure signals
-_DISCOVERY_PATTERNS = [
-    re.compile(p, re.IGNORECASE) for p in [
-        r"unknown (sub)?command",
-        r"invalid (sub)?command",
-        r"unknown flag",
-        r"did you mean",
-        r"unrecognized arguments",
-        r"command not found",
-    ]
-]
-
-# Credential / auth expiry signals
-_CREDENTIAL_PATTERNS = [
-    re.compile(p, re.IGNORECASE) for p in [
-        r"token expired",
-        r"credentials? expired",
-        r"auth(?:entication)? failed",
-        r"unauthorized",
-        r"401",
-        r"403.*forbidden",
-        r"re-?auth(?:enticate)?",
-        r"login required",
-    ]
-]
-
-# Retry loop: no retryable field in JSON output
-_RETRYABLE_RE = re.compile(r'"retryable"\s*:', re.IGNORECASE)
+try:
+    from .signal_rules import (
+        ANSI_RE as _ANSI_RE,
+        CREDENTIAL_PATTERNS as _CREDENTIAL_PATTERNS,
+        DISCOVERY_PATTERNS as _DISCOVERY_PATTERNS,
+        INTERACTIVE_PATTERNS as _INTERACTIVE_PATTERNS,
+        PAGER_PATTERNS as _PAGER_PATTERNS,
+        RETRYABLE_RE as _RETRYABLE_RE,
+        TTY_REQUIREMENT_PATTERNS as _TTY_REQUIREMENT_PATTERNS,
+        VERSION_PATTERNS as _VERSION_PATTERNS,
+        apply_rules,
+    )
+except ImportError:  # executed as a script: sibling module on sys.path
+    from signal_rules import (  # type: ignore[no-redef]
+        ANSI_RE as _ANSI_RE,
+        CREDENTIAL_PATTERNS as _CREDENTIAL_PATTERNS,
+        DISCOVERY_PATTERNS as _DISCOVERY_PATTERNS,
+        INTERACTIVE_PATTERNS as _INTERACTIVE_PATTERNS,
+        PAGER_PATTERNS as _PAGER_PATTERNS,
+        RETRYABLE_RE as _RETRYABLE_RE,
+        TTY_REQUIREMENT_PATTERNS as _TTY_REQUIREMENT_PATTERNS,
+        VERSION_PATTERNS as _VERSION_PATTERNS,
+        apply_rules,
+    )
 
 
 @dataclass
@@ -614,6 +551,10 @@ def match_signals(events: tuple[TraceEvent, ...]) -> tuple[_RawSignal, ...]:
             if any(w in stderr.lower() for w in error_words):
                 _keep(_RawSignal(56, 0.75, "exit_code=0 but stderr contains error-like content", [event]))
 
+        # Remaining triage rows (challenges/triage.md) — declarative table in signal_rules.py
+        for hit in apply_rules(event):
+            _keep(_RawSignal(hit.failure_mode_id, hit.confidence, hit.evidence, [event]))
+
     # Cross-event signals (require full event list)
     _keep_retry_signal(events, best)
     _keep_discovery_loop_signal(events, best)
@@ -693,73 +634,47 @@ class _ChallengeContent:
     fallback: str = ""      # **Fallback:** line (present on Tier C files)
 
 
-def _load_challenge(failure_mode_id: int, challenges_dir: Path) -> _ChallengeContent:
-    """Find and parse the challenge file for a given §N code."""
-    pattern = f"{failure_mode_id}-*.md"
-    matches = list(challenges_dir.rglob(pattern))
-    if not matches:
-        raise FileNotFoundError(
-            f"no challenge file found for §{failure_mode_id} in {challenges_dir}"
+class FailureModeIndexError(Exception):
+    """challenges/index.json is missing, stale, or lacks the requested failure mode."""
+
+
+@functools.lru_cache(maxsize=4)
+def _load_index(challenges_dir: Path) -> dict[int, dict]:
+    """Entries of challenges/index.json keyed by §N (generated by scripts/build_failure_index.py)."""
+    path = challenges_dir / "index.json"
+    if not path.is_file():
+        raise FailureModeIndexError(
+            f"{path} not found; generate it with `uv run scripts/build_failure_index.py` in the spec repository"
         )
-    path = matches[0]
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if data.get("schema_version") != "1.0":
+        raise FailureModeIndexError(f"{path} has unsupported schema_version {data.get('schema_version')!r}")
+    return {entry["id"]: entry for entry in data["failure_modes"]}
 
-    text = path.read_text(encoding="utf-8")
 
-    # Title: "## N. Title Text"
-    title_match = re.search(rf"^## {failure_mode_id}\.\s+(.+)$", text, re.MULTILINE)
-    title = title_match.group(1).strip() if title_match else f"§{failure_mode_id}"
-
-    # Severity from the bold line after title
-    severity_match = re.search(r"\*\*Severity:\*\*\s*(\w+)", text)
-    severity = (severity_match.group(1).lower() if severity_match else "unknown")
-
-    # ### The Problem section
-    problem_match = re.search(
-        r"### The Problem\n(.*?)(?=\n###|\Z)", text, re.DOTALL
-    )
-    problem_text = problem_match.group(1).strip() if problem_match else ""
-
-    # ### Agent Workaround section
-    workaround_match = re.search(
-        r"### Agent Workaround\n(.*?)(?=\n###|\Z)", text, re.DOTALL
-    )
-    workaround_text = workaround_match.group(1).strip() if workaround_match else ""
-
-    # **Limitation:** line
-    limitation_match = re.search(r"\*\*Limitation:\*\*\s*(.+)", workaround_text)
-    limitation = limitation_match.group(1).strip() if limitation_match else ""
-
-    # Recovery-layer lines from ### Agent Workaround (see challenges/triage.md)
-    signature_match = re.search(r"\*\*Signature:\*\*\s*(.+)", workaround_text)
-    signature = signature_match.group(1).strip() if signature_match else ""
-
-    tier_match = re.search(r"\*\*Tier:\*\*\s*([ABC])\b", workaround_text)
-    tier = tier_match.group(1) if tier_match else ""
-
-    fallback_match = re.search(r"\*\*Fallback:\*\*\s*(.+)", workaround_text)
-    fallback = fallback_match.group(1).strip() if fallback_match else ""
-
-    spec_link = str(path.relative_to(challenges_dir.parent))
-
-    # Derive memory: first non-empty sentence from The Problem (≤120 chars)
-    memory = _derive_memory(failure_mode_id, title, problem_text)
-
-    # Derive skill_patch: first actionable line from Agent Workaround (≤120 chars)
-    skill_patch = _derive_skill_patch(workaround_text)
-
+def _load_challenge(failure_mode_id: int, challenges_dir: Path) -> _ChallengeContent:
+    """Content for §N from the generated index; merged numbers resolve to their target."""
+    index = _load_index(challenges_dir)
+    entry = index.get(failure_mode_id)
+    if entry is None:
+        raise FailureModeIndexError(f"§{failure_mode_id} is not in {challenges_dir / 'index.json'}")
+    if entry["status"] == "merged":
+        entry = index[entry["merged_into"]]
+    problem_text = entry["problem"]
+    workaround_text = entry["workaround"]
     return _ChallengeContent(
-        failure_mode_id=failure_mode_id,
-        title=title,
-        severity=severity,
+        failure_mode_id=entry["id"],
+        title=entry["title"],
+        severity=entry["severity"],
         problem_text=problem_text[:2000],   # cap to stay within prompt budget
         workaround_text=workaround_text,
-        limitation=limitation,
-        memory=memory,
-        skill_patch=skill_patch,
-        spec_link=spec_link,
-        signature=signature,
-        tier=tier,
-        fallback=fallback,
+        limitation=entry["limitation"],
+        memory=_derive_memory(entry["id"], entry["title"], problem_text),
+        skill_patch=_derive_skill_patch(workaround_text),
+        spec_link=entry["path"],
+        signature=entry["signature"],
+        tier=entry["tier"],
+        fallback=entry.get("fallback", ""),
     )
 
 
@@ -794,24 +709,10 @@ def _derive_skill_patch(workaround_text: str) -> str:
 # Signature catalog — every §N's **Signature:** line as a declarative rule
 # ---------------------------------------------------------------------------
 
-# Challenge files are named "N-<severity>-<slug>.md"; index/triage/sources are not
-_CHALLENGE_FILE_RE = re.compile(r"^(\d+)-(?:critical|high|medium|low)-")
-
-
 def _load_signature_catalog(challenges_dir: Path) -> dict[int, str]:
-    """Map every §N to its **Signature:** line — the observable trigger an agent
-    can match without knowing the cause. Files without one are omitted."""
-    catalog: dict[int, str] = {}
-    for path in sorted(challenges_dir.rglob("*.md")):
-        name_match = _CHALLENGE_FILE_RE.match(path.name)
-        if not name_match:
-            continue
-        failure_mode_id = int(name_match.group(1))
-        text = path.read_text(encoding="utf-8")
-        sig_match = re.search(r"^\*\*Signature:\*\*\s*(.+)$", text, re.MULTILINE)
-        if sig_match:
-            catalog[failure_mode_id] = sig_match.group(1).strip()
-    return catalog
+    """Map every active §N to its **Signature:** line — the observable trigger an agent
+    can match without knowing the cause."""
+    return {fid: entry["signature"] for fid, entry in _load_index(challenges_dir).items() if entry["status"] == "active"}
 
 
 # ---------------------------------------------------------------------------
@@ -888,18 +789,14 @@ def classify_with_llm(
         if confidence < CONFIDENCE_LLM_THRESHOLD:
             continue
 
-        try:
-            challenge = _load_challenge(raw_sig.failure_mode_id, challenges_dir)
-        except FileNotFoundError:
-            challenge = None
+        challenge = _load_challenge(raw_sig.failure_mode_id, challenges_dir)
+        workaround = challenge.workaround_text
+        limitation = challenge.limitation
+        spec_link = challenge.spec_link
+        title = challenge.title
+        severity = challenge.severity
 
-        workaround = challenge.workaround_text if challenge else ""
-        limitation = challenge.limitation if challenge else ""
-        spec_link = challenge.spec_link if challenge else ""
-        title = challenge.title if challenge else f"§{raw_sig.failure_mode_id}"
-        severity = challenge.severity if challenge else "unknown"
-
-        if confidence < CONFIDENCE_DETERMINISTIC_HIGH and challenge is not None:
+        if confidence < CONFIDENCE_DETERMINISTIC_HIGH:
             llm_confidence, llm_evidence = _llm_score(event, challenge, client, llm_model)
             if llm_confidence > confidence:
                 confidence = llm_confidence
@@ -914,15 +811,15 @@ def classify_with_llm(
                 confidence=round(confidence, 3),
                 evidence=llm_evidence if source == "llm" else raw_sig.evidence,
                 workaround=workaround,
-                memory=challenge.memory if challenge else "",
-                skill_patch=challenge.skill_patch if challenge else "",
+                memory=challenge.memory,
+                skill_patch=challenge.skill_patch,
                 severity=severity,
                 spec_link=spec_link,
                 limitation=limitation,
                 source=source,
-                signature=challenge.signature if challenge else "",
-                tier=challenge.tier if challenge else "",
-                fallback=challenge.fallback if challenge else "",
+                signature=challenge.signature,
+                tier=challenge.tier,
+                fallback=challenge.fallback,
                 fix_command=_extract_fix_command(raw_sig.triggering_events),
                 triggering_events=tuple(raw_sig.triggering_events),
             ))
@@ -1050,41 +947,25 @@ def _deterministic_match(
 ) -> SignalMatch:
     """Build a SignalMatch for a high-confidence deterministic hit without LLM."""
     evts = tuple(raw_sig.triggering_events)
-    try:
-        challenge = _load_challenge(raw_sig.failure_mode_id, challenges_dir)
-        return SignalMatch(
-            failure_mode_id=raw_sig.failure_mode_id,
-            title=challenge.title,
-            confidence=round(raw_sig.confidence, 3),
-            evidence=raw_sig.evidence,
-            workaround=challenge.workaround_text,
-            memory=challenge.memory,
-            skill_patch=challenge.skill_patch,
-            severity=challenge.severity,
-            spec_link=challenge.spec_link,
-            limitation=challenge.limitation,
-            source="deterministic",
-            signature=challenge.signature,
-            tier=challenge.tier,
-            fallback=challenge.fallback,
-            fix_command=_extract_fix_command(evts),
-            triggering_events=evts,
-        )
-    except FileNotFoundError:
-        return SignalMatch(
-            failure_mode_id=raw_sig.failure_mode_id,
-            title=f"§{raw_sig.failure_mode_id}",
-            confidence=round(raw_sig.confidence, 3),
-            evidence=raw_sig.evidence,
-            workaround="",
-            memory="",
-            skill_patch="",
-            severity="unknown",
-            spec_link="",
-            limitation="",
-            source="deterministic",
-            triggering_events=evts,
-        )
+    challenge = _load_challenge(raw_sig.failure_mode_id, challenges_dir)
+    return SignalMatch(
+        failure_mode_id=challenge.failure_mode_id,
+        title=challenge.title,
+        confidence=round(raw_sig.confidence, 3),
+        evidence=raw_sig.evidence,
+        workaround=challenge.workaround_text,
+        memory=challenge.memory,
+        skill_patch=challenge.skill_patch,
+        severity=challenge.severity,
+        spec_link=challenge.spec_link,
+        limitation=challenge.limitation,
+        source="deterministic",
+        signature=challenge.signature,
+        tier=challenge.tier,
+        fallback=challenge.fallback,
+        fix_command=_extract_fix_command(evts),
+        triggering_events=evts,
+    )
 
 
 # ---------------------------------------------------------------------------
