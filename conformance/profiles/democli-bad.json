@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "tool": "democli (non-compliant mock)",
+  "command": [
+    "../../benchmark/harness/cli/bad/democli"
+  ],
+  "timeout_seconds": 5,
+  "probes": [
+    {
+      "name": "list deployments",
+      "argv": [
+        "deployments",
+        "list"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "health check",
+      "argv": [
+        "health",
+        "check"
+      ],
+      "kind": "read"
+    },
+    {
+      "name": "unknown flag",
+      "argv": [
+        "deployments",
+        "list",
+        "--no-such-flag"
+      ],
+      "kind": "invalid"
+    },
+    {
+      "name": "delete staging",
+      "argv": [
+        "deployments",
+        "delete",
+        "--filter",
+        "env=staging"
+      ],
+      "kind": "destructive",
+      "dry_run_flag": "--dry-run"
+    }
+  ]
+}

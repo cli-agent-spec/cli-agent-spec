@@ -17,7 +17,7 @@
 
 **cli-bad:** Returns all 500 records as an ANSI-colored table on stdout. No pagination. The agent must parse a multi-kilobyte plain-text table to extract IDs. Context grows rapidly. If the tool were returning real production data, this would exhaust the context window.
 
-**cli-good:** Returns page 1 (limit 3) as `ResponseEnvelope` JSON with `page.next_cursor`. The agent calls `list --limit 3 --cursor <token>` for page 2. Extracts `data[].id` directly. Minimal context usage.
+**cli-good:** Returns page 1 (five items) as a `ResponseEnvelope` whose `meta.pagination` carries `total`, `has_more`, and `next_cursor`. The agent calls `list --cursor <token>` until `has_more` is `false` and extracts `data[].id` directly. Minimal context usage.
 
 ## CLI commands exercised
 
@@ -26,8 +26,9 @@
 deployments list
 
 # good
-deployments list --output json --limit 3
-deployments list --output json --limit 3 --cursor eyJwYWdlIjoyfQ==
+deployments list
+# returns: {"ok":true,"data":[{"id":"deploy-001",...}],"meta":{"exit_code":0,"pagination":{"total":20,"has_more":true,"next_cursor":"cGFnZTI=",...}}}
+deployments list --cursor cGFnZTI=
 ```
 
 ## Measured delta hypothesis

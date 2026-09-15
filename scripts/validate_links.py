@@ -8,6 +8,7 @@ Checks, each reported separately:
   sections     failure mode, requirement, and schema doc files carry required sections in order
   counts       prose counters match the corpus on disk
   snippets     every embedded extract_envelope copy matches the canonical block in triage.md
+  levels       requirements/levels.md, priorities, and the index Level column agree
 
 Usage:
   uv run scripts/validate_links.py [--json] [--only CHECK ...]
@@ -299,6 +300,9 @@ def corpus_counts() -> dict[str, int]:
             counts[f"tier_{tier.value}_{priority}"] = tier_priorities[tier][priority]
     for priority in ("P0", "P1", "P2", "P3"):
         counts[priority] = priorities[priority]
+    levels = requirement_levels()
+    for n in (1, 2, 3):
+        counts[f"level_{n}"] = sum(1 for level in levels.values() if level <= n)
     return counts
 
 
@@ -336,6 +340,9 @@ def count_claims() -> list[Claim]:
     ]
     for priority in ("P0", "P1", "P2", "P3"):
         claims.append(Claim("requirements/index.md", rf"\*\*By priority:\*\*.*?{priority}: (\d+)", c[priority], f"by priority {priority}"))
+    for n in (1, 2, 3):
+        claims.append(Claim("requirements/index.md", rf"\*\*By level\*\*.*?Level {n}: (\d+)", c[f"level_{n}"], f"by level {n}"))
+        claims.append(Claim("requirements/levels.md", rf"(?m)^\| {n} \| [^|]+\| [^|]+\| (\d+) \|$", c[f"level_{n}"], f"level {n} size"))
     headers = {Tier.FRAMEWORK: "## Framework-Automatic (F)", Tier.COMMAND: "## Command Contract (C)", Tier.OPT_IN: "## Opt-In (O)"}
     for tier, heading in headers.items():
         anchor = re.escape(heading) + r"\s*\n\s*\n"
@@ -388,6 +395,50 @@ def check_snippets() -> list[Problem]:
 
 
 # ---------------------------------------------------------------------------
+# levels
+# ---------------------------------------------------------------------------
+
+_LEVEL_ONE_BLOCK = re.compile(r"<!-- level-1 -->(.*?)<!-- /level-1 -->", re.S)
+_INDEX_ROW = re.compile(r"^\| \[(REQ-[FCO]-\d{3})\]\([^)]+\) \| (P[0-3]) \|.*\| (\d) \|\s*$", re.M)
+
+
+def level_one_ids() -> frozenset[str]:
+    match = _LEVEL_ONE_BLOCK.search((ROOT / "requirements/levels.md").read_text(encoding="utf-8"))
+    if match is None:
+        raise SystemExit("requirements/levels.md has no <!-- level-1 --> block")
+    return frozenset(re.findall(r"\[(REQ-[FCO]-\d{3})\]", match.group(1)))
+
+
+def requirement_levels() -> dict[str, int]:
+    """Lowest conformance level containing each requirement, computed from levels.md and priorities."""
+    level_one = level_one_ids()
+    levels: dict[str, int] = {}
+    for req in requirement_files():
+        match = _PRIORITY.search(req.text)
+        if match is None:
+            raise SystemExit(f"{_rel(req.path)} has no **Priority:** on its Tier line")
+        rid = str(req.id)
+        levels[rid] = 1 if rid in level_one else (2 if match.group(1) == "P0" else 3)
+    return levels
+
+
+def check_levels() -> list[Problem]:
+    problems: list[Problem] = []
+    levels = requirement_levels()
+    for rid in sorted(level_one_ids()):
+        if rid not in levels:
+            problems.append(Problem("levels", "MISSING FILE", "requirements/levels.md", f"Level 1 lists {rid}, which has no file"))
+    index_text = (ROOT / "requirements/index.md").read_text(encoding="utf-8")
+    listed = {rid: int(level) for rid, _priority, level in _INDEX_ROW.findall(index_text)}
+    for rid, level in sorted(levels.items()):
+        if rid not in listed:
+            problems.append(Problem("levels", "NO LEVEL", "requirements/index.md", f"{rid} row has no Level column"))
+        elif listed[rid] != level:
+            problems.append(Problem("levels", "STALE", "requirements/index.md", f"{rid} Level is {listed[rid]}, computed level is {level}"))
+    return problems
+
+
+# ---------------------------------------------------------------------------
 # entry point
 # ---------------------------------------------------------------------------
 
@@ -398,6 +449,7 @@ CHECKS: dict[str, Callable[[], list[Problem]]] = {
     "sections": check_sections,
     "counts": check_counts,
     "snippets": check_snippets,
+    "levels": check_levels,
 }
 
 

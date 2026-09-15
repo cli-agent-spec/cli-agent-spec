@@ -157,6 +157,10 @@ def classify(instance: object) -> list[Target]:
         return [Target("manifest-response.json", "", instance)]
     if "_cmd" in keys:
         return [Target("dispatch-request.json", "", instance)]
+    if {"schema_version", "tool", "command", "probes"} <= keys:
+        return [Target("conformance-profile.json", "", instance)]
+    if {"levels", "summary", "checks"} <= keys:
+        return [Target("conformance-result.json", "", instance)]
     if {"matches", "no_match", "trace_insufficient"} <= keys:
         return [Target("diagnose-result.json", "", instance)]
     if {"description", "retryable", "side_effects"} <= keys:

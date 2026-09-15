@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# cli-good: deploy — spec-compliant implementation
-# Typed exit codes, retryable hint, retry_after_ms, idempotency key
+# cli-good: deploy — spec-compliant implementation (ResponseEnvelope 2.0)
+# Lock contention is retryable with a back-off hint (REQ-F-033); idempotency key accepted
 
-STATE_FILE="/tmp/cli_good_deploy_state"
+STATE_FILE="${TMPDIR:-/tmp}/cli_good_deploy_state"
 
 VERSION="" ENV="" IDEMPOTENCY_KEY=""
 while [[ $# -gt 0 ]]; do
@@ -11,16 +11,25 @@ while [[ $# -gt 0 ]]; do
     --env)             ENV="$2";              shift 2 ;;
     --idempotency-key) IDEMPOTENCY_KEY="$2";  shift 2 ;;
     --output|--timeout) shift 2 ;;
-    *)                 shift ;;
+    --dry-run)         shift ;;
+    *)
+      printf '{"ok":false,"data":null,"error":{"code":"UNKNOWN_FLAG","message":"Unknown flag %s","retryable":false,"phase":"validation"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n' "$1"
+      exit 2
+      ;;
   esac
 done
 
-# First call: conflict with retry hint. Second call: success.
+if [ -z "$VERSION" ] || [ -z "$ENV" ]; then
+  printf '{"ok":false,"data":null,"error":{"code":"MISSING_ARGUMENT","message":"--version and --env are required","retryable":false,"phase":"validation","fix_required":"Pass --version and --env"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n'
+  exit 2
+fi
+
+# First call: lock held, retryable after back-off. Second call: success.
 if [ ! -f "$STATE_FILE" ]; then
   touch "$STATE_FILE"
-  printf '{"ok":false,"data":null,"error":{"code":"CONFLICT","message":"Another deployment is in progress","retryable":true,"retry_after_ms":2000,"side_effects":"none"},"warnings":[],"meta":{"duration_ms":5,"schema_version":"1.0"}}\n'
-  exit 7
+  printf '{"ok":false,"data":null,"error":{"code":"LOCK_HELD","message":"Another deployment is in progress","retryable":true,"retry_after_ms":2000,"retry_strategy":"linear_backoff"},"warnings":[],"meta":{"exit_code":4,"duration_ms":5}}\n'
+  exit 4
 else
   rm -f "$STATE_FILE"
-  printf '{"ok":true,"data":{"status":"deployed","version":"%s","env":"%s","deploy_id":"deploy-new-001"},"error":null,"warnings":[],"meta":{"duration_ms":340,"schema_version":"1.0"}}\n' "$VERSION" "$ENV"
+  printf '{"ok":true,"data":{"status":"deployed","version":"%s","env":"%s","deploy_id":"deploy-new-001","effect":"created"},"error":null,"warnings":[],"meta":{"exit_code":0,"duration_ms":340}}\n' "$VERSION" "$ENV"
 fi

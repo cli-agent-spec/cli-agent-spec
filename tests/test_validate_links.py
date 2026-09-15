@@ -124,3 +124,9 @@ def test_fenced_blocks_track_section_and_label(tmp_path: Path) -> None:
         """))
     [block] = list(corpus.fenced_blocks(path))
     assert (block.section, block.label, block.lang, block.body) == ("Examples", "**Invalid — bad**", "json", "{}")
+
+
+def test_level_one_is_a_subset_of_p0() -> None:
+    levels = vl.requirement_levels()
+    assert sorted(levels[r] for r in vl.level_one_ids()) == [1] * 12
+    assert sum(1 for level in levels.values() if level <= 2) == vl.corpus_counts()["P0"]

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Test-only fixture: fails the hang and exit-code checks that the benchmark mocks cannot exercise
+case "${1:-}" in
+  wait-stdin) read -r _line; printf '{"ok":true,"data":{},"error":null,"warnings":[],"meta":{"exit_code":0,"duration_ms":1}}\n' ;;
+  prompt)     sleep 30 ;;
+  odd-exit)   printf '{"ok":false,"data":null,"error":{"code":"ODD","message":"odd"},"warnings":[],"meta":{"exit_code":200,"duration_ms":1}}\n'; exit 200 ;;
+  mismatch)   printf '{"ok":false,"data":null,"error":{"code":"NOT_FOUND","message":"missing"},"warnings":[],"meta":{"exit_code":4,"duration_ms":1}}\n'; exit 5 ;;
+  --help)     echo "usage: hangcli <wait-stdin|prompt|odd-exit|mismatch>" >&2 ;;
+  *)          exit 2 ;;
+esac

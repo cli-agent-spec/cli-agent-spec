@@ -20,6 +20,11 @@ uv run scripts/validate_links.py
 uv run scripts/build_failure_index.py
 ```
 
+**Run the conformance kit against a CLI profile** (exit `0` pass, `4` failures, `2` bad profile):
+```bash
+uv run conformance/run.py conformance/profiles/democli-good.json
+```
+
 **Check skill reference bundles** (sync with no flag):
 ```bash
 scripts/sync-skill-references.sh --check
@@ -85,6 +90,8 @@ ajv compile -s "schemas/*.json" --spec=draft7 --strict=false
 - `schemas/` — 5 canonical JSON Schema draft-07 types, each with a `.json` (machine) and `.md` (human) companion: `exit-code`, `exit-code-entry`, `response-envelope`, `manifest-response`, `dispatch-request`. Tooling schemas for skill and script output (`diagnose-result` and others) are listed separately in `schemas/index.md`.
 - `research/` — per-framework analysis (argparse, click, clap, cobra, typer, commander-js, pydantic, MCP, OpenAPI, etc.).
 - `guides/` — design guides for CLI authors: positive conventions that cannot be expressed as enforceable requirements. See `guides/index.md`.
+- `conformance/` — deterministic conformance kit (`run.py`) and probe profiles; the benchmark mocks are its fixtures.
+- `scripts/` — corpus validators and generators run by CI; see Common commands.
 - `comparison-matrix.md` — 74 failure modes × 12 frameworks coverage table.
 
 ### Requirement tiers

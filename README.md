@@ -69,7 +69,8 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 | Path | Contents |
 |------|----------|
 | [`challenges/`](challenges/index.md) | 74 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround; [`index.json`](challenges/index.json) carries the same taxonomy as data |
-| [`requirements/`](requirements/index.md) | 158 requirements with acceptance criteria, wire format, and examples |
+| [`requirements/`](requirements/index.md) | 158 requirements with acceptance criteria, wire format, and examples, grouped into three [conformance levels](requirements/levels.md) |
+| [`conformance/`](conformance/README.md) | Deterministic conformance kit: probes a CLI and reports pass or fail per check and per level |
 | [`schemas/`](schemas/index.md) | JSON Schema draft-07 definitions for all 5 types |
 | [`guides/`](guides/index.md) | Design guides: positive conventions that cannot be expressed as enforceable requirements |
 | [`IMPLEMENTING.md`](IMPLEMENTING.md) | Implementation guide: wave-based order, goal-based paths, invariants, codegen |
@@ -107,7 +108,7 @@ This spec is AX research applied to the CLI layer. CLIs are the most underserved
 - [Less context consumed](IMPLEMENTING.md#path-b-less-context-consumed) — 14 requirements
 - [Less token spend](IMPLEMENTING.md#path-c-less-token-spend) — 12 requirements
 
-**I want to evaluate my existing CLI** → use the agent skills below, or read [`challenges/checklist.md`](challenges/checklist.md) for a self-assessment.
+**I want to evaluate my existing CLI** → run the deterministic [conformance kit](conformance/README.md) against it, aim for [Level 1](requirements/levels.md) first, then use the agent skills below for the judgment-based failure modes. [`challenges/checklist.md`](challenges/checklist.md) is a manual self-assessment.
 
 **I want to audit any interface for agent-friendliness** → the failure mode taxonomy applies beyond CLIs. REST APIs, SDKs, MCP servers, and RPC interfaces share the same failure categories: ambiguous error signaling (§1), interactive blocking (§10), missing machine-readable schemas (§21), over-verbose output (§43), credential leakage (§30). Use [`challenges/index.md`](challenges/index.md) as a lens and substitute "interface" for "CLI" — the problem statement holds. For subprocess-callable tools, run `cli-agent-audit` directly; for other interfaces, apply the `### Evaluation` rubrics manually against your integration layer.
 

@@ -99,6 +99,8 @@ These constraints are not checked by code generators. Enforce them at registrati
 
 ## Goal-based paths
 
+Retrofitting an existing CLI? Target [Level 1](requirements/levels.md) first: twelve requirements that stop hangs, unparseable output, and ambiguous exit codes. Verify it with the [conformance kit](conformance/README.md).
+
 If you have a specific agent pain point, start with the path that addresses it. Each path is a focused subset of requirements — roughly 10–15 — that delivers measurable improvement on one axis. Requirements marked **†** appear in more than one path; implement them once.
 
 After completing any path, continue with the full [wave plan](#suggested-implementation-order).

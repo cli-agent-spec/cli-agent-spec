@@ -33,6 +33,8 @@ Same artifacts as `cli-agent-evaluate`, stored under `evaluations/<cli-name>/`. 
 | `evaluations/<cli-name>/findings.md` | One row per evaluated failure mode (§N, title, severity, score, date, notes) |
 | `evaluations/<cli-name>/issues.md` | Bugs and cross-challenge observations tagged by §N |
 | `evaluations/<cli-name>/trace.md` | Raw check commands, exit codes, stdout/stderr per §N |
+| `evaluations/<cli-name>/conformance-profile.json` | Conformance kit probes for this CLI (Step 1b) |
+| `evaluations/<cli-name>/conformance.json` | Conformance kit result envelope (Step 1b) |
 
 ---
 
@@ -64,6 +66,23 @@ Queue: §N <title>, §N <title>, …
 ```
 
 If the queue is empty (all §N fully evaluated and `--refresh` not set), report "All selected failure modes already evaluated. Pass --refresh to re-run." and stop.
+
+---
+
+## Step 1b — Deterministic pre-pass (when the conformance kit is available)
+
+Run this step when the working directory is the CLI Agent Spec repository (`conformance/run.py` exists). The kit checks the mechanically verifiable contracts without judgment, so its verdicts replace guesswork for the failure modes it covers: §1, §2, §3, §8, §10, §11, §14, §18, §21, §23, §50, §52.
+
+1. Write `evaluations/<cli-name>/conformance-profile.json` from the environment profile (format: `schemas/conformance-profile.md`). Use only read-only commands as `read` probes, one bad flag as an `invalid` probe, and destructive commands only when they have a dry-run flag. Never put `--yes`, `--force`, or confirmation flags in a probe
+2. Run the kit and save its stdout:
+   ```bash
+   uv run conformance/run.py evaluations/<cli-name>/conformance-profile.json > evaluations/<cli-name>/conformance.json
+   ```
+   Exit `0` means every check passed, `4` means some failed, `2` means the profile is invalid: fix it and rerun
+3. For each §N in the queue, collect the kit checks whose `failure_modes` include it. Carry them into Step 2:
+   - A `fail` check is hard evidence: record its `failures[].argv` and `detail` in the trace, and the score for that §N cannot exceed `2/3`
+   - A `pass` check is supporting evidence only; still run the §N `**Check:**` line, because the score table covers behavior the kit does not probe
+   - A `skip` check contributes nothing
 
 ---
 
@@ -193,4 +212,5 @@ Sort the scorecard table: Critical first, then High, then Medium; within each gr
 - If a check cannot be run automatically (no CLI access), state that, record score as `?/3`, and continue with the next failure mode
 - The workaround must use actual values from the environment profile, not generic placeholders
 - Do not infer scores from failure mode titles — always run the check
-- Use only the four files under `evaluations/<cli-name>/` for persistence
+- When `evaluations/<cli-name>/conformance.json` exists, a failing kit check for §N caps that §N at `2/3`; never contradict kit evidence with a higher score
+- Use only the files listed under Local Memory Artifacts for persistence

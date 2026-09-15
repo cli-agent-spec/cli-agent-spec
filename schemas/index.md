@@ -25,6 +25,8 @@ Output of this repository's skills and scripts. Not part of the CLI contract.
 |--------|------|-------|---------|
 | DiagnoseResult | [`diagnose-result.json`](diagnose-result.json) | [`diagnose-result.md`](diagnose-result.md) | `cli-agent-diagnose` skill |
 | FailureModeIndex | [`failure-mode-index.json`](failure-mode-index.json) | [`failure-mode-index.md`](failure-mode-index.md) | `challenges/index.json`, `cli-agent-diagnose` skill |
+| ConformanceProfile | [`conformance-profile.json`](conformance-profile.json) | [`conformance-profile.md`](conformance-profile.md) | `conformance/run.py` input |
+| ConformanceResult | [`conformance-result.json`](conformance-result.json) | [`conformance-result.md`](conformance-result.md) | `conformance/run.py` output |
 
 ---
 

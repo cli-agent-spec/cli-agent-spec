@@ -17,7 +17,7 @@ The health check fails because the registry credential has expired.
 
 **cli-bad:** Returns `exit 1` and prints a multi-line error to stderr mixed with warning prose. The agent must parse unstructured text to determine the root cause. It may misidentify the error type and suggest the wrong remediation.
 
-**cli-good:** Returns `exit 10` (`AUTH_EXPIRED`), `{"code": "AUTH_EXPIRED", "service": "registry", "expired_at": "...", "retryable": false, "hint": "auth login --service registry"}`. The agent reads the structured fields directly and produces the correct answer in one step.
+**cli-good:** Returns `exit 8` (`AUTH_REQUIRED`) with `error.code: "TOKEN_EXPIRED"` and `error.context: {"service": "registry", "expired_at": "..."}`. The agent reads the structured fields directly and produces the correct answer in one step.
 
 ## CLI commands exercised
 
@@ -28,7 +28,7 @@ health check
 
 # good
 health check --output json
-# returns: exit 10, {"ok":false,"error":{"code":"AUTH_EXPIRED","retryable":false,"service":"registry","expired_at":"...","hint":"auth login --service registry"}}
+# returns: exit 8, {"ok":false,"error":{"code":"TOKEN_EXPIRED","retryable":false,"context":{"service":"registry","expired_at":"..."}},"meta":{"exit_code":8,...}}
 ```
 
 ## Measured delta hypothesis
