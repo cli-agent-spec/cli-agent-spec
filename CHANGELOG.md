@@ -9,7 +9,7 @@
 - A contract `MAJOR` increment always ships in a spec `MINOR` release with a migration section in this file
 - `meta.schema_version` inside a response is neither: it versions one command's output shape (REQ-F-022)
 
-## 1.7.0 — unreleased
+## 1.7.0 — 2026-09-15
 
 ### Breaking: ResponseEnvelope 2.0
 
@@ -56,6 +56,11 @@
 - `challenges/index.json`: generated machine-readable failure mode taxonomy
 - CI gate: link, section, counter, snippet, level, schema, and example validation; skill bundle drift check; tests; ajv compile
 - Benchmark harness v2: trials per cell, tool-log grading, per-trial state isolation, `--regrade`, rendered results
+- `cli-agent-diagnose`: classifier reads `challenges/index.json` and a rule table (`signal_rules.py`) covering 31 failure modes, one or more rules per triage row; trace capture and analysis scripts (`filter.py`, `analyze.py`, `stats.py`, `traj.py`); OpenRouter models for `--llm`
+
+### Changed
+
+- `cli-agent-diagnose` classifies a shell `command not found` as §20 (missing dependency) per triage row 4, not §52
 
 ### Known gaps
 
