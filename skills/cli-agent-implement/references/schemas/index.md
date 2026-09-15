@@ -24,6 +24,7 @@ Output of this repository's skills and scripts. Not part of the CLI contract.
 | Schema | JSON | Notes | Used by |
 |--------|------|-------|---------|
 | DiagnoseResult | [`diagnose-result.json`](diagnose-result.json) | [`diagnose-result.md`](diagnose-result.md) | `cli-agent-diagnose` skill |
+| FailureModeIndex | [`failure-mode-index.json`](failure-mode-index.json) | [`failure-mode-index.md`](failure-mode-index.md) | `challenges/index.json`, `cli-agent-diagnose` skill |
 
 ---
 

@@ -240,12 +240,34 @@ def strip_fenced_code(text: str) -> str:
 
 
 def section_body(text: str, heading: str) -> str:
-    """Body of the first heading that matches exactly, up to the next heading of the same level."""
+    """Body of the first exact heading match, up to the next heading of the same or higher level.
+
+    Lines inside fenced code blocks never count as headings, so shell comments do not end a section.
+    """
     level = len(heading) - len(heading.lstrip("#"))
-    pattern = re.compile(rf"^{re.escape(heading)}[ \t]*$", re.M)
-    match = pattern.search(text)
-    if match is None:
-        return ""
-    stop = re.compile(rf"^#{{1,{level}}} ", re.M)
-    end = stop.search(text, match.end())
-    return text[match.end(): end.start() if end else len(text)]
+    lines = text.splitlines(keepends=True)
+    body: list[str] = []
+    inside = False
+    fence = ""
+    for line in lines:
+        stripped = line.rstrip("\n")
+        if fence:
+            if _closes(stripped, fence):
+                fence = ""
+            if inside:
+                body.append(line)
+            continue
+        opening = _FENCE_OPEN.match(stripped)
+        if opening is not None:
+            fence = opening.group(1)
+            if inside:
+                body.append(line)
+            continue
+        if inside:
+            marks = len(stripped) - len(stripped.lstrip("#"))
+            if 1 <= marks <= level and stripped[marks:marks + 1] == " ":
+                break
+            body.append(line)
+        elif stripped.rstrip() == heading:
+            inside = True
+    return "".join(body)

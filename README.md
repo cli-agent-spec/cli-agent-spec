@@ -68,7 +68,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 | Path | Contents |
 |------|----------|
-| [`challenges/`](challenges/index.md) | 74 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround |
+| [`challenges/`](challenges/index.md) | 74 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround; [`index.json`](challenges/index.json) carries the same taxonomy as data |
 | [`requirements/`](requirements/index.md) | 158 requirements with acceptance criteria, wire format, and examples |
 | [`schemas/`](schemas/index.md) | JSON Schema draft-07 definitions for all 5 types |
 | [`guides/`](guides/index.md) | Design guides: positive conventions that cannot be expressed as enforceable requirements |

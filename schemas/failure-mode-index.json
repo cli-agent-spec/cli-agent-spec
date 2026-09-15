@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "failure-mode-index.json",
+  "title": "FailureModeIndex",
+  "description": "Machine-readable failure mode taxonomy generated from challenges/ by scripts/build_failure_index.py. One entry per numbered failure mode file, including merged stubs.",
+  "type": "object",
+  "required": ["schema_version", "active_count", "failure_modes"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0"],
+      "description": "Version of this index format."
+    },
+    "active_count": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of entries whose status is active."
+    },
+    "failure_modes": {
+      "type": "array",
+      "description": "Entries sorted by id ascending.",
+      "items": {
+        "oneOf": [
+          { "$ref": "#/definitions/ActiveFailureMode" },
+          { "$ref": "#/definitions/MergedFailureMode" }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ActiveFailureMode": {
+      "type": "object",
+      "required": ["id", "title", "path", "part", "status", "severity", "frequency", "detectability", "token_spend", "time", "context", "signature", "tier", "limitation", "requirements", "triage_rows", "problem", "workaround"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "integer", "minimum": 1, "description": "Failure mode number N, referenced as §N." },
+        "title": { "type": "string", "minLength": 1, "description": "Title from the '## N. Title' heading." },
+        "path": { "type": "string", "pattern": "^challenges/[0-9]{2}-[a-z-]+/[0-9]{2}-(critical|high|medium)-[a-z0-9-]+\\.md$", "description": "Repository-relative path of the source file." },
+        "part": { "type": "string", "description": "Part directory name, such as 02-critical-execution-and-reliability." },
+        "status": { "type": "string", "enum": ["active"], "description": "Active failure modes carry full content." },
+        "severity": { "type": "string", "enum": ["critical", "high", "medium"], "description": "Severity from the metadata line." },
+        "frequency": { "type": "string", "description": "Frequency label from the metadata line, such as Common or Situational." },
+        "detectability": { "type": "string", "description": "Detectability label from the metadata line." },
+        "token_spend": { "type": "string", "description": "Token spend label from the metadata line." },
+        "time": { "type": "string", "description": "Time cost label from the metadata line." },
+        "context": { "type": "string", "description": "Context cost label from the metadata line." },
+        "signature": { "type": "string", "minLength": 1, "description": "Observable trigger from the **Signature:** line; match this without knowing the cause." },
+        "tier": { "type": "string", "enum": ["A", "B", "C"], "description": "Minimum caller capability the workaround demands (see challenges/triage.md)." },
+        "fallback": { "type": "string", "minLength": 1, "description": "Single degraded action for weak models. Present exactly when tier is C." },
+        "limitation": { "type": "string", "minLength": 1, "description": "What the workaround cannot compensate for." },
+        "requirements": { "type": "array", "items": { "type": "string", "pattern": "^REQ-[FCO]-[0-9]{3}$" }, "description": "Requirements that address this failure mode, from requirements/index.md." },
+        "triage_rows": { "type": "array", "items": { "type": "integer", "minimum": 1 }, "description": "Rows of the triage decision table that route to this failure mode." },
+        "problem": { "type": "string", "minLength": 1, "description": "Markdown body of the The Problem section." },
+        "workaround": { "type": "string", "minLength": 1, "description": "Markdown body of the Agent Workaround section, including its Signature, Tier, Fallback, and Limitation lines." }
+      },
+      "if": { "properties": { "tier": { "const": "C" } } },
+      "then": { "required": ["fallback"] },
+      "else": { "not": { "required": ["fallback"] } }
+    },
+    "MergedFailureMode": {
+      "type": "object",
+      "required": ["id", "title", "path", "part", "status", "merged_into"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "integer", "minimum": 1, "description": "Retired failure mode number." },
+        "title": { "type": "string", "minLength": 1, "description": "Title of the retired failure mode." },
+        "path": { "type": "string", "description": "Repository-relative path of the merged stub." },
+        "part": { "type": "string", "description": "Part directory name." },
+        "status": { "type": "string", "enum": ["merged"], "description": "Merged numbers are never reused; follow merged_into." },
+        "merged_into": { "type": "integer", "minimum": 1, "description": "Active failure mode that now covers this content." }
+      }
+    }
+  }
+}

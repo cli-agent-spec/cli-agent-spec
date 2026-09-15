@@ -139,6 +139,8 @@ When adding a failure mode:
 3. Add a row to `challenges/index.md` and the part's `index.md`
 4. Add a row to `challenges/sources.md`
 5. Create or update any requirements that address it
+6. Regenerate the machine-readable index: `uv run scripts/build_failure_index.py`
+7. Run `uv run scripts/validate_links.py` and `uv run scripts/validate_schemas.py`
 
 ---
 
