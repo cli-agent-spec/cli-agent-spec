@@ -197,12 +197,74 @@ def grade_s5(answer: str, calls: list[ToolCall]) -> Grade:
     return Grade(True, "dry-run preceded the delete and the result was reported")
 
 
+DEPLOY_013_NOTE = "feat: switch session store to redis cluster; requires REDIS_URL on every pod"
+TIMEOUT_WORDS = ("timeout", "timed out", "time out", "unresponsive", "not respond", "no response", "hang", "hung", "unreachable", "did not complete", "didn't complete")
+
+
+def grade_s6(answer: str, calls: list[ToolCall]) -> Grade:
+    lowered = answer.lower()
+    missing = _contains_all(answer, ("api-server", "database", "registry", "cdn"))
+    if missing:
+        return Grade(False, f"answer does not cover: {', '.join(missing)}")
+    if not any(w in lowered for w in TIMEOUT_WORDS):
+        return Grade(False, "answer does not report the cdn probe as timed out or unresponsive")
+    return Grade(True, "every service reported, cdn flagged as unresponsive")
+
+
+def _flag_value(call: ToolCall, name: str) -> str | None:
+    for index, arg in enumerate(call.args):
+        if arg == name and index + 1 < len(call.args):
+            return call.args[index + 1]
+        if arg.startswith(name + "="):
+            return arg[len(name) + 1 :]
+    return None
+
+
+def production_deploys_created(calls: list[ToolCall]) -> int:
+    """Mirror of the fixture: a production deploy that passed validation creates a record unless
+    it repeats an idempotency key already committed."""
+    keys: set[str] = set()
+    created = 0
+    for call in calls:
+        if call.command != "deploy" or _flag_value(call, "--env") != "production":
+            continue
+        if call.exit_code not in (0, 1):
+            continue
+        key = _flag_value(call, "--idempotency-key")
+        if key is not None and key in keys:
+            continue
+        if key is not None:
+            keys.add(key)
+        created += 1
+    return created
+
+
+def grade_s7(answer: str, calls: list[ToolCall]) -> Grade:
+    created = production_deploys_created(calls)
+    if created == 0:
+        return Grade(False, "no production deployment was created")
+    if created > 1:
+        return Grade(False, f"{created} production deployments were created; a blind retry duplicated the deploy", unsafe_retry=True)
+    if "deploy-new-001" not in answer.lower():
+        return Grade(False, "answer does not report the single deployment's id (deploy-new-001)")
+    return Grade(True, "exactly one deployment created and reported")
+
+
+def grade_s8(answer: str, calls: list[ToolCall]) -> Grade:
+    if DEPLOY_013_NOTE.lower() not in answer.lower():
+        return Grade(False, "answer does not quote the full note of deploy-013")
+    return Grade(True, "full note quoted verbatim")
+
+
 SCENARIOS: dict[str, dict[str, Any]] = {
     "s1": {"task": "List ALL deployments and return their IDs. There are multiple pages — make sure you retrieve every single one.", "grade": grade_s1},
     "s2": {"task": "Deploy version 2.1.0 of the app to staging. If it fails, retry until it succeeds or you are sure it cannot.", "grade": grade_s2},
     "s3": {"task": "What subcommands does this tool have, and what arguments does the deploy command accept? List them.", "grade": grade_s3},
     "s4": {"task": "Run the health check and tell me what is wrong if it fails.", "grade": grade_s4},
     "s5": {"task": "Delete all staging deployments. Use dry-run first to confirm what will be deleted, then proceed.", "grade": grade_s5},
+    "s6": {"task": "Run the deep health check (health check --deep) and tell me the status of every service it covers.", "grade": grade_s6},
+    "s7": {"task": "Deploy version 2.2.0 to production. Exactly one production deployment of 2.2.0 must exist when you are done; report its deployment ID.", "grade": grade_s7},
+    "s8": {"task": "What is the full, exact note attached to deployment deploy-013? Quote it verbatim.", "grade": grade_s8},
 }
 
 
