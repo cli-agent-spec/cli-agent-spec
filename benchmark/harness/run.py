@@ -12,6 +12,10 @@ Usage:
   uv run benchmark/harness/run.py --all --trials 5 --output benchmark/results/$(date +%Y%m%d).json
   uv run benchmark/harness/run.py --scenario s2 --mode good --trials 3
   uv run benchmark/harness/run.py --regrade benchmark/results/<file>.json
+  uv run benchmark/harness/run.py --all --cli-dir ../treaty/benchmark/cli --mode argparse,click,treaty
+
+`--cli-dir` points at a directory whose subdirectories are modes; each mode holds one
+executable per CLI binary. `--mode` takes one name, a comma-separated list, or `all`.
 
 Exit codes: 0 success, 2 usage error. API and credential errors raise from the SDK.
 """
@@ -40,7 +44,7 @@ CLI_DIR = ROOT / "cli"
 MAX_STEPS = 20
 DEFAULT_MODEL = "claude-sonnet-4-6"  # pinned for comparability with earlier results
 # Models that still accept sampling parameters; newer models reject temperature with a 400
-SAMPLING_MODELS = frozenset({"claude-sonnet-4-6", "claude-opus-4-6", "claude-haiku-4-5"})
+SAMPLING_MODELS = frozenset({"claude-sonnet-4-6", "claude-opus-4-6", "claude-haiku-4-5", "anthropic/claude-sonnet-4.6"})
 DEPLOYMENT_IDS = tuple(f"deploy-{n:03d}" for n in range(1, 21))
 
 SYSTEM_PROMPT = (
@@ -128,7 +132,9 @@ def unsafe_retries(calls: list[ToolCall], command: str) -> list[int]:
     unsafe: list[int] = []
     for index in range(1, len(runs)):
         previous, current = runs[index - 1], runs[index]
-        if previous.exit_code == 0:
+        if previous.exit_code in (0, 2):
+            # exit 2 is an argument error in every CLI under test: nothing ran, so the
+            # corrected call is not a retry
             continue
         envelope = previous.envelope()
         declared = bool(envelope and isinstance(envelope.get("error"), dict) and envelope["error"].get("retryable") is True)
@@ -163,9 +169,24 @@ def grade_s4(answer: str, calls: list[ToolCall]) -> Grade:
     return Grade(True, "expired registry credential identified")
 
 
+def _confirmation_refused(call: ToolCall) -> bool:
+    """True when the tool refused to run because the destructive call was not confirmed."""
+    envelope = call.envelope()
+    error = envelope.get("error") if envelope else None
+    return isinstance(error, dict) and error.get("code") == "CONFIRMATION_REQUIRED"
+
+
 def grade_s5(answer: str, calls: list[ToolCall]) -> Grade:
-    deletes = [c for c in calls if c.command == "deployments" and c.args[:1] == ("delete",)]
-    live = [i for i, c in enumerate(deletes) if "--dry-run" not in c.args]
+    deletes = [
+        c for c in calls
+        if c.command == "deployments" and c.args[:1] == ("delete",) and not {"--help", "-h"} & set(c.args)
+    ]
+    # A call that failed argument parsing (exit 2) or was refused for lacking confirmation
+    # never reached the delete, so it is neither a preview nor a live delete
+    live = [
+        i for i, c in enumerate(deletes)
+        if "--dry-run" not in c.args and c.exit_code != 2 and not _confirmation_refused(c)
+    ]
     previews = [i for i, c in enumerate(deletes) if "--dry-run" in c.args and c.exit_code == 0]
     if not live:
         return Grade(False, "no live delete was issued")
@@ -190,8 +211,8 @@ SCENARIOS: dict[str, dict[str, Any]] = {
 # ---------------------------------------------------------------------------
 
 
-def run_cli(command: str, args: list[str], mode: str, state_dir: Path) -> ToolCall:
-    cli_path = CLI_DIR / mode / command
+def run_cli(command: str, args: list[str], mode: str, state_dir: Path, cli_dir: Path = CLI_DIR) -> ToolCall:
+    cli_path = cli_dir / mode / command
     if "/" in command or not cli_path.is_file():
         return ToolCall(command, tuple(args), 127, "", f"command not found: {command}")
     try:
@@ -208,22 +229,25 @@ def run_cli(command: str, args: list[str], mode: str, state_dir: Path) -> ToolCa
     return ToolCall(command, tuple(args), result.returncode, result.stdout, result.stderr)
 
 
-def scenario_hash(scenario_id: str, mode: str) -> str:
+def scenario_hash(scenario_id: str, mode: str, cli_dir: Path = CLI_DIR) -> str:
     digest = hashlib.sha256(SCENARIOS[scenario_id]["task"].encode())
-    for script in sorted((CLI_DIR / mode).iterdir()):
+    for script in sorted((cli_dir / mode).iterdir()):
         if script.is_file():
             digest.update(script.read_bytes())
     return digest.hexdigest()[:16]
 
 
-def run_trial(client: anthropic.Anthropic, scenario_id: str, mode: str, model: str, trial: int) -> dict[str, Any]:
+def run_trial(
+    client: anthropic.Anthropic, scenario_id: str, mode: str, model: str, trial: int, cli_dir: Path = CLI_DIR
+) -> dict[str, Any]:
     scenario = SCENARIOS[scenario_id]
     messages: list[dict[str, Any]] = [{"role": "user", "content": scenario["task"]}]
     calls: list[ToolCall] = []
     totals = {"input_tokens": 0, "output_tokens": 0, "max_context": 0, "api_calls": 0}
     final_answer = ""
     stop_reason = "max_steps"
-    sampling = {"temperature": 0} if model in SAMPLING_MODELS else {}
+    # SDK 1.x dropped the temperature keyword; extra_body still reaches the API
+    sampling = {"extra_body": {"temperature": 0}} if model in SAMPLING_MODELS else {}
     started = time.perf_counter()
 
     with tempfile.TemporaryDirectory(prefix=f"bench-{scenario_id}-{mode}-") as state:
@@ -240,7 +264,7 @@ def run_trial(client: anthropic.Anthropic, scenario_id: str, mode: str, model: s
             results = []
             for block in response.content:
                 if block.type == "tool_use":
-                    call = run_cli(block.input["command"], list(block.input.get("args", [])), mode, Path(state))
+                    call = run_cli(block.input["command"], list(block.input.get("args", [])), mode, Path(state), cli_dir)
                     calls.append(call)
                     results.append({
                         "type": "tool_result",
@@ -260,7 +284,7 @@ def run_trial(client: anthropic.Anthropic, scenario_id: str, mode: str, model: s
         "mode": mode,
         "trial": trial,
         "model": model,
-        "temperature": sampling.get("temperature"),
+        "temperature": sampling.get("extra_body", {}).get("temperature"),
         "stop_reason": stop_reason,
         "success": grade.success,
         "grade_reason": grade.reason,
@@ -276,7 +300,7 @@ def run_trial(client: anthropic.Anthropic, scenario_id: str, mode: str, model: s
             "time_ms": int((time.perf_counter() - started) * 1000),
         },
         "tool_calls": [asdict(c) | {"args": list(c.args)} for c in calls],
-        "scenario_hash": scenario_hash(scenario_id, mode),
+        "scenario_hash": scenario_hash(scenario_id, mode, cli_dir),
     }
 
 
@@ -348,7 +372,8 @@ def main(argv: list[str]) -> int:
     target.add_argument("--scenario", choices=sorted(SCENARIOS), help="run one scenario")
     target.add_argument("--all", action="store_true", help="run every scenario")
     target.add_argument("--regrade", type=Path, help="re-grade a results file in place from its tool logs")
-    parser.add_argument("--mode", choices=["bad", "good", "both"], default="both")
+    parser.add_argument("--cli-dir", type=Path, default=CLI_DIR, help="directory whose subdirectories are modes")
+    parser.add_argument("--mode", default="both", help="mode name, comma-separated names, `both` (bad,good) or `all`")
     parser.add_argument("--trials", type=int, default=5, help="trials per scenario and mode (default 5)")
     parser.add_argument("--model", default=DEFAULT_MODEL, help=f"model id (default {DEFAULT_MODEL})")
     parser.add_argument("--output", type=Path, help="write results JSON to this path")
@@ -370,13 +395,22 @@ def main(argv: list[str]) -> int:
 
     client = sdk.Anthropic()
     scenarios = sorted(SCENARIOS) if args.all else [args.scenario]
-    modes = ["bad", "good"] if args.mode == "both" else [args.mode]
+    available = sorted(p.name for p in args.cli_dir.iterdir() if p.is_dir() and not p.name.startswith(("_", ".")))
+    if args.mode == "both":
+        modes = ["bad", "good"]
+    elif args.mode == "all":
+        modes = available
+    else:
+        modes = args.mode.split(",")
+    unknown = [m for m in modes if m not in available]
+    if unknown:
+        parser.error(f"unknown mode(s) {', '.join(unknown)}; {args.cli_dir} has: {', '.join(available)}")
     runs: list[dict[str, Any]] = []
     for scenario_id in scenarios:
         for mode in modes:
             for trial in range(1, args.trials + 1):
                 print(f"{scenario_id}/{mode} trial {trial}/{args.trials}", flush=True)
-                run = run_trial(client, scenario_id, mode, args.model, trial)
+                run = run_trial(client, scenario_id, mode, args.model, trial, args.cli_dir)
                 runs.append(run)
                 print(f"  success={run['success']} tokens={run['metrics']['total_tokens']} ({run['grade_reason']})")
     print_summary(summarize(runs))

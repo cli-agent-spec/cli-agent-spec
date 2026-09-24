@@ -36,7 +36,7 @@ Two decisions shape the type:
 | `danger_level` | `"safe"` \| `"mutating"` \| `"destructive"` | yes | Mutation risk level (REQ-C-002) |
 | `required_scopes` | string[] | yes | Minimal permission strings, most critical first; empty when no auth is needed (REQ-C-029) |
 | `flags` | `Record<string, FlagEntry>` | yes | Keyed by flag name without `--` |
-| `exit_codes` | `Record<string, ExitCodeEntry>` | yes | Keyed by integer code as string (REQ-C-001) |
+| `exit_codes` | `Record<string, ExitCodeEntry>` | yes | Keyed by integer code as string (REQ-C-001). With a root `exit_codes` table present, holds only the command's additions and overrides; the effective table is root overlaid with this map, and `tool <cmd> --schema` prints it in full |
 | `aliases` | string[] | no | Alternative invocation names |
 | `output_schema` | object | no | JSON Schema for `data` on success (REQ-C-015) |
 | `output_formats` | string[] | no | Formats beyond the framework defaults (REQ-O-049) |
@@ -231,7 +231,8 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 
 **Validation to generate**
 - Assert every command in the registry appears in `commands` — missing commands are a silent discovery failure
-- Assert every `exit_codes` entry in the manifest matches the corresponding command's `ExitCodeEntry` declarations exactly — no additions, no omissions
+- Assert every command's effective `exit_codes` table (root table overlaid with the entry's own map) matches its `ExitCodeEntry` declarations exactly — no additions, no omissions
+- Assert an entry's own `exit_codes` map never repeats a root-table entry unchanged
 - Assert `etag` changes when any command registration changes, and is stable across identical registrations (determinism test)
 
 **Tests to generate**
