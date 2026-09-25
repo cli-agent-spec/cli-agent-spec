@@ -651,7 +651,14 @@ def _keep_argument_order_signal(
                 break
     if not explained:
         return
-    best[69] = _RawSignal(69, 0.93, evidence, explained)
+    existing = best.get(69)
+    if existing is None:
+        best[69] = _RawSignal(69, 0.93, evidence, explained)
+    else:
+        existing.triggering_events.extend(e for e in explained if e not in existing.triggering_events)
+        if existing.confidence < 0.93:
+            existing.confidence = 0.93
+            existing.evidence = evidence
     discovery = best.get(52)
     if discovery is not None and all(e in explained for e in discovery.triggering_events):
         del best[52]

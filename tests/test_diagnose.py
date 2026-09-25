@@ -163,6 +163,15 @@ def test_reordered_success_is_argument_order_not_discovery() -> None:
     assert 69 in found and 52 not in found
 
 
+def test_reorder_signal_merges_with_an_earlier_argument_order_hit() -> None:
+    conflict = diagnose.TraceEvent(command="tool --format json list --format text", args=(), stdout="", stderr="Error: --format given twice", exit_code=2)
+    rejected = diagnose.TraceEvent(command="tool list items --format json", args=(), stdout="", stderr="Error: unrecognized arguments: --format json", exit_code=2)
+    reordered = diagnose.TraceEvent(command="tool --format json list items", args=(), stdout='{"ok": true}', stderr="", exit_code=0)
+    [signal] = [s for s in diagnose.match_signals((conflict, rejected), (conflict, rejected, reordered)) if s.failure_mode_id == 69]
+    assert conflict in signal.triggering_events and rejected in signal.triggering_events
+    assert signal.confidence == 0.93
+
+
 def test_different_successful_call_keeps_discovery() -> None:
     found = ids([
         bash_call("tool list --fromat json", stderr="Error: unknown flag: --fromat"),
