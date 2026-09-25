@@ -368,7 +368,7 @@ def preflight(
       §10 — interactivity (git commit without -m, missing --yes flags)
       §19 — retry loop (same call already failed in history)
       §52 — command tree (--help called repeatedly in history)
-      §69 — argument order (a long option repeated with different values)
+      §69 — argument order (a single-value option repeated with different values)
 
     Cannot predict output-dependent failures: §38, §53, §68.
 

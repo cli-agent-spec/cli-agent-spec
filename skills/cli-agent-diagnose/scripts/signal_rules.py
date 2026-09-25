@@ -241,22 +241,31 @@ def invocation_tokens(command: str, args: Sequence[str]) -> list[str]:
     return [*command.split(), *args]
 
 
-def conflicting_repeat(tokens: Sequence[str]) -> tuple[str, str, str] | None:
-    """First long option given twice with different values, as (flag, first, second) (§69).
+# Long options that take exactly one value across the CLIs agents call. Only these count
+# as a conflicting repeat: repeatable options (--header, --env, --label, --field, --exclude)
+# legitimately appear several times, and a switch such as --verbose takes no value, so the
+# word after it is a positional, not its value.
+SINGLE_VALUE_OPTIONS = frozenset({
+    "--format", "--output", "--limit", "--timeout", "--region", "--profile", "--cursor", "--page-size",
+})
 
-    Reads `--name value` and `--name=value`; stops at `--`. A bare repeated switch has no
-    value to compare and never counts.
+
+def conflicting_repeat(tokens: Sequence[str]) -> tuple[str, str, str] | None:
+    """First single-value option given twice with different values, as (flag, first, second) (§69).
+
+    Reads `--name value` and `--name=value` for names in SINGLE_VALUE_OPTIONS; stops at `--`.
     """
     seen: dict[str, str] = {}
     for index, token in enumerate(tokens):
         if token == "--":
             return None
-        if not token.startswith("--") or len(token) == 2:
+        flag, _, inline = token.partition("=")
+        if flag not in SINGLE_VALUE_OPTIONS:
             continue
-        if "=" in token:
-            flag, value = token.split("=", 1)
-        elif index + 1 < len(tokens) and not tokens[index + 1].startswith("-"):
-            flag, value = token, tokens[index + 1]
+        if inline or token.endswith("="):
+            value = inline
+        elif index + 1 < len(tokens):
+            value = tokens[index + 1]
         else:
             continue
         first = seen.setdefault(flag, value)

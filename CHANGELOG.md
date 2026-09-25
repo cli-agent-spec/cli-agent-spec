@@ -38,7 +38,7 @@
 - §69 is rewritten around four modes (global option after the command path, local option before it, option read as a positional, value overwritten or duplicated). The Agent Workaround moves from "front-load every flag", which breaks local flags, to the canonical order `tool <global> <command path> <local> [--] <positionals>`, and from Tier A to Tier B
 
 - The conformance kit adds `argument_order` (level 3, REQ-F-067, REQ-F-079): a profile's optional `argument_order` names a read command and a global option; the kit moves the option around the command path, detects a value overwritten by a subcommand default, and expects exit `2` for a conflicting repeat. The good democli mock parses `--format json|plain` globally and lists it in its manifest root `flags`
-- `cli-agent-diagnose` routes to §69: a flag error followed by the same tokens succeeding in another order is §69, not §52; exit `2` after a long option repeated with different values is §69; `runner.preflight` flags that repeat before the call
+- `cli-agent-diagnose` routes to §69: a flag error followed by the same tokens succeeding in another order is §69, not §52; exit `2` after a single-value option (`--format`, `--output`, `--limit`, and a few more) repeated with different values is §69; `runner.preflight` flags that repeat before the call. Repeatable options such as `--header` and `--env` never count
 
 **Why:** "front-load all flags" traded Mode 1 for Mode 2, and nothing in the manifest told an agent which flags were global. The argparse default-overwrite case exits `0` with the wrong format.
 

@@ -177,6 +177,16 @@ def test_repeated_option_with_same_value_is_not_a_conflict() -> None:
     assert signal_rules.conflicting_repeat(["tool", "--format", "json", "list", "--format=text"]) == ("--format", "json", "text")
 
 
+@pytest.mark.parametrize("cmd", [
+    ["curl", "--header", "A: 1", "--header", "B: 2", "https://example.com"],
+    ["docker", "run", "--env", "A=1", "--env", "B=2", "image"],
+    ["tool", "--verbose", "list", "--verbose", "items"],
+])
+def test_repeatable_options_and_switches_are_not_conflicts(cmd: list[str]) -> None:
+    assert signal_rules.conflicting_repeat(cmd) is None
+    assert runner.preflight(cmd).failure_mode_id != 69
+
+
 def test_command_not_found_in_stdout_of_a_pipeline() -> None:
     assert 20 in ids(trace(command='ps aux | grep qemu', stdout="/bin/bash: line 1: ps: command not found", exit_code=0))
 
