@@ -43,7 +43,8 @@ copy() {
       ;;
     sync)
       mkdir -p "$(dirname "$dst")"
-      rsync -a --delete "$src" "$dst"
+      # --checksum: a same-size edit (74 -> 75) with a matching mtime passes rsync's quick check
+      rsync -a --checksum --delete "$src" "$dst"
       echo "synced: ${src#"$REPO_ROOT"/} -> ${dst#"$REPO_ROOT"/}"
       ;;
   esac
