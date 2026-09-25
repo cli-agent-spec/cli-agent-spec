@@ -24,6 +24,8 @@ The result went into a file named `json` in the working directory. Stdout is emp
 
 The mirror case is louder but still costly: a tool whose `--output` selects a format, called with `--output report.json` by an agent that wanted a file, fails with an "invalid choice" error, and the agent has to rediscover which flag writes files.
 
+`--format` has its own silent case. Some tools accept a template in `--format` as well as named formats, and read any value that is not a known name as literal template text. `docker` reads any value other than `json` or `table` as a Go template, so the typo `docker version --format jsn` exits `0` and prints `jsn`. The agent gets well-formed but meaningless lines instead of an error.
+
 Short aliases make it worse. `-o` has the same split, and a tool may bind `-o` to a path while its long `--output` does not exist, so even `--help` inspection keyed on the long name misses it.
 
 ### Impact
@@ -42,7 +44,11 @@ tool export --format json                     # envelope with data on stdout
 tool export --format csv --output report.csv  # CSV in the file, envelope on stdout
 ```
 
-`--format` has one meaning almost everywhere it appears (`gcloud`, `docker`, `git`), so an agent's trained guess lands on the right flag. `-o` is not bound to a format.
+`--format` selects a representation wherever it appears (`gcloud`, `docker`, `git`), so an agent's trained guess lands on the right flag. The representation applies to any destination: stdout by default, the `--output` file otherwise. `-o` is not bound to a format.
+
+**Keep `--format` a closed set (REQ-O-001):**
+
+An unknown `--format` value exits `2` with the supported values listed; it is never read as a template. Field projection goes through `--fields` (REQ-O-002), and a CLI that wants text templates for humans registers a separate `--template` flag.
 
 **Reject a format name where a path is expected:**
 
@@ -88,7 +94,7 @@ A command that writes to disk names the absolute path in the envelope (`data.pat
 
 ### Agent Workaround
 
-**Signature:** `exit 0` with empty or non-JSON stdout after passing `--output <format>` or `-o <format>`; a file named after the format value (`json`, `yaml`, `table`) appears in the working directory
+**Signature:** `exit 0` with empty or non-JSON stdout after passing `--output <format>` or `-o <format>`; a file named after the format value (`json`, `yaml`, `table`) appears in the working directory; or `exit 0` after `--format <value>` with stdout repeating that literal value on every line
 
 **Tier:** B (one observable check, then one command)
 
@@ -120,6 +126,8 @@ def run_for_json(cmd: list[str]) -> subprocess.CompletedProcess:
         result = subprocess.run([*cmd, "--format", "json"], capture_output=True, text=True)
     return result
 ```
+
+If every stdout line equals the `--format` value you passed, the tool read it as a template: rerun with `--json` if listed, or with a template the tool documents (`--format '{{json .}}'` for `docker`), and parse that.
 
 When `--help` shows neither `--format` nor a path hint, prefer `--json` if it is listed, then `--format json`, and only then `--output json`; after any call with `--output`, compare the working directory listing against the one taken before the call.
 

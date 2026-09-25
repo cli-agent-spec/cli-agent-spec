@@ -54,7 +54,7 @@ Tier `C` files carry a `**Fallback:**` line: a single command or single action t
 | 13 | `ECONNREFUSED`, DNS failure, TLS error, or proxy text in stderr | [§31](05-high-environment-and-state/31-high-network-proxy.md) | Check `HTTPS_PROXY`/`NO_PROXY` env vars; test connectivity outside the tool |
 | 14 | Exit code in `129–143` (128 + signal number) | [§11](02-critical-execution-and-reliability/11-critical-timeouts.md) [§16](02-critical-execution-and-reliability/16-high-signal-handling.md) | The process was killed externally (outer timeout, OOM); inspect partial state before any retry |
 | 15 | Error text in a non-English locale | [§57](01-critical-ecosystem-runtime-agent-specific/57-medium-locale-errors.md) | Re-run with `LC_ALL=C LANG=C` |
-| 16 | `exit 0` with empty or non-JSON stdout after `--output <format>` or `-o <format>`; a file named `json`, `yaml`, or `table` appears in the working directory | [§78](01-critical-ecosystem-runtime-agent-specific/78-high-output-flag-meaning-collision.md) | Delete the stray file; rerun with `--format json` |
+| 16 | `exit 0` with empty or non-JSON stdout after `--output <format>` or `-o <format>`; a file named `json`, `yaml`, or `table` appears in the working directory; or `exit 0` after `--format <value>` with that literal value on every stdout line | [§78](01-critical-ecosystem-runtime-agent-specific/78-high-output-flag-meaning-collision.md) | Delete the stray file; rerun with `--format json`, or with `--json` or a documented template when `--format` echoes its value |
 | 17 | `exit 1` with prose stderr; none of the above | — | Apply the default retry policy below; then classify with `/cli-agent-diagnose` or escalate |
 
 ---
