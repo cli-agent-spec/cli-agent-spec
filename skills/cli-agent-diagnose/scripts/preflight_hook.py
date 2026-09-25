@@ -64,6 +64,29 @@ def require_supported_python() -> None:
         sys.exit(2)
 
 
+def strip_shell_comment(command: str) -> str:
+    """Drop a trailing bash comment: a # that starts a word outside quotes.
+
+    shlex cannot do this: comments=True also cuts a mid-word # (a URL fragment), and
+    comments=False keeps "# was --limit 10" as arguments.
+    """
+    quote = ""
+    escaped = False
+    for index, char in enumerate(command):
+        if escaped:
+            escaped = False
+        elif char == "\\" and quote != "'":
+            escaped = True
+        elif quote:
+            if char == quote:
+                quote = ""
+        elif char in "'\"":
+            quote = char
+        elif char == "#" and (index == 0 or command[index - 1] in " \t\n;|&()"):
+            return command[:index]
+    return command
+
+
 def main() -> None:
     require_supported_python()
 
@@ -84,6 +107,7 @@ def main() -> None:
     elif isinstance(inp, str):
         command_str = inp
 
+    command_str = strip_shell_comment(command_str)
     if not command_str.strip():
         sys.exit(0)
 

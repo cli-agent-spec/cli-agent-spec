@@ -304,6 +304,24 @@ def test_hook_passes_compound_commands_without_spaces(command: str) -> None:
     assert run_hook(json.dumps({"tool": "Bash", "input": {"command": command}})).stdout == ""
 
 
+def test_hook_ignores_a_trailing_comment() -> None:
+    assert run_hook(json.dumps({"tool": "Bash", "input": {"command": "tool --limit 5 list  # was --limit 10"}})).stdout == ""
+
+
+@pytest.mark.parametrize(("command", "expected"), [
+    ("tool --limit 5 list  # was --limit 10", "tool --limit 5 list  "),
+    ("curl http://x/a#frag", "curl http://x/a#frag"),
+    ('tool --color "#fff" --format json', 'tool --color "#fff" --format json'),
+    ("tool --color '#fff'", "tool --color '#fff'"),
+    ("tool --tag \\#x", "tool --tag \\#x"),
+    ("tool list;# note", "tool list;"),
+])
+def test_strip_shell_comment_matches_bash(command: str, expected: str) -> None:
+    import preflight_hook
+
+    assert preflight_hook.strip_shell_comment(command) == expected
+
+
 def test_hook_still_reads_quoted_operators_as_arguments() -> None:
     result = run_hook(json.dumps({"tool": "Bash", "input": {"command": 'tool --format json list --format "a;b"'}}))
     assert "§69" in result.stdout
