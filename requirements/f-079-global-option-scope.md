@@ -2,7 +2,7 @@
 
 **Tier:** Framework-Automatic | **Priority:** P1
 
-**Source:** [§69 Argument Order Ambiguity](../challenges/01-critical-ecosystem-runtime-agent-specific/69-high-argument-order-ambiguity.md)
+**Source:** [§69 Argument Order Ambiguity](../challenges/01-critical-ecosystem-runtime-agent-specific/69-high-argument-order-ambiguity.md) · [§78 Output Flag Meaning Collision](../challenges/01-critical-ecosystem-runtime-agent-specific/78-high-output-flag-meaning-collision.md)
 
 **Addresses:** Severity: High / Token Spend: Medium / Time: Medium / Context: Low
 
@@ -15,7 +15,7 @@ A global option is a flag every command accepts: framework flags such as `--form
 Three rules keep a global option unambiguous for an agent that cannot see the parser:
 
 1. **Declared once.** `tool manifest` lists global options in the root `flags` map. A `CommandEntry.flags` map lists only the command's local flags, so an agent builds a call from two lookups: root `flags` plus the command's `flags`
-2. **Reserved names.** A command-local flag MUST NOT reuse a global option's long name or short alias. The framework rejects such a registration at startup, before any command runs, so `-f` never means `--format` on one command and `--force` on another
+2. **Reserved names.** A command-local flag MUST NOT reuse a global option's long name or short alias. The framework rejects such a registration at startup, before any command runs, so `-f` never means `--format` on one command and `--force` on another, and no command redefines `--format` as a template or file type (§78)
 3. **Position-independent value.** A global option's value is the value the caller passed, wherever it appeared. A subcommand's defaults MUST NOT overwrite a value given before the command path. This is the default behavior of argparse subparsers that copy the parent's options, which turns `tool --format json list` into plain text with exit `0`
 
 ## Acceptance Criteria

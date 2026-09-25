@@ -1870,6 +1870,7 @@
       "tier": "B",
       "limitation": "A tool that writes the file somewhere other than the working directory, or under a name that is not the bare format value, leaves no stray file to detect; and `--help` wording is free text, so the path check is a heuristic that one failed call may be needed to confirm",
       "requirements": [
+        "REQ-F-079",
         "REQ-O-001"
       ],
       "triage_rows": [

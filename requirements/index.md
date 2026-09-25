@@ -94,7 +94,7 @@
 | [REQ-F-076](f-076-first-run-init-isolation.md) | P1 | First-Run Init Isolation | — | 3 |
 | [REQ-F-077](f-077-telemetry-non-blocking.md) | P2 | Telemetry Non-Blocking | [§41](../challenges/01-critical-ecosystem-runtime-agent-specific/41-high-update-notifier.md) | 3 |
 | [REQ-F-078](f-078-retry-count-in-response-meta.md) | P2 | Retry Count in Response Meta | [§11](../challenges/02-critical-execution-and-reliability/11-critical-timeouts.md) | 3 |
-| [REQ-F-079](f-079-global-option-scope.md) | P1 | Global Option Scope | [§69](../challenges/01-critical-ecosystem-runtime-agent-specific/69-high-argument-order-ambiguity.md) | 3 |
+| [REQ-F-079](f-079-global-option-scope.md) | P1 | Global Option Scope | [§69](../challenges/01-critical-ecosystem-runtime-agent-specific/69-high-argument-order-ambiguity.md) [§78](../challenges/01-critical-ecosystem-runtime-agent-specific/78-high-output-flag-meaning-collision.md) | 3 |
 
 ---
 

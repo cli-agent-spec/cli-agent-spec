@@ -77,6 +77,7 @@ A command that writes to disk names the absolute path in the envelope (`data.pat
 
 **Framework design:**
 - Register `--format` as the global representation flag; never register `--output` or `-o` as an alias for it (REQ-O-001)
+- Declare `--format` once as a global option (REQ-F-079), so no command can register a local `--format` or reuse its short alias with a different meaning such as a template or a file type
 - Apply the format-name guard to every path-typed flag named `--output`, `-o`, or `--output-dir` at the framework level, not per command
 
 ### Evaluation
