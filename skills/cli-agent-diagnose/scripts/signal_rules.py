@@ -244,9 +244,10 @@ def invocation_tokens(command: str, args: Sequence[str]) -> list[str]:
 # Long options that take exactly one value across the CLIs agents call. Only these count
 # as a conflicting repeat: repeatable options (--header, --env, --label, --field, --exclude)
 # legitimately appear several times, and a switch such as --verbose takes no value, so the
-# word after it is a positional, not its value.
+# word after it is a positional, not its value. --output is absent too: curl repeats it,
+# one --output per URL.
 SINGLE_VALUE_OPTIONS = frozenset({
-    "--format", "--output", "--limit", "--timeout", "--region", "--profile", "--cursor", "--page-size",
+    "--format", "--limit", "--timeout", "--region", "--profile", "--cursor", "--page-size",
 })
 
 

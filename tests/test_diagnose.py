@@ -189,6 +189,7 @@ def test_repeated_option_with_same_value_is_not_a_conflict() -> None:
 @pytest.mark.parametrize("cmd", [
     ["curl", "--header", "A: 1", "--header", "B: 2", "https://example.com"],
     ["docker", "run", "--env", "A=1", "--env", "B=2", "image"],
+    ["curl", "--output", "a.html", "https://a", "--output", "b.html", "https://b"],
     ["tool", "--verbose", "list", "--verbose", "items"],
 ])
 def test_repeatable_options_and_switches_are_not_conflicts(cmd: list[str]) -> None:
