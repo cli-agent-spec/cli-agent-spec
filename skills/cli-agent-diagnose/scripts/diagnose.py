@@ -436,6 +436,7 @@ try:
         TTY_REQUIREMENT_PATTERNS as _TTY_REQUIREMENT_PATTERNS,
         VERSION_PATTERNS as _VERSION_PATTERNS,
         apply_rules,
+        invocation_tokens as _invocation_tokens,
     )
 except ImportError:  # executed as a script: sibling module on sys.path
     from signal_rules import (  # type: ignore[no-redef]
@@ -448,6 +449,7 @@ except ImportError:  # executed as a script: sibling module on sys.path
         TTY_REQUIREMENT_PATTERNS as _TTY_REQUIREMENT_PATTERNS,
         VERSION_PATTERNS as _VERSION_PATTERNS,
         apply_rules,
+        invocation_tokens as _invocation_tokens,
     )
 
 
@@ -459,11 +461,17 @@ class _RawSignal:
     triggering_events: list[TraceEvent] = field(default_factory=list)
 
 
-def match_signals(events: tuple[TraceEvent, ...]) -> tuple[_RawSignal, ...]:
+def match_signals(
+    events: tuple[TraceEvent, ...],
+    trace_events: tuple[TraceEvent, ...] | None = None,
+) -> tuple[_RawSignal, ...]:
     """
     Deterministic signal matching. Returns candidates sorted by confidence desc.
     Each matched §N appears at most once; triggering_events accumulates all
     events that fired the signal across the full trace.
+
+    events are the extracted failures; trace_events is the whole trace, which
+    cross-event rules need to see successful calls (defaults to events).
     """
     best: dict[int, _RawSignal] = {}
 
@@ -558,6 +566,7 @@ def match_signals(events: tuple[TraceEvent, ...]) -> tuple[_RawSignal, ...]:
     # Cross-event signals (require full event list)
     _keep_retry_signal(events, best)
     _keep_discovery_loop_signal(events, best)
+    _keep_argument_order_signal(events, trace_events if trace_events is not None else events, best)
 
     return tuple(sorted(best.values(), key=lambda s: s.confidence, reverse=True))
 
@@ -612,6 +621,40 @@ def _keep_discovery_loop_signal(
         existing = best.get(52)
         if existing is None or sig.confidence > existing.confidence:
             best[52] = sig
+
+
+def _keep_argument_order_signal(
+    failures: tuple[TraceEvent, ...],
+    trace_events: tuple[TraceEvent, ...],
+    best: dict[int, _RawSignal],
+) -> None:
+    """§69 — a flag error, then the same tokens in another order succeed.
+
+    The flag existed all along, so the failure was placement, not discovery:
+    §52 is dropped when every event that fired it is explained here.
+    """
+    successes = [e for e in trace_events if e.exit_code == 0 and not e.timed_out]
+    explained: list[TraceEvent] = []
+    evidence = ""
+    for failed in failures:
+        if failed.exit_code == 0:
+            continue
+        combined = failed.stdout + "\n" + failed.stderr
+        if not any(p.search(combined) for p in _DISCOVERY_PATTERNS):
+            continue
+        tokens = _invocation_tokens(failed.command, failed.args)
+        for ok in successes:
+            ok_tokens = _invocation_tokens(ok.command, ok.args)
+            if ok_tokens != tokens and sorted(ok_tokens) == sorted(tokens):
+                explained.append(failed)
+                evidence = f"{' '.join(tokens)!r} was rejected; the same tokens as {' '.join(ok_tokens)!r} exited 0"
+                break
+    if not explained:
+        return
+    best[69] = _RawSignal(69, 0.93, evidence, explained)
+    discovery = best.get(52)
+    if discovery is not None and all(e in explained for e in discovery.triggering_events):
+        del best[52]
 
 
 # ---------------------------------------------------------------------------
@@ -995,7 +1038,7 @@ def diagnose(
     trace = parse_trace(raw)
     failures = extract_failures(trace)
 
-    raw_signals = match_signals(failures)
+    raw_signals = match_signals(failures, trace.events)
 
     # Insufficient trace: empty stdout + empty stderr + exit 0 everywhere, and no
     # signal read from the command line itself (§78 fires on exactly that shape)

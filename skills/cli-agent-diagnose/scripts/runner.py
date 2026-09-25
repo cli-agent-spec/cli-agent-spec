@@ -35,6 +35,7 @@ try:
         _load_challenge,
         _ANSI_RE,
     )
+    from .signal_rules import conflicting_repeat
 except ImportError:
     from diagnose import (  # type: ignore[no-redef]
         TraceEvent,
@@ -43,6 +44,7 @@ except ImportError:
         _load_challenge,
         _ANSI_RE,
     )
+    from signal_rules import conflicting_repeat  # type: ignore[no-redef]
 
 
 # ---------------------------------------------------------------------------
@@ -366,6 +368,7 @@ def preflight(
       §10 — interactivity (git commit without -m, missing --yes flags)
       §19 — retry loop (same call already failed in history)
       §52 — command tree (--help called repeatedly in history)
+      §69 — argument order (a long option repeated with different values)
 
     Cannot predict output-dependent failures: §38, §53, §68.
 
@@ -413,6 +416,21 @@ def preflight(
                 recommended_call=[cmd_list[0], "--schema", "--format", "json"]
                 if cmd_list else None,
             )
+
+    # --- §69: a long option repeated with different values ---
+    conflict = conflicting_repeat(cmd_list)
+    if conflict:
+        flag, first, second = conflict
+        return PreflightAdvice(
+            safe=False,
+            risk_level="high",
+            failure_mode_id=69,
+            reason=(
+                f"§69: {flag} is given twice ({first!r}, then {second!r}); most parsers keep the "
+                f"last value silently and a conforming CLI exits 2 — pass it once"
+            ),
+            recommended_call=None,  # which value was intended is the agent's call
+        )
 
     # --- §10: interactivity — editor/prompt will open ---
     if cmd_list and cmd_list[0] == "git" and len(cmd_list) >= 2:

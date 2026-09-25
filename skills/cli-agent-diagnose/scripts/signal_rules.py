@@ -236,6 +236,43 @@ def _format_value_passed_as_output_path(event: EventView) -> str | None:
     return None
 
 
+def invocation_tokens(command: str, args: Sequence[str]) -> list[str]:
+    """Whitespace tokens of the full invocation; traces may carry args inside command."""
+    return [*command.split(), *args]
+
+
+def conflicting_repeat(tokens: Sequence[str]) -> tuple[str, str, str] | None:
+    """First long option given twice with different values, as (flag, first, second) (§69).
+
+    Reads `--name value` and `--name=value`; stops at `--`. A bare repeated switch has no
+    value to compare and never counts.
+    """
+    seen: dict[str, str] = {}
+    for index, token in enumerate(tokens):
+        if token == "--":
+            return None
+        if not token.startswith("--") or len(token) == 2:
+            continue
+        if "=" in token:
+            flag, value = token.split("=", 1)
+        elif index + 1 < len(tokens) and not tokens[index + 1].startswith("-"):
+            flag, value = token, tokens[index + 1]
+        else:
+            continue
+        first = seen.setdefault(flag, value)
+        if first != value:
+            return flag, first, value
+    return None
+
+
+def _conflicting_repeat_rejected(event: EventView) -> str | None:
+    conflict = conflicting_repeat(invocation_tokens(event.command, event.args))
+    if conflict and event.exit_code == 2:
+        flag, first, second = conflict
+        return f"exit_code=2 after {flag} was given twice ({first!r}, then {second!r}): pass each option once"
+    return None
+
+
 def _install_command(event: EventView) -> bool:
     full = " ".join((event.command, *event.args))
     return bool(re.search(r"\b(install|setup|bootstrap)\b|curl .*\|\s*(sh|bash)", full))
@@ -263,6 +300,7 @@ RULES: tuple[PatternRule | PredicateRule, ...] = (
     PatternRule(71, 4, 0.75, _compile([r"\[y/n\]", r"Do you want to continue", r"interactive", r"press enter", r"accept the license"]), "combined", "installer expects interaction", guard=_install_command),
     # Row 6: usage errors
     PredicateRule(14, 6, 0.70, _usage_error),
+    PredicateRule(69, 6, 0.80, _conflicting_repeat_rejected),
     # Row 7: agent-generated input rejected as JSON
     PatternRule(67, 7, 0.85, _compile([r"Expecting property name enclosed in double quotes", r"JSONDecodeError", r"Unexpected token .* in JSON", r"invalid character .* looking for beginning", r"trailing comma", r"is not valid JSON"]), "combined", "input rejected as invalid JSON"),
     # Row 8: crashes instead of structured errors

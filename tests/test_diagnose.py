@@ -123,6 +123,7 @@ CASES = [
     (67, trace(stderr="json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 12")),
     (68, trace(stdout="\x1b[31mred\x1b[0m", exit_code=0)),
     (71, trace(command="curl -fsSL https://x.sh | bash install", stdout="Do you want to continue? [Y/n]", exit_code=124)),
+    (69, trace(command="tool --format json list --format text", stderr="Error: --format given twice with different values", exit_code=2)),
     (74, trace(stderr="GraphQL: Resource not accessible by integration (missing required scopes: repo)")),
     (78, trace(command="tool export --output json", stdout="", exit_code=0)),
 ]
@@ -148,6 +149,32 @@ def test_help_loop_across_events() -> None:
     event = diagnose.TraceEvent(command="tool", args=("deploy", "--help"), stdout="usage", stderr="", exit_code=0)
     signals = diagnose.match_signals((event, event))
     assert any(s.failure_mode_id == 52 for s in signals)
+
+
+def bash_call(command: str, stdout: str = "", stderr: str = "") -> dict:
+    return {"tool_name": "Bash", "tool_input": {"command": command}, "tool_response": {"stdout": stdout, "stderr": stderr}}
+
+
+def test_reordered_success_is_argument_order_not_discovery() -> None:
+    found = ids([
+        bash_call("tool list items --format json", stderr="Error: unrecognized arguments: --format json"),
+        bash_call("tool --format json list items", stdout='{"ok": true}'),
+    ])
+    assert 69 in found and 52 not in found
+
+
+def test_different_successful_call_keeps_discovery() -> None:
+    found = ids([
+        bash_call("tool list --fromat json", stderr="Error: unknown flag: --fromat"),
+        bash_call("tool list --format json", stdout='{"ok": true}'),
+    ])
+    assert 52 in found and 69 not in found
+
+
+def test_repeated_option_with_same_value_is_not_a_conflict() -> None:
+    assert signal_rules.conflicting_repeat(["tool", "--format", "json", "list", "--format=json"]) is None
+    assert signal_rules.conflicting_repeat(["tool", "run", "--", "--format", "a", "--format", "b"]) is None
+    assert signal_rules.conflicting_repeat(["tool", "--format", "json", "list", "--format=text"]) == ("--format", "json", "text")
 
 
 def test_command_not_found_in_stdout_of_a_pipeline() -> None:
@@ -214,6 +241,7 @@ def test_cli_output_matches_diagnose_result_schema() -> None:
     (["git", "commit"], 10),
     (["git", "rebase", "-i", "HEAD~3"], 10),
     (["git", "log"], 43),
+    (["tool", "--format", "json", "list", "--format", "text"], 69),
 ])
 def test_preflight_flags_risky_calls(cmd: list[str], failure_mode: int) -> None:
     advice = runner.preflight(cmd)
