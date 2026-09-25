@@ -292,3 +292,17 @@ def test_hook_advises_without_blocking() -> None:
 def test_hook_passes_safe_and_compound_commands() -> None:
     assert run_hook(json.dumps({"tool": "Bash", "input": {"command": "ls -la"}})).stdout == ""
     assert run_hook(json.dumps({"tool": "Bash", "input": {"command": "git log | head"}})).stdout == ""
+
+
+@pytest.mark.parametrize("command", [
+    "tool --limit 5 list; tool --limit 10 list",
+    "tool --limit 5 list&&tool --limit 10 list",
+    "git log|head",
+])
+def test_hook_passes_compound_commands_without_spaces(command: str) -> None:
+    assert run_hook(json.dumps({"tool": "Bash", "input": {"command": command}})).stdout == ""
+
+
+def test_hook_still_reads_quoted_operators_as_arguments() -> None:
+    result = run_hook(json.dumps({"tool": "Bash", "input": {"command": 'tool --format json list --format "a;b"'}}))
+    assert "§69" in result.stdout

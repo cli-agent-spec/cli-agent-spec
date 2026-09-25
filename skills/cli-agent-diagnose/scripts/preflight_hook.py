@@ -93,10 +93,12 @@ def main() -> None:
     except ValueError:
         sys.exit(0)  # shell syntax we can't parse — pass through
 
-    # Skip compound shell expressions (pipes, &&, ||, ;)
-    for tok in argv:
-        if tok in ("|", "&&", "||", ";", ">", ">>", "<"):
-            sys.exit(0)
+    # Skip compound shell expressions (pipes, &&, ||, ;, redirections, subshells). A second
+    # lexer splits operators out of words, so "list;" and "a&&b" are caught; quoted text is not
+    operators = shlex.shlex(command_str, posix=True, punctuation_chars=True)
+    operators.whitespace_split = True
+    if any(tok and set(tok) <= set("|&;<>()") for tok in operators):
+        sys.exit(0)
 
     advice = preflight(argv)
 
