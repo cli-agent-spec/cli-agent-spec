@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repository is
 
-A **specification** (not an implementation) for building CLI tools that work reliably under AI agent orchestration. It defines 75 failure modes, 158 requirements across 3 tiers, 5 canonical JSON schemas, analysis of 12 existing frameworks, and design guides for CLI authors.
+A **specification** (not an implementation) for building CLI tools that work reliably under AI agent orchestration. It defines 75 failure modes, 159 requirements across 3 tiers, 5 canonical JSON schemas, analysis of 12 existing frameworks, and design guides for CLI authors.
 
 There is no build system, test runner, or package manager. All content is markdown and JSON.
 
@@ -86,7 +86,7 @@ ajv compile -s "schemas/*.json" --spec=draft7 --strict=false
 ### Directories
 
 - `challenges/` — 75 failure modes in 7 parts (01=critical ecosystem, 02=execution, 03=security, 04=output, 05=environment, 06=errors, 07=observability). Failure modes are referenced as `§N`. `challenges/triage.md` maps observable failure signals (exit code, streams, timing) to §N candidates; it is a routing document, not a failure mode. `challenges/index.json` is the generated machine-readable taxonomy; never edit it by hand.
-- `requirements/` — 158 requirements in 3 tiers: `f-NNN` (Framework-Automatic), `c-NNN` (Command Contract), `o-NNN` (Opt-In). Referenced as `REQ-{TIER}-{NNN}`.
+- `requirements/` — 159 requirements in 3 tiers: `f-NNN` (Framework-Automatic), `c-NNN` (Command Contract), `o-NNN` (Opt-In). Referenced as `REQ-{TIER}-{NNN}`.
 - `schemas/` — 5 canonical JSON Schema draft-07 types, each with a `.json` (machine) and `.md` (human) companion: `exit-code`, `exit-code-entry`, `response-envelope`, `manifest-response`, `dispatch-request`. Tooling schemas for skill and script output (`diagnose-result` and others) are listed separately in `schemas/index.md`.
 - `research/` — per-framework analysis (argparse, click, clap, cobra, typer, commander-js, pydantic, MCP, OpenAPI, etc.).
 - `guides/` — design guides for CLI authors: positive conventions that cannot be expressed as enforceable requirements. See `guides/index.md`.

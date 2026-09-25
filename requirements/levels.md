@@ -2,7 +2,7 @@
 
 > A CLI claims a level, not a percentage. Each level is a fixed set of requirements, and each higher level contains every lower one.
 
-158 requirements are written for framework authors. A team retrofitting an existing Cobra, Click, or Clap tool needs a smaller first target that removes the failures agents hit on every call. Levels give that target and a way to state progress that other people can verify.
+159 requirements are written for framework authors. A team retrofitting an existing Cobra, Click, or Clap tool needs a smaller first target that removes the failures agents hit on every call. Levels give that target and a way to state progress that other people can verify.
 
 ---
 
@@ -12,7 +12,7 @@
 |-------|------|----------|------|
 | 1 | Agent-safe basics | The twelve requirements listed below | 12 |
 | 2 | Agent-reliable | Level 1 plus every other `P0` requirement | 51 |
-| 3 | Full spec | Every requirement | 158 |
+| 3 | Full spec | Every requirement | 159 |
 
 Every requirement in `requirements/index.md` carries a `Level` column with the lowest level that includes it. `scripts/validate_links.py` recomputes the column from this file and the priorities, so the two cannot drift.
 

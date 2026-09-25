@@ -10,16 +10,19 @@
 
 ## Description
 
-Commands that cannot support interspersed option parsing — typically because they forward trailing arguments verbatim to a subprocess — MUST declare `option_placement: "strict"` in their manifest registration. Commands that support interspersed parsing (the default per REQ-F-067) declare `option_placement: "any"` or omit the field. This allows agents to construct invocations correctly without probing.
+Commands that cannot support interspersed option parsing (typically because they forward trailing arguments verbatim to a subprocess) MUST declare `option_placement: "strict"` in their manifest registration. Commands that support interspersed parsing (the default per REQ-F-067) declare `option_placement: "any"` or omit the field. This allows agents to construct invocations correctly without probing.
 
-The declaration is consumed by `tool manifest` (REQ-O-041) and `--schema` (REQ-O-013). When `option_placement: "strict"` is declared, the agent MUST front-load all flags before the subcommand and positional arguments.
+`strict` has one meaning: every option, global or local, precedes the first positional argument. Options may follow the command path; they need not precede it. Parsing stops at the first positional or at `--`, whichever comes first, and every later token reaches the child process unparsed. An option the agent places after that point is not an error; it is forwarded to the child, which is why the declaration is required rather than discovered.
+
+The declaration is consumed by `tool manifest` (REQ-O-041) and `--schema` (REQ-O-013).
 
 ## Acceptance Criteria
 
 - Commands forwarding args to a subprocess declare `option_placement: "strict"` at registration
 - `tool manifest` includes an `option_placement` field for every command
 - Commands without the declaration default to `"any"` (interspersed accepted)
-- A strict-placement command rejects options after positional args with exit code 2 (`ARG_ERROR`) and a structured error — never silently misparsing them
+- Under `strict`, `tool run --format json ./script --child-flag` parses `--format` and forwards `--child-flag`; `tool run --format json -- ./script` treats `./script` as the first positional
+- Under `strict`, an option placed after the first positional reaches the child process verbatim and is never also parsed by the tool
 
 ## Schema
 
@@ -73,9 +76,10 @@ def run(target: str, extra_args: list[str]):
     subprocess.run([target, *extra_args])
 
 # Agent consults manifest before constructing the call:
-# option_placement == "strict" → front-load flags
+# option_placement == "strict" → every option before the first positional
 # tool --format json run ./my-script --child-flag   ✓
-# tool run ./my-script --format json                ✗ (--format consumed by child)
+# tool run --format json ./my-script --child-flag   ✓ (same parse)
+# tool run ./my-script --format json                ✗ (--format forwarded to the child)
 ```
 
 ## Related
@@ -83,6 +87,7 @@ def run(target: str, extra_args: list[str]):
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
 | [REQ-F-067](f-067-interspersed-option-parsing.md) | F | Composes: this declaration is the exception to the interspersed default |
+| [REQ-F-079](f-079-global-option-scope.md) | F | Extends: global options follow the same placement rule on a strict command |
 | [REQ-C-019](c-019-subprocess-invoking-commands-declare-argument-sche.md) | C | Extends: subprocess-invoking commands also declare their argument schema |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Exposes: manifest is the primary consumer of this declaration |
 | [REQ-O-013](o-013-schema-output-schema-flag.md) | O | Exposes: `--schema` output includes `option_placement` for the command |

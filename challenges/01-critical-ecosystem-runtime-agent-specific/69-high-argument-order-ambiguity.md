@@ -8,100 +8,144 @@
 
 ### The Problem
 
-CLI parsers differ on whether options (flags) may appear after positional arguments or subcommands. Agents construct invocations in whatever order feels natural to the LLM — and the order varies across retries, prompt variations, and models. The result is silent misparsing or outright rejection depending on which parser mode the framework uses.
+An invocation has four kinds of token: global options (accepted by every command), the command path, command-local options, and positionals. Parsers disagree on where each may appear, and on which flags are global at all. Agents construct invocations in whatever order feels natural to the model, and the order varies across retries, prompt variations, and models. The result is outright rejection, silent misparsing, or a silently wrong value depending on the parser.
 
-Three distinct failure modes exist:
+Four distinct failure modes exist:
 
-**Mode 1 — Option rejected after positional arg (POSIX strict mode):**
+**Mode 1: global option rejected after the command path.** argparse options defined on the root parser, Click group options, and Cobra non-persistent root flags are unknown to the subcommand:
 ```bash
-$ tool deploy staging --format json
-# argparse default: "staging" consumed as positional, "--format" rejected as unrecognised
-Error: unrecognised arguments: --format json
+$ tool --format json deploy staging   # works
+$ tool deploy staging --format json   # fails: --format not registered on the subcommand
+Error: unrecognized arguments: --format json
 ```
 
-**Mode 2 — Option silently treated as positional value:**
+**Mode 2: local option rejected before the command path.** The mirror image, and what an agent gets when it "front-loads all flags" as a defensive habit:
 ```bash
-$ tool list --limit 10 --format json
-# some parsers: "--format" becomes the second positional arg value
+$ tool list --limit 10                # works
+$ tool --limit 10 list                # fails: --limit belongs to list, not to the root
+Error: unrecognized arguments: --limit
+```
+
+**Mode 3: option silently treated as a positional.** A parser that stops option parsing at the first positional (Cobra with `SetInterspersed(false)`, getopt under `POSIXLY_CORRECT`, a Click command with `allow_interspersed_args=False`, an argparse `REMAINDER` positional) passes later options through as operands:
+```bash
+$ tool list items --format json
+# "--format" and "json" become the second and third positional values
 # no error; wrong result silently returned in plain text
 ```
 
-**Mode 3 — Global option not accepted after subcommand:**
+**Mode 4: global option value silently overwritten or duplicated.** The option parses, but the value that takes effect is not the one the agent sent:
 ```bash
-$ tool --format json deploy staging   # works
-$ tool deploy staging --format json   # fails: --format not registered on subcommand
-Error: unknown flag: --format
+# argparse: global options copied onto each subparser with a real default;
+# the subparser's default overwrites the root parser's value
+$ tool --format json list             # exit 0, plain text
+
+# the same option in two positions: most parsers keep the last one silently
+$ tool --format json list --format text
 ```
 
-Agents cannot reliably predict which mode applies without probing, and the errors are inconsistent — Mode 2 fails silently, making it the hardest to detect.
+Agents cannot predict which mode applies without probing. Modes 1 and 2 fail loudly but contradict each other, so neither "flags first" nor "flags last" is safe everywhere. Modes 3 and 4 exit `0`, which makes them the hardest to detect.
 
 ### Impact
 
-- Silent misparse (Mode 2) causes incorrect results with exit code 0 — no retry signal
+- Silent misparse (Modes 3 and 4) returns an incorrect result with exit code `0`; nothing signals a retry
 - Retry loops from inconsistent flag placement across invocations of the same command
+- Fixing Mode 1 by front-loading every flag triggers Mode 2 for local flags, so the agent oscillates between two errors
 - Agent must learn per-CLI ordering rules through trial and error, spending tokens and round trips
-- Global flags (e.g., `--format`, `--timeout`) registered at root level silently ignored when placed after subcommand
+- A command-local flag that reuses a global option's name or short alias (`-f` for `--format` globally, `--force` locally) changes meaning with position
 
 ### Solutions
 
-**Enforce interspersed option parsing at the framework level:**
+**Accept every option in any position after the command path, and global options anywhere:**
 
-Options are accepted in any position relative to subcommands and positional arguments. `tool cmd --flag arg`, `tool --flag cmd arg`, and `tool cmd arg --flag` are all equivalent.
+`tool --format json deploy staging`, `tool deploy --format json staging`, and `tool deploy staging --format json` are equivalent. Local options are accepted anywhere after the command path; they cannot precede it because the parser does not yet know which command they belong to.
+
+**Register global options once, on every command, without default overwrite:**
 
 ```python
-# argparse
-parser = argparse.ArgumentParser()
-parser.parse_intermixed_args()  # allows interspersed options
-
-# Click
-@click.command(context_settings={"allow_interspersed_args": True})
-
-# Commander.js
-program.enablePositionalOptions(false)  # disable strict positional ordering
+# argparse: parent parser with SUPPRESS defaults, applied to the root and every subparser
+common = argparse.ArgumentParser(add_help=False)
+common.add_argument("--format", choices=["json", "text"], default=argparse.SUPPRESS)
+root = argparse.ArgumentParser(parents=[common])
+sub = root.add_subparsers(dest="command", required=True)
+sub.add_parser("list", parents=[common])
+args = root.parse_args()
+fmt = getattr(args, "format", "json")    # default applied once, after parsing
 ```
 
-**For global flags that must precede subcommands, declare this constraint in the manifest:**
+```go
+// Cobra: persistent flags on the root are inherited by every subcommand;
+// interspersed parsing is the default, so do not call SetInterspersed(false)
+rootCmd.PersistentFlags().String("format", "json", "Output representation")
+```
+
+```python
+# Click: group options are not visible to subcommands; attach the shared
+# option to every command instead of the group
+def global_options(f):
+    return click.option("--format", default="json")(f)
+```
+
+**Reject ambiguity instead of resolving it silently:**
+- A command-local flag that reuses a global option's long name or short alias fails registration at startup
+- A scalar option given more than once with different values exits `2`; repeating the same value is accepted
+- `--` ends option parsing; every token after it is a positional, even one that starts with `-`
+
+**For commands that forward trailing arguments verbatim, declare the constraint in the manifest:**
 
 ```json
 {
-  "option_placement": "strict",
-  "note": "Global options must appear before the subcommand"
+  "option_placement": "strict"
 }
 ```
 
+Under `strict`, every option (global or local) precedes the first positional, and everything from the first positional on reaches the child process unparsed.
+
 **Framework design:**
-- Default parser configuration MUST use interspersed/permissive option parsing
-- If a command passes remaining args verbatim to a subprocess (e.g., a wrapper), it MUST declare `option_placement: "strict"` in its manifest so agents know to front-load flags
-- The manifest's `--schema` output MUST include the effective `option_placement` value
+- Default parser configuration MUST accept options interspersed with positionals (REQ-F-067)
+- Global options MUST be listed once in the manifest's root `flags` map, accepted on every command, and never shadowed by a local flag (REQ-F-079)
+- A command that forwards trailing arguments MUST declare `option_placement: "strict"` (REQ-C-027)
 
 ### Evaluation
 
 | Score | Condition |
 |-------|-----------|
-| 0 | Options after positional args silently misparsed or rejected; no manifest declaration of ordering constraint |
-| 1 | Consistent rejection with a clear error message; no interspersed support; no manifest declaration |
-| 2 | Interspersed options accepted for most commands; global flags may still fail after subcommand |
-| 3 | Full interspersed option parsing enforced framework-wide; exceptions declared in manifest with `option_placement: "strict"` |
+| 0 | An option after a positional or a global option after the command path is silently misparsed (Mode 3), or a global option value set before the command path is silently replaced (Mode 4) |
+| 1 | Misplaced options are rejected with a clear error and exit `2`; no interspersed support; no manifest declaration of the ordering rule |
+| 2 | Interspersed options accepted for most commands; global options fail after some command paths, or global options are not distinguishable from local flags in the manifest |
+| 3 | Global options accepted in every position on every command path and listed in the manifest root `flags`; local options accepted anywhere after the command path; conflicting repeats exit `2`; forwarding commands declare `option_placement: "strict"` |
 
-**Check:** Invoke `tool subcommand positional-arg --global-flag value` and `tool --global-flag value subcommand positional-arg` — both must succeed with identical output.
+**Check:**
+1. `tool <cmd> <positional> --format json` and `tool --format json <cmd> <positional>` both succeed with identical output and exit code
+2. `tool --format json <cmd>` emits JSON (catches the subparser default overwrite)
+3. `tool <cmd> <positional> --<local-flag> <value>` takes effect (catches Mode 3)
+4. `tool --format json <cmd> --format text` exits `2`
 
 ---
 
 ### Agent Workaround
 
-**Signature:** `unrecognised arguments` or `unknown flag` when a flag follows a positional; same invocation with the flag front-loaded succeeds; or `exit 0` with plain-text output
+**Signature:** `unrecognized arguments` or `unknown flag` naming a flag that exists in the manifest or `--help`; the same flag succeeds in another position; or `exit 0` with plain-text output despite `--format json`
 
-**Tier:** A (one safe command, no branching)
+**Tier:** B (one observable check, then one command)
 
-**Front-load all flags before positional arguments and subcommands:**
+**Classify each flag as global or local, then emit the canonical order:**
+
+`tool <global options> <command path> <local options> [--] <positionals>`
+
+Global options go before the command path, which every parser accepts. Local options go right after the command path and before any positional, which also satisfies `option_placement: "strict"`. A positional that starts with `-` goes after `--`.
 
 ```python
-def normalize_arg_order(flags: dict, subcommand: list[str], positionals: list[str]) -> list[str]:
-    """Place all flags first to avoid parser mode ambiguity."""
-    flag_args = []
-    for k, v in flags.items():
-        flag_args.extend([f"--{k}", str(v)])
-    return flag_args + subcommand + positionals
+def build_argv(tool: str, manifest: dict, path: list[str], flags: dict[str, str], positionals: list[str]) -> list[str]:
+    """Order tokens so that every common parser mode accepts them."""
+    global_names = set(manifest.get("flags", {}))
+    global_args: list[str] = []
+    local_args: list[str] = []
+    for name, value in flags.items():
+        (global_args if name in global_names else local_args).extend([f"--{name}", value])
+    separator = ["--"] if any(p.startswith("-") for p in positionals) else []
+    return [tool, *global_args, *path, *local_args, *separator, *positionals]
 ```
 
-**Limitation:** Front-loading flags fails for commands that pass trailing args verbatim to a subprocess (e.g., `tool run -- --child-flag`), and does not help when global flags are not registered on subcommands — check `--schema` for `option_placement` before constructing the invocation
+Without a manifest root `flags` map, treat the output, verbosity, and color flags (`--format`, `--quiet`, `--verbose`, `--no-color`) as global and every other flag as local. Pass each option once.
+
+**Limitation:** A CLI that supports neither `--` nor global options after the command path may reject parts of the canonical order, and without a manifest the global/local split is a guess; one failed call confirms which flags belong to the root

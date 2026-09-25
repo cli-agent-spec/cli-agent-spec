@@ -16,6 +16,7 @@ The framework MUST provide a `tool manifest` built-in command that returns the c
 
 - `tool manifest` returns a single JSON object containing all commands and their full flag schemas
 - The manifest includes exit code tables for every command
+- Global options appear once, in the root `flags` map; each `CommandEntry.flags` lists only that command's local flags (REQ-F-079)
 - `tool manifest --etag <hash>` returns `meta.not_modified: true` when the manifest is unchanged
 - An agent can construct a valid call to any subcommand using only the manifest output, without calling `--help` on any subcommand
 
@@ -117,5 +118,6 @@ app.enable_manifest()
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Sources: `exit_codes` per command from REQ-C-001 declarations |
 | [REQ-C-015](c-015-commands-declare-input-and-output-schema.md) | C | Sources: `flags` per command from REQ-C-015 declarations |
 | [REQ-F-001](f-001-standard-exit-code-table.md) | F | Sources: `ExitCode` names in `exit_codes` map |
+| [REQ-F-079](f-079-global-option-scope.md) | F | Sources: root `flags` map of global options |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Wraps: manifest output uses `ResponseEnvelope` |
 | [REQ-F-021](f-021-data-meta-separation-in-response-envelope.md) | F | Composes: `schema_version` and `etag` align with per-response versioning |

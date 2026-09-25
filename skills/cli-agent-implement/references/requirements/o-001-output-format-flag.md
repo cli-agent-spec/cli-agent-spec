@@ -104,7 +104,7 @@ $ tool list --format jsonl
 
 ## Example
 
-The framework registers `--format` globally. Command authors do not implement it per command.
+The framework registers `--format` as a global option (REQ-F-079). Command authors do not implement it per command, and no command registers a local `--format` or reuses its short alias.
 
 ```
 app = Framework("tool")
@@ -123,6 +123,7 @@ app.enable_format_flag(formats=["json", "jsonl", "tsv", "plain"])
 |-------------|------|--------------|
 | [REQ-F-003](f-003-json-output-mode-auto-activation.md) | F | Extends: `--format json` makes auto-activation explicit and overridable |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Provides: `ResponseEnvelope` used by `--format json` mode |
+| [REQ-F-079](f-079-global-option-scope.md) | F | Enforces: `--format` is accepted in any position on every command and listed in the manifest root `flags` |
 | [REQ-O-002](o-002-fields-selector.md) | O | Composes: `--fields` filters the `data` object within `--format json` responses |
 | [REQ-O-004](o-004-output-jsonl-stream-flag.md) | O | Specializes: `--format jsonl` is the non-buffered streaming variant |
 | [REQ-O-042](o-042-output-format-env-var-default.md) | O | Specializes: tool-scoped env var may supply the default when `--format` is omitted |

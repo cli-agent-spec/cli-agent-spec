@@ -2,17 +2,17 @@
 
 > All requirements for an agent-compatible CLI framework, derived from the CLI Agent Spec's 75 documented failure modes.
 
-**158 total** &nbsp;|&nbsp; 78 Framework-Automatic · 30 Command Contract · 50 Opt-In — amended 2026-07-06
+**159 total** &nbsp;|&nbsp; 79 Framework-Automatic · 30 Command Contract · 50 Opt-In — amended 2026-09-25
 
-**By priority:** P0: 51 · P1: 63 · P2: 35 · P3: 9 — REQ-C-030 added: executable `fix_command` in error responses (§18, §19, §53)
+**By priority:** P0: 51 · P1: 64 · P2: 35 · P3: 9 — REQ-F-079 added: global option scope (§69)
 
-**By level** ([`levels.md`](levels.md)): Level 1: 12 · Level 2: 51 · Level 3: 158
+**By level** ([`levels.md`](levels.md)): Level 1: 12 · Level 2: 51 · Level 3: 159
 
 ---
 
 ## Framework-Automatic (F)
 
-**78 requirements** &nbsp;|&nbsp; P0: 33 · P1: 29 · P2: 15 · P3: 1
+**79 requirements** &nbsp;|&nbsp; P0: 33 · P1: 30 · P2: 15 · P3: 1
 
 | ID | Priority | Title | Failure mode(s) | Level |
 |----|----------|-------|-------------|-------|
@@ -94,6 +94,7 @@
 | [REQ-F-076](f-076-first-run-init-isolation.md) | P1 | First-Run Init Isolation | — | 3 |
 | [REQ-F-077](f-077-telemetry-non-blocking.md) | P2 | Telemetry Non-Blocking | [§41](../challenges/01-critical-ecosystem-runtime-agent-specific/41-high-update-notifier.md) | 3 |
 | [REQ-F-078](f-078-retry-count-in-response-meta.md) | P2 | Retry Count in Response Meta | [§11](../challenges/02-critical-execution-and-reliability/11-critical-timeouts.md) | 3 |
+| [REQ-F-079](f-079-global-option-scope.md) | P1 | Global Option Scope | [§69](../challenges/01-critical-ecosystem-runtime-agent-specific/69-high-argument-order-ambiguity.md) | 3 |
 
 ---
 

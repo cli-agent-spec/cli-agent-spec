@@ -2,7 +2,7 @@
 
 **File:** [`manifest-response.json`](manifest-response.json)
 
-> **Used by:** [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-013](../requirements/o-013-schema-output-schema-flag.md) · [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) · [REQ-C-005](../requirements/c-005-interactive-commands-must-support-yes-non-interact.md) · [REQ-C-008](../requirements/c-008-multi-step-commands-emit-step-manifest.md) · [REQ-C-010](../requirements/c-010-background-process-commands-declare-metadata.md) · [REQ-C-011](../requirements/c-011-commands-declare-filesystem-side-effects.md) · [REQ-C-012](../requirements/c-012-commands-with-network-i-o-support-timeout.md) · [REQ-C-015](../requirements/c-015-commands-declare-input-and-output-schema.md) · [REQ-C-016](../requirements/c-016-secrets-accepted-only-via-env-var-or-file.md) · [REQ-C-018](../requirements/c-018-commands-declare-platform-requirements.md) · [REQ-C-019](../requirements/c-019-subprocess-invoking-commands-declare-argument-sche.md) · [REQ-C-020](../requirements/c-020-resource-id-fields-declare-validation-pattern.md) · [REQ-C-021](../requirements/c-021-auth-commands-declare-headless-mode-support.md) · [REQ-C-022](../requirements/c-022-async-commands-declare-job-descriptor-schema.md) · [REQ-C-023](../requirements/c-023-editor-requiring-commands-declare-non-interactive-.md) · [REQ-C-024](../requirements/c-024-gui-launching-commands-declare-headless-behavior.md) · [REQ-C-025](../requirements/c-025-config-writing-commands-declare-write-scope.md) · [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) · [REQ-C-027](../requirements/c-027-commands-declare-option-placement.md) · [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) · [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) · [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) · [REQ-O-048](../requirements/o-048-destructive-commands-default-dry-run.md) · [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md)
+> **Used by:** [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-013](../requirements/o-013-schema-output-schema-flag.md) · [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) · [REQ-C-005](../requirements/c-005-interactive-commands-must-support-yes-non-interact.md) · [REQ-C-008](../requirements/c-008-multi-step-commands-emit-step-manifest.md) · [REQ-C-010](../requirements/c-010-background-process-commands-declare-metadata.md) · [REQ-C-011](../requirements/c-011-commands-declare-filesystem-side-effects.md) · [REQ-C-012](../requirements/c-012-commands-with-network-i-o-support-timeout.md) · [REQ-C-015](../requirements/c-015-commands-declare-input-and-output-schema.md) · [REQ-C-016](../requirements/c-016-secrets-accepted-only-via-env-var-or-file.md) · [REQ-C-018](../requirements/c-018-commands-declare-platform-requirements.md) · [REQ-C-019](../requirements/c-019-subprocess-invoking-commands-declare-argument-sche.md) · [REQ-C-020](../requirements/c-020-resource-id-fields-declare-validation-pattern.md) · [REQ-C-021](../requirements/c-021-auth-commands-declare-headless-mode-support.md) · [REQ-C-022](../requirements/c-022-async-commands-declare-job-descriptor-schema.md) · [REQ-C-023](../requirements/c-023-editor-requiring-commands-declare-non-interactive-.md) · [REQ-C-024](../requirements/c-024-gui-launching-commands-declare-headless-behavior.md) · [REQ-C-025](../requirements/c-025-config-writing-commands-declare-write-scope.md) · [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) · [REQ-C-027](../requirements/c-027-commands-declare-option-placement.md) · [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) · [REQ-F-079](../requirements/f-079-global-option-scope.md) · [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) · [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) · [REQ-O-048](../requirements/o-048-destructive-commands-default-dry-run.md) · [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md)
 > Returned as the `data` field of a [`ResponseEnvelope`](response-envelope.md).
 
 ---
@@ -26,6 +26,8 @@ Two decisions shape the type:
 | `framework_version` | string | yes | Version of the tool binary |
 | `etag` | string | yes | Deterministic content hash. Changes only when registrations change |
 | `commands` | `Record<string, CommandEntry>` | yes | Flat map keyed by dot-separated path such as `"deploy.rollback"` |
+| `flags` | `Record<string, FlagEntry>` | no | Global options every command accepts in any position, keyed by name without `--` (REQ-F-079) |
+| `exit_codes` | `Record<string, ExitCodeEntry>` | no | Shared exit-code table every command inherits |
 | `dependencies` | `DependencyEntry[]` | no | External runtime dependencies checked by `tool doctor` (REQ-O-031) |
 
 ### CommandEntry — core
@@ -35,7 +37,7 @@ Two decisions shape the type:
 | `description` | string | yes | One-sentence summary |
 | `danger_level` | `"safe"` \| `"mutating"` \| `"destructive"` | yes | Mutation risk level (REQ-C-002) |
 | `required_scopes` | string[] | yes | Minimal permission strings, most critical first; empty when no auth is needed (REQ-C-029) |
-| `flags` | `Record<string, FlagEntry>` | yes | Keyed by flag name without `--` |
+| `flags` | `Record<string, FlagEntry>` | yes | Command-local flags keyed by name without `--`; never repeats a name or short alias from the root `flags` |
 | `exit_codes` | `Record<string, ExitCodeEntry>` | yes | Keyed by integer code as string (REQ-C-001). With a root `exit_codes` table present, holds only the command's additions and overrides; the effective table is root overlaid with this map, and `tool <cmd> --schema` prints it in full |
 | `aliases` | string[] | no | Alternative invocation names |
 | `output_schema` | object | no | JSON Schema for `data` on success (REQ-C-015) |
@@ -49,7 +51,7 @@ Present only when the command declares them.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `option_placement` | `"any"` \| `"strict"` | `strict`: all options precede positionals; absent means `any` (REQ-C-027) |
+| `option_placement` | `"any"` \| `"strict"` | `strict`: every option, global or local, precedes the first positional; absent means `any` (REQ-C-027) |
 | `interactive` | boolean | Command may prompt in a TTY; `--yes` and `--non-interactive` exist (REQ-C-005) |
 | `has_network_io` | boolean | Command performs network or long blocking I/O; `--timeout` exists (REQ-C-012) |
 | `steps` | string[] | Ordered step names of a multi-step command (REQ-C-008) |
@@ -107,6 +109,9 @@ Present only when the command declares them.
   "schema_version": "1.0",
   "framework_version": "2.1.0",
   "etag": "sha256:a3f9c1",
+  "flags": {
+    "format": { "type": "enum", "required": false, "default": "json", "enum_values": ["json", "jsonl", "tsv", "plain"], "description": "Output representation" }
+  },
   "commands": {
     "deploy": {
       "description": "Deploy a build to a target environment",
@@ -174,6 +179,8 @@ Violation: `requires_editor: true` requires `non_interactive_alternatives`; othe
 - **Adding ad-hoc fields to `CommandEntry`.** Entries are closed; a new contract field belongs in this schema with a sourcing requirement, not as an undocumented extension
 - **Setting `default: null` for flags without a default.** Omit the key; `null` reads as "the default value is null"
 - **Declaring `retryable: true` with partial side effects in `exit_codes`.** The `ExitCodeEntry` invariant rejects it; timeouts that may have written are `retryable: false`
+- **Repeating global options in every `CommandEntry.flags`.** A global option appears once, in the root `flags`; a copy inside a command reads as a local flag that happens to share the name, and hides whether it is accepted before the command path
+- **Reusing a global short alias for a local flag.** `-f` meaning `--format` at the root and `--force` on one command changes meaning with position; the framework rejects it at registration
 - **Generating the manifest from a static file.** It must be computed from live registrations or the `etag` lies
 
 ---
@@ -193,6 +200,10 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Check `aliases` before concluding a command does not exist — the agent may be using an alias that maps to a different primary key
 
 **Building a call from `FlagEntry`**
+- A command's accepted flags are the root `flags` plus its own `flags`; a name in neither produces `ARG_ERROR (2)`
+- Emit tokens in the canonical order `tool <global options> <command path> <local options> [--] <positionals>`; every parser mode and both `option_placement` values accept it
+- Put `--` before any positional that starts with `-`
+- Pass each option once; a scalar option repeated with a different value produces `ARG_ERROR (2)`
 - `required: true` flags must always be present; absence will produce `ARG_ERROR (2)`
 - `type: "enum"` — only values in `enum_values` are accepted; sending any other value produces `ARG_ERROR (2)`
 - `default` absent — the flag is optional but has no fallback; omitting it changes behavior; include explicitly if the outcome matters
@@ -209,7 +220,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 
 **Reading declared contracts before calling**
 - `danger_level` other than `safe` — prefer `--dry-run` first; `safe_default: true` means the command previews until `--live` is passed
-- `option_placement: "strict"` — place every option before the first positional argument
+- `option_placement: "strict"` — place every option, global or local, before the first positional argument; anything after it is forwarded to the child process
 - `requires` — evaluate each rule against the flags you plan to send before calling; a violated rule produces `ARG_ERROR (2)`
 - `interactive: true` or `requires_editor: true` — always pass `--yes` / `--non-interactive` or one of `non_interactive_alternatives`
 - `async: true` — the response is a job descriptor; poll with its `status_command` instead of waiting on the call
@@ -233,6 +244,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert every command in the registry appears in `commands` — missing commands are a silent discovery failure
 - Assert every command's effective `exit_codes` table (root table overlaid with the entry's own map) matches its `ExitCodeEntry` declarations exactly — no additions, no omissions
 - Assert an entry's own `exit_codes` map never repeats a root-table entry unchanged
+- Assert no `CommandEntry.flags` key or `short` value equals a root `flags` key or `short` value
 - Assert `etag` changes when any command registration changes, and is stable across identical registrations (determinism test)
 
 **Tests to generate**
@@ -263,6 +275,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 | [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) | Sources: `exit_codes` per command |
 | [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) | Sources: `danger_level` per command |
 | [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) | Sources: `required_scopes` per command |
+| [REQ-F-079](../requirements/f-079-global-option-scope.md) | Sources: top-level `flags` (global options) |
 | [REQ-C-027](../requirements/c-027-commands-declare-option-placement.md) | Sources: `option_placement` per command |
 | [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) | Sources: `requires` conditional rules |
 | [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) | Sources: top-level `dependencies` |
