@@ -32,7 +32,7 @@ Rollback responses include `data.rollback_status` (`"completed"` | `"failed"` | 
 ## Wire Format
 
 ```bash
-$ tool deploy --rollback-on-failure --output json
+$ tool deploy --rollback-on-failure --format json
 ```
 
 Failed deployment with successful rollback:

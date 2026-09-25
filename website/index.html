@@ -430,10 +430,10 @@ $ aws s3 ls s3://my-bucket --recursive
       <div class="failure-card">
         <div class="failure-label">§69 · High · Argument Order</div>
         <h3>Flags silently misparsed</h3>
-        <p>The parser treats <code>--output</code> as a positional argument. Exit code: 0. The agent receives plain text it can't parse.</p>
+        <p>The parser treats <code>--format</code> as a positional argument. Exit code: 0. The agent receives plain text it can't parse.</p>
         <pre><span class="comment"># Natural LLM ordering</span>
-$ tool list users --output json
-<span class="err">↳ "--output" → positional arg value
+$ tool list users --format json
+<span class="err">↳ "--format" → positional arg value
 ↳ returns ANSI table, not JSON
 ↳ exit 0 — no signal to retry</span></pre>
       </div>
@@ -467,7 +467,7 @@ $ tool list users --output json
       <div class="tier-row">
         <span class="tier-badge o">REQ-O</span>
         <span class="tier-label">Opt-In</span>
-        <span class="tier-desc">Explicitly enabled by the application. <code>--output json</code>, <code>--fields</code>, <code>--limit</code>, <code>tool manifest</code>, <code>--schema</code>, <code>--dry-run</code>, <code>--confirm-destructive</code>.</span>
+        <span class="tier-desc">Explicitly enabled by the application. <code>--format json</code>, <code>--fields</code>, <code>--limit</code>, <code>tool manifest</code>, <code>--schema</code>, <code>--dry-run</code>, <code>--confirm-destructive</code>.</span>
         <span class="tier-count">50 reqs</span>
       </div>
     </div>
@@ -493,7 +493,7 @@ $ tool list users --output json
           <div class="contract-icon purple">🗺️</div>
           <div>
             <h3>Tool Manifest</h3>
-            <p><code>tool manifest --output json</code> returns the complete command tree: every subcommand, flag, type, exit code map, and example. One call replaces O(N) <code>--help</code> iterations across all subcommands.</p>
+            <p><code>tool manifest --format json</code> returns the complete command tree: every subcommand, flag, type, exit code map, and example. One call replaces O(N) <code>--help</code> iterations across all subcommands.</p>
           </div>
         </div>
       </div>

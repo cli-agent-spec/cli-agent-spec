@@ -108,7 +108,7 @@ import agentyper as typer  # everything else stays identical
 | 3 | Stderr vs Stdout Discipline | ~ | `output()` vs `echo()` split exists; not strictly enforced on authors |
 | 4 | Verbosity & Token Cost | ~ | `--format csv` is 4× cheaper than table; no `--fields` selector |
 | 5 | Pagination & Large Output | ✗ | No `--limit`, `--cursor`, or pagination metadata |
-| 6 | Command Composition & Piping | ✗ | No `--output id` mode, no stdin pipe support |
+| 6 | Command Composition & Piping | ✗ | No `--format id` mode, no stdin pipe support |
 | 7 | Output Non-Determinism | ✗ | No stable sorting guarantee, no `data`/`meta` separation |
 | 8 | ANSI & Color Code Leakage | ~ | `rich` respects `NO_COLOR`; isatty() detection; not exhaustively tested |
 | 9 | Binary & Encoding Safety | ✗ | No explicit binary/encoding handling |

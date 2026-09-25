@@ -51,7 +51,7 @@ export PYTHONUNBUFFERED=1
 sys.stdout.reconfigure(line_buffering=True)
 
 # Command output is flushed immediately; no block-buffering on pipes
-$ tool long-job --output json | python -c "import sys; print(sys.stdin.readline())"
+$ tool long-job --format json | python -c "import sys; print(sys.stdin.readline())"
 # → first JSON line received without waiting for process exit
 ```
 

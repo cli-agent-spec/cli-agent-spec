@@ -10,7 +10,7 @@ while [[ $# -gt 0 ]]; do
     --version)         VERSION="$2";          shift 2 ;;
     --env)             ENV="$2";              shift 2 ;;
     --idempotency-key) IDEMPOTENCY_KEY="$2";  shift 2 ;;
-    --output|--timeout) shift 2 ;;
+    --format|--timeout) shift 2 ;;
     --dry-run)         shift ;;
     *)
       printf '{"ok":false,"data":null,"error":{"code":"UNKNOWN_FLAG","message":"Unknown flag %s","retryable":false,"phase":"validation"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n' "$1"

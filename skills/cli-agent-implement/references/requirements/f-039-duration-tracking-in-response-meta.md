@@ -60,11 +60,11 @@ Framework-Automatic: no command author action needed. The framework wraps every 
 
 ```
 # Duration present on all responses — no author code required
-$ tool deploy --target staging --output json
+$ tool deploy --target staging --format json
 → meta.duration_ms: 1247
 
 # Also on fast validation failures
-$ tool deploy --target invalid --output json
+$ tool deploy --target invalid --format json
 → meta.duration_ms: 8
 ```
 

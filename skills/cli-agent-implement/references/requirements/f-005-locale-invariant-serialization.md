@@ -60,12 +60,12 @@ Framework-Automatic: no command author action needed. The framework's serializer
 
 ```
 # Host locale: de_DE (comma decimal, dot thousands)
-$ LC_ALL=de_DE tool report --output json
+$ LC_ALL=de_DE tool report --format json
 {"ok":true,"data":{"price":1234.56,"count":1000000},...}
 # NOT {"price":"1.234,56","count":"1.000.000"}
 
 # Host locale: en_US
-$ LC_ALL=en_US tool report --output json
+$ LC_ALL=en_US tool report --format json
 {"ok":true,"data":{"price":1234.56,"count":1000000},...}
 # Output is byte-for-byte identical
 ```

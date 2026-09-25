@@ -76,7 +76,7 @@ date -u +%Y-%m-%dT%H:%M:%SZ  # portable
 | 2 | `tool doctor` checks runtime and OS compatibility; failure emits a structured JSON error with `platform` context |
 | 3 | Explicit platform/shell requirements declared in `--show-requirements`; framework abstracts all platform differences; `tool doctor` checks all dependencies |
 
-**Check:** Run `tool doctor --output json` — verify it emits structured pass/fail checks for OS, shell, and required tools.
+**Check:** Run `tool doctor --format json` — verify it emits structured pass/fail checks for OS, shell, and required tools.
 
 ---
 
@@ -93,7 +93,7 @@ import subprocess, json, sys
 
 def check_platform(tool: str) -> list[dict]:
     result = subprocess.run(
-        [tool, "doctor", "--output", "json"],
+        [tool, "doctor", "--format", "json"],
         capture_output=True, text=True,
     )
     try:
@@ -109,11 +109,11 @@ if failing:
     sys.exit(1)
 ```
 
-**Pass `--output json` and use explicit paths to avoid shell expansion differences:**
+**Pass `--format json` and use explicit paths to avoid shell expansion differences:**
 ```python
 # Avoid shell=True — shell syntax differs across platforms
 result = subprocess.run(
-    ["tool", "build", "--cwd", "/absolute/path/to/project", "--output", "json"],
+    ["tool", "build", "--cwd", "/absolute/path/to/project", "--format", "json"],
     capture_output=True, text=True,  # not shell=True
 )
 ```

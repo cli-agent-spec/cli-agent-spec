@@ -10,7 +10,7 @@
 
 ## Description
 
-The framework MUST support the convention that any argument accepting an identifier value also accepts `-` to mean "read the value from stdin". Command authors declare arguments as `pipe_compatible: true`; the framework handles stdin reading transparently. This enables shell composition: `tool get-user --name Alice --output id | tool delete-user --id -`.
+The framework MUST support the convention that any argument accepting an identifier value also accepts `-` to mean "read the value from stdin". Command authors declare arguments as `pipe_compatible: true`; the framework handles stdin reading transparently. This enables shell composition: `tool get-user --name Alice --format id | tool delete-user --id -`.
 
 ## Acceptance Criteria
 
@@ -29,7 +29,7 @@ No dedicated schema type — this requirement governs argument reading behavior.
 ## Wire Format
 
 ```bash
-$ tool list-users --output id | tool delete-user --id -
+$ tool list-users --format id | tool delete-user --id -
 ```
 
 ```json
@@ -77,7 +77,7 @@ register command "delete-user":
   args:
     id: { type: string, pipe_compatible: true }
 
-# tool get-user --name alice --output id | tool delete-user --id -
+# tool get-user --name alice --format id | tool delete-user --id -
 ```
 
 ---
@@ -86,6 +86,6 @@ register command "delete-user":
 
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
-| [REQ-O-005](o-005-output-id-extraction-mode.md) | O | Provides: `--output id` produces the single-id lines consumed here |
+| [REQ-O-005](o-005-output-id-extraction-mode.md) | O | Provides: `--format id` produces the single-id lines consumed here |
 | [REQ-F-002](f-002-exit-code-2-reserved-for-validation-failures.md) | F | Enforces: empty stdin raises `ARG_ERROR` with `phase: "validation"` |
 | [REQ-F-006](f-006-stdout-stderr-stream-enforcement.md) | F | Provides: stdout/stderr separation required for clean pipe composition |

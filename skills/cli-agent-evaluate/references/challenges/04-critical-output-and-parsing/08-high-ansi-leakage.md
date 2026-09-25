@@ -10,7 +10,7 @@ ANSI escape sequences (colors, bold, cursor movement) are designed for TTY displ
 
 **Color codes in JSON output:**
 ```bash
-$ tool get-status --output json
+$ tool get-status --format json
 \e[32m{"ok": true, "status": "healthy"}\e[0m
 # JSON parser: fails or returns string starting with ESC character
 # Agent sees: invalid JSON
@@ -62,7 +62,7 @@ def should_use_color() -> bool:
     return True
 ```
 
-**Strip escape codes from all output in `--output json` mode — unconditionally:**
+**Strip escape codes from all output in `--format json` mode — unconditionally:**
 ```python
 import re
 
@@ -94,7 +94,7 @@ os.environ["ANSIBLE_FORCE_COLOR"] = "0"
 **For framework design:**
 - Framework sets `NO_COLOR=1` automatically when stdout is not a TTY
 - All string values pass through `strip_ansi()` before JSON serialization
-- `--output json` mode unconditionally disables color regardless of TTY state
+- `--format json` mode unconditionally disables color regardless of TTY state
 - Framework CI detection: `CI`, `GITHUB_ACTIONS`, `JENKINS_URL` → auto-quiet
 
 ---

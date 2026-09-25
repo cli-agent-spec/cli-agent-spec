@@ -14,23 +14,23 @@ Three distinct failure modes exist:
 
 **Mode 1 — Option rejected after positional arg (POSIX strict mode):**
 ```bash
-$ tool deploy staging --output json
-# argparse default: "staging" consumed as positional, "--output" rejected as unrecognised
-Error: unrecognised arguments: --output json
+$ tool deploy staging --format json
+# argparse default: "staging" consumed as positional, "--format" rejected as unrecognised
+Error: unrecognised arguments: --format json
 ```
 
 **Mode 2 — Option silently treated as positional value:**
 ```bash
-$ tool list --limit 10 --output json
-# some parsers: "--output" becomes the second positional arg value
+$ tool list --limit 10 --format json
+# some parsers: "--format" becomes the second positional arg value
 # no error; wrong result silently returned in plain text
 ```
 
 **Mode 3 — Global option not accepted after subcommand:**
 ```bash
-$ tool --output json deploy staging   # works
-$ tool deploy staging --output json   # fails: --output not registered on subcommand
-Error: unknown flag: --output
+$ tool --format json deploy staging   # works
+$ tool deploy staging --format json   # fails: --format not registered on subcommand
+Error: unknown flag: --format
 ```
 
 Agents cannot reliably predict which mode applies without probing, and the errors are inconsistent — Mode 2 fails silently, making it the hardest to detect.
@@ -40,7 +40,7 @@ Agents cannot reliably predict which mode applies without probing, and the error
 - Silent misparse (Mode 2) causes incorrect results with exit code 0 — no retry signal
 - Retry loops from inconsistent flag placement across invocations of the same command
 - Agent must learn per-CLI ordering rules through trial and error, spending tokens and round trips
-- Global flags (e.g., `--output`, `--timeout`) registered at root level silently ignored when placed after subcommand
+- Global flags (e.g., `--format`, `--timeout`) registered at root level silently ignored when placed after subcommand
 
 ### Solutions
 

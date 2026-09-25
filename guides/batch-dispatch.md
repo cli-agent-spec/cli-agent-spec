@@ -31,7 +31,7 @@ Each input line is a JSON object. The `_cmd` field is the only reserved key the 
 {"_cmd": "account.list"}
 ```
 
-`_cmd` uses the same dot-separated path as the tool manifest `commands` map keys. This is not a coincidence: agents discover the available paths from `tool manifest --output json`, then populate `_cmd` directly from that map. The dot-separation mirrors subcommand nesting (`tool account create` → `"account.create"`), so no additional translation layer is needed.
+`_cmd` uses the same dot-separated path as the tool manifest `commands` map keys. This is not a coincidence: agents discover the available paths from `tool manifest --format json`, then populate `_cmd` directly from that map. The dot-separation mirrors subcommand nesting (`tool account create` → `"account.create"`), so no additional translation layer is needed.
 
 Use underscore-prefixed keys (`_cmd`, `_opts`) to minimize collision with domain field names. An application model that happens to have a `cmd` field would collide with a plain `cmd` key; `_cmd` is a visible signal that this field is routing metadata, not payload.
 
@@ -107,7 +107,7 @@ def exec_batch(cli: list[str], operations: list[dict], ignore_errors: bool = Fal
             tmp = f.name
         try:
             result = subprocess.run(
-                cli + ["exec"] + flags + ["--input-file", tmp, "--output", "jsonl"],
+                cli + ["exec"] + flags + ["--input-file", tmp, "--format", "jsonl"],
                 capture_output=True, text=True,
                 stdin=subprocess.DEVNULL,
                 timeout=120,
@@ -116,7 +116,7 @@ def exec_batch(cli: list[str], operations: list[dict], ignore_errors: bool = Fal
             os.unlink(tmp)
     else:
         result = subprocess.run(
-            cli + ["exec"] + flags + ["--output", "jsonl"],
+            cli + ["exec"] + flags + ["--format", "jsonl"],
             input=payload,
             capture_output=True, text=True,
             timeout=120,

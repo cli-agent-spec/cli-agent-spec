@@ -81,7 +81,7 @@
         "output_formats": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "Format values accepted by --output or --format beyond the framework defaults (json, jsonl, tsv, plain). Omit when only defaults are supported. Sourced from REQ-O-049."
+          "description": "Format values accepted by --format beyond the framework defaults (json, jsonl, tsv, plain). Omit when only defaults are supported. Sourced from REQ-O-049."
         },
         "examples": {
           "type": "array",

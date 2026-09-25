@@ -104,7 +104,7 @@ def run_recursive(
         path,
         "--no-follow-symlinks",     # prevent symlink loop traversal
         f"--max-depth={max_depth}", # second defense layer
-        "--output", "json",
+        "--format", "json",
     ]
 
     result = subprocess.run(

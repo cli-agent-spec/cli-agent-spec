@@ -59,9 +59,9 @@ register command "list-events":
 
 The framework then advertises JSONL as the default in `--help` and in the `manifest` output, giving agents a schema-level signal before invocation.
 
-**Provide `--no-stream` / `--output json` as a compatibility escape:**
+**Provide `--no-stream` / `--format json` as a compatibility escape:**
 
-A streaming-default command MUST accept `--no-stream` (or `--output json`) and return a buffered `ResponseEnvelope`. This gives envelope-only consumers a reliable fallback without requiring them to switch to a JSONL parser.
+A streaming-default command MUST accept `--no-stream` (or `--format json`) and return a buffered `ResponseEnvelope`. This gives envelope-only consumers a reliable fallback without requiring them to switch to a JSONL parser.
 
 ```bash
 $ tool list-events --no-stream

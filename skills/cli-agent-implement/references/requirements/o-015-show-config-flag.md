@@ -14,7 +14,7 @@ The framework MUST provide `tool --show-config` as a built-in invocation that ou
 
 ## Acceptance Criteria
 
-- `tool --show-config --output json | python -c "import json,sys; json.load(sys.stdin)"` succeeds
+- `tool --show-config --format json | python -c "import json,sys; json.load(sys.stdin)"` succeeds
 - Each key in `sources` maps to the file path or env var name that provided its value
 - `precedence_order` is present and lists all config layers in order
 - The output reflects the actual resolved state, including any env var overrides
@@ -32,17 +32,17 @@ The framework MUST provide `tool --show-config` as a built-in invocation that ou
 ## Wire Format
 
 ```bash
-$ tool --show-config --output json
+$ tool --show-config --format json
 ```
 
 ```json
 {
   "ok": true,
   "data": {
-    "effective_config": { "region": "us-east-1", "output": "json", "timeout": 30 },
+    "effective_config": { "region": "us-east-1", "format": "json", "timeout": 30 },
     "sources": {
       "region": "env:TOOL_REGION",
-      "output": "file:/home/user/.config/tool/config.json",
+      "format": "file:/home/user/.config/tool/config.json",
       "timeout": "default"
     },
     "precedence_order": ["cli-flags", "env-vars", "/home/user/.config/tool/config.json", "defaults"]

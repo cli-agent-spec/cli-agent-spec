@@ -16,7 +16,7 @@ $ tool create-user --name Alice | tool send-welcome-email
 
 **Required format transformation between commands:**
 ```bash
-$ ID=$(tool get-user --name Alice --output json | python -c "import sys,json; print(json.load(sys.stdin)['id'])")
+$ ID=$(tool get-user --name Alice --format json | python -c "import sys,json; print(json.load(sys.stdin)['id'])")
 $ tool delete-user --id $ID
 # Agent has to know the JSON structure and write extraction logic
 ```
@@ -35,45 +35,45 @@ $ tool get-user-id --name Alice | tool send-email
 
 ### Solutions
 
-**`--output id` mode (extract single value):**
+**`--format id` mode (extract single value):**
 ```bash
-$ tool get-user --name Alice --output id
+$ tool get-user --name Alice --format id
 42
 # Just the primary identifier, no JSON, pipeable
 ```
 
 **Stdin acceptance for IDs:**
 ```bash
-$ tool get-user --name Alice --output id | tool send-welcome-email --user-id -
+$ tool get-user --name Alice --format id | tool send-welcome-email --user-id -
 # --user-id - means "read from stdin"
 ```
 
 **Batch input from file/stdin:**
 ```bash
-$ tool list-users --output jsonl | tool send-welcome-email --users-jsonl -
+$ tool list-users --format jsonl | tool send-welcome-email --users-jsonl -
 ```
 
 **`--from` flag for reading prior command output:**
 ```bash
-$ tool get-user --name Alice --output json > /tmp/user.json
+$ tool get-user --name Alice --format json > /tmp/user.json
 $ tool send-welcome-email --from-file /tmp/user.json
 ```
 
 **For framework design:**
 - Every command that takes an ID also accepts `-` to read from stdin
-- Provide `--output id` as a standard extraction mode
+- Provide `--format id` as a standard extraction mode
 - Define a pipe protocol: each framework command can declare what it emits and what it accepts
 
 ### Evaluation
 
 | Score | Condition |
 |-------|-----------|
-| 0 | No `--output id` mode; commands don't accept stdin; inter-command data transfer requires manual JSON extraction |
-| 1 | `--output json` exists but single-value extraction requires `jq` or inline Python; no stdin acceptance |
-| 2 | `--output id` mode available on read commands; some commands accept `-` to read ID from stdin |
-| 3 | All ID-taking commands accept `-` for stdin; `--output id` standard across the tool; `--from-file` accepted for structured input |
+| 0 | No `--format id` mode; commands don't accept stdin; inter-command data transfer requires manual JSON extraction |
+| 1 | `--format json` exists but single-value extraction requires `jq` or inline Python; no stdin acceptance |
+| 2 | `--format id` mode available on read commands; some commands accept `-` to read ID from stdin |
+| 3 | All ID-taking commands accept `-` for stdin; `--format id` standard across the tool; `--from-file` accepted for structured input |
 
-**Check:** Chain two commands using shell pipe — `tool get-X --output id | tool use-X --id -` — and verify it works without intermediate variables or subshell parsing.
+**Check:** Chain two commands using shell pipe — `tool get-X --format id | tool use-X --id -` — and verify it works without intermediate variables or subshell parsing.
 
 ---
 
@@ -88,7 +88,7 @@ $ tool send-welcome-email --from-file /tmp/user.json
 ```python
 # Step 1: get the primary ID
 result = subprocess.run(
-    ["tool", "get-user", "--name", "Alice", "--output", "json"],
+    ["tool", "get-user", "--name", "Alice", "--format", "json"],
     capture_output=True, text=True,
 )
 user_id = json.loads(result.stdout)["data"]["id"]

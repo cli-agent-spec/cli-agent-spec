@@ -14,7 +14,7 @@ The framework MUST provide a built-in `tool changelog` command that outputs a st
 
 ## Acceptance Criteria
 
-- `tool changelog --output json` returns a valid JSON array of version entries
+- `tool changelog --format json` returns a valid JSON array of version entries
 - Each entry includes `version`, `date`, `breaking` (boolean), `added`, `removed`, `changed`
 - `--since 1.0.0` returns only entries for versions after `1.0.0`
 - Breaking changes are correctly flagged as `"breaking": true`
@@ -32,7 +32,7 @@ The framework MUST provide a built-in `tool changelog` command that outputs a st
 ## Wire Format
 
 ```bash
-$ tool changelog --since 1.0.0 --output json
+$ tool changelog --since 1.0.0 --format json
 ```
 
 ```json
@@ -75,7 +75,7 @@ app = Framework("tool")
 app.enable_changelog(source="./CHANGELOG.schema.json")
 
 # Agent checks for breaking changes since its last known version:
-$ tool changelog --since 1.0.0 --output json | jq '[.data.entries[] | select(.breaking)]'
+$ tool changelog --since 1.0.0 --format json | jq '[.data.entries[] | select(.breaking)]'
 ```
 
 ---

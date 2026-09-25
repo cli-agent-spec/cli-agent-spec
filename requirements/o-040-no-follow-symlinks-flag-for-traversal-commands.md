@@ -32,7 +32,7 @@ When `--max-depth` is exceeded, the error uses `code: "DEPTH_EXCEEDED"` with `ma
 ## Wire Format
 
 ```bash
-$ tool delete --recursive --no-follow-symlinks /tmp/a --output json
+$ tool delete --recursive --no-follow-symlinks /tmp/a --format json
 ```
 
 ```json

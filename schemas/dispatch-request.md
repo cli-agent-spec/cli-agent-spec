@@ -82,7 +82,7 @@ All segments must be lowercase and start with a letter.
 
 ## Agent interpretation
 
-- `_cmd` keys map 1:1 to the `commands` map in `ManifestResponse` — discover available paths via `tool manifest --output json`
+- `_cmd` keys map 1:1 to the `commands` map in `ManifestResponse` — discover available paths via `tool manifest --format json`
 - A missing or malformed `_cmd` emits a line-level error with `error.code: "DISPATCH_PARSE_ERROR"` and `error.phase: "validation"` — no side effects for that line
 - `_opts` overrides are merged with global flags; a per-line `dry_run: true` overrides a global `--no-dry-run`
 - Fields other than `_cmd` and `_opts` are passed verbatim as `--input` — they must match the target command's declared input schema
@@ -91,7 +91,7 @@ All segments must be lowercase and start with a letter.
 
 ## Coding agent notes
 
-- Generate valid `_cmd` values from `tool manifest --output json | jq -r '.data.commands | keys[]'`
+- Generate valid `_cmd` values from `tool manifest --format json | jq -r '.data.commands | keys[]'`
 - Validate payload fields against the target command's `output_schema` before submitting the batch — a validation error caught pre-flight costs nothing; one discovered at line 500 of 1000 wastes the first 499
 - Sort lines so `danger_level: "safe"` read operations precede writes — if dispatch stops on first failure, reads complete before any mutation begins
 - The `_line` field in each response corresponds to the 1-based line index in the request stream; use it to correlate failures back to the input

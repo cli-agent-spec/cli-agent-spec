@@ -54,7 +54,7 @@ tool --config /tmp/agent-session-42.json deploy  # isolated config file
 
 **State inspection command:**
 ```bash
-$ tool status --output json
+$ tool status --format json
 {
   "logged_in": true,
   "user": "alice@example.com",
@@ -74,10 +74,10 @@ $ tool status --output json
 |-------|-----------|
 | 0 | Commands rely on implicit global state; no `--context` override; parallel agents silently conflict |
 | 1 | `--context` flag exists on some commands; `tool status` returns current session info but not sources |
-| 2 | All mutating commands accept `--context`; `tool status --output json` shows `current_context`, `user`, and `token_expires` |
+| 2 | All mutating commands accept `--context`; `tool status --format json` shows `current_context`, `user`, and `token_expires` |
 | 3 | `--config` flag accepts isolated config file path; `tool status --show-state-files` lists all global state locations; framework defaults to stateless per-call auth |
 
-**Check:** Run `tool status --output json` and verify it emits `current_context` and `user` as machine-readable fields — not prose.
+**Check:** Run `tool status --format json` and verify it emits `current_context` and `user` as machine-readable fields — not prose.
 
 ---
 
@@ -94,7 +94,7 @@ import subprocess, json, os
 
 def get_session_state(tool: str) -> dict:
     result = subprocess.run(
-        [tool, "status", "--output", "json"],
+        [tool, "status", "--format", "json"],
         capture_output=True, text=True,
     )
     try:

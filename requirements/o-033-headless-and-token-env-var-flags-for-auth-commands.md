@@ -32,7 +32,7 @@ On headless auth failure, the error includes `auth_methods[]` listing available 
 ## Wire Format
 
 ```bash
-$ tool auth login --headless --token-env-var MY_TOKEN --output json
+$ tool auth login --headless --token-env-var MY_TOKEN --format json
 ```
 
 Success:

@@ -14,8 +14,8 @@ The framework MUST provide a built-in `tool status` command with subflags `--sho
 
 ## Acceptance Criteria
 
-- `tool status --show-side-effects --output json` returns paths, types, and sizes for all declared side effects
-- `tool status --show-state-files --output json` returns paths and summaries of all global state files (e.g., current context, cached tokens)
+- `tool status --show-side-effects --format json` returns paths, types, and sizes for all declared side effects
+- `tool status --show-state-files --format json` returns paths and summaries of all global state files (e.g., current context, cached tokens)
 - The command exits `0` and produces valid JSON regardless of what state exists
 - All path values in the output are absolute
 
@@ -32,7 +32,7 @@ The framework MUST provide a built-in `tool status` command with subflags `--sho
 ## Wire Format
 
 ```bash
-$ tool status --show-state-files --output json
+$ tool status --show-state-files --format json
 ```
 
 ```json
@@ -64,11 +64,11 @@ app = Framework("tool")
 app.enable_status()
 
 # Pre-flight check before a session-sensitive operation:
-$ tool status --output json | jq '.data.current_context'
+$ tool status --format json | jq '.data.current_context'
 "production"
 
 # Discover all global state files for isolation:
-$ tool status --show-state-files --output json
+$ tool status --show-state-files --format json
 ```
 
 ---

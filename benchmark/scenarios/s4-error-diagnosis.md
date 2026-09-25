@@ -27,7 +27,7 @@ health check
 # returns: exit 1, stderr: "WARN: cache stale\nERROR: registry auth failed: token expired 2h ago\nINFO: 3 services checked"
 
 # good
-health check --output json
+health check --format json
 # returns: exit 8, {"ok":false,"error":{"code":"TOKEN_EXPIRED","retryable":false,"context":{"service":"registry","expired_at":"..."}},"meta":{"exit_code":8,...}}
 ```
 

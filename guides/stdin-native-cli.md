@@ -33,7 +33,7 @@ UNIX pipes have a 64 KB kernel buffer. If a tool reads a large payload from stdi
 
 ```bash
 # Agent sends 200 KB CSV and expects a 200 KB response
-echo "$large_csv" | bean commodity import --output json > result.json
+echo "$large_csv" | bean commodity import --format json > result.json
 
 # Timeline:
 # 1. Agent writes 200 KB to tool's stdin
@@ -196,7 +196,7 @@ def invoke_stdin_command(cmd: list[str], payload: str) -> dict:
 
 Before calling any command that might read stdin:
 
-1. Run `<tool> <command> --schema --output json` — check `flags[*].stdin_fallback`
+1. Run `<tool> <command> --schema --format json` — check `flags[*].stdin_fallback`
 2. If `stdin_fallback: true` is present, the flag accepts `-` for stdin input
 3. If `non_tty_behavior` is absent or not `"fail_with_exit_4"`, use a temp file instead of piping
 4. Always set `stdin=DEVNULL` unless explicitly sending data via `input=`

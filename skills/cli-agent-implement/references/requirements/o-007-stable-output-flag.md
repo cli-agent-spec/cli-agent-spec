@@ -29,7 +29,7 @@ No dedicated schema type — this requirement governs output determinism. `--sta
 ## Wire Format
 
 ```bash
-$ tool list-users --stable-output --output json
+$ tool list-users --stable-output --format json
 ```
 
 ```json

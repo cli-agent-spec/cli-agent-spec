@@ -79,7 +79,7 @@ Violation: `dry_run_flag` is required when `kind` is `destructive`.
 - **Putting `--yes` or `--force` in a destructive probe.** The kit then executes the deletion for real; confirmation flags never belong in a profile
 - **Marking a mutating command as `read`.** Read probes run several times (stdin closed, stdin open, `NO_COLOR`); anything that writes will write repeatedly
 - **Pointing a profile at production credentials.** Probes call the real tool; use a sandbox account or a mock
-- **Adding `--output json` to probe argv.** The envelope check exists to prove JSON activates in a non-TTY without flags (REQ-F-003)
+- **Adding `--format json` to probe argv.** The envelope check exists to prove JSON activates in a non-TTY without flags (REQ-F-003)
 
 ---
 

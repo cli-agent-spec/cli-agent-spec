@@ -112,7 +112,7 @@ payload = {
 result = subprocess.run(
     ["tool", "user", "create",
      "--json", json.dumps(payload),   # raw JSON, no translation loss
-     "--output", "json"],
+     "--format", "json"],
     capture_output=True, text=True,
 )
 parsed = json.loads(result.stdout)

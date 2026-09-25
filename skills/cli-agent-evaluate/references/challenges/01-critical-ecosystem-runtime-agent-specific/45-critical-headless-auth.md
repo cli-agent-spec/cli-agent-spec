@@ -94,7 +94,7 @@ def ensure_authenticated(tool: str) -> bool:
     """Run a lightweight read command to check auth state."""
     env = {**os.environ}
     result = subprocess.run(
-        [tool, "status", "--output", "json"],
+        [tool, "status", "--format", "json"],
         capture_output=True, text=True,
         stdin=subprocess.DEVNULL,
         timeout=10,

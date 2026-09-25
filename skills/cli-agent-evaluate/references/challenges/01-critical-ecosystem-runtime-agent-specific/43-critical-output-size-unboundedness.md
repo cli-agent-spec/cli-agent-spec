@@ -89,7 +89,7 @@ MAX_OUTPUT_BYTES = MAX_OUTPUT_TOKENS * 4  # ~4 bytes/token
 result = subprocess.run(
     ["tool", "get-record", "--id", record_id,
      "--max-output", str(MAX_OUTPUT_BYTES),
-     "--output", "json"],
+     "--format", "json"],
     capture_output=True, text=True,
 )
 
@@ -115,7 +115,7 @@ if parsed.get("meta", {}).get("truncated"):
 result = subprocess.run(
     ["tool", "get-record", "--id", record_id,
      "--fields", "id,name,status",   # only what the agent needs
-     "--output", "json"],
+     "--format", "json"],
     capture_output=True, text=True,
 )
 ```

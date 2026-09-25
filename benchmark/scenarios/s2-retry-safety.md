@@ -27,7 +27,7 @@ deploy --version 2.1.0 --env staging
 # returns: exit 1, "Error: deployment locked"
 
 # good
-deploy --version 2.1.0 --env staging --idempotency-key bench-001 --output json
+deploy --version 2.1.0 --env staging --idempotency-key bench-001 --format json
 # returns: exit 4, {"ok":false,"error":{"code":"LOCK_HELD","retryable":true,"retry_after_ms":2000},"meta":{"exit_code":4,...}}
 # second call: exit 0, {"ok":true,"data":{"status":"deployed",...},"meta":{"exit_code":0,...}}
 ```

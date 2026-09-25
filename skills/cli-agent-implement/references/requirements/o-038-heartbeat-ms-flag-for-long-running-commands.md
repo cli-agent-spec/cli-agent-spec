@@ -30,7 +30,7 @@ No dedicated schema type — heartbeat lines are JSONL objects emitted to stdout
 ## Wire Format
 
 ```bash
-$ tool long-job --heartbeat-ms 10000 --output json
+$ tool long-job --heartbeat-ms 10000 --format json
 ```
 
 Stdout JSONL stream:
@@ -54,7 +54,7 @@ app = Framework("tool")
 app.enable_heartbeat_ms()
 
 # Agent reads heartbeats to confirm the process is alive:
-$ tool migrate --heartbeat-ms 5000 --output json | while IFS= read -r line; do
+$ tool migrate --heartbeat-ms 5000 --format json | while IFS= read -r line; do
     python3 -c "import json,sys; d=json.loads('$line'); print('alive' if d.get('heartbeat') else 'done')"
   done
 ```

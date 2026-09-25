@@ -137,7 +137,7 @@ proxy_env = {
 }
 
 result = subprocess.run(
-    ["tool", "fetch-data", "--url", url, "--output", "json"],
+    ["tool", "fetch-data", "--url", url, "--format", "json"],
     capture_output=True, text=True,
     env={**os.environ, **proxy_env},
 )
@@ -160,7 +160,7 @@ if not parsed.get("ok"):
 ```python
 def check_network(tool: str) -> bool:
     result = subprocess.run(
-        [tool, "doctor", "--output", "json"],
+        [tool, "doctor", "--format", "json"],
         capture_output=True, text=True,
     )
     try:

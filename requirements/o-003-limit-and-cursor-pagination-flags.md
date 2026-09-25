@@ -34,7 +34,7 @@ Pagination metadata appears in `meta.pagination` (REQ-F-018): `next_cursor` hold
 First page:
 
 ```bash
-$ tool list-deployments --limit 2 --output json
+$ tool list-deployments --limit 2 --format json
 ```
 
 ```json
@@ -53,7 +53,7 @@ $ tool list-deployments --limit 2 --output json
 Next page:
 
 ```bash
-$ tool list-deployments --limit 2 --cursor eyJwYWdlIjoyfQ --output json
+$ tool list-deployments --limit 2 --cursor eyJwYWdlIjoyfQ --format json
 ```
 
 ```json

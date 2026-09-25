@@ -61,7 +61,7 @@ Worse: the same high-entropy strings appear across multiple tool responses (reso
 | 2 | High-entropy fields replaced with semantic summaries (e.g., `[JWT: expires 2024-03-11, sub=user_123]`); `--unmask` available |
 | 3 | `high_entropy: true` declared in schema; automatic detection of base64/JWT patterns; masking applied by default without explicit declaration |
 
-**Check:** Run `tool auth token --show --output json` and verify the `token` field contains a semantic summary (not the full JWT), with the full value accessible via `--unmask`.
+**Check:** Run `tool auth token --show --format json` and verify the `token` field contains a semantic summary (not the full JWT), with the full value accessible via `--unmask`.
 
 ---
 
@@ -70,7 +70,7 @@ Worse: the same high-entropy strings appear across multiple tool responses (reso
 **Signature:** stdout contains long opaque strings: JWT segments starting `eyJ`, base64 blobs, hex hashes; hundreds of tokens per field with no readable content
 
 **Tier:** C (stateful logic; weak models apply the fallback below)
-**Fallback:** Extract only the needed field, e.g. `tool auth token --show --output json | jq '.data.expires_at'`, and discard the raw token; if that fails, escalate with the command, exit code, stdout, and stderr
+**Fallback:** Extract only the needed field, e.g. `tool auth token --show --format json | jq '.data.expires_at'`, and discard the raw token; if that fails, escalate with the command, exit code, stdout, and stderr
 
 **Extract only the semantic metadata the agent needs; request `--unmask` only when the raw value is operationally required:**
 
@@ -92,7 +92,7 @@ def decode_jwt_claims(token: str) -> dict:
 
 # When the tool returns a raw JWT, extract only what the agent needs
 result = subprocess.run(
-    ["tool", "auth", "token", "--show", "--output", "json"],
+    ["tool", "auth", "token", "--show", "--format", "json"],
     capture_output=True, text=True,
 )
 parsed = json.loads(result.stdout)

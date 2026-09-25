@@ -32,7 +32,7 @@ The `data` field is projected to contain only the requested fields. The envelope
 ## Wire Format
 
 ```bash
-$ tool list-users --fields id,name --output json
+$ tool list-users --fields id,name --format json
 ```
 
 ```json
@@ -68,6 +68,6 @@ app.enable_fields_flag()
 
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
-| [REQ-O-001](o-001-output-format-flag.md) | O | Composes: `--fields` filters within the `--output json` envelope |
+| [REQ-O-001](o-001-output-format-flag.md) | O | Composes: `--fields` filters within the `--format json` envelope |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Provides: envelope shape that `--fields` projects into |
 | [REQ-F-021](f-021-data-meta-separation-in-response-envelope.md) | F | Enforces: `meta` is never filtered by `--fields` |

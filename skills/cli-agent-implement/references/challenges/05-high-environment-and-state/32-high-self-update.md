@@ -134,7 +134,7 @@ env = {
 }
 
 result = subprocess.run(
-    ["tool", "deploy", "--output", "json"],
+    ["tool", "deploy", "--format", "json"],
     capture_output=True, text=True,
     env=env,
 )

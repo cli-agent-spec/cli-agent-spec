@@ -109,7 +109,7 @@ When in doubt, emit JSON. A language model can read JSON; a programmatic parser 
 | [§43 Tool Output Result Size Unboundedness](../challenges/01-critical-ecosystem-runtime-agent-specific/43-critical-output-size-unboundedness.md) | Provides: why `--token-limit` is necessary even with compact formats |
 | [§25 Prompt Injection via Output](../challenges/03-critical-security/25-critical-prompt-injection.md) | Provides: the expanded injection surface for LLM-native output |
 | [§28 Config File Shadowing & Precedence](../challenges/05-high-environment-and-state/28-high-config-shadowing.md) | Provides: the failure mode when non-TTY format defaults are env-var-controlled |
-| [REQ-O-001](../requirements/o-001-output-format-flag.md) | Enforces: `--output` / `--format` flag contract that governs format selection |
+| [REQ-O-001](../requirements/o-001-output-format-flag.md) | Enforces: `--format` flag contract that governs format selection |
 | [REQ-O-042](../requirements/o-042-output-format-env-var-default.md) | Enforces: env var default for output format |
 | [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md) | Provides: `--token-limit`, `--token-count`, `--token-offset` — the token-budget flags that pair with LLM-optimized formats |
 | [schemas/response-envelope.md](../schemas/response-envelope.md) | Provides: canonical JSON envelope that must remain available alongside LLM formats |

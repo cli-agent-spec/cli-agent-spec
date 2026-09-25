@@ -32,7 +32,7 @@ When `--no-config` is passed, `meta.config_sources` is an empty array, confirmin
 ## Wire Format
 
 ```bash
-$ tool deploy --target staging --no-config --output json
+$ tool deploy --target staging --no-config --format json
 ```
 
 ```json

@@ -32,7 +32,7 @@ The framework MUST provide `--instance-id <string>` as a global flag. When set, 
 ## Wire Format
 
 ```bash
-$ tool --instance-id agent-1 config set region=us-east-1 --output json
+$ tool --instance-id agent-1 config set region=us-east-1 --format json
 ```
 
 ```json

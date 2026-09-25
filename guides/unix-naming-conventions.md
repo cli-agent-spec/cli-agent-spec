@@ -14,8 +14,8 @@ LLMs are trained on billions of shell sessions, man pages, scripts, and CLI docu
 |-----------|-------------|
 | Unix verb vocabulary | `list`, `get`, `apply`, `exec`, `diff`, `watch` carry pre-trained behavioral expectations |
 | Verb-noun subcommand grammar | `tool resource create` mirrors `git commit`, `kubectl get pods`; agent infers side-effect profile from the verb |
-| Long-form flag names | `--dry-run`, `--force`, `--recursive`, `--verbose`, `--output` are near-universal; agents predict them correctly |
-| `--format json` | Trained from `aws --output json`, `kubectl -o json`, `gh --json`; agents add it automatically for machine-readable output |
+| Long-form flag names | `--dry-run`, `--force`, `--recursive`, `--verbose`, `--format` are near-universal; agents predict them correctly |
+| `--format json` | Trained from `gcloud --format json`, `docker --format`, `git --format`; one meaning everywhere it appears, unlike `--output` (a format in `aws`/`kubectl`, a file path in `gcc`/`curl`) |
 | `--dry-run` / `--apply` two-phase | Trained from rsync, ansible, terraform; agents use `--dry-run` before mutating unprompted |
 | Man page document structure | SYNOPSIS / OPTIONS / EXAMPLES / EXIT STATUS; agents parse this with high fidelity |
 | Exit codes 0 / 1 / 2 | 0=success, 1=error, 2=bad arguments — deeply trained across the entire Unix corpus |
@@ -87,8 +87,8 @@ Trained from systemctl, supervisorctl, pm2. Agents managing persistent processes
 | Flag | Convention | Trained from |
 |------|-----------|--------------|
 | `--dry-run` / `-n` | Preview without side effects | rsync, make, ansible |
-| `--format json` | Machine-readable output | aws, kubectl, gh |
-| `--output` / `-o` | Output destination or format | many |
+| `--format json` | Machine-readable output | gcloud, docker, git |
+| `--output` / `-o` | Output destination path, never a format (REQ-O-001) | gcc, curl, sort, pandoc |
 | `--verbose` / `-v` | More output; stack for levels | ssh, curl, ansible |
 | `--quiet` / `-q` | Less output | apt, many |
 | `--force` / `-f` | Skip confirmation | rm, git |
@@ -101,7 +101,6 @@ Trained from systemctl, supervisorctl, pm2. Agents managing persistent processes
 | `--watch` | Stream updates | kubectl, webpack |
 | `--label` / `-l` | Filter by metadata | kubectl |
 | `--namespace` / `-n` | Scope isolation | kubectl |
-| `--output-file` | Write to file instead of stdout | many |
 | `--color=auto\|always\|never` | Three-value color control | ls, grep, git |
 | `-` for stdin | Pipe input as file argument | cat, diff, jq |
 | `--` end-of-flags | Protect downstream args | all shells |

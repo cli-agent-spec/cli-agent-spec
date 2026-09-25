@@ -32,7 +32,7 @@ No dedicated schema type — `--input-file` is a behavioral flag that routes inp
 No wire-format fields — `--input-file` affects input routing only. The response envelope is identical to a successful stdin read.
 
 ```bash
-$ tool process --input-file ./payload.json --output json
+$ tool process --input-file ./payload.json --format json
 ```
 
 ```json

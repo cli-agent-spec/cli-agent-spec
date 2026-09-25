@@ -976,7 +976,7 @@ This section maps the P0 requirements from the requirements catalogue to existin
 | REQ-F-053 | Stdout Unbuffering in Non-TTY Mode | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✗ |
 | REQ-F-062 | Glob Expansion Prevention | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✗ |
 | REQ-F-065 | Pipeline Exit Code Propagation | ✗ | ✗ | ✗ | ✓ | ~ | ~ | ✓ | ✗ |
-| REQ-O-001 | --output Format Flag | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ | ~ |
+| REQ-O-001 | --format Output Format Flag | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ | ~ |
 | REQ-O-003 | --limit and --cursor Pagination Flags | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ~ | ✗ |
 | REQ-F-018 | Pagination Metadata on List Commands | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ~ | ✗ |
 | REQ-F-019 | Default Output Limit | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ~ | ✗ |

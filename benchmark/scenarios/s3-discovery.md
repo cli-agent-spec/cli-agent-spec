@@ -9,13 +9,13 @@
 
 ## Expected answer
 
-A correct list of subcommands (`deployments`, `services`, `config`, `logs`) and the flags accepted by `deploy` (`--version`, `--env`, `--dry-run`, `--idempotency-key`, `--timeout`, `--output`).
+A correct list of subcommands (`deployments`, `services`, `config`, `logs`) and the flags accepted by `deploy` (`--version`, `--env`, `--dry-run`, `--idempotency-key`, `--timeout`, `--format`).
 
 ## Why this stresses the spec
 
 **cli-bad:** The agent must call `--help` to get top-level subcommands, then `deploy --help` to get deploy's flags. Both return formatted plain-text help to stdout. The agent parses prose to extract structure. Two API round-trips minimum, more if parsing fails.
 
-**cli-good:** One call to `manifest --output json` returns the complete command tree with typed flag definitions, descriptions, exit code maps, and examples. The agent extracts the answer in a single step.
+**cli-good:** One call to `manifest --format json` returns the complete command tree with typed flag definitions, descriptions, exit code maps, and examples. The agent extracts the answer in a single step.
 
 ## CLI commands exercised
 
@@ -25,7 +25,7 @@ A correct list of subcommands (`deployments`, `services`, `config`, `logs`) and 
 deploy --help
 
 # good
-manifest --output json
+manifest --format json
 ```
 
 ## Measured delta hypothesis

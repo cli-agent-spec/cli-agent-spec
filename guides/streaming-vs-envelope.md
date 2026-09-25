@@ -45,10 +45,10 @@ register command "list-events":
 
 # tool list-events            → JSONL (default)
 # tool list-events --no-stream → ResponseEnvelope (buffered)
-# tool list-events --output json → identical to --no-stream
+# tool list-events --format json → identical to --no-stream
 ```
 
-`--no-stream` (or `--output json`) MUST produce a valid `ResponseEnvelope`, not raw JSONL wrapped in a JSON string. This gives envelope-only consumers a reliable fallback.
+`--no-stream` (or `--format json`) MUST produce a valid `ResponseEnvelope`, not raw JSONL wrapped in a JSON string. This gives envelope-only consumers a reliable fallback.
 
 ---
 

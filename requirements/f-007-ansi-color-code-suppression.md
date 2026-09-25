@@ -47,7 +47,7 @@ serialized = "Error: file not found"
 {"ok":false,"data":null,"error":{"code":"NOT_FOUND","message":"Error: file not found"},...}
 
 # Verify: no ESC byte in output
-$ tool list --output json | cat -v | grep -c '\^['
+$ tool list --format json | cat -v | grep -c '\^['
 0
 ```
 

@@ -32,7 +32,7 @@ For commands that write to caches, the framework MUST provide `--no-cache` (skip
 ## Wire Format
 
 ```bash
-$ tool resolve --no-cache --output json
+$ tool resolve --no-cache --format json
 ```
 
 ```json

@@ -15,7 +15,7 @@
 
 **cli-bad:** The delete command has no `--dry-run` flag. The agent must either proceed blindly (risking production deletion if its filter is wrong) or refuse and ask for human confirmation. If it proceeds and the filter is wrong, there is no partial failure report — just `exit 1` with no indication of what was deleted before the error.
 
-**cli-good:** The agent calls `deployments delete --filter "env=staging,age>30d" --dry-run --output json` first, verifying the target set. Then calls with `--yes` to confirm. If the bulk delete partially fails mid-way, the response exits `3` with `data.summary` and per-item `data.results[]` (REQ-C-009) so the agent knows exactly what state was reached.
+**cli-good:** The agent calls `deployments delete --filter "env=staging,age>30d" --dry-run --format json` first, verifying the target set. Then calls with `--yes` to confirm. If the bulk delete partially fails mid-way, the response exits `3` with `data.summary` and per-item `data.results[]` (REQ-C-009) so the agent knows exactly what state was reached.
 
 ## CLI commands exercised
 
@@ -25,9 +25,9 @@ deployments delete --filter "env=staging,age>30d"
 # no dry-run; no step manifest; exit 1 on partial failure with no detail
 
 # good
-deployments delete --filter "env=staging,age>30d" --dry-run --output json
+deployments delete --filter "env=staging,age>30d" --dry-run --format json
 # returns: {"ok":true,"data":{"effect":"would_delete","would_affect":{"deployments":[{"id":"deploy-021",...},...]}}}
-deployments delete --filter "env=staging,age>30d" --yes --output json
+deployments delete --filter "env=staging,age>30d" --yes --format json
 # returns: {"ok":true,"data":{"effect":"deleted","summary":{"total":3,"succeeded":3,"failed":0},"results":[{"id":"deploy-021","ok":true},...]}}
 ```
 

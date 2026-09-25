@@ -80,7 +80,7 @@ The correct call is `await program.parseAsync()`, but this requires the calling 
 | 2 | `parseAsync()` used consistently; framework emits a stderr warning if `parse()` is called with any async handler |
 | 3 | Compile-time or startup check enforces `parseAsync()` for async handlers; test harnesses use `parseAsync()` |
 
-**Check:** Run any command with `--output json` and verify that stdout contains a complete, valid JSON response — empty stdout with exit 0 is a failure indicator for this bug.
+**Check:** Run any command with `--format json` and verify that stdout contains a complete, valid JSON response — empty stdout with exit 0 is a failure indicator for this bug.
 
 ---
 

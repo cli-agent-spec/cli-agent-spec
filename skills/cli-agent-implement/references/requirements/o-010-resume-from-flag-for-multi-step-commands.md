@@ -32,7 +32,7 @@ Resumed responses include `data.completed_steps`, `data.skipped_steps`, and `dat
 ## Wire Format
 
 ```bash
-$ tool migrate --resume-from step-3 --output json
+$ tool migrate --resume-from step-3 --format json
 ```
 
 ```json

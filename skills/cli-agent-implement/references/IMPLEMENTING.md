@@ -147,7 +147,7 @@ After completing any path, continue with the full [wave plan](#suggested-impleme
 | [REQ-F-048](requirements/f-048-help-output-routing-to-stderr-in-non-tty-mode.md) | Help Output Routing to Stderr in Non-TTY Mode | `--help` goes to stderr; stdout stays valid JSON |
 | [REQ-F-052](requirements/f-052-response-size-hard-cap-with-truncation-indicator.md) | Response Size Hard Cap with Truncation Indicator | Hard 1 MB cap; `meta.truncated: true` signals the agent to paginate |
 | [REQ-F-056](requirements/f-056-terminal-width-wrapping-disabled-in-json-mode.md) | Terminal Width Wrapping Disabled in JSON Mode | No mid-string line breaks inflating token count |
-| [REQ-O-001](requirements/o-001-output-format-flag.md) **†** | `--output` Format Flag | Agent selects `json`, `jsonl`, or `tsv` — pick the most compact format for the task |
+| [REQ-O-001](requirements/o-001-output-format-flag.md) **†** | `--format` Output Format Flag | Agent selects `json`, `jsonl`, or `tsv` — pick the most compact format for the task |
 | [REQ-O-002](requirements/o-002-fields-selector.md) | `--fields` Selector | Agent requests only needed fields; server-side projection |
 | [REQ-O-003](requirements/o-003-limit-and-cursor-pagination-flags.md) **†** | `--limit` and `--cursor` Pagination Flags | Agent fetches exactly as many items as needed |
 | [REQ-O-008](requirements/o-008-quiet-verbose-debug-verbosity-flags.md) | `--quiet` / `--verbose` / `--debug` Verbosity Flags | `--quiet` suppresses all diagnostic output |
@@ -167,7 +167,7 @@ After completing any path, continue with the full [wave plan](#suggested-impleme
 | [REQ-C-001](requirements/c-001-command-declares-exit-codes.md) **†** | Command Declares Exit Codes | Exit codes appear in `--schema`; agent learns failure modes without trial calls |
 | [REQ-C-013](requirements/c-013-error-responses-include-code-and-message.md) **†** | Error Responses Include Code and Message | Structured codes enable agent templates reused across commands |
 | [REQ-C-015](requirements/c-015-commands-declare-input-and-output-schema.md) | Commands Declare Input and Output Schema | Full parameter + output schema at `--schema`; no exploration required |
-| [REQ-O-001](requirements/o-001-output-format-flag.md) **†** | `--output` Format Flag | `--output id` pipes bare IDs — no JSON parse step in composition chains |
+| [REQ-O-001](requirements/o-001-output-format-flag.md) **†** | `--format` Output Format Flag | `--format id` pipes bare IDs — no JSON parse step in composition chains |
 | [REQ-O-003](requirements/o-003-limit-and-cursor-pagination-flags.md) **†** | `--limit` and `--cursor` Pagination Flags | Standard cursor model; agent reuses same pagination logic for all list commands |
 | [REQ-O-013](requirements/o-013-schema-output-schema-flag.md) | `--schema` / `--output-schema` Flag | One call exposes all parameters, exit codes, and output shape; `--print-schema` is a compatibility alias |
 | [REQ-O-026](requirements/o-026-tool-doctor-built-in-command.md) | `tool doctor` Built-In Command | One preflight call replaces O(N) individual dependency checks |
@@ -219,7 +219,7 @@ The JSON envelope and exit code table must be stable before any other requiremen
 | [REQ-F-021](requirements/f-021-data-meta-separation-in-response-envelope.md) | Data/Meta Separation in Response Envelope | Envelope structure finalisation |
 | [REQ-F-022](requirements/f-022-schema-version-in-every-response.md) | Schema Version in Every Response | Goes into `meta` — needs envelope to exist |
 | [REQ-F-023](requirements/f-023-tool-version-in-every-response.md) | Tool Version in Every Response | Goes into `meta` — needs envelope to exist |
-| [REQ-O-001](requirements/o-001-output-format-flag.md) | `--output` Format Flag | P0 opt-in; exposes the JSON mode the framework just built |
+| [REQ-O-001](requirements/o-001-output-format-flag.md) | `--format` Output Format Flag | P0 opt-in; exposes the JSON mode the framework just built |
 
 ---
 

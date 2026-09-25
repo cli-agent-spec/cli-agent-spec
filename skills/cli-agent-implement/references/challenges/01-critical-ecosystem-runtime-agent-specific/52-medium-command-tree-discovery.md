@@ -76,10 +76,10 @@ $ tool --schema --full
 |-------|-----------|
 | 0 | No single-call schema export; discovering all subcommands requires N+1 sequential help calls |
 | 1 | `tool --schema` returns top-level commands only; subcommand details require additional help calls |
-| 2 | `tool --schema --output json` returns full tree in one call; each command includes name, description, flags |
+| 2 | `tool --schema --format json` returns full tree in one call; each command includes name, description, flags |
 | 3 | Full tree export including args with types, required/optional status, and nested subcommands; completes in <500ms |
 
-**Check:** Run `tool --schema --output json` and verify the output is a complete tree with all subcommands and their flags — no additional `--help` calls needed.
+**Check:** Run `tool --schema --format json` and verify the output is a complete tree with all subcommands and their flags — no additional `--help` calls needed.
 
 ---
 
@@ -88,7 +88,7 @@ $ tool --schema --full
 **Signature:** `--help` lists subcommand names only; each subcommand's flags require another `--help` call; no single `--schema` call returns the full command tree
 
 **Tier:** C (stateful logic; weak models apply the fallback below)
-**Fallback:** `tool --schema --output json`; if that fails, escalate with the command, exit code, stdout, and stderr
+**Fallback:** `tool --schema --format json`; if that fails, escalate with the command, exit code, stdout, and stderr
 
 **Load the full schema tree in one call at session start; cache it for the session:**
 
@@ -103,7 +103,7 @@ def get_schema(tool: str) -> dict:
 
     # Try single-call full tree first
     result = subprocess.run(
-        [tool, "--schema", "--output", "json"],
+        [tool, "--schema", "--format", "json"],
         capture_output=True, text=True,
         timeout=10,
     )

@@ -26,7 +26,7 @@ These flags are distinct from `--fields` (which filters by key) and the framewor
 - `--token-count` returns `data: null` and `meta.token_count: N` without writing the payload
 - `--token-offset 200 --token-limit 200` returns the second window of 200 tokens
 - All three flags are available on every command without per-command implementation
-- `meta.token_count` is present in every response when `--token-count` is passed, regardless of `--output` format
+- `meta.token_count` is present in every response when `--token-count` is passed, regardless of `--format` value
 
 ---
 
@@ -48,7 +48,7 @@ Requirement-specific `meta` fields:
 ## Wire Format
 
 ```bash
-$ tool list-events --token-limit 500 --output json
+$ tool list-events --token-limit 500 --format json
 ```
 
 ```json
@@ -68,7 +68,7 @@ $ tool list-events --token-limit 500 --output json
 ```
 
 ```bash
-$ tool list-events --token-count --output json
+$ tool list-events --token-count --format json
 ```
 
 ```json
@@ -88,7 +88,7 @@ $ tool list-events --token-count --output json
 Sliding window over large output:
 
 ```bash
-$ tool list-events --token-offset 500 --token-limit 500 --output json
+$ tool list-events --token-offset 500 --token-limit 500 --format json
 # Returns tokens 500–999 of the full output
 ```
 
@@ -103,12 +103,12 @@ app = Framework("tool")
 app.enable_token_budget(tokenizer="cl100k_base")
 
 # Agent decides whether to fetch before committing context budget:
-count_result = run("tool list-events --token-count --output json")
+count_result = run("tool list-events --token-count --format json")
 if count_result["meta"]["token_count"] > context_budget:
     # Fetch in windows instead
-    run(f"tool list-events --token-offset 0 --token-limit {context_budget} --output json")
+    run(f"tool list-events --token-offset 0 --token-limit {context_budget} --format json")
 else:
-    run("tool list-events --output json")
+    run("tool list-events --format json")
 ```
 
 ---

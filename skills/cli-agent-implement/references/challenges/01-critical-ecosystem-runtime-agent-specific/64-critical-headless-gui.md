@@ -119,7 +119,7 @@ if cmd_schema and "browser_open" in cmd_schema.get("gui_operations", []):
         print("WARNING: Command may launch browser in headless env — proceed with caution")
 
 result = subprocess.run(
-    ["tool", "deploy", "--env", "prod", "--output", "json"],
+    ["tool", "deploy", "--env", "prod", "--format", "json"],
     # Note: never pass --open-browser in agent context
     capture_output=True, text=True,
     stdin=subprocess.DEVNULL,

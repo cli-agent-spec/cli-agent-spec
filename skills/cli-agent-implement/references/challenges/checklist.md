@@ -13,7 +13,7 @@ EXIT CODES
   □ Document all exit codes in --help and --schema
 
 OUTPUT
-  □ --output json mode with consistent schema
+  □ --format json mode with consistent schema
   □ Identical schema for 0, 1, N results
   □ effect field on all mutating commands ("created" | "updated" | "noop")
   □ pagination metadata on all list commands
@@ -26,7 +26,7 @@ STREAMS
   □ Strict stdout=data, stderr=diagnostics separation
   □ --quiet suppresses all stderr
   □ Warnings included as warnings[] array in JSON output
-  □ No ANSI/color codes in --output json mode (unconditional)
+  □ No ANSI/color codes in --format json mode (unconditional)
   □ NO_COLOR env var respected everywhere
 
 INTERACTIVITY

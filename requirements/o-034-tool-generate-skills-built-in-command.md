@@ -32,7 +32,7 @@ The framework MUST provide a built-in `tool generate-skills` command that genera
 ## Wire Format
 
 ```bash
-$ tool generate-skills --output-dir ./skills --output json
+$ tool generate-skills --output-dir ./skills --format json
 ```
 
 ```json

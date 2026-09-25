@@ -29,6 +29,12 @@
       "type": "array",
       "items": { "$ref": "#/definitions/DependencyEntry" },
       "description": "External runtime dependencies the tool declares (REQ-O-031). tool doctor checks each entry."
+    },
+    "exit_codes": {
+      "type": "object",
+      "description": "Shared exit-code table every command inherits. A CommandEntry.exit_codes lists only codes absent from this table or whose entry differs; the command's effective table is this map overlaid with its own. Hoisting the framework codes here keeps the manifest small for agents that read it whole.",
+      "propertyNames": { "pattern": "^(0|[1-9][0-9]*)$" },
+      "additionalProperties": { "$ref": "exit-code-entry.json" }
     }
   },
   "definitions": {
@@ -63,7 +69,7 @@
         },
         "exit_codes": {
           "type": "object",
-          "description": "Map from exit code integer (as string key) to ExitCodeEntry. Sourced from REQ-C-001.",
+          "description": "Map from exit code integer (as string key) to ExitCodeEntry. Sourced from REQ-C-001. When the manifest has a root exit_codes table, this map holds only the command's additions and overrides; tool <cmd> --schema always prints the effective table in full.",
           "propertyNames": { "pattern": "^(0|[1-9][0-9]*)$" },
           "additionalProperties": { "$ref": "exit-code-entry.json" }
         },
@@ -75,7 +81,7 @@
         "output_formats": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "Format values accepted by --output or --format beyond the framework defaults (json, jsonl, tsv, plain). Omit when only defaults are supported. Sourced from REQ-O-049."
+          "description": "Format values accepted by --format beyond the framework defaults (json, jsonl, tsv, plain). Omit when only defaults are supported. Sourced from REQ-O-049."
         },
         "examples": {
           "type": "array",

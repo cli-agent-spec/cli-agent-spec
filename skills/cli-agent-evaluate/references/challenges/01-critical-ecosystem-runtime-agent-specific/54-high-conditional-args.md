@@ -6,7 +6,7 @@
 
 ### The Problem
 
-Many commands have arguments only required when another argument takes a specific value: `--auth-type oauth` requires `--client-id` and `--client-secret`; `--output file` requires `--output-path`. These conditional dependencies are almost never expressed in machine-readable form. The agent provides a partial set of arguments, the tool fails, and the agent must retry — often multiple times, discovering one missing co-requirement per round trip.
+Many commands have arguments only required when another argument takes a specific value: `--auth-type oauth` requires `--client-id` and `--client-secret`; `--format csv` requires `--separator`. These conditional dependencies are almost never expressed in machine-readable form. The agent provides a partial set of arguments, the tool fails, and the agent must retry — often multiple times, discovering one missing co-requirement per round trip.
 
 ```bash
 # Round trip 1

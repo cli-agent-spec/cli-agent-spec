@@ -52,11 +52,11 @@ app = Framework("tool")
 app.enable_unmask()   # registers --unmask globally; requires f-058 masking enabled
 
 # Default — token is masked to prevent leakage into logs/context:
-$ tool get-token --output json
+$ tool get-token --format json
 → data.token: "[JWT: sub=alice, exp=1742000000, masked]"
 
 # Explicit unmask for a subsequent API call:
-$ tool get-token --unmask --output json
+$ tool get-token --unmask --format json
 → data.token: "eyJhbGci..."
 ```
 

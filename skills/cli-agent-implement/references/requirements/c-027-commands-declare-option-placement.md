@@ -28,7 +28,7 @@ The declaration is consumed by `tool manifest` (REQ-O-041) and `--schema` (REQ-O
 ## Wire Format
 
 ```bash
-$ tool manifest --output json
+$ tool manifest --format json
 ```
 
 ```json
@@ -74,8 +74,8 @@ def run(target: str, extra_args: list[str]):
 
 # Agent consults manifest before constructing the call:
 # option_placement == "strict" → front-load flags
-# tool --output json run ./my-script --child-flag   ✓
-# tool run ./my-script --output json                ✗ (--output consumed by child)
+# tool --format json run ./my-script --child-flag   ✓
+# tool run ./my-script --format json                ✗ (--format consumed by child)
 ```
 
 ## Related

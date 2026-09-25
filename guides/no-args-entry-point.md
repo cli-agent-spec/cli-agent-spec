@@ -248,8 +248,8 @@ Use this decision table when encountering an unfamiliar CLI:
 | 1 | `<tool>` | No | Try step 2 |
 | 2 | `<tool> --help` | Yes | Parse subcommand list; try `--schema` |
 | 2 | `<tool> --help` | No | Tool is not usable; stop |
-| 3 | `<tool> --schema --output json` | Yes, valid JSON | Use as authoritative schema |
-| 3 | `<tool> --schema --output json` | No | Fall back to per-command `--help` |
+| 3 | `<tool> --schema --format json` | Yes, valid JSON | Use as authoritative schema |
+| 3 | `<tool> --schema --format json` | No | Fall back to per-command `--help` |
 
 Additional signals to watch for:
 

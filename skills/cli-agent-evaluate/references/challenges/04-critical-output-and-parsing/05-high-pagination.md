@@ -59,7 +59,7 @@ tool list-users --limit 100 --cursor "eyJpZCI6MTAwfQ=="
 
 **Streaming output (JSONL):**
 ```bash
-tool list-logs --output jsonl --stream
+tool list-logs --format jsonl --stream
 # Emits one JSON object per line
 # Agent can process incrementally
 {"timestamp": "...", "level": "error", "message": "..."}
@@ -95,7 +95,7 @@ tool list-users --limit 0 # explicit: no limit
 **Signature:** unbounded stdout (thousands of lines) from a list command; or a round-number item count with no `has_more`, `total`, or `next_cursor` field
 
 **Tier:** C (stateful logic; weak models apply the fallback below)
-**Fallback:** Run `tool <list-args> --limit 50 --output json` and treat the result as a partial subset; if that fails, escalate with the command, exit code, stdout, and stderr
+**Fallback:** Run `tool <list-args> --limit 50 --format json` and treat the result as a partial subset; if that fails, escalate with the command, exit code, stdout, and stderr
 
 **Always specify `--limit` and loop with `next_cursor` until `has_more` is false:**
 
@@ -105,7 +105,7 @@ def paginate(base_cmd: list[str], limit: int = 50) -> list:
     cursor = None
 
     while True:
-        cmd = [*base_cmd, "--limit", str(limit), "--output", "json"]
+        cmd = [*base_cmd, "--limit", str(limit), "--format", "json"]
         if cursor:
             cmd += ["--cursor", cursor]
 

@@ -20,7 +20,7 @@ The first rule is true regardless of how the agent runs — it reflects a fact a
 
 | Transfers | Does not transfer |
 |---|---|
-| `--output json` produces structured data | Output format changes based on `$TERM` or `CI=true` |
+| `--format json` produces structured data | Output format changes based on `$TERM` or `CI=true` |
 | Exit 1 means failure, exit 0 means success | Exit codes vary by OS, shell, or caller env |
 | `--dry-run` shows effects without side effects | Dry-run behavior depends on config file presence |
 | Error details in stderr as structured JSON | Errors mixed with progress; format depends on verbosity |
@@ -52,7 +52,7 @@ SkillOpt compresses trajectories into evidence batches. Verbose, unbounded, or n
 From the paper's cost figures: SearchQA costs 213M training tokens at 37.9M tokens per test-point gain — an order of magnitude more expensive than SpreadsheetBench's 0.6M per point. The difference traces directly to trajectory length: longer, more verbose trajectories cost more per training step.
 
 **What CLI authors must provide:**
-- Respect `--no-color`, `--quiet`, and `--output json` — do not emit progress text when structured output is requested (§4, §8)
+- Respect `--no-color`, `--quiet`, and `--format json` — do not emit progress text when structured output is requested (§4, §8)
 - Paginate or truncate large outputs rather than streaming everything to stdout (§5, §43)
 - Separate progress and diagnostic output from result data (§3)
 
@@ -83,10 +83,10 @@ Step-level optimizer prompts cannot overwrite this region; only the epoch-bounda
 The CLI analog is config-layer transparency. If a CLI has multiple behavioral layers — flag values, per-user config, global defaults — the precedence must be explicit and documented, because the optimizer cannot distinguish "this flag has no effect here" from "this flag works but I'm using it wrong."
 
 ```
-$ tool --output json --config /dev/null
+$ tool --format json --config /dev/null
 # Should produce JSON unconditionally.
-# If --config /dev/null doesn't suppress the config that overrides --output,
-# the optimizer learns contradictory rules: "pass --output json → sometimes works."
+# If --config /dev/null doesn't suppress the config that overrides --format,
+# the optimizer learns contradictory rules: "pass --format json → sometimes works."
 ```
 
 **What CLI authors must provide:**
@@ -122,9 +122,9 @@ A CLI is ready for skill optimization when these pass:
 | Check | Command | Expected result |
 |-------|---------|-----------------|
 | Exit codes are reliable | Run a failing command | Non-zero exit with parseable error in stderr |
-| JSON output is unconditional | `your-tool --output json \| python3 -c "import sys,json; json.load(sys.stdin)"` | Parses without error |
-| No TTY dependence | `your-tool --output json < /dev/null \| cat` | Same JSON output as with TTY |
-| Flags beat config | `your-tool --output json --config /dev/null` | JSON output even with no config |
+| JSON output is unconditional | `your-tool --format json \| python3 -c "import sys,json; json.load(sys.stdin)"` | Parses without error |
+| No TTY dependence | `your-tool --format json < /dev/null \| cat` | Same JSON output as with TTY |
+| Flags beat config | `your-tool --format json --config /dev/null` | JSON output even with no config |
 | Output is bounded | Run the largest expected command | Output terminates; does not stream indefinitely |
 
 ---
@@ -165,7 +165,7 @@ def probe_cli_for_optimization(tool: str, test_cmd: list[str]) -> dict:
 
     # Check 3: structured output when requested
     json_result = subprocess.run(
-        test_cmd + ["--output", "json"],
+        test_cmd + ["--format", "json"],
         capture_output=True, text=True,
         stdin=subprocess.DEVNULL,
         timeout=10,
@@ -174,7 +174,7 @@ def probe_cli_for_optimization(tool: str, test_cmd: list[str]) -> dict:
         import json
         json.loads(json_result.stdout)
     except (ValueError, Exception):
-        issues.append("--output json does not produce parseable JSON (§2)")
+        issues.append("--format json does not produce parseable JSON (§2)")
 
     return {"optimizable": len(issues) == 0, "issues": issues}
 ```

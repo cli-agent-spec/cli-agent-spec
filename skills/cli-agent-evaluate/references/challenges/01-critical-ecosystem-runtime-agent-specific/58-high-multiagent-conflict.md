@@ -80,7 +80,7 @@ def config_set(key: str, value: str, max_retries: int = 3) -> dict:
     for attempt in range(max_retries):
         result = subprocess.run(
             ["tool", "--instance-id", INSTANCE_ID, "config", "set",
-             f"{key}={value}", "--output", "json"],
+             f"{key}={value}", "--format", "json"],
             capture_output=True, text=True,
         )
         parsed = json.loads(result.stdout)

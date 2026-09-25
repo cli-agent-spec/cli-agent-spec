@@ -76,7 +76,7 @@ import subprocess, json
 # ALWAYS: capture first, check ok, then extract
 
 result = subprocess.run(
-    ["tool", "list-users", "--output", "json"],
+    ["tool", "list-users", "--format", "json"],
     capture_output=True, text=True,
     stdin=subprocess.DEVNULL,
 )
@@ -99,7 +99,7 @@ user_ids = [u["id"] for u in parsed.get("data", {}).get("users", [])]
 ```bash
 #!/bin/bash
 set -eo pipefail
-RESULT=$(tool list-users --output json)
+RESULT=$(tool list-users --format json)
 echo "$RESULT" | python3 -c "
 import sys, json
 d = json.load(sys.stdin)

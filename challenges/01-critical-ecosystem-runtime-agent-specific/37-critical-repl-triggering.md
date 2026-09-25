@@ -113,7 +113,7 @@ if risky:
 
 # All subprocess calls: stdin=DEVNULL prevents any blocking stdin read
 result = subprocess.run(
-    ["tool", "deploy", "--output", "json"],
+    ["tool", "deploy", "--format", "json"],
     capture_output=True, text=True,
     stdin=subprocess.DEVNULL,  # critical: prevents any blocking read
     timeout=60,

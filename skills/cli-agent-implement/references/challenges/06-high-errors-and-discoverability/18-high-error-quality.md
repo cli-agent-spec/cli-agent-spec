@@ -111,7 +111,7 @@ Examples:
 | 0 | Errors are prose strings or stack traces; no machine-readable `code`; agent cannot act without human interpretation |
 | 1 | Some errors have a `code` field; `message` is present but `suggestion` and `context` are absent |
 | 2 | All errors have `code`, `message`, and `context`; stack traces go to stderr, not stdout |
-| 3 | `suggestion` field on all recoverable errors; `docs_url` per error code; `tool errors list --output json` enumerates all codes |
+| 3 | `suggestion` field on all recoverable errors; `docs_url` per error code; `tool errors list --format json` enumerates all codes |
 
 **Check:** Trigger a known error (e.g., pass an invalid argument) and verify stdout contains `{"ok": false, "error": {"code": "...", "message": "...", "suggestion": "..."}}` with no stack trace.
 
@@ -130,7 +130,7 @@ Examples:
 import subprocess, json
 
 result = subprocess.run(
-    ["tool", "connect", "--host", host, "--output", "json"],
+    ["tool", "connect", "--host", host, "--format", "json"],
     capture_output=True, text=True,
 )
 

@@ -110,7 +110,7 @@ def validate_file_path(path: str) -> str:
 files = [validate_file_path(f) for f in file_list]
 
 result = subprocess.run(
-    ["tool", "process", "--output", "json"] + files,  # exec-array, not shell=True
+    ["tool", "process", "--format", "json"] + files,  # exec-array, not shell=True
     capture_output=True, text=True,
     stdin=subprocess.DEVNULL,
 )

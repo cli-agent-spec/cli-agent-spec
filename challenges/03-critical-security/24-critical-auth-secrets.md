@@ -72,7 +72,7 @@ tool deploy --token-file /run/secrets/api-token
   "data": {
     "key_id": "key-42",          // safe to log
     "key_preview": "sk-prod-abc...xyz",  // truncated
-    "secret": "REDACTED"          // never return in --output json
+    "secret": "REDACTED"          // never return in --format json
   },
   "secret_written_to": "/run/secrets/key-42"  // written to file instead
 }

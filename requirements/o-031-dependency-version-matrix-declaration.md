@@ -16,7 +16,7 @@ The framework MUST provide a mechanism for declaring all required runtime depend
 
 - A declared dependency with a version below `min_version` appears as a failed check in `tool doctor`
 - A declared dependency with a version above `max_version` appears as a compatibility warning in `tool doctor`
-- `tool doctor --output json` includes a `dependencies` array with all declared dependencies and their check results
+- `tool doctor --format json` includes a `dependencies` array with all declared dependencies and their check results
 - The `fix_command` for each failed dependency is an executable shell command
 
 ---
@@ -31,7 +31,7 @@ Declared dependencies appear in the manifest's `dependencies` field and in `tool
 
 ## Wire Format
 
-`tool doctor --output json` (dependencies section):
+`tool doctor --format json` (dependencies section):
 
 ```json
 {

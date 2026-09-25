@@ -10,7 +10,7 @@ CLI tools that read files, databases, or APIs may encounter binary data, null by
 
 **Null bytes break JSON:**
 ```bash
-$ tool read-file binary.bin --output json
+$ tool read-file binary.bin --format json
 # File contains \x00 bytes
 # json.dumps() in Python: works but produces \u0000
 # json.loads() in some parsers: terminates string at \x00
@@ -19,7 +19,7 @@ $ tool read-file binary.bin --output json
 
 **Non-UTF-8 crashes serialization:**
 ```bash
-$ tool read-file latin1-encoded.txt --output json
+$ tool read-file latin1-encoded.txt --format json
 # File is Latin-1, not UTF-8
 # Python json.dumps(): UnicodeDecodeError → unhandled → crash
 # Agent receives: empty stdout, exit 1, no JSON error
@@ -27,7 +27,7 @@ $ tool read-file latin1-encoded.txt --output json
 
 **Binary in API response:**
 ```bash
-$ tool fetch-record --id 42 --output json
+$ tool fetch-record --id 42 --format json
 # Record's "avatar" field contains raw PNG bytes
 # JSON serialization: fails or produces garbage
 # Agent: receives malformed JSON
@@ -35,7 +35,7 @@ $ tool fetch-record --id 42 --output json
 
 **Log files with mixed encoding:**
 ```bash
-$ tool get-logs --output json
+$ tool get-logs --format json
 # Log file has 99% UTF-8, one line with a Latin-1 char
 # Tool crashes on that line, returns partial output
 # Agent: partial JSON, parse error

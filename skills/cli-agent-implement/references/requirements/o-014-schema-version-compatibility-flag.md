@@ -32,7 +32,7 @@ Pinned-version responses include `meta.schema_version` matching the requested ve
 ## Wire Format
 
 ```bash
-$ tool deploy --target staging --schema-version 1 --output json
+$ tool deploy --target staging --schema-version 1 --format json
 ```
 
 ```json

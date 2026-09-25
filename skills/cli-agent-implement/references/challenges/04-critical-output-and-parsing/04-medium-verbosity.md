@@ -91,7 +91,7 @@ fi
 
 **`--fields` selector:**
 ```bash
-tool list-users --fields id,name --output json
+tool list-users --fields id,name --format json
 # Returns only requested fields
 ```
 
@@ -126,7 +126,7 @@ tool list-users --fields id,name --output json
 env = {**os.environ, "CI": "true", "NO_COLOR": "1"}
 cmd = [
     "tool", "list-users",
-    "--output", "json",
+    "--format", "json",
     "--quiet",                         # suppress all progress output
     "--fields", "id,name,status",      # request only needed fields
     "--limit", "50",                   # prevent unbounded output

@@ -12,7 +12,7 @@
 
 The framework's file-write utilities MUST use the write-to-tempfile-then-rename pattern for all config files, state files, output files, and lock files. The sequence: write content to a temp file in the same directory as the target (same filesystem, guaranteeing atomic rename), then call `rename(tmpfile, target)`. On POSIX, `rename()` is atomic — readers see either the old complete file or the new complete file, never a partial write.
 
-Framework utilities that write JSON output to a file (`--output-file`), persist config, or update state MUST all route through this primitive. Direct `open(target, "w")` writes are prohibited in framework file I/O.
+Framework utilities that write command output to a file (`--output <path>`), persist config, or update state MUST all route through this primitive. Direct `open(target, "w")` writes are prohibited in framework file I/O.
 
 ## Acceptance Criteria
 

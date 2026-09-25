@@ -10,7 +10,7 @@
 
 ## Description
 
-Any command whose execution consists of multiple discrete, ordered steps MUST declare a step manifest in its registration metadata. The manifest MUST list step names in execution order. When running with `--output json` or in streaming mode, the command MUST emit a step-start and step-complete event for each step as it executes (via the framework's step tracking API). The final response MUST include `completed_steps`, `failed_step` (if any), and `skipped_steps`.
+Any command whose execution consists of multiple discrete, ordered steps MUST declare a step manifest in its registration metadata. The manifest MUST list step names in execution order. When running with `--format json` or in streaming mode, the command MUST emit a step-start and step-complete event for each step as it executes (via the framework's step tracking API). The final response MUST include `completed_steps`, `failed_step` (if any), and `skipped_steps`.
 
 ## Acceptance Criteria
 

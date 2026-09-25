@@ -61,7 +61,7 @@ TOOL_TRACE_ID=agent-session-42-step-7 tool deploy
 
 **Structured audit log:**
 ```bash
-$ tool audit-log --since 1h --output jsonl
+$ tool audit-log --since 1h --format jsonl
 {"timestamp": "...", "command": "deploy", "params": {...},
  "exit_code": 0, "duration_ms": 4521, "operator": "agent-session-42"}
 ```
@@ -78,7 +78,7 @@ $ tool audit-log --since 1h --output jsonl
 | 0 | No `request_id`, no timing, no audit log; tool calls cannot be correlated after the fact |
 | 1 | `meta.request_id` present on some responses; no `duration_ms`; no audit log |
 | 2 | `meta.request_id` and `meta.duration_ms` on all responses; `TOOL_TRACE_ID` env var propagated |
-| 3 | `meta.trace_id` accepts caller-supplied value; `tool audit-log --output jsonl` available; append-only audit log written automatically |
+| 3 | `meta.trace_id` accepts caller-supplied value; `tool audit-log --format jsonl` available; append-only audit log written automatically |
 
 **Check:** Supply `TOOL_TRACE_ID=test-123` and run any command — verify `meta.trace_id == "test-123"` in the JSON response.
 
@@ -128,7 +128,7 @@ def traced_run(cmd: list[str], operation: str) -> dict:
     return parsed
 
 result = traced_run(
-    ["tool", "deploy", "--env", "staging", "--output", "json"],
+    ["tool", "deploy", "--env", "staging", "--format", "json"],
     operation="deploy",
 )
 ```
@@ -137,7 +137,7 @@ result = traced_run(
 ```python
 def get_audit_log(tool: str, since: str = "1h") -> list[dict]:
     result = subprocess.run(
-        [tool, "audit-log", "--since", since, "--output", "jsonl"],
+        [tool, "audit-log", "--since", since, "--format", "jsonl"],
         capture_output=True, text=True,
     )
     lines = [l for l in result.stdout.splitlines() if l.strip()]

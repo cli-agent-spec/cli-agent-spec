@@ -10,11 +10,11 @@
 
 ## Description
 
-The framework MUST provide a built-in `tool audit-log` command that queries the audit log (REQ-F-026). The command MUST accept `--since <duration or ISO datetime>`, `--command <name>`, `--trace-id <id>`, `--output jsonl`, and `--limit <n>`. Each returned entry MUST contain: timestamp, command, sanitized parameters, exit code, duration_ms, trace_id, request_id, and operator (session identifier if available).
+The framework MUST provide a built-in `tool audit-log` command that queries the audit log (REQ-F-026). The command MUST accept `--since <duration or ISO datetime>`, `--command <name>`, `--trace-id <id>`, `--format jsonl`, and `--limit <n>`. Each returned entry MUST contain: timestamp, command, sanitized parameters, exit code, duration_ms, trace_id, request_id, and operator (session identifier if available).
 
 ## Acceptance Criteria
 
-- `tool audit-log --since 1h --output jsonl` returns all invocations from the past hour, one per line
+- `tool audit-log --since 1h --format jsonl` returns all invocations from the past hour, one per line
 - `tool audit-log --trace-id abc123` returns only entries with that trace ID
 - Secret field values are redacted in all audit log query results
 - `--limit 100` returns at most 100 entries
@@ -32,7 +32,7 @@ The framework MUST provide a built-in `tool audit-log` command that queries the 
 ## Wire Format
 
 ```bash
-$ tool audit-log --since 1h --output jsonl
+$ tool audit-log --since 1h --format jsonl
 ```
 
 ```
@@ -51,7 +51,7 @@ app = Framework("tool")
 app.enable_audit_log()   # requires f-026 audit log
 
 # Query last hour of activity for a specific trace:
-$ tool audit-log --since 1h --trace-id abc123 --output jsonl
+$ tool audit-log --since 1h --trace-id abc123 --format jsonl
 
 # Verify no secrets leaked into audit log parameters:
 $ tool audit-log --since 24h | jq '.data.entries[] | .parameters'

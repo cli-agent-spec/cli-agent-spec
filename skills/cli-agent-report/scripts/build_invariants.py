@@ -28,7 +28,7 @@ Output — two blocks, each entry on its own line, ready to paste into the invar
 
     FLAGS:
       --no-pager               # §10 — prevents pager from blocking stdout
-      --output=json            # §44 — guarantees machine-readable output
+      --format=json            # §44 — guarantees machine-readable output
 
 Exit codes:
     0   output produced

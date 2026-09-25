@@ -120,7 +120,7 @@ import subprocess, json, os
 project_root = "/absolute/path/to/project"
 
 result = subprocess.run(
-    ["tool", "build", "--cwd", project_root, "--output", "json"],
+    ["tool", "build", "--cwd", project_root, "--format", "json"],
     capture_output=True, text=True,
     cwd=project_root,  # also set subprocess CWD as a belt-and-suspenders measure
 )

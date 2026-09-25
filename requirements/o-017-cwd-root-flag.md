@@ -32,7 +32,7 @@ The framework MUST provide `--cwd <path>` as a standard flag on all commands tha
 ## Wire Format
 
 ```bash
-$ tool lint --cwd /project --output json
+$ tool lint --cwd /project --format json
 ```
 
 ```json
@@ -71,7 +71,7 @@ app = Framework("tool")
 app.enable_cwd_flag()   # registers --cwd on all commands with filesystem I/O
 
 # Agent specifies absolute path to avoid CWD sensitivity:
-$ tool lint --cwd /project/src --output json
+$ tool lint --cwd /project/src --format json
 → meta.cwd: "/project/src"
 ```
 

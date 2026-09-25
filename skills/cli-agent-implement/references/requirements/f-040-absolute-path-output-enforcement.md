@@ -33,7 +33,7 @@ Path fields in `data` that use the framework's path output type are resolved to 
 Command invoked from `/project`:
 
 ```bash
-$ cd /project && tool find-config --output json
+$ cd /project && tool find-config --format json
 ```
 
 ```json

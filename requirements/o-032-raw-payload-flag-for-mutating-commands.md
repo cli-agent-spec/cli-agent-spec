@@ -32,7 +32,7 @@ Mutating commands (those with `danger_level: "mutating"` or `"destructive"`) SHO
 ## Wire Format
 
 ```bash
-$ tool create --raw-payload '{"name":"prod","region":"us-east-1"}' --output json
+$ tool create --raw-payload '{"name":"prod","region":"us-east-1"}' --format json
 ```
 
 ```json

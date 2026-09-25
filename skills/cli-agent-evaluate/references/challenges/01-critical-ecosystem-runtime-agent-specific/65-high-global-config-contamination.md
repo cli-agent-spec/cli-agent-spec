@@ -105,7 +105,7 @@ import subprocess, json, os
 
 def safe_config_set(tool: str, key: str, value: str, scope: str = "local") -> dict:
     """Set a config value in local scope — never contaminate global config."""
-    cmd = [tool, "config", "set", f"{key}={value}", "--output", "json"]
+    cmd = [tool, "config", "set", f"{key}={value}", "--format", "json"]
 
     # Do NOT add --global unless explicitly requested
     # Some tools write to global by default — check the result

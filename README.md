@@ -27,9 +27,9 @@ $ deploy --env staging   # exit 1 — but why? safe to retry?
 $ tool users list   # silent failure on emoji in username
 
 # Agent passes a flag after the subcommand — natural LLM ordering.
-# The parser silently treats --output as a positional argument value.
+# The parser silently treats --format as a positional argument value.
 # The agent receives plain text it can't parse. Exit code: 0.
-$ tool list users --output json   # parsed as: list "users" "--output" "json"
+$ tool list users --format json   # parsed as: list "users" "--format" "json"
 ```
 
 These are not edge cases. They are the **default behavior** of most CLI tools today — including tools from major companies. The cost falls on the agent: wasted tokens, stalled pipelines, data corruption from blind retries, cascading failures with no root cause.
@@ -60,7 +60,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 **Response envelope** — every command wraps its output in `{ ok, data, error, warnings, meta }`. The same keys are always present, and `meta.exit_code` repeats the process exit code so an agent holding only stdout can still classify the outcome. Errors and warnings carry stable codes; agents never parse free text to determine success or failure. See [`response-envelope.json`](schemas/response-envelope.json).
 
-**Tool manifest** — `tool manifest --output json` returns the complete command tree: every subcommand, flag, type, description, exit code map, and example. One call replaces O(N) `--help` iterations and eliminates trial-and-error argument discovery. See [`manifest-response.json`](schemas/manifest-response.json).
+**Tool manifest** — `tool manifest --format json` returns the complete command tree: every subcommand, flag, type, description, exit code map, and example. One call replaces O(N) `--help` iterations and eliminates trial-and-error argument discovery. See [`manifest-response.json`](schemas/manifest-response.json).
 
 ---
 

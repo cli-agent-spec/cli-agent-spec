@@ -85,7 +85,7 @@ tool fetch-schema --url ... --cache-ttl 0
 
 **`tool status --show-side-effects` inventory:**
 ```bash
-$ tool status --show-side-effects --output json
+$ tool status --show-side-effects --format json
 {
   "cache": {"path": "~/.cache/tool/", "size_bytes": 45000000},
   "logs":  {"path": "~/.local/share/tool/logs/", "size_bytes": 524000000},
@@ -108,7 +108,7 @@ $ tool status --show-side-effects --output json
 | 2 | `tool status --show-side-effects` lists known paths with sizes; `--no-cache` supported; temp file paths returned in response |
 | 3 | `filesystem_side_effects` declared per-command in schema; `tool cleanup` removes all known side effects; response includes `cleanup.command` for temp files |
 
-**Check:** Run `tool status --show-side-effects --output json` — verify it returns a structured inventory of cache, log, and temp paths.
+**Check:** Run `tool status --show-side-effects --format json` — verify it returns a structured inventory of cache, log, and temp paths.
 
 ---
 
@@ -124,7 +124,7 @@ $ tool status --show-side-effects --output json
 import subprocess, json, os
 
 result = subprocess.run(
-    ["tool", "export", "--format", "xlsx", "--no-cache", "--output", "json"],
+    ["tool", "export", "--format", "xlsx", "--no-cache"],  # envelope on stdout, file on disk
     capture_output=True, text=True,
 )
 parsed = json.loads(result.stdout)

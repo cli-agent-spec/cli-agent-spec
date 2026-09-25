@@ -40,7 +40,7 @@ done
 **Built-in `exec` command accepting JSONL from stdin:**
 
 ```bash
-cat operations.jsonl | tool exec --ignore-errors --output jsonl
+cat operations.jsonl | tool exec --ignore-errors --format jsonl
 ```
 
 ```jsonl
@@ -75,7 +75,7 @@ Each line routes to the matching subcommand in-process. Per-line output streams 
 | 2 | In-process dispatch with structured JSONL output per line; exit code reflects overall success |
 | 3 | Full `tool exec` with `--ignore-errors`, `--dry-run` forwarding, and `_line` index in per-line output |
 
-**Check:** Pipe three heterogeneous commands as JSONL to `tool exec --output jsonl` — verify in-process dispatch, three structured response lines, and non-zero exit code when any line fails.
+**Check:** Pipe three heterogeneous commands as JSONL to `tool exec --format jsonl` — verify in-process dispatch, three structured response lines, and non-zero exit code when any line fails.
 
 ---
 
@@ -103,7 +103,7 @@ def batch_dispatch(cli: list[str], operations: list[dict]) -> list[dict]:
             for k, v in opts.items()
         ]
         result = subprocess.run(
-            cli + cmd_parts + flags + ["--input", json.dumps(op), "--output", "json"],
+            cli + cmd_parts + flags + ["--input", json.dumps(op), "--format", "json"],
             capture_output=True, text=True,
             stdin=subprocess.DEVNULL,
             timeout=30,

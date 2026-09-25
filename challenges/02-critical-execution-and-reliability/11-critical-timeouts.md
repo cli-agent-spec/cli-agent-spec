@@ -50,7 +50,7 @@ tool operation --connect-timeout 5s # specifically for connection phase
 
 **Progress heartbeats to stderr:**
 ```bash
-$ tool long-operation --output json
+$ tool long-operation --format json
 # stderr:
 [  2s] Starting...
 [  5s] Phase 1/3: downloading (23%)

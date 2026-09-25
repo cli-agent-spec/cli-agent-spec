@@ -34,7 +34,7 @@ On oversized stdin, the framework exits with code 2 (`ARG_ERROR`) and emits a st
 Oversized stdin rejection:
 
 ```bash
-$ echo "$(python3 -c "print('x'*65537)")" | tool process --output json
+$ echo "$(python3 -c "print('x'*65537)")" | tool process --format json
 ```
 
 ```json

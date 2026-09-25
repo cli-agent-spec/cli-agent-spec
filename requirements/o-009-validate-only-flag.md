@@ -32,7 +32,7 @@ When `--validate-only` is passed, the response includes `meta.validation_only: t
 ## Wire Format
 
 ```bash
-$ tool deploy --target staging --validate-only --output json
+$ tool deploy --target staging --validate-only --format json
 ```
 
 ```json

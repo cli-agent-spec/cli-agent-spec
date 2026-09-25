@@ -32,7 +32,7 @@ No dedicated schema type — verbosity flags govern stderr content only. In `--d
 Quiet mode — no stderr output:
 
 ```bash
-$ tool deploy --target staging --quiet --output json
+$ tool deploy --target staging --quiet --format json
 ```
 
 ```json
@@ -48,7 +48,7 @@ $ tool deploy --target staging --quiet --output json
 Debug mode — stderr diagnostic trace, stdout unchanged:
 
 ```bash
-$ tool deploy --target staging --debug --output json
+$ tool deploy --target staging --debug --format json
 ```
 
 stderr:

@@ -32,7 +32,7 @@ When the tool is wrapped as an MCP server, the framework MUST provide a built-in
 ## Wire Format
 
 ```bash
-$ tool mcp-validate --mcp-schema-file mcp.json --output json
+$ tool mcp-validate --mcp-schema-file mcp.json --format json
 ```
 
 ```json

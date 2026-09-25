@@ -22,7 +22,7 @@ import my_analytics_sdk  # prints: "Analytics initialized. Session: abc123"
 ```
 
 ```bash
-$ my-tool list-users --output json
+$ my-tool list-users --format json
 Analytics initialized. Session: abc123
 psycopg2 connected to postgres://db:5432/prod [SSL enabled]
 {"ok": true, "data": [...]}

@@ -57,7 +57,7 @@ TOOL_ENDPOINT=http://internal-server tool deploy
 
 **`--show-config` flag that reveals effective configuration:**
 ```bash
-$ tool --show-config --output json
+$ tool --show-config --format json
 {
   "effective_config": {
     "env": "production",
@@ -108,10 +108,10 @@ tool --config /dev/null deploy --env staging
 |-------|-----------|
 | 0 | Config precedence undocumented; env vars or config files can silently override explicit flags; no way to inspect effective config |
 | 1 | `--show-config` exists but output is prose; `meta.config_sources` absent from responses |
-| 2 | `tool --show-config --output json` shows effective config and per-field sources; precedence order documented |
+| 2 | `tool --show-config --format json` shows effective config and per-field sources; precedence order documented |
 | 3 | `--no-config` flag available for isolated runs; `meta.config_sources` in every response; flags always win over files (documented invariant) |
 
-**Check:** Set a conflicting env var and run `tool --show-config --output json` — verify the `sources` field identifies the env var as the active source for that setting.
+**Check:** Set a conflicting env var and run `tool --show-config --format json` — verify the `sources` field identifies the env var as the active source for that setting.
 
 ---
 
@@ -121,14 +121,14 @@ tool --config /dev/null deploy --env staging
 
 **Tier:** B (one observable check, then one command)
 
-**Always run `tool --show-config --output json` before any configuration-sensitive operation:**
+**Always run `tool --show-config --format json` before any configuration-sensitive operation:**
 
 ```python
 import subprocess, json
 
 def get_effective_config(tool: str) -> dict:
     result = subprocess.run(
-        [tool, "--show-config", "--output", "json"],
+        [tool, "--show-config", "--format", "json"],
         capture_output=True, text=True,
     )
     try:

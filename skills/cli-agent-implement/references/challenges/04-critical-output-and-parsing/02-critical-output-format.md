@@ -69,16 +69,16 @@ Dateigröße: 1.234.567 Bytes
 **Machine-readable output flag:**
 ```bash
 # Always provide a structured output mode
-tool list-users --output json
-tool list-users --output jsonl   # one JSON object per line for streaming
-tool list-users --output tsv     # tab-separated, good for piping
-tool list-users --output plain   # minimal, no decoration (for humans too)
+tool list-users --format json
+tool list-users --format jsonl   # one JSON object per line for streaming
+tool list-users --format tsv     # tab-separated, good for piping
+tool list-users --format plain   # minimal, no decoration (for humans too)
 
 # Some CLIs use --json as a shorthand (gh, az, etc.)
-tool list-users --json           # equivalent to --output json
+tool list-users --json           # equivalent to --format json
 
-# Some CLIs use -o as a short flag (kubectl, helm, etc.)
-tool list-users -o json
+# Do not bind -o to format: kubectl and helm read it as a format, gcc and curl as a file path
+tool list-users --format json --output users.json   # file gets JSON, stdout gets the envelope
 ```
 
 **JSON output schema:**
@@ -110,13 +110,13 @@ tool list-users -o json
 **Rules for agent-compatible output:**
 1. Same schema whether 0, 1, or N results
 2. No prose mixed into data output (prose goes to stderr)
-3. No color codes in `--output json` mode (detect `NO_COLOR` env var)
+3. No color codes in `--format json` mode (detect `NO_COLOR` env var)
 4. Numbers always in invariant locale (`.` decimal, no thousands separator)
 5. Dates always in ISO 8601 (`2024-03-11T14:30:00Z`)
 6. Boolean as `true`/`false`, never `yes`/`no`/`1`/`0` in JSON mode
 
 **For framework design:**
-- Auto-detect output format based on `--output` flag or `CI=true` env
+- Auto-detect output format based on `--format` flag or `CI=true` env
 - Provide output formatters as first-class framework primitives
 - Emit a JSON schema for every command's output via `--output-schema`
 
@@ -221,11 +221,11 @@ The comparison matrix shows REQ-F-004 (Consistent JSON Response Envelope) is ✗
 | Score | Condition |
 |-------|-----------|
 | 0 | No structured output mode; human-formatted tables, prose, or locale-dependent text only |
-| 1 | `--output json` exists on some commands but format varies; prose mixed into stdout; no consistent envelope |
-| 2 | `--output json` on all commands; consistent `ok`/`data`/`error` top-level structure; no prose on stdout |
+| 1 | `--format json` exists on some commands but format varies; prose mixed into stdout; no consistent envelope |
+| 2 | `--format json` on all commands; consistent `ok`/`data`/`error` top-level structure; no prose on stdout |
 | 3 | Full envelope with `ok`, `data`, `error`, `warnings`, `meta` (including `request_id`, `duration_ms`); auto-activated when `CI=true` or stdout not a TTY |
 
-**Check:** Run any command with `--output json` and redirect stderr to `/dev/null` — verify stdout is valid JSON with `ok` and `data` fields regardless of result count (0, 1, or N items).
+**Check:** Run any command with `--format json` and redirect stderr to `/dev/null` — verify stdout is valid JSON with `ok` and `data` fields regardless of result count (0, 1, or N items).
 
 ---
 
@@ -234,7 +234,7 @@ The comparison matrix shows REQ-F-004 (Consistent JSON Response Envelope) is ✗
 **Signature:** `json.loads(stdout)` raises `JSONDecodeError`; stdout shows box-drawing tables, prose lines around a JSON object, or locale-formatted numbers
 
 **Tier:** C (stateful logic; weak models apply the fallback below)
-**Fallback:** Rerun as `NO_COLOR=1 CI=true tool <args> --output json`; if that fails, escalate with the command, exit code, stdout, and stderr
+**Fallback:** Rerun as `NO_COLOR=1 CI=true tool <args> --format json`; if that fails, escalate with the command, exit code, stdout, and stderr
 
 **Always request structured output and detect format violations before parsing:**
 
@@ -244,6 +244,7 @@ _help = subprocess.run([*cmd, "--help"], capture_output=True, text=True)
 help_text = _help.stdout + _help.stderr
 
 JSON_FLAG_PATTERNS = [
+    (r"--format\s+\w*json", ["--format", "json"]),  # --format json (spec canonical)
     (r"--output\s+\w*json", ["--output", "json"]),  # --output json / --output-format json
     (r"--json\b",            ["--json"]),             # gh, az
     (r"-o\b",                ["-o", "json"]),         # kubectl, helm
@@ -310,4 +311,4 @@ def extract_envelope(stdout: str):
     return None                                            # 6. unstructured: do not guess
 ```
 
-**Limitation:** If the tool has no `--output json` flag, the extraction rule still fails when prose interleaves inside a single JSON value — there is no reliable agent-side fix; treat the tool as unstructured and require human review of any extracted values
+**Limitation:** If the tool has no `--format json` flag, the extraction rule still fails when prose interleaves inside a single JSON value — there is no reliable agent-side fix; treat the tool as unstructured and require human review of any extracted values

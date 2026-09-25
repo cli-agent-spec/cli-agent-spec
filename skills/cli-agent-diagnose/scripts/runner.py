@@ -410,7 +410,7 @@ def preflight(
                     f"§52: --help called {len(help_calls)}× already; "
                     f"schema not discoverable this way — try --schema or tool manifest"
                 ),
-                recommended_call=[cmd_list[0], "--schema", "--output", "json"]
+                recommended_call=[cmd_list[0], "--schema", "--format", "json"]
                 if cmd_list else None,
             )
 

@@ -46,7 +46,7 @@ Checking Redis... FAILED: connection refused
 
 **Preflight check command:**
 ```bash
-$ tool doctor --output json
+$ tool doctor --format json
 {
   "ok": false,
   "checks": [
@@ -62,7 +62,7 @@ $ tool doctor --output json
 
 **Dependency declaration in help:**
 ```bash
-$ tool build --show-requirements --output json
+$ tool build --show-requirements --format json
 {
   "required": [
     {"name": "docker", "version": ">=20.0", "install": "https://docs.docker.com/..."},
@@ -82,10 +82,10 @@ $ tool build --show-requirements --output json
 |-------|-----------|
 | 0 | No preflight check; missing dependencies discovered mid-execution with unstructured errors; no `fix` hint |
 | 1 | Some dependency errors include the missing tool name; no version info; no structured JSON format |
-| 2 | `tool doctor --output json` runs all checks with `ok`, `version`, `required`, and `fix` fields |
-| 3 | `tool <command> --show-requirements --output json` lists per-command dependencies; `tool doctor` is a framework-level command |
+| 2 | `tool doctor --format json` runs all checks with `ok`, `version`, `required`, and `fix` fields |
+| 3 | `tool <command> --show-requirements --format json` lists per-command dependencies; `tool doctor` is a framework-level command |
 
-**Check:** Remove or alias a required dependency to a wrong version and run `tool doctor --output json` — verify it returns a failing check with a `fix` field containing the exact install command.
+**Check:** Remove or alias a required dependency to a wrong version and run `tool doctor --format json` — verify it returns a failing check with a `fix` field containing the exact install command.
 
 ---
 
@@ -95,14 +95,14 @@ $ tool build --show-requirements --output json
 
 **Tier:** B (one observable check, then one command)
 
-**Run `tool doctor --output json` before first use; act on `fix` fields from failing checks:**
+**Run `tool doctor --format json` before first use; act on `fix` fields from failing checks:**
 
 ```python
 import subprocess, json, sys
 
 def preflight(tool: str) -> bool:
     result = subprocess.run(
-        [tool, "doctor", "--output", "json"],
+        [tool, "doctor", "--format", "json"],
         capture_output=True, text=True,
     )
     try:

@@ -142,11 +142,11 @@
 
 | ID | Priority | Title | Failure mode(s) | Level |
 |----|----------|-------|-------------|-------|
-| [REQ-O-001](o-001-output-format-flag.md) | P0 | --output Format Flag | [§2](../challenges/04-critical-output-and-parsing/02-critical-output-format.md) | 2 |
+| [REQ-O-001](o-001-output-format-flag.md) | P0 | --format Output Format Flag | [§2](../challenges/04-critical-output-and-parsing/02-critical-output-format.md) | 2 |
 | [REQ-O-002](o-002-fields-selector.md) | P2 | --fields Selector | [§4](../challenges/04-critical-output-and-parsing/04-medium-verbosity.md) | 3 |
 | [REQ-O-003](o-003-limit-and-cursor-pagination-flags.md) | P0 | --limit and --cursor Pagination Flags | [§5](../challenges/04-critical-output-and-parsing/05-high-pagination.md) | 2 |
-| [REQ-O-004](o-004-output-jsonl-stream-flag.md) | P2 | --output jsonl / --stream Flag | [§5](../challenges/04-critical-output-and-parsing/05-high-pagination.md) [§76](../challenges/04-critical-output-and-parsing/76-high-streaming-default-incompatibility.md) | 3 |
-| [REQ-O-005](o-005-output-id-extraction-mode.md) | P3 | --output id Extraction Mode | [§6](../challenges/04-critical-output-and-parsing/06-medium-command-composition.md) | 3 |
+| [REQ-O-004](o-004-output-jsonl-stream-flag.md) | P2 | --format jsonl / --stream Flag | [§5](../challenges/04-critical-output-and-parsing/05-high-pagination.md) [§76](../challenges/04-critical-output-and-parsing/76-high-streaming-default-incompatibility.md) | 3 |
+| [REQ-O-005](o-005-output-id-extraction-mode.md) | P3 | --format id Extraction Mode | [§6](../challenges/04-critical-output-and-parsing/06-medium-command-composition.md) | 3 |
 | [REQ-O-006](o-006-stdin-as-id-source.md) | P3 | Stdin as ID Source (-) | [§6](../challenges/04-critical-output-and-parsing/06-medium-command-composition.md) | 3 |
 | [REQ-O-007](o-007-stable-output-flag.md) | P3 | --stable-output Flag | [§7](../challenges/04-critical-output-and-parsing/07-medium-output-nondeterminism.md) | 3 |
 | [REQ-O-008](o-008-quiet-verbose-debug-verbosity-flags.md) | P1 | --quiet / --verbose / --debug Verbosity Flags | [§4](../challenges/04-critical-output-and-parsing/04-medium-verbosity.md) | 3 |

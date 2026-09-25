@@ -14,7 +14,7 @@ The framework MUST provide a built-in `tool doctor` command that runs all regist
 
 ## Acceptance Criteria
 
-- `tool doctor --output json` returns a structured JSON object with a `checks` array
+- `tool doctor --format json` returns a structured JSON object with a `checks` array
 - Each failed check includes a `fix` field with an executable shell command
 - A missing required dependency appears as a failed check with `ok: false`
 - `tool doctor` exit code is `0` iff all checks pass; otherwise it exits `4` (`PRECONDITION`) with `error.code: "DOCTOR_CHECKS_FAILED"` and the full report in `data`
@@ -32,7 +32,7 @@ The framework MUST provide a built-in `tool doctor` command that runs all regist
 ## Wire Format
 
 ```bash
-$ tool doctor --output json
+$ tool doctor --format json
 ```
 
 ```json
@@ -70,7 +70,7 @@ register command "deploy":
     - check_binary("aws", min_version="2.0.0", fix="brew install awscli")
     - check_network("https://api.example.com/health")
 
-$ tool doctor --output json
+$ tool doctor --format json
 → data.checks: [{...ok...}, {...failed with fix...}]
 ```
 

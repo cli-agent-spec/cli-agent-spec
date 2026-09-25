@@ -31,7 +31,7 @@ Exit codes:
 
 ## Acceptance Criteria
 
-- `cat ops.jsonl | tool exec --output jsonl` dispatches all lines in-process and emits one response line per input line to stdout
+- `cat ops.jsonl | tool exec --format jsonl` dispatches all lines in-process and emits one response line per input line to stdout
 - Each response line is a valid `ResponseEnvelope` with `_cmd` and `_line` present in `meta`
 - Without `--ignore-errors`, dispatch stops at the first failure and exits `1`
 - With `--ignore-errors`, dispatch continues past line failures; exit code is still `1` if any line failed
@@ -53,7 +53,7 @@ Each stdin line is a `DispatchRequest`. Each stdout line is a `ResponseEnvelope`
 ## Wire Format
 
 ```bash
-$ cat ops.jsonl | tool exec --ignore-errors --output jsonl
+$ cat ops.jsonl | tool exec --ignore-errors --format jsonl
 ```
 
 Input (stdin, one JSON object per line):
@@ -88,7 +88,7 @@ plan = [
 ]
 payload = "\n".join(json.dumps(op) for op in plan)
 result = subprocess.run(
-    ["tool", "exec", "--output", "jsonl"],
+    ["tool", "exec", "--format", "jsonl"],
     input=payload, capture_output=True, text=True,
 )
 results = [json.loads(line) for line in result.stdout.splitlines() if line.strip()]

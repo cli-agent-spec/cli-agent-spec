@@ -100,7 +100,7 @@ tool get-user --id 42 --schema-version 1
 - `meta.schema_version` in every response (semver)
 - `--schema-version` flag to request compatible output
 - Deprecation warnings 2 major versions before removal
-- `tool changelog --output json` lists all schema changes by version
+- `tool changelog --format json` lists all schema changes by version
 
 ### Evaluation
 
@@ -109,7 +109,7 @@ tool get-user --id 42 --schema-version 1
 | 0 | No `schema_version` in responses; breaking changes are silent; agent has no way to detect schema drift |
 | 1 | `meta.tool_version` present but no `schema_version`; no deprecation warnings before removal |
 | 2 | `meta.schema_version` in every response; `warnings` array emitted for deprecated fields with `removed_in` |
-| 3 | `--schema-version` flag for compatible output; stability tiers declared in schema; `tool changelog --output json` available |
+| 3 | `--schema-version` flag for compatible output; stability tiers declared in schema; `tool changelog --format json` available |
 
 **Check:** Run any command and verify `meta.schema_version` is present as a semver string — then check that deprecated fields in the response include a `warnings[].code == "FIELD_DEPRECATED"` entry.
 
@@ -163,7 +163,7 @@ def run_versioned(cmd: list[str]) -> dict:
 result = subprocess.run(
     ["tool", "get-user", "--id", "42",
      "--schema-version", "1",   # pin to v1-compatible output
-     "--output", "json"],
+     "--format", "json"],
     capture_output=True, text=True,
 )
 ```

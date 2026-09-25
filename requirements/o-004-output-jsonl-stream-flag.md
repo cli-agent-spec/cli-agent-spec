@@ -1,4 +1,4 @@
-# REQ-O-004: --output jsonl / --stream Flag
+# REQ-O-004: --format jsonl / --stream Flag
 
 **Tier:** Opt-In | **Priority:** P2
 
@@ -10,9 +10,9 @@
 
 ## Description
 
-For commands that process or return large datasets, the framework MUST support `--stream` (equivalent to `--output jsonl`) which emits one JSON object per line as results are produced, rather than buffering all results before emitting. Commands that support streaming MUST declare `supports_streaming: true`. In streaming mode, pagination metadata MUST be emitted as a final summary line.
+For commands that process or return large datasets, the framework MUST support `--stream` (equivalent to `--format jsonl`) which emits one JSON object per line as results are produced, rather than buffering all results before emitting. Commands that support streaming MUST declare `supports_streaming: true`. In streaming mode, pagination metadata MUST be emitted as a final summary line.
 
-Commands that stream by default (see §76) MUST additionally declare `streaming_default: true`. A streaming-default command MUST accept `--no-stream` (equivalent to `--output json`) to return a buffered `ResponseEnvelope` for compatibility with envelope-only consumers. The `streaming_default` field MUST be advertised in the manifest and in `--help` text.
+Commands that stream by default (see §76) MUST additionally declare `streaming_default: true`. A streaming-default command MUST accept `--no-stream` (equivalent to `--format json`) to return a buffered `ResponseEnvelope` for compatibility with envelope-only consumers. The `streaming_default` field MUST be advertised in the manifest and in `--help` text.
 
 ## Acceptance Criteria
 
@@ -89,7 +89,7 @@ register command "list-deployments":
   # items emitted via framework stream() call as they arrive
 
 # tool list-deployments --stream  →  JSONL lines as items arrive
-# tool list-deployments --output jsonl  →  identical behavior
+# tool list-deployments --format jsonl  →  identical behavior
 ```
 
 ---
@@ -98,7 +98,7 @@ register command "list-deployments":
 
 | Requirement / Source | Tier | Relationship |
 |----------------------|------|--------------|
-| [REQ-O-001](o-001-output-format-flag.md) | O | Specializes: `--stream` is equivalent to `--output jsonl` with incremental emission |
+| [REQ-O-001](o-001-output-format-flag.md) | O | Specializes: `--stream` is equivalent to `--format jsonl` with incremental emission |
 | [REQ-O-003](o-003-limit-and-cursor-pagination-flags.md) | O | Composes: pagination summary emitted as the final stream line |
 | [REQ-F-053](f-053-stdout-unbuffering-in-non-tty-mode.md) | F | Provides: stdout unbuffering required for streaming to work |
 | [§76](../challenges/04-critical-output-and-parsing/76-high-streaming-default-incompatibility.md) | — | Provides: failure mode when `streaming_default` is undeclared |

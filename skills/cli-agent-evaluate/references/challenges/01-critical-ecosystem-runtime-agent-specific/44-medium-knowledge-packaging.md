@@ -91,7 +91,7 @@ tools: [bash]
 | 2 | AGENTS.md or CONTEXT.md present with quick reference, known gotchas, and safe vs. mutating operation list |
 | 3 | `--schema` includes `danger_level`, `requires`, `read_only`, `docs_url`; versioned skill file available via `--skill`; auto-generated from schema metadata |
 
-**Check:** Run `tool --schema --output json` and verify at least one command has a `danger_level` field and a `requires` array listing prerequisite commands.
+**Check:** Run `tool --schema --format json` and verify at least one command has a `danger_level` field and a `requires` array listing prerequisite commands.
 
 ---
 
@@ -120,7 +120,7 @@ def load_agent_knowledge(tool: str, tool_dir: str | None = None) -> dict:
 
     # Extract structured knowledge from schema
     result = subprocess.run(
-        [tool, "--schema", "--output", "json"],
+        [tool, "--schema", "--format", "json"],
         capture_output=True, text=True,
     )
     try:

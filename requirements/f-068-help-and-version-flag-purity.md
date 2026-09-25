@@ -62,7 +62,7 @@ Usage: tool deploy [OPTIONS]
 Options:
   --env TEXT    Target environment (required)
   --dry-run     Preview changes without applying
-  --output TEXT Output format: plain|json [default: plain]
+  --format TEXT Output format: plain|json [default: plain]
 
 → exit code: 0
 → no files created in /tmp/empty

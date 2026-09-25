@@ -22,10 +22,10 @@ $ tool list-permissions --role admin
 
 **Timestamps embedded in data fields:**
 ```bash
-$ tool get-status --output json
+$ tool get-status --format json
 {"status": "ok", "checked_at": "2024-03-11T14:30:01Z", "uptime": 3600}
 
-$ tool get-status --output json
+$ tool get-status --format json
 {"status": "ok", "checked_at": "2024-03-11T14:30:04Z", "uptime": 3603}
 
 # Agent caches result, checks if output changed: always "changed"
@@ -101,7 +101,7 @@ tool list-users --stable-output
 ```
 
 **For framework design:**
-- All array fields sorted by default in `--output json` mode
+- All array fields sorted by default in `--format json` mode
 - `data` and `meta` are top-level siblings; agents compare `data` only
 - Dry-run IDs are content-addressed, not random
 - Document which fields are volatile in the output schema (`"volatile": true`)
@@ -130,7 +130,7 @@ tool list-users --stable-output
 
 ```python
 def get_stable(cmd: list[str]) -> dict:
-    result = subprocess.run([*cmd, "--output", "json"], capture_output=True, text=True)
+    result = subprocess.run([*cmd, "--format", "json"], capture_output=True, text=True)
     parsed = json.loads(result.stdout)
     # Only compare data — meta contains timestamps and request IDs
     return parsed.get("data", parsed)

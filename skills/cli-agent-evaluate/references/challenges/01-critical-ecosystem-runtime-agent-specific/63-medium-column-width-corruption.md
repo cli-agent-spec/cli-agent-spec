@@ -12,7 +12,7 @@ Tools that format output based on terminal width (`$COLUMNS`, `shutil.get_termin
 
 ```bash
 # Tool wraps long values at terminal width (80 columns by default in non-TTY):
-$ tool describe resource-with-very-long-name --output json
+$ tool describe resource-with-very-long-name --format json
 {
   "endpoint": "https://api.very-long-subdomain.example.com/v2/resources/very-long-
 path/detail",    # ← broken across two lines — invalid URL
@@ -45,7 +45,7 @@ columns = shutil.get_terminal_size().columns if sys.stdout.isatty() else 0
 
 **`--width=0` flag disables all hard-wrapping:**
 ```bash
-$ tool describe resource --width=0 --output json
+$ tool describe resource --width=0 --format json
 # All strings output as single lines regardless of length
 ```
 
@@ -63,11 +63,11 @@ $ tool describe resource --width=0 --output json
 | Score | Condition |
 |-------|-----------|
 | 0 | JSON output wraps long string values at terminal width; URLs and identifiers split across lines; invalid JSON produced |
-| 1 | Hard-wrapping disabled when `--output json`; prose output still wraps; `--width` flag absent |
+| 1 | Hard-wrapping disabled when `--format json`; prose output still wraps; `--width` flag absent |
 | 2 | JSON mode never injects newlines into string values regardless of `$COLUMNS`; `--width=0` available |
 | 3 | Framework disables all terminal-width-based formatting in JSON mode at the framework level; `$COLUMNS` ignored in JSON mode |
 
-**Check:** Set `COLUMNS=40` and run any command with a long string field (URL, path) in `--output json` mode — verify the JSON is valid and the string is not line-wrapped.
+**Check:** Set `COLUMNS=40` and run any command with a long string field (URL, path) in `--format json` mode — verify the JSON is valid and the string is not line-wrapped.
 
 ---
 
@@ -89,7 +89,7 @@ env = {
 }
 
 result = subprocess.run(
-    ["tool", "describe", resource_id, "--output", "json", "--width=0"],
+    ["tool", "describe", resource_id, "--format", "json", "--width=0"],
     capture_output=True, text=True,
     env=env,
 )
@@ -110,4 +110,4 @@ except json.JSONDecodeError:
     parsed = json.loads(repaired)
 ```
 
-**Limitation:** Repairing injected newlines in JSON strings is fragile and may produce incorrect results for multi-line string fields that are legitimately multi-line — the correct fix is `--output json` mode combined with `COLUMNS=0`; if the tool still wraps, it is a bug that requires the tool author to fix
+**Limitation:** Repairing injected newlines in JSON strings is fragile and may produce incorrect results for multi-line string fields that are legitimately multi-line — the correct fix is `--format json` mode combined with `COLUMNS=0`; if the tool still wraps, it is a bug that requires the tool author to fix

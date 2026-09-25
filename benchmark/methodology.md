@@ -27,7 +27,7 @@ Both CLIs are shell scripts in `harness/cli/bad/` and `harness/cli/good/`. They 
 - Silent truncation: `list` prints 5 of 20 records with no indication more exist
 - Deploy failures that never say whether a retry is safe
 - Bulk delete with no dry-run that deletes some items, then fails with `exit 1`
-- No `--output json` flag and no manifest
+- No `--format json` flag and no manifest
 
 `cli-good` implements the spec and passes every conformance kit check (`conformance/profiles/democli-good.json`):
 - `ResponseEnvelope` 2.0 on stdout for every outcome, with `meta.exit_code`
