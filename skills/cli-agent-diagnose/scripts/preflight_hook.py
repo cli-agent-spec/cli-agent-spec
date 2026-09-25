@@ -44,6 +44,7 @@ import os
 import shlex
 import sys
 from pathlib import Path
+from typing import NamedTuple
 
 MIN_PYTHON = (3, 10)
 
@@ -64,55 +65,57 @@ def require_supported_python() -> None:
         sys.exit(2)
 
 
-def strip_shell_comment(command: str) -> str:
-    """Drop bash comments: from a # that starts a word outside quotes to the end of its line.
+class ShellScan(NamedTuple):
+    text: str        # comments and backslash-newline continuations removed, whitespace-trimmed
+    multiline: bool  # an unquoted newline separates the input into several commands
 
-    shlex cannot do this: comments=True also cuts a mid-word # (a URL fragment), and
-    comments=False keeps "# was --limit 10" as arguments. The newline that ends a comment
-    stays, so later lines remain separate commands.
+
+def scan_shell(command: str) -> ShellScan:
+    """Read a Bash command the way bash splits lines, which shlex cannot.
+
+    - A comment runs from a # that starts a word outside quotes to the end of its line;
+      a mid-word # (URL fragment), a quoted "#fff", and an escaped \\# are literal
+    - Backslash-newline outside single quotes is a continuation and disappears
+    - Any other unquoted newline separates commands
     """
     kept: list[str] = []
+    newlines: list[int] = []
     quote = ""
-    escaped = False
     in_comment = False
-    for index, char in enumerate(command):
+    index = 0
+    while index < len(command):
+        char = command[index]
+        following = command[index + 1] if index + 1 < len(command) else ""
         if in_comment:
             if char != "\n":
+                index += 1
                 continue
             in_comment = False
-        elif escaped:
-            escaped = False
-        elif char == "\\" and quote != "'":
-            escaped = True
-        elif quote:
-            if char == quote:
-                quote = ""
-        elif char in "'\"":
-            quote = char
-        elif char == "#" and (index == 0 or command[index - 1] in " \t\n;|&()"):
-            in_comment = True
+        if char == "\\" and quote != "'":
+            if following != "\n":
+                kept.append(char + following)
+            index += 2
             continue
-        kept.append(char)
-    return "".join(kept)
-
-
-def has_line_separator(command: str) -> bool:
-    """True if an unquoted, unescaped newline splits the input into several commands."""
-    quote = ""
-    escaped = False
-    for char in command:
-        if escaped:
-            escaped = False
-        elif char == "\\" and quote != "'":
-            escaped = True  # backslash-newline is a line continuation, not a separator
-        elif quote:
+        if quote:
             if char == quote:
                 quote = ""
         elif char in "'\"":
             quote = char
+        elif char == "#" and (not kept or kept[-1] in (" ", "\t", "\n", ";", "|", "&", "(", ")")):
+            in_comment = True
+            index += 1
+            continue
         elif char == "\n":
-            return True
-    return False
+            newlines.append(len(kept))
+        kept.append(char)
+        index += 1
+    lead = 0
+    while lead < len(kept) and kept[lead].isspace():
+        lead += 1
+    tail = len(kept)
+    while tail > lead and kept[tail - 1].isspace():
+        tail -= 1
+    return ShellScan("".join(kept[lead:tail]), any(lead <= position < tail for position in newlines))
 
 
 def main() -> None:
@@ -135,9 +138,10 @@ def main() -> None:
     elif isinstance(inp, str):
         command_str = inp
 
-    command_str = strip_shell_comment(command_str).strip()
-    if not command_str or has_line_separator(command_str):
+    scan = scan_shell(command_str)
+    if not scan.text or scan.multiline:
         sys.exit(0)  # empty, or several commands on separate lines
+    command_str = scan.text
 
     # Parse shell command into argv (best-effort; compound commands pass through)
     try:
