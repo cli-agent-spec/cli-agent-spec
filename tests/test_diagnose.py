@@ -304,6 +304,19 @@ def test_hook_passes_compound_commands_without_spaces(command: str) -> None:
     assert run_hook(json.dumps({"tool": "Bash", "input": {"command": command}})).stdout == ""
 
 
+@pytest.mark.parametrize("command", [
+    "tool --limit 5 list\ntool --limit 10 list",
+    "tool a  # note\ntool --limit 5 list --limit 10",
+])
+def test_hook_passes_commands_on_separate_lines(command: str) -> None:
+    assert run_hook(json.dumps({"tool": "Bash", "input": {"command": command}})).stdout == ""
+
+
+def test_hook_joins_continued_lines_into_one_command() -> None:
+    result = run_hook(json.dumps({"tool": "Bash", "input": {"command": "tool --limit 5 \\\n  list --limit 10"}}))
+    assert "§69" in result.stdout
+
+
 def test_hook_ignores_a_trailing_comment() -> None:
     assert run_hook(json.dumps({"tool": "Bash", "input": {"command": "tool --limit 5 list  # was --limit 10"}})).stdout == ""
 
@@ -315,6 +328,8 @@ def test_hook_ignores_a_trailing_comment() -> None:
     ("tool --color '#fff'", "tool --color '#fff'"),
     ("tool --tag \\#x", "tool --tag \\#x"),
     ("tool list;# note", "tool list;"),
+    ("tool a  # note\ntool b", "tool a  \ntool b"),
+    ("tool a  # don't stop\ntool b", "tool a  \ntool b"),
 ])
 def test_strip_shell_comment_matches_bash(command: str, expected: str) -> None:
     import preflight_hook

@@ -65,15 +65,22 @@ def require_supported_python() -> None:
 
 
 def strip_shell_comment(command: str) -> str:
-    """Drop a trailing bash comment: a # that starts a word outside quotes.
+    """Drop bash comments: from a # that starts a word outside quotes to the end of its line.
 
     shlex cannot do this: comments=True also cuts a mid-word # (a URL fragment), and
-    comments=False keeps "# was --limit 10" as arguments.
+    comments=False keeps "# was --limit 10" as arguments. The newline that ends a comment
+    stays, so later lines remain separate commands.
     """
+    kept: list[str] = []
     quote = ""
     escaped = False
+    in_comment = False
     for index, char in enumerate(command):
-        if escaped:
+        if in_comment:
+            if char != "\n":
+                continue
+            in_comment = False
+        elif escaped:
             escaped = False
         elif char == "\\" and quote != "'":
             escaped = True
@@ -83,8 +90,29 @@ def strip_shell_comment(command: str) -> str:
         elif char in "'\"":
             quote = char
         elif char == "#" and (index == 0 or command[index - 1] in " \t\n;|&()"):
-            return command[:index]
-    return command
+            in_comment = True
+            continue
+        kept.append(char)
+    return "".join(kept)
+
+
+def has_line_separator(command: str) -> bool:
+    """True if an unquoted, unescaped newline splits the input into several commands."""
+    quote = ""
+    escaped = False
+    for char in command:
+        if escaped:
+            escaped = False
+        elif char == "\\" and quote != "'":
+            escaped = True  # backslash-newline is a line continuation, not a separator
+        elif quote:
+            if char == quote:
+                quote = ""
+        elif char in "'\"":
+            quote = char
+        elif char == "\n":
+            return True
+    return False
 
 
 def main() -> None:
@@ -107,9 +135,9 @@ def main() -> None:
     elif isinstance(inp, str):
         command_str = inp
 
-    command_str = strip_shell_comment(command_str)
-    if not command_str.strip():
-        sys.exit(0)
+    command_str = strip_shell_comment(command_str).strip()
+    if not command_str or has_line_separator(command_str):
+        sys.exit(0)  # empty, or several commands on separate lines
 
     # Parse shell command into argv (best-effort; compound commands pass through)
     try:
