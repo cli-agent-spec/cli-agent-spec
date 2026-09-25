@@ -298,6 +298,7 @@ def test_hook_passes_safe_and_compound_commands() -> None:
     "tool --limit 5 list; tool --limit 10 list",
     "tool --limit 5 list&&tool --limit 10 list",
     "git log|head",
+    "curl http://x/a#frag; tool --limit 5 list --limit 10",
 ])
 def test_hook_passes_compound_commands_without_spaces(command: str) -> None:
     assert run_hook(json.dumps({"tool": "Bash", "input": {"command": command}})).stdout == ""

@@ -97,6 +97,7 @@ def main() -> None:
     # lexer splits operators out of words, so "list;" and "a&&b" are caught; quoted text is not
     operators = shlex.shlex(command_str, posix=True, punctuation_chars=True)
     operators.whitespace_split = True
+    operators.commenters = ""  # a mid-word "#" (URL fragment) is not a comment in bash
     if any(tok and set(tok) <= set("|&;<>()") for tok in operators):
         sys.exit(0)
 
