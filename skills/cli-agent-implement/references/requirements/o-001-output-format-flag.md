@@ -2,7 +2,7 @@
 
 **Tier:** Opt-In | **Priority:** P0
 
-**Source:** [§2 Output Format & Parseability](../challenges/04-critical-output-and-parsing/02-critical-output-format.md)
+**Source:** [§2 Output Format & Parseability](../challenges/04-critical-output-and-parsing/02-critical-output-format.md) · [§78 Output Flag Meaning Collision](../challenges/01-critical-ecosystem-runtime-agent-specific/78-high-output-flag-meaning-collision.md)
 
 **Addresses:** Severity: Critical / Token Spend: High / Time: Medium / Context: High
 

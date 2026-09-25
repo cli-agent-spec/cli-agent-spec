@@ -2,7 +2,7 @@
 
 **Your CLI tool works perfectly for humans. For AI agents, it silently hangs, corrupts data, leaks secrets, and exhausts context windows — and you would never know.**
 
-This is a specification for building CLI tools that AI agents can call reliably: **74 documented failure modes**, **158 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
+This is a specification for building CLI tools that AI agents can call reliably: **75 documented failure modes**, **158 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
 
 > **No existing CLI framework covers more than 59% of the currently mapped failure modes.**
 
@@ -38,7 +38,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 ## What this spec defines
 
-**74 failure modes** — each documented with severity, frequency, detectability, token cost, time cost, and context cost from the agent's perspective. Grouped into 7 parts: ecosystem/runtime, execution, security, output, environment, errors, and observability.
+**75 failure modes** — each documented with severity, frequency, detectability, token cost, time cost, and context cost from the agent's perspective. Grouped into 7 parts: ecosystem/runtime, execution, security, output, environment, errors, and observability.
 
 **158 requirements** across 3 tiers:
 
@@ -68,7 +68,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 | Path | Contents |
 |------|----------|
-| [`challenges/`](challenges/index.md) | 74 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround; [`index.json`](challenges/index.json) carries the same taxonomy as data |
+| [`challenges/`](challenges/index.md) | 75 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround; [`index.json`](challenges/index.json) carries the same taxonomy as data |
 | [`requirements/`](requirements/index.md) | 158 requirements with acceptance criteria, wire format, and examples, grouped into three [conformance levels](requirements/levels.md) |
 | [`conformance/`](conformance/README.md) | Deterministic conformance kit: probes a CLI and reports pass or fail per check and per level |
 | [`schemas/`](schemas/index.md) | JSON Schema draft-07 definitions for all 5 types |
@@ -85,7 +85,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 The field is converging on **Agent Experience (AX)** as the term for "how well is a system designed to be consumed by an AI agent" — the machine-facing analog of Developer Experience (DX) or User Experience (UX). It applies across APIs, databases, SDKs, web services, and CLIs.
 
-This spec is AX research applied to the CLI layer. CLIs are the most underserved slice of the problem: they are the primary interface through which agents interact with infrastructure, but they were designed for human terminal sessions. The gap between CLI defaults and agent requirements is where the 74 failure modes live.
+This spec is AX research applied to the CLI layer. CLIs are the most underserved slice of the problem: they are the primary interface through which agents interact with infrastructure, but they were designed for human terminal sessions. The gap between CLI defaults and agent requirements is where the 75 failure modes live.
 
 **What distinguishes this project from other AX work:**
 
@@ -149,4 +149,4 @@ Before contributing, read [`AGENTS.md`](AGENTS.md) for conventions: file format,
 
 ---
 
-*CLI Agent Spec v1.7 — 74 failure modes · 158 requirements · 5 canonical schemas · 12 frameworks evaluated*
+*CLI Agent Spec v1.7 — 75 failure modes · 158 requirements · 5 canonical schemas · 12 frameworks evaluated*

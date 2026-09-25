@@ -1,6 +1,6 @@
 # CLI Agent Spec — Full Index
 
-> All 74 failure modes across 7 parts. Each failure mode linked to its source file.
+> All 75 failure modes across 7 parts. Each failure mode linked to its source file.
 >
 > Failed call and don't know which §N applies? Start at [triage.md](triage.md) — a first-match decision table from observable signals (exit code, streams, timing) to failure modes.
 
@@ -59,6 +59,7 @@
 | [§70](01-critical-ecosystem-runtime-agent-specific/70-high-single-argument-arity.md) | Single-Argument Arity Forcing Agent Loop Overhead | 🟠 High | Common | Easy | Medium | Medium | Low |
 | [§72](01-critical-ecosystem-runtime-agent-specific/72-high-integration-artifact-drift.md) | Integration Artifact Version Drift | 🟠 High | Common | Medium | High | Medium | Low |
 | [§73](01-critical-ecosystem-runtime-agent-specific/73-high-documentation-accuracy-drift.md) | Documentation Accuracy Drift | 🟠 High | Common | Hard | High | Medium | Low |
+| [§78](01-critical-ecosystem-runtime-agent-specific/78-high-output-flag-meaning-collision.md) | Output Flag Meaning Collision | 🟠 High | Common | Hard | Medium | Medium | Low |
 | [§44](01-critical-ecosystem-runtime-agent-specific/44-medium-knowledge-packaging.md) | Agent Knowledge Packaging Absence | 🟡 Medium | Very Common | Easy | High | High | Medium |
 | [§52](01-critical-ecosystem-runtime-agent-specific/52-medium-command-tree-discovery.md) | Recursive Command Tree Discovery Cost | 🟡 Medium | Very Common | Easy | High | Medium | High |
 | [§57](01-critical-ecosystem-runtime-agent-specific/57-medium-locale-errors.md) | Locale-Dependent Error Messages | 🟡 Medium | Situational | Easy | High | Low | Medium |
@@ -169,4 +170,4 @@
 
 ---
 
-*74 active failure modes across 7 parts. CLI Agent Spec v1.6 — 2026-06-11.*
+*75 active failure modes across 7 parts. CLI Agent Spec v1.6 — 2026-06-11.*

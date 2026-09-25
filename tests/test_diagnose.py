@@ -124,6 +124,7 @@ CASES = [
     (68, trace(stdout="\x1b[31mred\x1b[0m", exit_code=0)),
     (71, trace(command="curl -fsSL https://x.sh | bash install", stdout="Do you want to continue? [Y/n]", exit_code=124)),
     (74, trace(stderr="GraphQL: Resource not accessible by integration (missing required scopes: repo)")),
+    (78, trace(command="tool export --output json", stdout="", exit_code=0)),
 ]
 
 
@@ -173,6 +174,11 @@ def test_clean_structured_failure_does_not_match_exit_code_modes() -> None:
     body = json.dumps({"ok": False, "data": None, "error": {"code": "NOT_FOUND", "message": "missing", "retryable": False, "fix_required": "use an existing id"}, "warnings": [], "meta": {"exit_code": 5, "duration_ms": 2}})
     result = diagnose.diagnose(trace(stdout=body, exit_code=5), challenges_dir=CHALLENGES)
     assert result.no_match and not result.matches
+
+
+def test_output_json_with_json_stdout_is_not_a_path_collision() -> None:
+    assert 78 not in ids(trace(command="kubectl get pods -o json", stdout='{"items": []}', exit_code=0))
+    assert 78 not in ids(trace(command="tool export --output json.out", stdout="", exit_code=0))
 
 
 def test_insufficient_trace() -> None:

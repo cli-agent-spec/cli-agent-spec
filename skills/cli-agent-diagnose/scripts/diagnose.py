@@ -995,12 +995,15 @@ def diagnose(
     trace = parse_trace(raw)
     failures = extract_failures(trace)
 
-    # Insufficient trace: single event with empty stdout + empty stderr + exit 0
+    raw_signals = match_signals(failures)
+
+    # Insufficient trace: empty stdout + empty stderr + exit 0 everywhere, and no
+    # signal read from the command line itself (§78 fires on exactly that shape)
     all_empty = all(
         not e.stdout.strip() and not e.stderr.strip() and e.exit_code == 0
         for e in failures
     )
-    if all_empty:
+    if all_empty and not raw_signals:
         return DiagnoseResult(
             matches=(),
             no_match=False,
@@ -1009,7 +1012,6 @@ def diagnose(
             trace_summary="trace contains no output or error signals",
         )
 
-    raw_signals = match_signals(failures)
 
     # Signature-catalog routing: with an LLM available, candidate selection is
     # not limited to the deterministic pattern tables — every §N declaring a

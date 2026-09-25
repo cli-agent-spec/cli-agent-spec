@@ -23,6 +23,12 @@
 
 **Migration:** rename the framework's global `--output` flag to `--format`; rename `<TOOLNAME>_OUTPUT` to `<TOOLNAME>_FORMAT`; rename any file-destination flag to `--output <path>` and add the format-name guard.
 
+### New failure mode: §78 Output Flag Meaning Collision
+
+- §78 covers an agent passing `--output json` or `-o json` to a tool whose `--output` takes a path: exit `0`, empty stdout, and a stray file named `json`
+- Triage row 16 routes the signal (exit `0`, no JSON, a file named after a format value) to §78; the catch-all row becomes 17
+- REQ-O-001 lists §78 as a source; its format-name guard on path-typed `--output` is the framework fix
+
 ## 1.7.0 — 2026-09-15
 
 ### Breaking: ResponseEnvelope 2.0

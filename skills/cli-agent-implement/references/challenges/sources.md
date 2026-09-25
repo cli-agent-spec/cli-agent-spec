@@ -141,6 +141,7 @@ Discovered by reviewing two external agent-native CLI projects.
 | [§68](01-critical-ecosystem-runtime-agent-specific/68-high-stdout-pollution.md) | Third-Party Library Stdout Pollution | RA | Gemini AMI: Output & Context; Antigravity: I/O & Formatting — fd-level interception solution |
 | [§69](01-critical-ecosystem-runtime-agent-specific/69-high-argument-order-ambiguity.md) | Argument Order Ambiguity | FP | Derived from parser mode differences across argparse/Click/Cobra/Commander.js |
 | [§70](01-critical-ecosystem-runtime-agent-specific/70-high-single-argument-arity.md) | Single-Argument Arity Forcing Agent Loop Overhead | FP | Derived from observed agent error: `ws delete` passed multiple paths, argparse rejected extras; UNIX convention (rm/cp/mv accept nargs=+) creates universal agent expectation |
+| [§78](01-critical-ecosystem-runtime-agent-specific/78-high-output-flag-meaning-collision.md) | Output Flag Meaning Collision | FP | Derived from the split meaning of `--output`/`-o`: a format in aws/kubectl/az/helm, a destination path in gcc/curl/sort/pandoc |
 
 ---
 

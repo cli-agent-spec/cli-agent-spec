@@ -1,6 +1,6 @@
 # Requirements Index
 
-> All requirements for an agent-compatible CLI framework, derived from the CLI Agent Spec's 74 documented failure modes.
+> All requirements for an agent-compatible CLI framework, derived from the CLI Agent Spec's 75 documented failure modes.
 
 **158 total** &nbsp;|&nbsp; 78 Framework-Automatic · 30 Command Contract · 50 Opt-In — amended 2026-07-06
 
@@ -142,7 +142,7 @@
 
 | ID | Priority | Title | Failure mode(s) | Level |
 |----|----------|-------|-------------|-------|
-| [REQ-O-001](o-001-output-format-flag.md) | P0 | --format Output Format Flag | [§2](../challenges/04-critical-output-and-parsing/02-critical-output-format.md) | 2 |
+| [REQ-O-001](o-001-output-format-flag.md) | P0 | --format Output Format Flag | [§2](../challenges/04-critical-output-and-parsing/02-critical-output-format.md) [§78](../challenges/01-critical-ecosystem-runtime-agent-specific/78-high-output-flag-meaning-collision.md) | 2 |
 | [REQ-O-002](o-002-fields-selector.md) | P2 | --fields Selector | [§4](../challenges/04-critical-output-and-parsing/04-medium-verbosity.md) | 3 |
 | [REQ-O-003](o-003-limit-and-cursor-pagination-flags.md) | P0 | --limit and --cursor Pagination Flags | [§5](../challenges/04-critical-output-and-parsing/05-high-pagination.md) | 2 |
 | [REQ-O-004](o-004-output-jsonl-stream-flag.md) | P2 | --format jsonl / --stream Flag | [§5](../challenges/04-critical-output-and-parsing/05-high-pagination.md) [§76](../challenges/04-critical-output-and-parsing/76-high-streaming-default-incompatibility.md) | 3 |

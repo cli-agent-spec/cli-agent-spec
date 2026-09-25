@@ -41,6 +41,7 @@
 | [70-high-single-argument-arity.md](70-high-single-argument-arity.md) | 🟠 High | Commands that accept only one positional argument force agents to loop N times for N items — each iteration a separate process launch, auth check, and round trip — instead of one variadic call |
 | [72-high-integration-artifact-drift.md](72-high-integration-artifact-drift.md) | 🟠 High | Agent-facing integration artifacts (OpenAPI specs, AGENTS.md, skill files) drift from the CLI binary as it evolves — ... |
 | [73-high-documentation-accuracy-drift.md](73-high-documentation-accuracy-drift.md) | 🟠 High | AGENTS.md and agent-facing docs become inaccurate over time — flag names change, commands are removed, env vars rename... |
+| [78-high-output-flag-meaning-collision.md](78-high-output-flag-meaning-collision.md) | 🟠 High | Agents trained on `aws --output json` pass `--output json` to tools whose `--output` takes a path; the call exits `0`, stdout is empty, and a file named `json` appears |
 | [44-medium-knowledge-packaging.md](44-medium-knowledge-packaging.md) | 🟡 Medium | Agents consuming a CLI tool have two information sources: the tool's `--help` text (or `--schema` if available) and a... |
 | [52-medium-command-tree-discovery.md](52-medium-command-tree-discovery.md) | 🟡 Medium | Most CLIs require N+1 help calls to discover the full command surface: one call to list top-level subcommands, then o... |
 | [57-medium-locale-errors.md](57-medium-locale-errors.md) | 🟡 Medium | Distinct from §2 (locale-invariant serialization of numbers/dates), many CLI tools embed raw OS or runtime error mess... |
@@ -91,6 +92,7 @@
 | [§71](71-critical-noninteractive-installation.md) | 🔴 Critical | Common | Easy | Low | Critical | Low |
 | [§72](72-high-integration-artifact-drift.md) | 🟠 High | Common | Medium | High | Medium | Low |
 | [§73](73-high-documentation-accuracy-drift.md) | 🟠 High | Common | Hard | High | Medium | Low |
+| [§78](78-high-output-flag-meaning-collision.md) | 🟠 High | Common | Hard | Medium | Medium | Low |
 | [§44](44-medium-knowledge-packaging.md) | 🟡 Medium | Very Common | Easy | High | High | Medium |
 | [§52](52-medium-command-tree-discovery.md) | 🟡 Medium | Very Common | Easy | High | Medium | High |
 | [§57](57-medium-locale-errors.md) | 🟡 Medium | Situational | Easy | High | Low | Medium |

@@ -10,7 +10,7 @@ If you are helping someone **implement** this specification in their own project
 
 This project defines the **CLI Agent Spec** specification: a catalogue of failure modes, requirements, shared schemas, and a comparison matrix for building CLI tools that work reliably under AI agent orchestration.
 
-Current corpus: 74 failure modes, 158 requirements.
+Current corpus: 75 failure modes, 158 requirements.
 
 ---
 
@@ -20,7 +20,7 @@ Current corpus: 74 failure modes, 158 requirements.
 AGENTS.md                   ← spec editor guide (this file)
 IMPLEMENTING.md             ← implementer guide for AI agents
 comparison-matrix.md        ← solution comparison across 71 currently mapped failure modes
-challenges/                 ← 74 failure modes grouped into 7 parts
+challenges/                 ← 75 failure modes grouped into 7 parts
   index.md                  ← master index of all failure modes
   sources.md                ← source evidence for each failure mode
   checklist.md              ← implementation checklist
