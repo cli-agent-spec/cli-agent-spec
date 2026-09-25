@@ -4,6 +4,7 @@
   "command": ["../../benchmark/harness/cli/good/democli"],
   "timeout_seconds": 5,
   "manifest": ["manifest"],
+  "argument_order": { "command_path": ["deployments", "list"], "local_args": ["--limit", "5"], "global_flag": "--format", "value": "json", "alternate_value": "plain" },
   "probes": [
     { "name": "list deployments", "argv": ["deployments", "list"], "kind": "read" },
     { "name": "health check", "argv": ["health", "check"], "kind": "read" },

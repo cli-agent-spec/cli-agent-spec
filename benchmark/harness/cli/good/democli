@@ -1,13 +1,41 @@
 #!/usr/bin/env bash
 # cli-good: democli — single entry point dispatching to the per-command scripts
 # Bare invocation and --help print usage to stderr and exit 0 (REQ-F-048)
+# --format is a global option: accepted before or after the command path, parsed once
+# here, and a repeat with a different value exits 2 (REQ-F-067, REQ-F-079)
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
-COMMAND="${1:-}"
+
+arg_error() {
+  printf '{"ok":false,"data":null,"error":{"code":"%s","message":"%s","retryable":false,"phase":"validation","fix_required":"%s"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n' "$1" "$2" "$3"
+  exit 2
+}
+
+FORMAT=""
+ARGS=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --) ARGS+=("$@"); break ;;
+    --format|--format=*)
+      if [[ "$1" == --format=* ]]; then VALUE="${1#--format=}"; shift; else VALUE="${2:-}"; shift 2 || shift; fi
+      case "$VALUE" in
+        json|plain) ;;
+        *) arg_error "INVALID_FORMAT" "Unsupported --format value: $VALUE" "Use --format json or --format plain" ;;
+      esac
+      if [[ -n "$FORMAT" && "$FORMAT" != "$VALUE" ]]; then
+        arg_error "CONFLICTING_OPTION" "--format given twice with different values: $FORMAT, $VALUE" "Pass --format once"
+      fi
+      FORMAT="$VALUE"
+      ;;
+    *) ARGS+=("$1"); shift ;;
+  esac
+done
 
 usage() {
   cat >&2 <<'TXT'
 democli — demo deployment tool
+
+Usage: democli [--format json|plain] <command> [flags]
 
 Commands:
   deployments list|delete   Manage deployments
@@ -17,11 +45,23 @@ Commands:
 TXT
 }
 
+COMMAND="${ARGS[0]:-}"
 case "$COMMAND" in
   ""|--help|-h|help) usage; exit 0 ;;
-  deployments|deploy|health|manifest) shift; exec "$HERE/$COMMAND" "$@" ;;
-  *)
-    printf '{"ok":false,"data":null,"error":{"code":"UNKNOWN_COMMAND","message":"Unknown command %s","retryable":false,"phase":"validation","fix_required":"Run democli manifest for available commands"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n' "$COMMAND"
-    exit 2
-    ;;
+  deployments|deploy|health|manifest) ;;
+  *) arg_error "UNKNOWN_COMMAND" "Unknown command $COMMAND" "Run democli manifest for available commands" ;;
 esac
+
+if [[ "$FORMAT" != "plain" ]]; then
+  exec "$HERE/$COMMAND" "${ARGS[@]:1}"
+fi
+
+# plain: one resource id per line, taken from the envelope the command prints
+OUTPUT="$("$HERE/$COMMAND" "${ARGS[@]:1}")"
+STATUS=$?
+if [[ $STATUS -ne 0 ]]; then
+  printf '%s\n' "$OUTPUT"
+  exit $STATUS
+fi
+printf '%s\n' "$OUTPUT" | grep -o '"id":"[^"]*"' | cut -d'"' -f4
+exit 0

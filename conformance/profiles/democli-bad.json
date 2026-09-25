@@ -5,6 +5,7 @@
     "../../benchmark/harness/cli/bad/democli"
   ],
   "timeout_seconds": 5,
+  "argument_order": { "command_path": ["deployments", "list"], "local_args": ["--limit", "5"], "global_flag": "--format", "value": "json", "alternate_value": "plain" },
   "probes": [
     {
       "name": "list deployments",

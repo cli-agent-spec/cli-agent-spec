@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Fixture: accepts --format in any position, but the subcommand's default replaces a value
+# given before the command path (the argparse parent-parser bug), and a repeated --format
+# keeps the last value silently. Both are §69 failures that exit 0.
+
+FORMAT="json"
+SEEN_COMMAND=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --format) [[ $SEEN_COMMAND -eq 1 ]] && FORMAT="$2"; shift 2 ;;
+    list) SEEN_COMMAND=1; FORMAT="json"; shift ;;
+    --limit) shift 2 ;;
+    *) printf '{"ok":false,"data":null,"error":{"code":"ARG_ERROR","message":"unknown argument"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n'; exit 2 ;;
+  esac
+done
+
+if [[ "$FORMAT" == "plain" ]]; then
+  printf 'item-1\n'
+else
+  printf '{"ok":true,"data":[{"id":"item-1"}],"error":null,"warnings":[],"meta":{"exit_code":0,"duration_ms":1}}\n'
+fi

@@ -34,6 +34,10 @@
       "items": { "type": "string" },
       "description": "Arguments after the prefix that print the manifest. Omit when the CLI has none; manifest_valid is then skipped."
     },
+    "argument_order": {
+      "$ref": "#/definitions/ArgumentOrder",
+      "description": "One read invocation and a global option to move around it. Omit to skip argument_order."
+    },
     "probes": {
       "type": "array",
       "minItems": 1,
@@ -42,6 +46,40 @@
     }
   },
   "definitions": {
+    "ArgumentOrder": {
+      "type": "object",
+      "required": ["command_path", "local_args", "global_flag", "value", "alternate_value"],
+      "additionalProperties": false,
+      "properties": {
+        "command_path": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Command path of a side-effect-free command, such as [\"deployments\", \"list\"]."
+        },
+        "local_args": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "string" },
+          "description": "A command-local option and its value, such as [\"--limit\", \"5\"]. The kit places it before and after the global option."
+        },
+        "global_flag": {
+          "type": "string",
+          "pattern": "^--[a-z][a-z0-9-]*$",
+          "description": "Long name of a global option, usually --format."
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Value that makes stdout a ResponseEnvelope, usually json."
+        },
+        "alternate_value": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Another accepted value whose stdout differs from value's, such as plain. Detects a value overwritten by a subcommand default."
+        }
+      }
+    },
     "Probe": {
       "type": "object",
       "required": ["name", "argv", "kind"],

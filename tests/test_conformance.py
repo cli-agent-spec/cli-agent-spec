@@ -48,7 +48,27 @@ def test_bad_mock_fails_output_and_safety_checks(bad) -> None:
                   "invalid_input_exit_2", "dry_run_preview", "destructive_refuses_unconfirmed"):
         assert result[check] == "fail", check
     assert result["manifest_valid"] == "skip"
+    assert result["argument_order"] == "fail"
     assert envelope["data"]["levels"]["level_1"] == "fail"
+
+
+def test_overwritten_and_last_wins_global_option_fails_argument_order() -> None:
+    code, envelope = run_kit(FIXTURES / "lastwinscli.json")
+    assert code == 4
+    [check] = [c for c in envelope["data"]["checks"] if c["id"] == "argument_order"]
+    details = [f["detail"] for f in check["failures"]]
+    assert any("overwritten by a default" in d for d in details)
+    assert any("given twice" in d and "expected 2" in d for d in details)
+
+
+def test_argument_order_rejects_identical_values(tmp_path: Path) -> None:
+    profile = json.loads((ROOT / "conformance/profiles/democli-good.json").read_text())
+    profile["command"] = [str((ROOT / "benchmark/harness/cli/good/democli").resolve())]
+    profile["argument_order"]["alternate_value"] = profile["argument_order"]["value"]
+    path = tmp_path / "same.json"
+    path.write_text(json.dumps(profile))
+    code, envelope = run_kit(path)
+    assert code == 2 and "alternate_value" in envelope["error"]["message"]
 
 
 def test_hanging_cli_fails_hang_and_exit_checks() -> None:

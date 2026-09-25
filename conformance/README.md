@@ -37,7 +37,8 @@ A profile names the command prefix and the probes to run. See [`conformance-prof
 | `dry_run_preview` | 1 | REQ-C-004 | §23 |
 | `destructive_refuses_unconfirmed` | 2 | REQ-C-005, REQ-O-021 | §23, §10 |
 | `manifest_valid` | 3 | REQ-O-041 | §52, §21 |
+| `argument_order` | 3 | REQ-F-067, REQ-F-079 | §69 |
 
 ## Fixtures
 
-The benchmark mocks double as fixtures. [`democli-good.json`](profiles/democli-good.json) passes every check; [`democli-bad.json`](profiles/democli-bad.json) fails the output and safety checks. `tests/fixtures/conformance/hangcli` covers hangs and illegal exit codes. `tests/test_conformance.py` asserts all three outcomes.
+The benchmark mocks double as fixtures. [`democli-good.json`](profiles/democli-good.json) passes every check; [`democli-bad.json`](profiles/democli-bad.json) fails the output and safety checks. `tests/fixtures/conformance/hangcli` covers hangs and illegal exit codes; `lastwinscli` lets a subcommand default replace a global option given before the command path and keeps the last of two conflicting values. `tests/test_conformance.py` asserts every outcome.

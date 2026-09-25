@@ -27,6 +27,7 @@ Key decisions:
 | `command` | string[] | yes | Invocation prefix; a first element containing `/` resolves against the profile directory, a bare name through `PATH` |
 | `timeout_seconds` | number `(0, 120]` | yes | Per-run limit; exceeding it counts as a hang |
 | `manifest` | string[] | no | Arguments that print the manifest; omit to skip `manifest_valid` |
+| `argument_order` | `ArgumentOrder` | no | A read command and a global option to move around it; omit to skip `argument_order` |
 | `probes` | `Probe[]` | yes | Invocations to run |
 
 ### Probe
@@ -37,6 +38,18 @@ Key decisions:
 | `argv` | string[] | yes | Arguments after the prefix |
 | `kind` | `"read"` \| `"destructive"` \| `"invalid"` | yes | Expected behavior class |
 | `dry_run_flag` | string | when destructive | Flag that turns the probe into a preview |
+
+### ArgumentOrder
+
+The kit runs `command_path` with `local_args`, placing `global_flag` before the command path, between the path and the local option, and after the local option. Every placement must exit `0` with the same result; `alternate_value` must change stdout identically in every placement; the flag given twice with `value` and then `alternate_value` must exit `2`.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `command_path` | string[] | yes | Path of a side-effect-free command |
+| `local_args` | string[] | yes | A command-local option and its value |
+| `global_flag` | string | yes | Long name of a global option, usually `--format` |
+| `value` | string | yes | Value whose stdout is a `ResponseEnvelope`, usually `json` |
+| `alternate_value` | string | yes | Another accepted value with different stdout, such as `plain`; must differ from `value` |
 
 ---
 
@@ -50,6 +63,7 @@ Key decisions:
   "command": ["../../benchmark/harness/cli/good/democli"],
   "timeout_seconds": 5,
   "manifest": ["manifest"],
+  "argument_order": { "command_path": ["deployments", "list"], "local_args": ["--limit", "5"], "global_flag": "--format", "value": "json", "alternate_value": "plain" },
   "probes": [
     { "name": "list deployments", "argv": ["deployments", "list"], "kind": "read" },
     { "name": "unknown flag", "argv": ["deployments", "list", "--no-such-flag"], "kind": "invalid" },
@@ -79,7 +93,8 @@ Violation: `dry_run_flag` is required when `kind` is `destructive`.
 - **Putting `--yes` or `--force` in a destructive probe.** The kit then executes the deletion for real; confirmation flags never belong in a profile
 - **Marking a mutating command as `read`.** Read probes run several times (stdin closed, stdin open, `NO_COLOR`); anything that writes will write repeatedly
 - **Pointing a profile at production credentials.** Probes call the real tool; use a sandbox account or a mock
-- **Adding `--format json` to probe argv.** The envelope check exists to prove JSON activates in a non-TTY without flags (REQ-F-003)
+- **Adding `--format json` to probe argv.** The envelope check exists to prove JSON activates in a non-TTY without flags (REQ-F-003); `argument_order` is the one place a profile names the format flag
+- **Choosing an `alternate_value` that renders like the default.** The overwrite check compares stdout; an alternate that prints the same bytes as `value` reads as an ignored option
 
 ---
 

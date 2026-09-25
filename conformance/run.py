@@ -87,11 +87,21 @@ def resolve_executable(name: str, base: Path) -> str:
 
 
 @dataclass(frozen=True)
+class ArgumentOrder:
+    command_path: tuple[str, ...]
+    local_args: tuple[str, ...]
+    global_flag: str
+    value: str
+    alternate_value: str
+
+
+@dataclass(frozen=True)
 class Profile:
     tool: str
     command: tuple[str, ...]
     timeout_seconds: float
     manifest: tuple[str, ...] | None
+    argument_order: ArgumentOrder | None
     probes: tuple[Probe, ...]
 
     @classmethod
@@ -119,7 +129,16 @@ class Profile:
             if probe.kind is ProbeKind.DESTRUCTIVE and probe.dry_run_flag is None:
                 raise ProfileError(f"destructive probe {probe.name!r} must declare dry_run_flag")
         manifest = tuple(raw["manifest"]) if "manifest" in raw else None
-        return cls(raw["tool"], command, float(raw["timeout_seconds"]), manifest, probes)
+        argument_order = None
+        if "argument_order" in raw:
+            order = raw["argument_order"]
+            if order["value"] == order["alternate_value"]:
+                raise ProfileError("argument_order.alternate_value must differ from value")
+            argument_order = ArgumentOrder(
+                tuple(order["command_path"]), tuple(order["local_args"]),
+                order["global_flag"], order["value"], order["alternate_value"],
+            )
+        return cls(raw["tool"], command, float(raw["timeout_seconds"]), manifest, argument_order, probes)
 
 
 # ---------------------------------------------------------------------------
@@ -270,6 +289,7 @@ CHECKS: tuple[CheckSpec, ...] = (
     CheckSpec("dry_run_preview", "Destructive commands preview with their dry-run flag", 1, (23,), ("REQ-C-004",)),
     CheckSpec("destructive_refuses_unconfirmed", "Destructive commands refuse with exit 2, before side effects, without confirmation", 2, (23, 10), ("REQ-C-005", "REQ-O-021")),
     CheckSpec("manifest_valid", "tool manifest returns a valid ManifestResponse", 3, (52, 21), ("REQ-O-041",)),
+    CheckSpec("argument_order", "A global option means the same before and after the command path; conflicting repeats exit 2", 3, (69,), ("REQ-F-067", "REQ-F-079")),
 )
 
 
@@ -376,11 +396,56 @@ class Kit:
         if errors:
             outcome.fail(run, "data is not a valid ManifestResponse: " + "; ".join(errors[:3]))
 
+    def check_argument_order(self) -> None:
+        outcome = self.outcomes["argument_order"]
+        order = self.profile.argument_order
+        if order is None:
+            outcome.skipped_reason = "profile declares no argument_order"
+            return
+        path, local, flag = order.command_path, order.local_args, order.global_flag
+
+        def placements(value: str) -> dict[str, tuple[str, ...]]:
+            return {
+                "before the command path": (flag, value, *path, *local),
+                "between path and local option": (*path, flag, value, *local),
+                "after the local option": (*path, *local, flag, value),
+            }
+
+        runs: dict[tuple[str, str], Run] = {}
+        for value in (order.value, order.alternate_value):
+            for where, argv in placements(value).items():
+                run = self.run(f"argument_order {flag} {value} {where}", argv)
+                if not self.completed(outcome, run):
+                    return
+                if run.exit_code != 0:
+                    outcome.fail(run, f"{flag} {value} {where} exited {run.exit_code}, expected 0")
+                    return
+                runs[(value, where)] = run
+
+        reference, _reason = parse_envelope(runs[(order.value, "after the local option")], self.validators)
+        for where in placements(order.value):
+            run = runs[(order.value, where)]
+            envelope, reason = parse_envelope(run, self.validators)
+            if envelope is None:
+                outcome.fail(run, f"{flag} {order.value} {where}: {reason}")
+            elif reference is not None and envelope["data"] != reference["data"]:
+                outcome.fail(run, f"data differs from the run with {flag} {order.value} after the local option")
+            alternate = runs[(order.alternate_value, where)]
+            if alternate.stdout == run.stdout:
+                outcome.fail(alternate, f"{flag} {order.alternate_value} {where} printed the same stdout as {flag} {order.value}: the value was ignored or overwritten by a default")
+            if alternate.stdout != runs[(order.alternate_value, "after the local option")].stdout:
+                outcome.fail(alternate, f"stdout differs from the run with {flag} {order.alternate_value} after the local option")
+
+        conflict = self.run(f"argument_order conflicting {flag}", (flag, order.value, *path, *local, flag, order.alternate_value))
+        if self.completed(outcome, conflict) and conflict.exit_code != 2:
+            outcome.fail(conflict, f"{flag} given twice with different values exited {conflict.exit_code}, expected 2")
+
     def execute_all(self, only: frozenset[str] | None) -> list[dict[str, object]]:
         for probe in self.profile.probes:
             self.check_probe(probe)
         self.check_help()
         self.check_manifest()
+        self.check_argument_order()
         if not any(p.kind is ProbeKind.INVALID for p in self.profile.probes):
             self.outcomes["invalid_input_exit_2"].skipped_reason = "profile declares no invalid probe"
         if not any(p.kind is ProbeKind.DESTRUCTIVE for p in self.profile.probes):
