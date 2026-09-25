@@ -72,6 +72,11 @@
           "description": "Command-local flags: map from flag name (without leading --) to FlagEntry. Global options live in the root flags map and are never repeated here. Sourced from REQ-C-015.",
           "additionalProperties": { "$ref": "#/definitions/FlagEntry" }
         },
+        "positionals": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/PositionalEntry" },
+          "description": "Positional arguments in the order they are given after the command path. Absent or empty when the command takes none. Only the last entry may be variadic. Sourced from REQ-C-015."
+        },
         "exit_codes": {
           "type": "object",
           "description": "Map from exit code integer (as string key) to ExitCodeEntry. Sourced from REQ-C-001. When the manifest has a root exit_codes table, this map holds only the command's additions and overrides; tool <cmd> --schema always prints the effective table in full.",
@@ -267,6 +272,42 @@
         }
       },
       "not": { "required": ["pattern", "pattern_type"] }
+    },
+    "PositionalEntry": {
+      "type": "object",
+      "required": ["name", "type", "required", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]*$",
+          "description": "Name used in help and errors. Never typed by the caller; position alone identifies the argument."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["string", "integer", "number", "enum"],
+          "description": "Value type of the argument."
+        },
+        "required": {
+          "type": "boolean",
+          "description": "True if the argument must be given. An optional positional never precedes a required one."
+        },
+        "description": {
+          "type": "string",
+          "description": "What the argument selects, including valid range or format constraints."
+        },
+        "enum_values": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Exhaustive list of accepted values. Required when type is 'enum'."
+        },
+        "variadic": {
+          "type": "boolean",
+          "description": "True if the argument takes every remaining value. Allowed on the last entry only."
+        }
+      },
+      "if": { "properties": { "type": { "const": "enum" } } },
+      "then": { "required": ["enum_values"] }
     },
     "Example": {
       "type": "object",

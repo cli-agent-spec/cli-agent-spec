@@ -38,6 +38,7 @@ Two decisions shape the type:
 | `danger_level` | `"safe"` \| `"mutating"` \| `"destructive"` | yes | Mutation risk level (REQ-C-002) |
 | `required_scopes` | string[] | yes | Minimal permission strings, most critical first; empty when no auth is needed (REQ-C-029) |
 | `flags` | `Record<string, FlagEntry>` | yes | Command-local flags keyed by name without `--`; never repeats a name or short alias from the root `flags` |
+| `positionals` | `PositionalEntry[]` | no | Positional arguments in call order; absent when there are none (REQ-C-015) |
 | `exit_codes` | `Record<string, ExitCodeEntry>` | yes | Keyed by integer code as string (REQ-C-001). With a root `exit_codes` table present, holds only the command's additions and overrides; the effective table is root overlaid with this map, and `tool <cmd> --schema` prints it in full |
 | `aliases` | string[] | no | Alternative invocation names |
 | `output_schema` | object | no | JSON Schema for `data` on success (REQ-C-015) |
@@ -89,6 +90,17 @@ Present only when the command declares them.
 | `pattern` | string | no | Anchored regex the value must match; exclusive with `pattern_type` (REQ-C-020) |
 | `pattern_type` | `"alphanumeric_id"` \| `"uuid"` \| `"semver"` \| `"filepath"` \| `"url"` | no | Built-in validation preset (REQ-C-020) |
 
+### PositionalEntry
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | yes | Name shown in help and errors; the caller never types it |
+| `type` | `"string"` \| `"integer"` \| `"number"` \| `"enum"` | yes | Value type |
+| `required` | boolean | yes | Must be given; an optional positional never precedes a required one |
+| `description` | string | yes | What the argument selects, including range or format |
+| `enum_values` | string[] | when `type` is `"enum"` | Exhaustive list of accepted values |
+| `variadic` | boolean | no | Takes every remaining value; last entry only |
+
 ### Supporting types
 
 | Type | Fields |
@@ -137,7 +149,8 @@ Present only when the command declares them.
       "danger_level": "destructive",
       "required_scopes": ["deploy:write"],
       "safe_default": true,
-      "flags": { "target": { "type": "string", "required": true, "description": "Target environment" } },
+      "flags": {},
+      "positionals": [{ "name": "target", "type": "enum", "required": true, "enum_values": ["staging", "prod"], "description": "Environment to roll back" }],
       "exit_codes": { "0": { "name": "SUCCESS", "description": "Rollback completed or previewed", "retryable": false, "side_effects": "complete" } }
     }
   }
@@ -204,6 +217,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 **Building a call from `FlagEntry`**
 - A command's accepted flags are the root `flags` plus its own `flags`; a name in neither produces `ARG_ERROR (2)`
 - Emit tokens in the canonical order `tool <global options> <command path> <local options> [--] <positionals>`; every parser mode and both `option_placement` values accept it
+- Give `positionals` in array order; a `required` entry must be present, and only a `variadic` last entry takes more than one value
 - Put `--` before any positional that starts with `-`
 - Pass each option once; a scalar option repeated with a different value produces `ARG_ERROR (2)`
 - `required: true` flags must always be present; absence will produce `ARG_ERROR (2)`
@@ -247,6 +261,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert every command's effective `exit_codes` table (root table overlaid with the entry's own map) matches its `ExitCodeEntry` declarations exactly — no additions, no omissions
 - Assert an entry's own `exit_codes` map never repeats a root-table entry unchanged
 - Assert no `CommandEntry.flags` key or `short` value equals a root `flags` key or `short` value
+- Assert `positionals` lists every positional the parser accepts, in order, with no required entry after an optional one and `variadic` only on the last
 - Assert `etag` changes when any command registration changes, and is stable across identical registrations (determinism test)
 
 **Tests to generate**
@@ -275,6 +290,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 | [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) | Consumes: the command that returns this schema |
 | [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md) | Sources: `output_formats` field — LLM-optimized formats are declared here |
 | [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) | Sources: `exit_codes` per command |
+| [REQ-C-015](../requirements/c-015-commands-declare-input-and-output-schema.md) | Sources: `flags` and `positionals` per command |
 | [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) | Sources: `danger_level` per command |
 | [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) | Sources: `required_scopes` per command |
 | [REQ-F-079](../requirements/f-079-global-option-scope.md) | Sources: top-level `flags` (global options) |

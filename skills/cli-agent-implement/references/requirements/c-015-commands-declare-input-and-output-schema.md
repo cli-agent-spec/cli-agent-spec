@@ -17,6 +17,7 @@ Every command MUST declare a complete input schema (all parameters: name, type, 
 - `tool <cmd> --schema` returns valid JSON containing `parameters` and `output_schema`
 - `tool --schema` returns a manifest of all commands with their parameter and output schemas
 - Adding a parameter to a command automatically appears in `--schema` without separate documentation effort
+- Positional arguments appear in the command's `positionals` array in call order, never only in its `description`
 - The `output_schema` is a valid JSON Schema object
 
 ---
@@ -29,7 +30,8 @@ The `--schema` output for a command is a `CommandEntry` (from `ManifestResponse.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `parameters` | `Record<string, FlagEntry>` | Identical to `CommandEntry.flags` — one entry per declared argument |
+| `parameters` | `Record<string, FlagEntry>` | Identical to `CommandEntry.flags` — one entry per declared option |
+| `positionals` | `PositionalEntry[]` | Identical to `CommandEntry.positionals` — positional arguments in call order |
 | `output_schema` | JSON Schema object | Describes the shape of `ResponseEnvelope.data` on success |
 
 ---

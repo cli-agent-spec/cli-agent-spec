@@ -10,7 +10,7 @@
 
 ## Description
 
-The framework MUST provide a `tool manifest` built-in command that returns the complete command tree — every subcommand, flag, type, description, and example — as a single JSON response. This replaces the O(N) pattern of calling `tool <cmd> --help` for each subcommand individually. The manifest MUST include: all command names and aliases, all flags per command with type, default, required status, and description, all exit codes per command, schema version, and the framework version. The manifest MUST be cacheable; `tool manifest --etag <prev>` returns 304-equivalent (`exit 0`, `data: null`, `meta.not_modified: true`) if unchanged.
+The framework MUST provide a `tool manifest` built-in command that returns the complete command tree — every subcommand, flag, type, description, and example — as a single JSON response. This replaces the O(N) pattern of calling `tool <cmd> --help` for each subcommand individually. The manifest MUST include: all command names and aliases, all flags per command with type, default, required status, and description, all positional arguments per command in call order, all exit codes per command, schema version, and the framework version. The manifest MUST be cacheable; `tool manifest --etag <prev>` returns 304-equivalent (`exit 0`, `data: null`, `meta.not_modified: true`) if unchanged.
 
 ## Acceptance Criteria
 
