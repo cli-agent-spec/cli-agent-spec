@@ -204,7 +204,7 @@ Violation: `requires_editor: true` requires `non_interactive_alternatives`; othe
 Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 
 **Fetching the manifest**
-- Read `schema_version` first. A `2.x` manifest repeats global options inside each `CommandEntry.flags` and has no root `flags`; a `3.x` manifest lists them once in root `flags`
+- Read `schema_version` first. A `3.x` manifest lists global options once in root `flags`; treat any other value as pre-3.0, where global options may repeat inside each `CommandEntry.flags` and root `flags` is absent. Pre-3.0 producers commonly emit `1.0`, the value every 2.x example showed, so never test for a `2.` prefix
 - Fetch once per session, not per call — the manifest is expensive to generate and stable between command registrations
 - Cache using `etag`: on subsequent fetches pass the previous etag; if `meta.not_modified: true`, reuse the cached manifest
 - If `tool manifest` itself is unavailable (exit code `5` or `12`) — fall back to per-command `--help` calls; this is O(N) but safe
