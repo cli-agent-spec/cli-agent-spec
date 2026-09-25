@@ -151,13 +151,16 @@ Under `strict`, every option (global or local) precedes the first positional, an
 Global options go before the command path, which every parser accepts. Local options go right after the command path and before any positional, which also satisfies `option_placement: "strict"`. A positional that starts with `-` goes after `--`.
 
 ```python
-def build_argv(tool: str, manifest: dict, path: list[str], flags: dict[str, str], positionals: list[str]) -> list[str]:
-    """Order tokens so that every common parser mode accepts them."""
+def build_argv(tool: str, manifest: dict, path: list[str], flags: dict[str, str | bool], positionals: list[str]) -> list[str]:
+    """Order tokens so that every common parser mode accepts them; True is a bare switch, False omits it."""
     global_names = set(manifest.get("flags", {}))
     global_args: list[str] = []
     local_args: list[str] = []
     for name, value in flags.items():
-        (global_args if name in global_names else local_args).extend([f"--{name}", value])
+        if value is False:
+            continue
+        tokens = [f"--{name}"] if value is True else [f"--{name}", value]
+        (global_args if name in global_names else local_args).extend(tokens)
     separator = ["--"] if any(p.startswith("-") for p in positionals) else []
     return [tool, *global_args, *path, *local_args, *separator, *positionals]
 ```
