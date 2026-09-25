@@ -79,10 +79,26 @@ rootCmd.PersistentFlags().String("format", "json", "Output representation")
 ```
 
 ```python
-# Click: group options are not visible to subcommands; attach the shared
-# option to every command instead of the group
-def global_options(f):
-    return click.option("--format", default="json")(f)
+# Click: group options are invisible to subcommands. Declare the option on the group and
+# on every command with default=None, then resolve it once: a conflict is a usage error,
+# otherwise the given value wins, then the real default
+format_option = click.option("--format", type=click.Choice(["json", "text"]), default=None)
+
+def resolve_format(ctx: click.Context, local: str | None) -> str:
+    root = ctx.find_root().params["format"]
+    if root and local and root != local:
+        raise click.UsageError(f"--format given twice with different values: {root}, {local}")
+    return local or root or "json"
+
+@click.group()
+@format_option
+def cli(format): ...
+
+@cli.command()
+@format_option
+@click.pass_context
+def ls(ctx, format):
+    fmt = resolve_format(ctx, format)
 ```
 
 **Reject ambiguity instead of resolving it silently:**
