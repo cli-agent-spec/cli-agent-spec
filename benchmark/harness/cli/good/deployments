@@ -5,7 +5,7 @@
 SUBCOMMAND="${1:-}"
 shift || true
 
-LIMIT=5; CURSOR=""; DRY_RUN=0; FILTER=""; YES=0
+LIMIT=5; CURSOR=""; DRY_RUN=0; FILTER=""; YES=0; ENV=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -15,37 +15,74 @@ while [[ $# -gt 0 ]]; do
     --filter)  FILTER="$2";  shift 2 ;;
     --dry-run) DRY_RUN=1;    shift   ;;
     --yes)     YES=1;        shift   ;;
-    *)
+    -*)
       printf '{"ok":false,"data":null,"error":{"code":"UNKNOWN_FLAG","message":"Unknown flag %s","retryable":false,"phase":"validation","fix_required":"Remove the flag; run democli manifest for accepted flags"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n' "$1"
       exit 2
+      ;;
+    *)
+      # list takes one optional positional: the environment to filter by
+      if [[ "$SUBCOMMAND" != "list" || -n "$ENV" ]]; then
+        printf '{"ok":false,"data":null,"error":{"code":"UNEXPECTED_ARGUMENT","message":"Unexpected argument %s","retryable":false,"phase":"validation","fix_required":"deployments list takes at most one positional: staging or production"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n' "$1"
+        exit 2
+      fi
+      ENV="$1"; shift
       ;;
   esac
 done
 
 item() { printf '{"id":"deploy-%03d","version":"%s","env":"%s","status":"%s","created_at":"%s"}' "$1" "$2" "$3" "$4" "$5"; }
 
-page() {
-  local items="$1" next="$2" has_more="$3"
-  printf '{"ok":true,"data":[%s],"error":null,"warnings":[],"meta":{"exit_code":0,"duration_ms":10,"schema_version":"1.0","pagination":{"total":20,"returned":5,"truncated":%s,"has_more":%s,"next_cursor":%s}}}\n' \
-    "$items" "$has_more" "$has_more" "$next"
+# id version env status created_at, in list order
+ITEMS=(
+  "1 1.0.0 staging retired 2026-01-15T10:00:00Z"    "2 1.0.1 staging retired 2026-01-22T14:30:00Z"
+  "3 1.1.0 production retired 2026-02-01T09:00:00Z" "4 1.1.1 staging retired 2026-02-05T16:00:00Z"
+  "5 1.2.0 production active 2026-02-10T09:30:00Z"  "6 1.2.1 staging active 2026-02-12T11:00:00Z"
+  "7 1.3.0 staging active 2026-02-18T08:00:00Z"     "8 1.3.1 production active 2026-02-20T13:00:00Z"
+  "9 1.4.0 staging active 2026-02-25T10:00:00Z"     "10 1.4.1 production active 2026-03-01T09:00:00Z"
+  "11 1.5.0 staging active 2026-03-02T10:00:00Z"    "12 1.5.1 staging active 2026-03-04T14:00:00Z"
+  "13 1.6.0 staging active 2026-03-06T11:00:00Z"    "14 1.6.1 production active 2026-03-08T09:30:00Z"
+  "15 2.0.0 staging active 2026-03-10T10:00:00Z"    "16 2.0.1 staging active 2026-03-11T12:00:00Z"
+  "17 2.0.2 production active 2026-03-12T08:00:00Z" "18 2.1.0 staging active 2026-03-14T15:00:00Z"
+  "19 2.1.0 staging active 2026-03-15T10:00:00Z"    "20 2.1.0 staging active 2026-03-16T09:00:00Z"
+)
+CURSORS=("" "cGFnZTI=" "cGFnZTM=" "cGFnZTQ=")   # base64 of page2..page4
+
+invalid_cursor() {
+  printf '{"ok":false,"data":null,"error":{"code":"INVALID_CURSOR","message":"Cursor is invalid or expired","retryable":false,"phase":"validation","fix_required":"Restart pagination without --cursor"},"warnings":[],"meta":{"exit_code":2,"duration_ms":2}}\n'
+  exit 2
 }
 
 case "$SUBCOMMAND" in
   list)
-    case "$CURSOR" in
-      "")
-        page "$(item 1 1.0.0 staging retired 2026-01-15T10:00:00Z),$(item 2 1.0.1 staging retired 2026-01-22T14:30:00Z),$(item 3 1.1.0 production retired 2026-02-01T09:00:00Z),$(item 4 1.1.1 staging retired 2026-02-05T16:00:00Z),$(item 5 1.2.0 production active 2026-02-10T09:30:00Z)" '"cGFnZTI="' true ;;
-      "cGFnZTI=")
-        page "$(item 6 1.2.1 staging active 2026-02-12T11:00:00Z),$(item 7 1.3.0 staging active 2026-02-18T08:00:00Z),$(item 8 1.3.1 production active 2026-02-20T13:00:00Z),$(item 9 1.4.0 staging active 2026-02-25T10:00:00Z),$(item 10 1.4.1 production active 2026-03-01T09:00:00Z)" '"cGFnZTM="' true ;;
-      "cGFnZTM=")
-        page "$(item 11 1.5.0 staging active 2026-03-02T10:00:00Z),$(item 12 1.5.1 staging active 2026-03-04T14:00:00Z),$(item 13 1.6.0 staging active 2026-03-06T11:00:00Z),$(item 14 1.6.1 production active 2026-03-08T09:30:00Z),$(item 15 2.0.0 staging active 2026-03-10T10:00:00Z)" '"cGFnZTQ="' true ;;
-      "cGFnZTQ=")
-        page "$(item 16 2.0.1 staging active 2026-03-11T12:00:00Z),$(item 17 2.0.2 production active 2026-03-12T08:00:00Z),$(item 18 2.1.0 staging active 2026-03-14T15:00:00Z),$(item 19 2.1.0 staging active 2026-03-15T10:00:00Z),$(item 20 2.1.0 staging active 2026-03-16T09:00:00Z)" 'null' false ;;
+    case "$ENV" in
+      ""|staging|production) ;;
       *)
-        printf '{"ok":false,"data":null,"error":{"code":"INVALID_CURSOR","message":"Cursor is invalid or expired","retryable":false,"phase":"validation","fix_required":"Restart pagination without --cursor"},"warnings":[],"meta":{"exit_code":2,"duration_ms":2}}\n'
+        printf '{"ok":false,"data":null,"error":{"code":"INVALID_ENV","message":"Unknown environment %s","retryable":false,"phase":"validation","fix_required":"Use staging or production"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n' "$ENV"
         exit 2
         ;;
     esac
+    PAGE=0
+    for i in "${!CURSORS[@]}"; do [[ "${CURSORS[$i]}" == "$CURSOR" ]] && PAGE=$((i + 1)); done
+    [[ $PAGE -eq 0 ]] && invalid_cursor
+
+    MATCHING=()
+    for row in "${ITEMS[@]}"; do
+      read -r _id _version env _status _created <<< "$row"
+      [[ -z "$ENV" || "$env" == "$ENV" ]] && MATCHING+=("$row")
+    done
+    TOTAL=${#MATCHING[@]}
+    OFFSET=$(( (PAGE - 1) * 5 ))
+    [[ $PAGE -gt 1 && $OFFSET -ge $TOTAL ]] && invalid_cursor
+
+    ITEMS_JSON=""; RETURNED=0
+    for row in "${MATCHING[@]:$OFFSET:5}"; do
+      read -r id version env status created <<< "$row"
+      ITEMS_JSON+="${ITEMS_JSON:+,}$(item "$id" "$version" "$env" "$status" "$created")"
+      RETURNED=$((RETURNED + 1))
+    done
+    if (( OFFSET + 5 < TOTAL )); then HAS_MORE=true; NEXT="\"${CURSORS[$PAGE]}\""; else HAS_MORE=false; NEXT=null; fi
+    printf '{"ok":true,"data":[%s],"error":null,"warnings":[],"meta":{"exit_code":0,"duration_ms":10,"schema_version":"1.0","pagination":{"total":%d,"returned":%d,"truncated":%s,"has_more":%s,"next_cursor":%s}}}\n' \
+      "$ITEMS_JSON" "$TOTAL" "$RETURNED" "$HAS_MORE" "$HAS_MORE" "$NEXT"
     ;;
 
   delete)

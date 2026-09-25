@@ -93,6 +93,7 @@ class ArgumentOrder:
     global_flag: str
     value: str
     alternate_value: str
+    positional: str | None
 
 
 @dataclass(frozen=True)
@@ -136,7 +137,7 @@ class Profile:
                 raise ProfileError("argument_order.alternate_value must differ from value")
             argument_order = ArgumentOrder(
                 tuple(order["command_path"]), tuple(order["local_args"]),
-                order["global_flag"], order["value"], order["alternate_value"],
+                order["global_flag"], order["value"], order["alternate_value"], order.get("positional"),
             )
         return cls(raw["tool"], command, float(raw["timeout_seconds"]), manifest, argument_order, probes)
 
@@ -439,6 +440,35 @@ class Kit:
         conflict = self.run(f"argument_order conflicting {flag}", (flag, order.value, *path, *local, flag, order.alternate_value))
         if self.completed(outcome, conflict) and conflict.exit_code != 2:
             outcome.fail(conflict, f"{flag} given twice with different values exited {conflict.exit_code}, expected 2")
+
+        if order.positional is not None:
+            self.check_option_after_positional(outcome, order)
+
+    def check_option_after_positional(self, outcome: Outcome, order: ArgumentOrder) -> None:
+        """A local option after a positional takes effect instead of being read as another positional."""
+        path, local, positional = order.command_path, order.local_args, order.positional
+        variants = {
+            "local option after the positional": (*path, positional, *local),
+            "local option before the positional": (*path, *local, positional),
+            "positional without the local option": (*path, positional),
+        }
+        data: dict[str, object] = {}
+        runs: dict[str, Run] = {}
+        for where, argv in variants.items():
+            run = self.run(f"argument_order {where}", argv)
+            if not self.completed(outcome, run):
+                return
+            envelope, reason = parse_envelope(run, self.validators)
+            if run.exit_code != 0 or envelope is None:
+                outcome.fail(run, f"{where}: exit {run.exit_code}, {reason or 'envelope reports failure'}")
+                return
+            data[where] = envelope["data"]
+            runs[where] = run
+        after = runs["local option after the positional"]
+        if data["local option after the positional"] != data["local option before the positional"]:
+            outcome.fail(after, f"{' '.join(local)} after {positional!r} gives different data than before it")
+        if data["local option after the positional"] == data["positional without the local option"]:
+            outcome.fail(after, f"{' '.join(local)} after {positional!r} had no effect: read as a positional or ignored")
 
     def execute_all(self, only: frozenset[str] | None) -> list[dict[str, object]]:
         for probe in self.profile.probes:

@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "tool": "posixcli",
+  "command": ["./posixcli"],
+  "timeout_seconds": 5,
+  "argument_order": { "command_path": ["list"], "local_args": ["--cursor", "page2"], "global_flag": "--format", "value": "json", "alternate_value": "plain", "positional": "staging" },
+  "probes": [
+    { "name": "list", "argv": ["list"], "kind": "read" }
+  ]
+}

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Fixture: option parsing stops at the first positional (POSIX getopt without permutation,
+# Cobra SetInterspersed(false)). Later tokens become positionals and are ignored, so
+# "list staging --cursor page2" silently returns page 1: §69 Mode 3, exit 0.
+
+[[ "${1:-}" == "list" ]] && shift
+CURSOR=""; FORMAT="json"; ENV=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --cursor) CURSOR="$2"; shift 2 ;;
+    --format) FORMAT="$2"; shift 2 ;;
+    -*) printf '{"ok":false,"data":null,"error":{"code":"ARG_ERROR","message":"unknown flag"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n'; exit 2 ;;
+    *) ENV="$1"; break ;;
+  esac
+done
+
+PAGE=1; [[ "$CURSOR" == "page2" ]] && PAGE=2
+if [[ "$FORMAT" == "plain" ]]; then
+  printf '%s-item-%d\n' "${ENV:-all}" "$PAGE"
+else
+  printf '{"ok":true,"data":[{"id":"%s-item-%d"}],"error":null,"warnings":[],"meta":{"exit_code":0,"duration_ms":1}}\n' "${ENV:-all}" "$PAGE"
+fi

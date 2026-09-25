@@ -41,4 +41,4 @@ A profile names the command prefix and the probes to run. See [`conformance-prof
 
 ## Fixtures
 
-The benchmark mocks double as fixtures. [`democli-good.json`](profiles/democli-good.json) passes every check; [`democli-bad.json`](profiles/democli-bad.json) fails the output and safety checks. `tests/fixtures/conformance/hangcli` covers hangs and illegal exit codes; `lastwinscli` lets a subcommand default replace a global option given before the command path and keeps the last of two conflicting values. `tests/test_conformance.py` asserts every outcome.
+The benchmark mocks double as fixtures. [`democli-good.json`](profiles/democli-good.json) passes every check; [`democli-bad.json`](profiles/democli-bad.json) fails the output and safety checks. `tests/fixtures/conformance/hangcli` covers hangs and illegal exit codes; `lastwinscli` lets a subcommand default replace a global option given before the command path and keeps the last of two conflicting values. `posixcli` stops option parsing at the first positional, so an option after it is silently ignored. `tests/test_conformance.py` asserts every outcome.

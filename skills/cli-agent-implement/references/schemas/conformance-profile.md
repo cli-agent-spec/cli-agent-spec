@@ -41,7 +41,7 @@ Key decisions:
 
 ### ArgumentOrder
 
-The kit runs `command_path` with `local_args`, placing `global_flag` before the command path, between the path and the local option, and after the local option. Every placement must exit `0` with the same result; `alternate_value` must change stdout identically in every placement; the flag given twice with `value` and then `alternate_value` must exit `2`.
+The kit runs `command_path` with `local_args`, placing `global_flag` before the command path, between the path and the local option, and after the local option. Every placement must exit `0` with the same result; `alternate_value` must change stdout identically in every placement; the flag given twice with `value` and then `alternate_value` must exit `2`. With `positional`, the kit also runs `local_args` after and before the positional: both must give the same data, and that data must differ from the positional alone, which proves the option was parsed rather than read as a second positional.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -50,6 +50,7 @@ The kit runs `command_path` with `local_args`, placing `global_flag` before the 
 | `global_flag` | string | yes | Long name of a global option, usually `--format` |
 | `value` | string | yes | Value whose stdout is a `ResponseEnvelope`, usually `json` |
 | `alternate_value` | string | yes | Another accepted value with different stdout, such as `plain`; must differ from `value` |
+| `positional` | string | no | A positional `command_path` accepts; `local_args` must change the result when given after it |
 
 ---
 
@@ -63,7 +64,7 @@ The kit runs `command_path` with `local_args`, placing `global_flag` before the 
   "command": ["../../benchmark/harness/cli/good/democli"],
   "timeout_seconds": 5,
   "manifest": ["manifest"],
-  "argument_order": { "command_path": ["deployments", "list"], "local_args": ["--limit", "5"], "global_flag": "--format", "value": "json", "alternate_value": "plain" },
+  "argument_order": { "command_path": ["deployments", "list"], "local_args": ["--cursor", "cGFnZTI="], "global_flag": "--format", "value": "json", "alternate_value": "plain", "positional": "staging" },
   "probes": [
     { "name": "list deployments", "argv": ["deployments", "list"], "kind": "read" },
     { "name": "unknown flag", "argv": ["deployments", "list", "--no-such-flag"], "kind": "invalid" },
@@ -94,6 +95,7 @@ Violation: `dry_run_flag` is required when `kind` is `destructive`.
 - **Marking a mutating command as `read`.** Read probes run several times (stdin closed, stdin open, `NO_COLOR`); anything that writes will write repeatedly
 - **Pointing a profile at production credentials.** Probes call the real tool; use a sandbox account or a mock
 - **Adding `--format json` to probe argv.** The envelope check exists to prove JSON activates in a non-TTY without flags (REQ-F-003); `argument_order` is the one place a profile names the format flag
+- **Choosing `local_args` that do not change the result.** With `positional`, the kit proves the option was parsed by comparing against the positional alone; an option with no visible effect fails that comparison
 - **Choosing an `alternate_value` that renders like the default.** The overwrite check compares stdout; an alternate that prints the same bytes as `value` reads as an ignored option
 
 ---

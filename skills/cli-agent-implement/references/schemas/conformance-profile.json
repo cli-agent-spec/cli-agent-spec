@@ -77,6 +77,12 @@
           "type": "string",
           "minLength": 1,
           "description": "Another accepted value whose stdout differs from value's, such as plain. Detects a value overwritten by a subcommand default."
+        },
+        "positional": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^-]",
+          "description": "A positional argument command_path accepts. The kit then places local_args after it, and local_args must change the result."
         }
       }
     },
