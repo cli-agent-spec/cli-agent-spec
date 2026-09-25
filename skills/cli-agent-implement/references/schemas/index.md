@@ -14,7 +14,7 @@ Wire contracts a conforming CLI emits or accepts. Contract versions follow the r
 | ExitCode | 1.0 | [`exit-code.json`](exit-code.json) | [`exit-code.md`](exit-code.md) | REQ-F-001, REQ-C-001, REQ-C-013, REQ-O-041 |
 | ExitCodeEntry | 1.0 | [`exit-code-entry.json`](exit-code-entry.json) | [`exit-code-entry.md`](exit-code-entry.md) | REQ-C-001, REQ-O-041 |
 | ResponseEnvelope | 2.0 | [`response-envelope.json`](response-envelope.json) | [`response-envelope.md`](response-envelope.md) | REQ-F-004, all commands |
-| ManifestResponse | 2.1 | [`manifest-response.json`](manifest-response.json) | [`manifest-response.md`](manifest-response.md) | REQ-O-041, Command Contract declarations |
+| ManifestResponse | 3.0 | [`manifest-response.json`](manifest-response.json) | [`manifest-response.md`](manifest-response.md) | REQ-O-041, Command Contract declarations |
 | DispatchRequest | 1.0 | [`dispatch-request.json`](dispatch-request.json) | [`dispatch-request.md`](dispatch-request.md) | REQ-O-050 |
 
 ## Tooling types
