@@ -44,7 +44,7 @@ $ tool manifest --format json
     "framework_version": "2.1.0",
     "etag": "sha256:4b7e21",
     "flags": {
-      "format": { "type": "enum", "required": false, "default": "json", "enum_values": ["json", "jsonl", "tsv", "plain"], "description": "Output representation" },
+      "format": { "type": "enum", "required": false, "enum_values": ["json", "jsonl", "tsv", "plain"], "description": "Output representation; json when stdout is not a terminal, plain in a terminal" },
       "quiet":  { "type": "boolean", "required": false, "default": false, "short": "q", "description": "Suppress warnings on stderr" }
     },
     "commands": {

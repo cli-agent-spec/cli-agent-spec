@@ -110,7 +110,7 @@ Present only when the command declares them.
   "framework_version": "2.1.0",
   "etag": "sha256:a3f9c1",
   "flags": {
-    "format": { "type": "enum", "required": false, "default": "json", "enum_values": ["json", "jsonl", "tsv", "plain"], "description": "Output representation" }
+    "format": { "type": "enum", "required": false, "enum_values": ["json", "jsonl", "tsv", "plain"], "description": "Output representation; json when stdout is not a terminal, plain in a terminal" }
   },
   "commands": {
     "deploy": {
@@ -177,6 +177,7 @@ Violation: `requires_editor: true` requires `non_interactive_alternatives`; othe
 - **Emitting `commands` as an array.** The map keyed by dot path is what enables O(1) lookup; arrays force a scan and invite duplicate names
 - **Listing a path in `subcommands` without a matching `commands` entry.** Every registered command, including children and built-ins, appears in the flat map
 - **Adding ad-hoc fields to `CommandEntry`.** Entries are closed; a new contract field belongs in this schema with a sourcing requirement, not as an undocumented extension
+- **Declaring a static `default` for a flag whose default depends on the environment.** `--format` resolves to `json` without a terminal and `plain` in one (REQ-F-003); omit `default` and state the rule in `description`, so an agent passes the value it needs
 - **Setting `default: null` for flags without a default.** Omit the key; `null` reads as "the default value is null"
 - **Declaring `retryable: true` with partial side effects in `exit_codes`.** The `ExitCodeEntry` invariant rejects it; timeouts that may have written are `retryable: false`
 - **Repeating global options in every `CommandEntry.flags`.** A global option appears once, in the root `flags`; a copy inside a command reads as a local flag that happens to share the name, and hides whether it is accepted before the command path
