@@ -75,7 +75,7 @@ Check in order:
 Check in order:
 
 1. Run `<binary> --schema` or `<binary> manifest` or `<binary> --manifest` (try all; stop at first success).
-2. If a response is returned: attempt to parse as JSON. If valid JSON, check against the `ManifestResponse` schema in `references/schemas/manifest-response.json` — verify `commands`, `flags`, and `exit_codes` fields are present.
+2. If a response is returned: attempt to parse as JSON. If valid JSON, read `schema_version` first. The schema accepts only `3.x`; for any other value, validate a copy with `schema_version` set to `"3.0"`, so an older but otherwise correct manifest is not scored as broken. Then check against the `ManifestResponse` schema in `references/schemas/manifest-response.json` — verify `commands`, `flags`, and `exit_codes` fields are present.
 3. If no schema command works: run `<binary> --help` and assess whether the output is structured enough for an agent to parse flag names and types without ambiguity.
 
 **Score table:**
@@ -87,7 +87,7 @@ Check in order:
 | 2 | Schema command exists and returns JSON but output is incomplete (missing `exit_codes`, or fewer than 80% of commands described) or does not validate against `ManifestResponse` |
 | 3 | Schema command returns valid `ManifestResponse` JSON: all commands described, all flags typed, exit codes mapped; `etag` present |
 
-**Notes to record:** which schema fields are missing or invalid; which schema command was tried. For validation: use `references/schemas/manifest-response.json` (symlinked from the top-level schemas directory) as the ManifestResponse schema definition. An empty `commands` object (zero commands) counts as score 2 (incomplete), not score 3.
+**Notes to record:** which schema fields are missing or invalid; which schema command was tried; the `schema_version` the CLI emits. A value other than `3.x` is its own finding, **older contract**, separate from the score: a pre-3.0 manifest may repeat global options inside each command's `flags` and cannot declare positional arguments. For validation: use `references/schemas/manifest-response.json` (symlinked from the top-level schemas directory) as the ManifestResponse schema definition. An empty `commands` object (zero commands) counts as score 2 (incomplete), not score 3.
 
 ---
 
