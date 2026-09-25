@@ -38,7 +38,7 @@ $ tool manifest --format json
 {
   "ok": true,
   "data": {
-    "schema_version": "1.0",
+    "schema_version": "3.0",
     "framework_version": "2.1.0",
     "etag": "sha256:7c1e0b",
     "commands": {

@@ -44,7 +44,7 @@ $ tool manifest
 {
   "ok": true,
   "data": {
-    "schema_version": "1.0",
+    "schema_version": "3.0",
     "framework_version": "2.1.0",
     "etag": "sha256:a3f9c1...",
     "commands": {

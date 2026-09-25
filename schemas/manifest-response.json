@@ -9,8 +9,8 @@
   "properties": {
     "schema_version": {
       "type": "string",
-      "pattern": "^\\d+\\.\\d+$",
-      "description": "Version of the ManifestResponse schema itself. Increment the major when field shape changes in a breaking way."
+      "pattern": "^3\\.(0|[1-9][0-9]*)$",
+      "description": "Contract version of this ManifestResponse, 3.x for this schema. A consumer reads it before anything else: from 3.0 on, global options live in the root flags map, not in each CommandEntry.flags."
     },
     "framework_version": {
       "type": "string",

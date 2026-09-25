@@ -120,7 +120,7 @@ def test_dispatch_opts_accept_integers(tmp_path: Path, validators) -> None:
 def test_manifest_inside_envelope_is_validated(tmp_path: Path, validators) -> None:
     path = write_md(tmp_path, """\
         ```json
-        {"ok": true, "data": {"schema_version": "1.0", "framework_version": "1", "etag": "x",
+        {"ok": true, "data": {"schema_version": "3.0", "framework_version": "1", "etag": "x",
           "commands": {"run": {"description": "Run", "flags": {}, "exit_codes": {}}}},
          "error": null, "warnings": [], "meta": {"exit_code": 0, "duration_ms": 1}}
         ```

@@ -22,7 +22,7 @@ Two decisions shape the type:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `schema_version` | string `MAJOR.MINOR` | yes | Version of this schema |
+| `schema_version` | string `3.MINOR` | yes | Contract version; `3.x` for this schema. From `3.0`, global options live in the root `flags` |
 | `framework_version` | string | yes | Version of the tool binary |
 | `etag` | string | yes | Deterministic content hash. Changes only when registrations change |
 | `commands` | `Record<string, CommandEntry>` | yes | Flat map keyed by dot-separated path such as `"deploy.rollback"` |
@@ -106,7 +106,7 @@ Present only when the command declares them.
 **Valid — two commands with declared contracts**
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "3.0",
   "framework_version": "2.1.0",
   "etag": "sha256:a3f9c1",
   "flags": {
@@ -147,7 +147,7 @@ Present only when the command declares them.
 **Invalid — command entry without required contract fields**
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "3.0",
   "framework_version": "2.1.0",
   "etag": "sha256:a3f9c1",
   "commands": {
@@ -160,7 +160,7 @@ Violation: `danger_level` and `required_scopes` are required on every command; a
 **Invalid — editor command without alternatives**
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "3.0",
   "framework_version": "2.1.0",
   "etag": "sha256:a3f9c1",
   "commands": {
@@ -191,6 +191,7 @@ Violation: `requires_editor: true` requires `non_interactive_alternatives`; othe
 Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 
 **Fetching the manifest**
+- Read `schema_version` first. A `2.x` manifest repeats global options inside each `CommandEntry.flags` and has no root `flags`; a `3.x` manifest lists them once in root `flags`
 - Fetch once per session, not per call — the manifest is expensive to generate and stable between command registrations
 - Cache using `etag`: on subsequent fetches pass the previous etag; if `meta.not_modified: true`, reuse the cached manifest
 - If `tool manifest` itself is unavailable (exit code `5` or `12`) — fall back to per-command `--help` calls; this is O(N) but safe

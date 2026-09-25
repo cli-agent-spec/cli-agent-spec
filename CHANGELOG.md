@@ -34,10 +34,11 @@
 - The root `flags` map lists global options: flags every command accepts, before or after the command path (REQ-F-079)
 - `CommandEntry.flags` now means command-local flags only; a global option never appears in it, and no local flag reuses a global name or short alias
 - A consumer that reads only `CommandEntry.flags` no longer sees `--format`, `--quiet`, or any other global option; the accepted set for a command is root `flags` plus its own `flags`
+- `schema_version` must be `3.x`, so a consumer can tell a 3.0 manifest from a 2.x one before reading `flags`; every example and the good democli mock emit `"3.0"`
 
 **Why:** the field keeps its shape but changes meaning, which the versioning rules above treat as a `MAJOR` change. A 2.x consumer that builds calls from `CommandEntry.flags` alone would conclude that `--format` does not exist.
 
-**Migration:** producers move framework and application-wide flags from every `CommandEntry.flags` into the root `flags` map. Consumers look a flag up in root `flags` first, then in the command's `flags`, and place root flags before the command path.
+**Migration:** producers emit `"schema_version": "3.0"` and move framework and application-wide flags from every `CommandEntry.flags` into the root `flags` map. Consumers look a flag up in root `flags` first, then in the command's `flags`, and place root flags before the command path.
 
 ### Argument order and global options
 
