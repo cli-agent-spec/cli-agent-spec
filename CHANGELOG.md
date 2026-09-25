@@ -39,7 +39,7 @@
 
 **Why:** the field keeps its shape but changes meaning, which the versioning rules above treat as a `MAJOR` change. A 2.x consumer that builds calls from `CommandEntry.flags` alone would conclude that `--format` does not exist.
 
-**Migration:** producers emit `"schema_version": "3.0"` and move framework and application-wide flags from every `CommandEntry.flags` into the root `flags` map. Consumers look a flag up in root `flags` first, then in the command's `flags`, and place root flags before the command path.
+**Migration:** producers emit `"schema_version": "3.0"`, move framework and application-wide flags from every `CommandEntry.flags` into the root `flags` map, and declare each command's positional arguments in `positionals`, in call order, instead of describing them in `description`. Consumers look a flag up in root `flags` first, then in the command's `flags`, place root flags before the command path, and give `positionals` in array order after the local options.
 
 ### Argument order and global options
 
