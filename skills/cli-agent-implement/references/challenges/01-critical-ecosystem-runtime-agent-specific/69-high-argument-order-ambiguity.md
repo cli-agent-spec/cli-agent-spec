@@ -40,7 +40,7 @@ $ tool list items --format json
 $ tool --format json list             # exit 0, plain text
 
 # the same option in two positions: most parsers keep the last one silently
-$ tool --format json list --format text
+$ tool --format json list --format plain
 ```
 
 Agents cannot predict which mode applies without probing. Modes 1 and 2 fail loudly but contradict each other, so neither "flags first" nor "flags last" is safe everywhere. Modes 3 and 4 exit `0`, which makes them the hardest to detect.
@@ -134,7 +134,7 @@ Under `strict`, every option (global or local) precedes the first positional, an
 1. `tool <cmd> <positional> --format json` and `tool --format json <cmd> <positional>` both succeed with identical output and exit code
 2. `tool --format json <cmd>` emits JSON (catches the subparser default overwrite)
 3. `tool <cmd> <positional> --<local-flag> <value>` takes effect (catches Mode 3)
-4. `tool --format json <cmd> --format text` exits `2`
+4. `tool --format json <cmd> --format plain` exits `2`
 
 ---
 
