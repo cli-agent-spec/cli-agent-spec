@@ -381,8 +381,9 @@ def test_scan_shell_splits_words_like_bash(command: str) -> None:
     assert not scan.multiline
     # set -f: no pathname expansion against the working directory
     printer = "set -f; f() { for word in \"$@\"; do printf '%s\\0' \"$word\"; done; }; "
-    # BASH_ENV/ENV would source a file that can print, SHELLOPTS/BASHOPTS would carry options in
-    env = {k: v for k, v in os.environ.items() if k not in ("BASH_ENV", "ENV", "SHELLOPTS", "BASHOPTS")}
+    # Only PATH: an inherited BASH_ENV sources a file that can print, SHELLOPTS carries options
+    # in, and BASH_FUNC_* variables import functions that can shadow printf or set
+    env = {"PATH": os.environ["PATH"]}
     words = subprocess.run(
         ["bash", "--noprofile", "--norc", "-c", printer + "f" + command[1:]],
         capture_output=True, text=True, check=True, env=env,
