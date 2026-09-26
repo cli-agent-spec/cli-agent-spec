@@ -25,7 +25,7 @@ Commands that cannot support interspersed parsing because they forward trailing 
 - Options appearing after positional arguments are never silently treated as positional values
 - Global options (`--format`, `--quiet`, etc.) are accepted after the command path, including after positionals (REQ-F-079)
 - `tool cmd -- -value` passes `-value` as a positional; no option parsing happens after `--`
-- `tool --format json cmd --format text` exits `2` with `ARG_ERROR` naming `--format`; `tool --format json cmd --format json` succeeds
+- `tool --format json cmd --format plain` exits `2` with `ARG_ERROR` naming `--format`; `tool --format json cmd --format json` succeeds
 - A command that cannot support interspersed parsing declares `option_placement: "strict"` in its manifest (see REQ-C-027) rather than rejecting or misparsing silently
 
 ## Schema
