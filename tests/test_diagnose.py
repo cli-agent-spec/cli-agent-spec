@@ -2,6 +2,8 @@
 
 import json
 import re
+import shlex
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -343,6 +345,41 @@ def test_scan_shell_matches_bash(command: str, text: str, multiline: bool) -> No
     import preflight_hook
 
     assert preflight_hook.scan_shell(command) == (text, multiline)
+
+
+# Inputs whose words do not depend on variable expansion; bash expands $# and ${#v}, shlex never does
+BASH_PARITY_CASES = [
+    "x --limit 5 list  # was --limit 10",
+    "x http://x/a#frag",
+    'x --color "#fff"',
+    "x --color '#fff'",
+    "x --tag \\#x",
+    "x a\\ #b",
+    'x "a"#b',
+    "x 'a'#b c",
+    "x commit\\\n --amend",
+    'x --body "a\\\nb"',
+    "x --body 'a\\\nb'",
+    'x "q \\" # not" # yes',
+    "x a\\\n#b",
+    'x "line one\nline two"',
+    "x \\  y",
+    'x "\\\\" # c',
+    "x 'it''s' # c",
+]
+
+
+@pytest.mark.skipif(shutil.which("bash") is None, reason="bash is not installed")
+@pytest.mark.parametrize("command", BASH_PARITY_CASES)
+def test_scan_shell_splits_words_like_bash(command: str) -> None:
+    """The words shlex reads from scan_shell's text equal the words bash passes to a command."""
+    import preflight_hook
+
+    scan = preflight_hook.scan_shell(command)
+    assert not scan.multiline
+    printer = "f() { for word in \"$@\"; do printf '%s\\0' \"$word\"; done; }; "
+    words = subprocess.run(["bash", "-c", printer + "f" + command[1:]], capture_output=True, text=True, check=True).stdout
+    assert shlex.split(scan.text) == ["x", *words.split("\0")[:-1]]
 
 
 def test_hook_reads_a_continued_git_commit_like_the_one_line_form() -> None:
