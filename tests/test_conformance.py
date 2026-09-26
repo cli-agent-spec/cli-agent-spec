@@ -70,6 +70,14 @@ def test_option_after_positional_read_as_positional_fails_argument_order() -> No
     assert any("different data than before it" in d for d in details)
 
 
+def test_envelope_timestamp_must_be_a_date_time() -> None:
+    code, envelope = run_kit(FIXTURES / "timestampcli.json", "--only", "json_envelope")
+    assert code == 4
+    [check] = [c for c in envelope["data"]["checks"] if c["id"] == "json_envelope"]
+    assert check["status"] == "fail"
+    assert any("meta/timestamp" in f["detail"] and "date-time" in f["detail"] for f in check["failures"])
+
+
 def test_argument_order_rejects_identical_values(tmp_path: Path) -> None:
     profile = json.loads((ROOT / "conformance/profiles/democli-good.json").read_text())
     profile["command"] = [str((ROOT / "benchmark/harness/cli/good/democli").resolve())]

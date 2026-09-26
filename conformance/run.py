@@ -216,8 +216,12 @@ class Validators:
         registry = Registry().with_resources(
             (name, Resource.from_contents(schema, default_specification=DRAFT7)) for name, schema in schemas.items()
         )
-        self.envelope = Draft7Validator(schemas["response-envelope.json"], registry=registry)
-        self.manifest = Draft7Validator(schemas["manifest-response.json"], registry=registry)
+        # date-time needs rfc3339-validator; without it every timestamp would pass unchecked
+        checker = Draft7Validator.FORMAT_CHECKER
+        if "date-time" not in checker.checkers:
+            raise SystemExit("format date-time is unchecked: install rfc3339-validator (uv sync)")
+        self.envelope = Draft7Validator(schemas["response-envelope.json"], registry=registry, format_checker=checker)
+        self.manifest = Draft7Validator(schemas["manifest-response.json"], registry=registry, format_checker=checker)
 
 
 def parse_envelope(run: Run, validators: Validators) -> tuple[dict[str, object] | None, str | None]:

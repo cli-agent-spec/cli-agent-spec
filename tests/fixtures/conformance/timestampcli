@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Fixture: a well-formed envelope whose meta.timestamp is not an ISO 8601 date-time.
+# Only format checking catches it; every other envelope rule passes.
+
+printf '{"ok":true,"data":[],"error":null,"warnings":[],"meta":{"exit_code":0,"duration_ms":1,"timestamp":"yesterday"}}\n'
