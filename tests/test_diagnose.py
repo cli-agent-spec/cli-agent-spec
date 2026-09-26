@@ -129,6 +129,7 @@ CASES = [
     (69, trace(command="tool --format json list --format text", stderr="Error: --format given twice with different values", exit_code=2)),
     (74, trace(stderr="GraphQL: Resource not accessible by integration (missing required scopes: repo)")),
     (78, trace(command="tool export --output json", stdout="", exit_code=0)),
+    (78, trace(command="docker version --format jsn", stdout="jsn\n", exit_code=0)),
 ]
 
 
@@ -229,6 +230,8 @@ def test_clean_structured_failure_does_not_match_exit_code_modes() -> None:
 def test_output_json_with_json_stdout_is_not_a_path_collision() -> None:
     assert 78 not in ids(trace(command="kubectl get pods -o json", stdout='{"items": []}', exit_code=0))
     assert 78 not in ids(trace(command="tool export --output json.out", stdout="", exit_code=0))
+    assert 78 not in ids(trace(command="tool list --format json", stdout='{"ok": true}', exit_code=0))
+    assert 78 not in ids(trace(command="tool list --format plain", stdout="alice\nbob", exit_code=0))
 
 
 def test_insufficient_trace() -> None:

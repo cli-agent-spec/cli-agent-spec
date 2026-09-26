@@ -1,10 +1,10 @@
 # {{CLI}} — CLI Agent Evaluation
 
-> Evaluated against the [CLI Agent Spec](https://github.com/cli-agent-spec/cli-agent-spec) — a specification defining 74 failure modes for CLI tools used under AI agent orchestration.
+> Evaluated against the [CLI Agent Spec](https://github.com/cli-agent-spec/cli-agent-spec) — a specification defining 75 failure modes for CLI tools used under AI agent orchestration.
 
 **CLI version:** {{VERSION}}
 **Evaluated:** {{DATE}}
-**Scope:** {{SCOPE}} ({{N_FINDINGS}} of 74 failure modes)
+**Scope:** {{SCOPE}} ({{N_FINDINGS}} of 75 failure modes)
 
 ## Scores
 

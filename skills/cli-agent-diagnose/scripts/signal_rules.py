@@ -283,6 +283,18 @@ def _conflicting_repeat_rejected(event: EventView) -> str | None:
     return None
 
 
+_FORMAT_VALUE_RE = re.compile(r"(?:^|\s)--format(?:=|\s+)(['\"]?)([^\s'\"]+)\1(?=\s|$)")
+
+
+def _format_value_echoed_as_template(event: EventView) -> str | None:
+    """--format <value> exits 0 and every stdout line is that literal value: read as a template (§78)."""
+    match = _FORMAT_VALUE_RE.search(" ".join((event.command, *event.args)))
+    lines = [line.strip() for line in event.stdout.splitlines() if line.strip()]
+    if match and event.exit_code == 0 and lines and all(line == match.group(2) for line in lines):
+        return f"exit_code=0 and stdout repeats the --format value {match.group(2)!r}: the tool read it as a template"
+    return None
+
+
 def _install_command(event: EventView) -> bool:
     full = " ".join((event.command, *event.args))
     return bool(re.search(r"\b(install|setup|bootstrap)\b|curl .*\|\s*(sh|bash)", full))
@@ -337,8 +349,9 @@ RULES: tuple[PatternRule | PredicateRule, ...] = (
     PredicateRule(11, 14, 0.60, _sigkill_or_sigterm),
     # Row 15: localized errors
     PatternRule(57, 15, 0.80, _compile([r"\bFehler\b", r"\berreur\b", r"\berrore\b", r"\bошибка\b", r"错误", r"エラー", r"오류", r"\bnicht gefunden\b", r"\bintrouvable\b"]), "combined", "error text in a non-English locale"),
-    # Row 16: a format value passed to a path-typed --output
+    # Row 16: a format value passed to a path-typed --output, or a --format value read as a template
     PredicateRule(78, 16, 0.80, _format_value_passed_as_output_path),
+    PredicateRule(78, 16, 0.75, _format_value_echoed_as_template),
 )
 
 
