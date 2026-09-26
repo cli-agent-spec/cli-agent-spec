@@ -203,10 +203,35 @@
           "type": "string",
           "description": "Opaque identifier for correlating logs, traces, and audit entries."
         },
+        "trace_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Trace identifier propagated verbatim from the TOOL_TRACE_ID environment variable (REQ-F-024). Present only when that variable is set."
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Name of the command that was invoked (REQ-F-024)."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 date-time at which the invocation started (REQ-F-024)."
+        },
         "schema_version": {
           "type": "string",
           "pattern": "^\\d+\\.\\d+$",
           "description": "MAJOR.MINOR version of this command's output contract (REQ-F-022). Major increments on breaking changes; minor on additive ones."
+        },
+        "tool_version": {
+          "type": "string",
+          "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$",
+          "description": "Semver version of the running tool binary, matching tool --version (REQ-F-023)."
+        },
+        "update_available": {
+          "type": "string",
+          "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$",
+          "description": "Semver version of the latest release when it is newer than tool_version (REQ-F-023). Absent, never null, when no update exists, the check failed, or --no-update-check is set (REQ-O-020)."
         },
         "not_modified": {
           "type": "boolean",

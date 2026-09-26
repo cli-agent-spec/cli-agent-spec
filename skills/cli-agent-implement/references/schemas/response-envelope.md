@@ -2,7 +2,7 @@
 
 **File:** [`response-envelope.json`](response-envelope.json)
 
-> **Used by:** [REQ-F-004](../requirements/f-004-consistent-json-response-envelope.md) · [REQ-F-018](../requirements/f-018-pagination-metadata-on-list-commands.md) · [REQ-C-009](../requirements/c-009-multi-step-commands-report-completed-failed-skippe.md) · [REQ-C-013](../requirements/c-013-error-responses-include-code-and-message.md) · [REQ-C-014](../requirements/c-014-error-responses-include-retryable-and-retry-after-.md) · [REQ-C-028](../requirements/c-028-already-exists-response-pattern.md) · [REQ-C-030](../requirements/c-030-error-responses-include-fix-command.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-050](../requirements/o-050-tool-exec-built-in-command.md) · all commands in JSON output mode
+> **Used by:** [REQ-F-004](../requirements/f-004-consistent-json-response-envelope.md) · [REQ-F-018](../requirements/f-018-pagination-metadata-on-list-commands.md) · [REQ-F-023](../requirements/f-023-tool-version-in-every-response.md) · [REQ-F-024](../requirements/f-024-request-id-and-trace-id-in-every-response.md) · [REQ-C-009](../requirements/c-009-multi-step-commands-report-completed-failed-skippe.md) · [REQ-C-013](../requirements/c-013-error-responses-include-code-and-message.md) · [REQ-C-014](../requirements/c-014-error-responses-include-retryable-and-retry-after-.md) · [REQ-C-028](../requirements/c-028-already-exists-response-pattern.md) · [REQ-C-030](../requirements/c-030-error-responses-include-fix-command.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-050](../requirements/o-050-tool-exec-built-in-command.md) · all commands in JSON output mode
 
 ---
 
@@ -94,7 +94,12 @@ Present in `error.redirect` when exit code is `REDIRECTED (13)`.
 | `exit_code` | integer `0–255` | yes | Process exit code of this invocation, identical to the code the process returns |
 | `duration_ms` | integer | yes | Wall-clock ms from entry to last byte |
 | `request_id` | string | no | Correlation ID for logs and traces |
+| `trace_id` | string | when `TOOL_TRACE_ID` is set | Trace ID propagated verbatim from `TOOL_TRACE_ID` (REQ-F-024) |
+| `command` | string | no | Name of the invoked command (REQ-F-024) |
+| `timestamp` | string ISO 8601 date-time | no | Invocation start time (REQ-F-024) |
 | `schema_version` | string `MAJOR.MINOR` | no | Version of this command's output contract (REQ-F-022) |
+| `tool_version` | string semver | no | Version of the running binary, matching `tool --version` (REQ-F-023) |
+| `update_available` | string semver | no | Latest newer release; absent (never `null`) when there is none, the check failed, or `--no-update-check` is set (REQ-F-023, REQ-O-020) |
 | `not_modified` | boolean | no | `true` on etag cache hit; `data` is `null` |
 | `truncated` | boolean | no | The framework byte cap cut the output (REQ-F-052). Narrow the query or paginate |
 | `pagination` | `Pagination` | list commands | Present on every list response, including complete result sets (REQ-F-018) |
