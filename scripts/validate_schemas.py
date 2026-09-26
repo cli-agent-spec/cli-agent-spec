@@ -41,7 +41,8 @@ _INVALID_LABEL = re.compile(r"^(\*\*)?(invalid|incorrect|wrong)\b", re.IGNORECAS
 _EXIT_CODE_KEY = re.compile(r"^(0|[1-9][0-9]*)$")
 ERROR_DETAIL = "response-envelope.json#/definitions/ErrorDetail"
 FAILURE_MODE_ENTRY = "failure-mode-index.json#/properties/failure_modes/items"
-SUBSCHEMA_TARGETS = (ERROR_DETAIL, FAILURE_MODE_ENTRY)
+RESPONSE_META = "response-envelope.json#/definitions/ResponseMeta"
+SUBSCHEMA_TARGETS = (ERROR_DETAIL, FAILURE_MODE_ENTRY, RESPONSE_META)
 _CONDITIONAL = re.compile(r"/(if|then|else|not)(/|$)")
 SCHEMA_FRAGMENT_SECTIONS = ("Schema",)
 DELIBERATE_MISTAKE_SECTIONS = ("Common mistakes",)
@@ -148,6 +149,7 @@ class Target:
     schema: str
     pointer: str      # where inside the example the validated instance lives
     instance: object
+    partial: bool = False  # a fragment: its own top-level required fields may be omitted
 
 
 def classify(instance: object) -> list[Target]:
@@ -182,6 +184,8 @@ def classify(instance: object) -> list[Target]:
         return [Target(ERROR_DETAIL, "", instance)]
     if {"id", "title", "path", "status"} <= keys:
         return [Target(FAILURE_MODE_ENTRY, "", instance)]
+    if keys == {"meta"}:
+        return [Target(RESPONSE_META, "/meta", instance["meta"], partial=True)]
     exit_codes = instance.get("exit_codes")
     if isinstance(exit_codes, dict):
         return [Target("exit-code-entry.json", f"/exit_codes/{code}", entry) for code, entry in exit_codes.items()]
@@ -234,6 +238,7 @@ def check_example_file(path: Path, validators: dict[str, Draft7Validator], stats
                 f"{target.schema}{target.pointer}{'/' if error.absolute_path else ''}{'/'.join(map(str, error.absolute_path))}: {error.message}"
                 for target in targets
                 for error in validators[target.schema].iter_errors(target.instance)
+                if not (target.partial and error.validator == "required" and not error.absolute_path)
             ]
             for target in targets:
                 key = target.pointer.rsplit("/", 1)[1] if target.pointer.startswith("/exit_codes/") else None

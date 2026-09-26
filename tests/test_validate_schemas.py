@@ -143,6 +143,28 @@ def test_failure_mode_entry_is_validated(tmp_path: Path, validators) -> None:
     assert vs.FAILURE_MODE_ENTRY in problems[0].message
 
 
+def test_meta_fragment_may_omit_required_meta_fields(tmp_path: Path, validators) -> None:
+    path = write_md(tmp_path, """\
+        ```json
+        {"meta": {"request_id": "req_01"}}
+        ```
+        """)
+    stats = vs.new_stats()
+    assert vs.check_example_file(path, validators, stats) == []
+    assert stats["validated"] == 1
+
+
+def test_meta_fragment_nested_objects_are_fully_validated(tmp_path: Path, validators) -> None:
+    path = write_md(tmp_path, """\
+        ```json
+        {"meta": {"pagination": {"total": 3}}}
+        ```
+        """)
+    problems = vs.check_example_file(path, validators, vs.new_stats())
+    assert problems and {p.kind for p in problems} == {"EXAMPLE"}
+    assert all("/meta/pagination" in p.message for p in problems)
+
+
 def test_unparseable_json_block_is_reported(tmp_path: Path, validators) -> None:
     path = write_md(tmp_path, """\
         ```json
