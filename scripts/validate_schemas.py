@@ -28,7 +28,7 @@ from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 
-from jsonschema import Draft7Validator
+from jsonschema import Draft7Validator, FormatChecker
 from referencing import Registry, Resource
 from referencing.exceptions import Unresolvable
 from referencing.jsonschema import DRAFT7
@@ -72,8 +72,16 @@ def build_registry(schemas: dict[str, dict[str, object]]) -> Registry:
     return Registry().with_resources(resources)
 
 
+def format_checker() -> FormatChecker:
+    """Draft-07 format checker; date-time needs rfc3339-validator, so its absence is fatal, not a silent pass."""
+    checker = Draft7Validator.FORMAT_CHECKER
+    if "date-time" not in checker.checkers:
+        raise SystemExit("format date-time is unchecked: install rfc3339-validator (uv sync)")
+    return checker
+
+
 def validator_for(name: str, schemas: dict[str, dict[str, object]], registry: Registry) -> Draft7Validator:
-    return Draft7Validator(schemas[name], registry=registry)
+    return Draft7Validator(schemas[name], registry=registry, format_checker=format_checker())
 
 
 @cache
@@ -264,7 +272,7 @@ def new_stats() -> dict[str, int]:
 
 def build_validators(schemas: dict[str, dict[str, object]], registry: Registry) -> dict[str, Draft7Validator]:
     validators = {name: validator_for(name, schemas, registry) for name in schemas}
-    validators.update({ref: Draft7Validator({"$ref": ref}, registry=registry) for ref in SUBSCHEMA_TARGETS})
+    validators.update({ref: Draft7Validator({"$ref": ref}, registry=registry, format_checker=format_checker()) for ref in SUBSCHEMA_TARGETS})
     return validators
 
 

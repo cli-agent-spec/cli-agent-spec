@@ -165,6 +165,17 @@ def test_meta_fragment_nested_objects_are_fully_validated(tmp_path: Path, valida
     assert all("/meta/pagination" in p.message for p in problems)
 
 
+def test_meta_timestamp_must_be_a_date_time(tmp_path: Path, validators) -> None:
+    path = write_md(tmp_path, """\
+        ```json
+        {"meta": {"timestamp": "yesterday"}}
+        ```
+        """)
+    problems = vs.check_example_file(path, validators, vs.new_stats())
+    assert [p.kind for p in problems] == ["EXAMPLE"]
+    assert "date-time" in problems[0].message
+
+
 def test_unparseable_json_block_is_reported(tmp_path: Path, validators) -> None:
     path = write_md(tmp_path, """\
         ```json
