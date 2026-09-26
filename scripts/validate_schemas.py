@@ -25,6 +25,7 @@ import re
 import sys
 from collections.abc import Iterator
 from dataclasses import dataclass
+from functools import cache
 from pathlib import Path
 
 from jsonschema import Draft7Validator
@@ -38,7 +39,9 @@ EXAMPLE_FILES = ("README.md", "IMPLEMENTING.md")
 DRAFT7_URI = "http://json-schema.org/draft-07/schema#"
 _INVALID_LABEL = re.compile(r"^(\*\*)?(invalid|incorrect|wrong)\b", re.IGNORECASE)
 _EXIT_CODE_KEY = re.compile(r"^(0|[1-9][0-9]*)$")
-_EXIT_CODE_ENTRY_FIELDS = frozenset({"name", "description", "retryable", "side_effects"})
+ERROR_DETAIL = "response-envelope.json#/definitions/ErrorDetail"
+FAILURE_MODE_ENTRY = "failure-mode-index.json#/properties/failure_modes/items"
+SUBSCHEMA_TARGETS = (ERROR_DETAIL, FAILURE_MODE_ENTRY)
 _CONDITIONAL = re.compile(r"/(if|then|else|not)(/|$)")
 SCHEMA_FRAGMENT_SECTIONS = ("Schema",)
 DELIBERATE_MISTAKE_SECTIONS = ("Common mistakes",)
@@ -70,6 +73,14 @@ def build_registry(schemas: dict[str, dict[str, object]]) -> Registry:
 
 def validator_for(name: str, schemas: dict[str, dict[str, object]], registry: Registry) -> Draft7Validator:
     return Draft7Validator(schemas[name], registry=registry)
+
+
+@cache
+def _declared_fields(schema_file: str, *path: str) -> frozenset[str]:
+    node = json.loads((ROOT / "schemas" / schema_file).read_text(encoding="utf-8"))
+    for key in path:
+        node = node[key]
+    return frozenset(node["properties"])
 
 
 def _walk_properties(node: object, pointer: str) -> Iterator[tuple[str, dict[str, object]]]:
@@ -164,9 +175,13 @@ def classify(instance: object) -> list[Target]:
         return [Target("conformance-result.json", "", instance)]
     if {"matches", "no_match", "trace_insufficient"} <= keys:
         return [Target("diagnose-result.json", "", instance)]
-    # Only ExitCodeEntry fields, so an entry missing required fields still reaches the schema
-    if "description" in keys and len(keys) > 1 and keys <= _EXIT_CODE_ENTRY_FIELDS:
+    # Standalone objects match on their declared field set, so one missing required fields still reaches the schema
+    if "description" in keys and len(keys) > 1 and keys <= _declared_fields("exit-code-entry.json"):
         return [Target("exit-code-entry.json", "", instance)]
+    if {"code", "message"} <= keys and keys <= _declared_fields("response-envelope.json", "definitions", "ErrorDetail"):
+        return [Target(ERROR_DETAIL, "", instance)]
+    if {"id", "title", "path", "status"} <= keys:
+        return [Target(FAILURE_MODE_ENTRY, "", instance)]
     exit_codes = instance.get("exit_codes")
     if isinstance(exit_codes, dict):
         return [Target("exit-code-entry.json", f"/exit_codes/{code}", entry) for code, entry in exit_codes.items()]
@@ -243,7 +258,9 @@ def new_stats() -> dict[str, int]:
 
 
 def build_validators(schemas: dict[str, dict[str, object]], registry: Registry) -> dict[str, Draft7Validator]:
-    return {name: validator_for(name, schemas, registry) for name in schemas}
+    validators = {name: validator_for(name, schemas, registry) for name in schemas}
+    validators.update({ref: Draft7Validator({"$ref": ref}, registry=registry) for ref in SUBSCHEMA_TARGETS})
+    return validators
 
 
 def check_examples(schemas: dict[str, dict[str, object]], registry: Registry) -> tuple[list[Problem], dict[str, int]]:

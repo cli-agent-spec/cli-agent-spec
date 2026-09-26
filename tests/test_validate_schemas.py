@@ -110,6 +110,39 @@ def test_object_with_foreign_fields_is_not_an_exit_code_entry(tmp_path: Path, va
     assert stats["unclassified"] == 1
 
 
+def test_standalone_error_detail_is_validated(tmp_path: Path, validators) -> None:
+    path = write_md(tmp_path, """\
+        ```json
+        {"code": "auth_error", "message": "Authentication failed"}
+        ```
+        """)
+    problems = vs.check_example_file(path, validators, vs.new_stats())
+    assert [p.kind for p in problems] == ["EXAMPLE"]
+    assert vs.ERROR_DETAIL in problems[0].message
+
+
+def test_object_with_foreign_fields_is_not_an_error_detail(tmp_path: Path, validators) -> None:
+    path = write_md(tmp_path, """\
+        ```json
+        {"level": "warn", "code": "DEPRECATED", "message": "Use new-sub"}
+        ```
+        """)
+    stats = vs.new_stats()
+    assert vs.check_example_file(path, validators, stats) == []
+    assert stats["unclassified"] == 1
+
+
+def test_failure_mode_entry_is_validated(tmp_path: Path, validators) -> None:
+    path = write_md(tmp_path, """\
+        ```json
+        {"id": 36, "title": "Pager Blocking", "path": "challenges/x.md", "part": "01-x", "status": "merged"}
+        ```
+        """)
+    problems = vs.check_example_file(path, validators, vs.new_stats())
+    assert [p.kind for p in problems] == ["EXAMPLE"]
+    assert vs.FAILURE_MODE_ENTRY in problems[0].message
+
+
 def test_unparseable_json_block_is_reported(tmp_path: Path, validators) -> None:
     path = write_md(tmp_path, """\
         ```json
