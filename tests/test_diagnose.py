@@ -1,6 +1,7 @@
 """Classifier, runner, and preflight hook tests for skills/cli-agent-diagnose (no LLM calls)."""
 
 import json
+import os
 import re
 import shlex
 import shutil
@@ -366,6 +367,7 @@ BASH_PARITY_CASES = [
     "x \\  y",
     'x "\\\\" # c',
     "x 'it''s' # c",
+    "x *.md [a-z]?",
 ]
 
 
@@ -377,8 +379,14 @@ def test_scan_shell_splits_words_like_bash(command: str) -> None:
 
     scan = preflight_hook.scan_shell(command)
     assert not scan.multiline
-    printer = "f() { for word in \"$@\"; do printf '%s\\0' \"$word\"; done; }; "
-    words = subprocess.run(["bash", "-c", printer + "f" + command[1:]], capture_output=True, text=True, check=True).stdout
+    # set -f: no pathname expansion against the working directory
+    printer = "set -f; f() { for word in \"$@\"; do printf '%s\\0' \"$word\"; done; }; "
+    # BASH_ENV/ENV would source a file that can print, SHELLOPTS/BASHOPTS would carry options in
+    env = {k: v for k, v in os.environ.items() if k not in ("BASH_ENV", "ENV", "SHELLOPTS", "BASHOPTS")}
+    words = subprocess.run(
+        ["bash", "--noprofile", "--norc", "-c", printer + "f" + command[1:]],
+        capture_output=True, text=True, check=True, env=env,
+    ).stdout
     assert shlex.split(scan.text) == ["x", *words.split("\0")[:-1]]
 
 
