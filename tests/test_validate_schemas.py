@@ -87,6 +87,29 @@ def test_invalid_label_that_fails_is_accepted(tmp_path: Path, validators) -> Non
     assert vs.check_example_file(path, validators, vs.new_stats()) == []
 
 
+def test_exit_code_entry_missing_required_fields_is_classified(tmp_path: Path, validators) -> None:
+    path = write_md(tmp_path, """\
+        **Invalid — missing required fields**
+        ```json
+        {"name": "NOT_FOUND", "description": "Target not found"}
+        ```
+        """)
+    stats = vs.new_stats()
+    assert vs.check_example_file(path, validators, stats) == []
+    assert stats["expected_invalid"] == 1
+
+
+def test_object_with_foreign_fields_is_not_an_exit_code_entry(tmp_path: Path, validators) -> None:
+    path = write_md(tmp_path, """\
+        ```json
+        {"name": "--live", "type": "boolean", "description": "Execute for real"}
+        ```
+        """)
+    stats = vs.new_stats()
+    assert vs.check_example_file(path, validators, stats) == []
+    assert stats["unclassified"] == 1
+
+
 def test_unparseable_json_block_is_reported(tmp_path: Path, validators) -> None:
     path = write_md(tmp_path, """\
         ```json

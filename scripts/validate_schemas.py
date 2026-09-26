@@ -38,6 +38,7 @@ EXAMPLE_FILES = ("README.md", "IMPLEMENTING.md")
 DRAFT7_URI = "http://json-schema.org/draft-07/schema#"
 _INVALID_LABEL = re.compile(r"^(\*\*)?(invalid|incorrect|wrong)\b", re.IGNORECASE)
 _EXIT_CODE_KEY = re.compile(r"^(0|[1-9][0-9]*)$")
+_EXIT_CODE_ENTRY_FIELDS = frozenset({"name", "description", "retryable", "side_effects"})
 _CONDITIONAL = re.compile(r"/(if|then|else|not)(/|$)")
 SCHEMA_FRAGMENT_SECTIONS = ("Schema",)
 DELIBERATE_MISTAKE_SECTIONS = ("Common mistakes",)
@@ -163,7 +164,8 @@ def classify(instance: object) -> list[Target]:
         return [Target("conformance-result.json", "", instance)]
     if {"matches", "no_match", "trace_insufficient"} <= keys:
         return [Target("diagnose-result.json", "", instance)]
-    if {"description", "retryable", "side_effects"} <= keys:
+    # Only ExitCodeEntry fields, so an entry missing required fields still reaches the schema
+    if "description" in keys and len(keys) > 1 and keys <= _EXIT_CODE_ENTRY_FIELDS:
         return [Target("exit-code-entry.json", "", instance)]
     exit_codes = instance.get("exit_codes")
     if isinstance(exit_codes, dict):
