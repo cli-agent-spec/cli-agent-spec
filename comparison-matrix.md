@@ -800,6 +800,101 @@ Coverage % = (✓ + 0.5 × ~) / 75 × 100, rounded to one decimal place.
 
 ---
 
+### §69. Argument Order Ambiguity
+
+- **Best covered by:** mcp (✓) — JSON arguments have no positional order
+- **Partially covered by:** argparse, typer, click, python-fire, openapi, cobra, clap, commander-js, agentyper, jpoehnelt-scale
+- **Gap in all solutions:** No for protocols, yes for parsers. Every parser has the mechanism (argparse parent parsers with `SUPPRESS` defaults, Cobra persistent flags, Click options repeated on each command), but none makes global options position-independent by default, and argparse subparsers silently overwrite a root value with their own default
+- **Key insight:** Global options must be declared once, accepted in any position, and never shadowed by a local flag (REQ-F-079); interspersed parsing is the default (REQ-F-067), and commands that forward arguments declare `option_placement: "strict"` (REQ-C-027)
+
+---
+
+### §70. Single-Argument Arity Restriction
+
+- **Best covered by:** None achieves ✓
+- **Partially covered by:** argparse, typer, click, pydantic, openapi, cobra, clap, commander-js, mcp, agentyper, jpoehnelt-scale
+- **Affected:** python-fire (✗ — arity follows the Python signature with no variadic declaration)
+- **Gap in all solutions:** Yes. Variadic positionals (`nargs="+"`, `num_args(1..)`, `.variadic()`) exist everywhere but are opt-in per argument, so item-by-item commands ship accepting one item and force N process launches
+- **Key insight:** A command whose logic is per-item should accept one or more items and always return a per-item result array, so one call replaces N and partial failure stays visible
+
+---
+
+### §71. Non-Interactive Installation Absence
+
+- **Best covered by:** cobra (✓), clap (✓) — a static binary release installs by copying one file
+- **Partially covered by:** argparse, typer, click, python-fire, openapi, commander-js, agentyper, jpoehnelt-scale
+- **Affected:** pydantic, mcp (✗ — a validation library and a protocol; neither governs installation)
+- **Gap in all solutions:** No for Go and Rust. Python and npm installs can pull prompting post-install hooks, license acceptance, or system dependencies without non-interactive flags
+- **Key insight:** Document one non-interactive install command per platform (REQ-O-044) and move any setup wizard to first use, where `--non-interactive` returns a structured error instead of a prompt
+
+---
+
+### §72. Integration Artifact Version Drift
+
+- **Best covered by:** mcp (✓) — tool definitions are served by the running server, so they cannot drift from it
+- **Partially covered by:** pydantic, openapi, agentyper, jpoehnelt-scale
+- **Affected:** argparse, typer, click, python-fire, cobra, clap, commander-js (✗ — no artifact generation)
+- **Gap in all solutions:** No for MCP. Every file-based artifact (OpenAPI spec, skill file, AGENTS.md) is a snapshot that drifts unless generated from the binary at release time
+- **Key insight:** Generate artifacts from the same registry that serves `--schema`, stamp each with the tool version it describes (REQ-O-045), and release binary and artifacts together
+
+---
+
+### §73. Documentation Accuracy Drift
+
+- **Best covered by:** mcp (✓) — tool descriptions ship inside the tool definitions
+- **Partially covered by:** pydantic, openapi, agentyper, jpoehnelt-scale
+- **Affected:** argparse, typer, click, python-fire, cobra, clap, commander-js (✗)
+- **Gap in all solutions:** No for MCP. Hand-written agent docs rot as flags and commands change, and no parser framework checks prose examples against its own registry
+- **Key insight:** Treat AGENTS.md as a tested artifact: required content (REQ-O-043) plus a CI step that runs every documented invocation against the current binary (REQ-O-046)
+
+---
+
+### §74. Credential Scope Declaration Absence
+
+- **Best covered by:** openapi (✓) — `securitySchemes` and per-operation `security` requirements
+- **Partially covered by:** pydantic, mcp, agentyper, jpoehnelt-scale
+- **Affected:** argparse, typer, click, python-fire, cobra, clap, commander-js (✗)
+- **Gap in all solutions:** No for OpenAPI. Parser frameworks have no place to declare which scopes a command needs, so an agent learns it from a mid-task `403`
+- **Key insight:** Declare `required_scopes` per command (REQ-C-029) and ship `tool check-permissions` (REQ-O-047) so an agent can verify its credential before the first mutating call
+
+---
+
+### §75. Safe-Default Execution Mode Absent
+
+- **Best covered by:** None achieves ✓
+- **Partially covered by:** mcp (`destructiveHint` asks the host to confirm), jpoehnelt-scale (Safety Rails axis rewards `--dry-run`)
+- **Gap in all solutions:** Yes. Frameworks offer at most an opt-in `--dry-run` or a confirmation prompt; an agent that forgets the flag runs live. Click's `confirmation_option` is the error-and-retry gate §75 calls insufficient
+- **Key insight:** High-stakes commands declare `safe_default: true`; the framework routes every call through the dry-run path unless `--live` is passed, and reports `meta.dry_run` in every response (REQ-O-048)
+
+---
+
+### §76. Streaming-Default JSONL Incompatibility
+
+- **Best covered by:** mcp (✓) — a tool call returns one JSON-RPC result; progress travels as separate notifications
+- **Partially covered by:** openapi (NDJSON content types can be declared)
+- **Gap in all solutions:** No for MCP. Parser frameworks leave the default wire format to the author and offer no way to declare that a command streams, so an envelope-parsing agent hits `JSONDecodeError` or keeps only the first line
+- **Key insight:** A command that streams by default declares `streaming_default: true` in the manifest and accepts `--no-stream` for a buffered envelope (REQ-O-004)
+
+---
+
+### §77. No Batch Command Dispatch
+
+- **Best covered by:** None achieves ✓
+- **Partially covered by:** click (`chain=True` groups), python-fire (method chaining), mcp (one server process serves every call in a session)
+- **Gap in all solutions:** Yes. None reads a heterogeneous plan from stdin and dispatches it in one process with per-line results; MCP removes per-call startup but has no batch request since JSON-RPC batching was dropped
+- **Key insight:** A built-in `tool exec` reads JSONL, dispatches each line in-process, emits one result per line, and forwards `--dry-run` to mutating commands (REQ-O-050)
+
+---
+
+### §78. Output Flag Meaning Collision
+
+- **Best covered by:** mcp (✓) — typed JSON parameters have no `--output` or `-o` to misread
+- **Partially covered by:** agentyper (injects `--format` for representation)
+- **Gap in all solutions:** No for MCP. Parser path types (`click.Path`, `PathBuf`, argparse `type=Path`) accept a bare `json`, so `--output json` writes a file named `json` and exits `0`; the Cobra ecosystem's `-o json` convention reinforces the collision
+- **Key insight:** Select representation with `--format` only, reserve `--output` for a destination path, and reject a format name where a path is expected with exit `2` and a `--format <value>` fix (REQ-O-001)
+
+---
+
 ## Part 4: Gap Analysis
 
 ### Universally Missing (✗ in all solutions)
