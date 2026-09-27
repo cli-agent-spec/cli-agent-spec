@@ -1,6 +1,6 @@
 # CLI Framework Comparison Matrix
 
-This document compares twelve CLI-related solutions against the 71 agent-compatibility failure modes catalogued in *CLI Agent Spec: Complete Failure Mode Reference* (v1.6). Each cell records how well a solution addresses that failure mode — natively, partially, or not at all. Use this matrix to quickly identify which solutions cover which failure modes, where universal gaps exist, and what a new framework must build from scratch.
+This document compares twelve CLI-related solutions against the 75 agent-compatibility failure modes catalogued in *CLI Agent Spec: Complete Failure Mode Reference* (v1.7). Each cell records how well a solution addresses that failure mode — natively, partially, or not at all. Use this matrix to quickly identify which solutions cover which failure modes, where universal gaps exist, and what a new framework must build from scratch.
 
 How to read: Part 1 is the primary reference table. Parts 2–7 derive analysis from it. The ratings come directly from the per-solution research files; where a research file provided explicit rationale, that rationale is summarised in Part 3.
 
@@ -54,7 +54,7 @@ How to read: Part 1 is the primary reference table. Parts 2–7 derive analysis 
 
 ## Part 1: Failure Mode Coverage Matrix
 
-Rows are the 71 currently mapped failure modes (severity and frequency for priority context). Columns are the twelve solutions. Failure modes §36, §39, and §48 were merged into §10, §3, and §2 respectively and are omitted.
+Rows are the 75 currently mapped failure modes (severity and frequency for priority context). Columns are the twelve solutions. Failure modes §36, §39, and §48 were merged into §10, §3, and §2 respectively and are omitted.
 
 | # | Failure mode | Sev | Freq | argparse | typer | click | python-fire | pydantic | openapi | cobra | clap | commander-js | mcp | agentyper | jpoehnelt-scale |
 |---|-----------|-----|------|----------|-------|-------|-------------|----------|---------|-------|------|--------------|-----|-----------|-----------------|
@@ -88,6 +88,10 @@ Rows are the 71 currently mapped failure modes (severity and frequency for prior
 | 24 | Authentication & Secret Handling | Crit | Common | ✗ | ✗ | ~ | ✗ | ✓ | ~ | ~ | ~ | ~ | ✓ | ✗ | ~ |
 | 25 | Prompt Injection via Output | Crit | Sit. | ~ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ~ | ✗ | ✓ |
 | 74 | Credential Scope Declaration Absence | Crit | Common | ✗ | ✗ | ✗ | ✗ | ~ | ✓ | ✗ | ✗ | ✗ | ~ | ~ | ~ |
+| 75 | Safe-Default Execution Mode Absent | Crit | Sit. | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ~ | ✗ | ~ |
+| 76 | Streaming-Default JSONL Incompatibility | High | Sit. | ✗ | ✗ | ✗ | ✗ | ✗ | ~ | ✗ | ✗ | ✗ | ✓ | ✗ | ✗ |
+| 77 | No Batch Command Dispatch | High | Common | ✗ | ✗ | ~ | ~ | ✗ | ✗ | ✗ | ✗ | ✗ | ~ | ✗ | ✗ |
+| 78 | Output Flag Meaning Collision | High | Common | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ | ~ | ✗ |
 | **Part V: Environment & State** |
 | 26 | Stateful Commands & Session Management | High | Common | ✗ | ✗ | ✗ | ~ | ✗ | ~ | ✗ | ✗ | ✗ | ✓ | ✗ | ✗ |
 | 27 | Platform & Shell Portability | Med | Common | ✓ | ~ | ~ | ~ | ~ | ~ | ✓ | ✓ | ~ | ✓ | ~ | ✗ |
@@ -147,44 +151,55 @@ Rows are the 71 currently mapped failure modes (severity and frequency for prior
 - §71 (Non-Interactive Installation): Go (cobra) and Rust (clap) ✓ — static binary releases are naturally non-interactive. MCP ✗ — protocol, does not govern installation. pydantic ✗ — validation library, not a distribution mechanism.
 - §72/§73 (Artifact Drift / Documentation Drift): MCP ✓ — tool definitions ARE the integration artifact and documentation, structurally co-versioned. All file-based artifact solutions are ~ at best (code-first generation) or ✗ (no generation capability).
 - §74 (Credential Scope Declaration): OpenAPI ✓ — `securitySchemes` and per-operation `security` requirements are native OpenAPI features. MCP ~ — auth layer present at server level but per-tool scope declaration is not yet a built-in primitive.
+- §75 (Safe-Default Execution): No solution previews by default. MCP ~ — `destructiveHint` tells the host to confirm, but the call still runs live. jpoehnelt-scale ~ — its Safety Rails axis rewards `--dry-run` without requiring it as the default. Click's `confirmation_option` is the confirmation gate §75 calls insufficient, so ✗.
+- §76 (Streaming-Default JSONL): MCP ✓ — a tool call returns one JSON-RPC result; progress travels as separate notifications, never as bare JSONL on the result channel. OpenAPI ~ — a response can declare an NDJSON content type, but nothing requires a buffered alternative. Parser frameworks leave the default format and any `streaming_default` declaration to the author.
+- §77 (No Batch Dispatch): Click ~ (`chain=True` groups run several subcommands in one process) and python-fire ~ (method chaining in one invocation), but neither reads a JSONL plan from stdin or reports per-line results. MCP ~ — one server process serves every call in a session, removing per-call startup, but the protocol has no batch request since JSON-RPC batching was dropped.
+- §78 (Output Flag Meaning Collision): MCP ✓ — typed JSON parameters have no `--output`/`-o` to misread. agentyper ~ — injects `--format` for representation, but path-typed flags accept `json` unguarded. Parser path types (`click.Path`, `PathBuf`, argparse `type=Path`) accept a bare format name, and the Cobra ecosystem's `-o json` convention reinforces the collision.
 
 ---
 
 ## Part 2: Coverage Scores
 
-Coverage % = (✓ + 0.5 × ~) / 71 × 100, rounded to one decimal place.
+Coverage % = (✓ + 0.5 × ~) / 75 × 100, rounded to one decimal place.
 
 | Solution | ✓ Native | ~ Partial | ✗ Missing | Coverage % |
 |----------|----------|-----------|-----------|------------|
-| mcp | 28 | 27 | 16 | **58.5%** |
-| pydantic | 18 | 26 | 27 | **43.7%** |
-| openapi | 17 | 27 | 27 | **43.0%** |
-| clap | 14 | 32 | 25 | **42.3%** |
-| cobra | 11 | 36 | 24 | **40.8%** |
-| jpoehnelt-scale | 12 | 20 | 39 | **31.0%** |
-| agentyper | 10 | 24 | 37 | **31.0%** |
-| argparse | 10 | 19 | 42 | **27.5%** |
-| click | 2 | 30 | 39 | **23.9%** |
-| commander-js | 1 | 29 | 41 | **21.8%** |
-| typer | 3 | 22 | 46 | **19.7%** |
-| python-fire | 1 | 8 | 62 | **7.0%** |
+| mcp | 28 | 30 | 17 | **57.3%** |
+| openapi | 17 | 29 | 29 | **42.0%** |
+| pydantic | 18 | 25 | 32 | **40.7%** |
+| clap | 13 | 33 | 29 | **39.3%** |
+| cobra | 11 | 36 | 28 | **38.7%** |
+| agentyper | 10 | 25 | 40 | **30.0%** |
+| jpoehnelt-scale | 12 | 21 | 42 | **30.0%** |
+| argparse | 9 | 18 | 48 | **24.0%** |
+| click | 2 | 32 | 41 | **24.0%** |
+| commander-js | 1 | 30 | 44 | **21.3%** |
+| typer | 3 | 23 | 49 | **19.3%** |
+| python-fire | 1 | 9 | 65 | **7.3%** |
 
 **Sorted by Coverage % descending:**
 
 | Rank | Solution | ✓ | ~ | ✗ | Coverage % |
 |------|----------|---|---|---|------------|
-| 1 | mcp | 28 | 27 | 16 | **58.5%** |
-| 2 | pydantic | 18 | 26 | 27 | **43.7%** |
-| 3 | openapi | 17 | 27 | 27 | **43.0%** |
-| 4 | clap | 14 | 32 | 25 | **42.3%** |
-| 5 | cobra | 11 | 36 | 24 | **40.8%** |
-| 6 | jpoehnelt-scale | 12 | 20 | 39 | **31.0%** |
-| 6 | agentyper | 10 | 24 | 37 | **31.0%** |
-| 8 | argparse | 10 | 19 | 42 | **27.5%** |
-| 9 | click | 2 | 30 | 39 | **23.9%** |
-| 10 | commander-js | 1 | 29 | 41 | **21.8%** |
-| 11 | typer | 3 | 22 | 46 | **19.7%** |
-| 12 | python-fire | 1 | 8 | 62 | **7.0%** |
+| 1 | mcp | 28 | 30 | 17 | **57.3%** |
+| 2 | openapi | 17 | 29 | 29 | **42.0%** |
+| 3 | pydantic | 18 | 25 | 32 | **40.7%** |
+| 4 | clap | 13 | 33 | 29 | **39.3%** |
+| 5 | cobra | 11 | 36 | 28 | **38.7%** |
+| 6 | agentyper | 10 | 25 | 40 | **30.0%** |
+| 6 | jpoehnelt-scale | 12 | 21 | 42 | **30.0%** |
+| 8 | argparse | 9 | 18 | 48 | **24.0%** |
+| 8 | click | 2 | 32 | 41 | **24.0%** |
+| 10 | commander-js | 1 | 30 | 44 | **21.3%** |
+| 11 | typer | 3 | 23 | 49 | **19.3%** |
+| 12 | python-fire | 1 | 9 | 65 | **7.3%** |
+
+**Key observations (§75–78 update, current scores):**
+- **Scores are now computed from the Part 1 cells.** The previous table had drifted from the matrix (it credited MCP with 28 ✓ / 27 ~ when its column held 26 / 28, and ranked pydantic above openapi); both tables above are regenerated from the rows
+- **MCP stays #1 at 57.3%** — earns ✓ for §76 (one JSON-RPC result per call, never bare JSONL) and §78 (typed parameters have no `--output` to misread), ~ for §75 and §77
+- **Every parser framework loses ground**: §75, §76, and §78 are ✗ for all of them, and only click (`chain=True`) and python-fire (method chaining) earn ~ for §77
+- **§75 and §77 join the universally missing list**: no solution previews destructive commands by default, and none dispatches a heterogeneous JSONL plan in one process
+- No solution exceeds 58% coverage across 75 currently mapped failure modes
 
 **Key observations (v1.7 update — §69–74):**
 - **OpenAPI rises to #3** (was tied #4) — earns the only ✓ for §74 (Credential Scope Declaration) via native `securitySchemes` + per-operation `security` declarations.
@@ -815,6 +830,8 @@ These failure modes have no solution with a ✓ rating.
 | 59 | High-Entropy String Token Poisoning | High | No framework auto-detects or masks high-entropy output fields |
 | 66 | Symlink Loop and Recursive Traversal Exhaustion | High | No framework tracks visited inodes in traversal utilities |
 | 67 | Agent-Generated Input Syntax Rejection | High | No framework accepts JSON5 for structured input flags |
+| 75 | Safe-Default Execution Mode Absent | Critical | No framework routes a declared high-stakes command through its dry-run path unless `--live` is passed |
+| 77 | No Batch Command Dispatch | High | No framework reads a JSONL plan from stdin and dispatches each line in-process with per-line results |
 
 ### Partially Covered Everywhere (~ in most solutions, no ✓)
 
@@ -907,7 +924,7 @@ The Go and Rust frameworks (cobra, clap) outperform their Python and JavaScript 
 - Timeouts (recommended but not enforced)
 - Tool schema versioning and drift detection
 
-**Unique position:** MCP scores highest (58.5%) because it solves the hardest problems structurally. Its remaining gaps are in operational reliability (retries, timeouts, concurrency) and completeness (working directory, composition, schema versioning).
+**Unique position:** MCP scores highest (57.3%) because it solves the hardest problems structurally. Its remaining gaps are in operational reliability (retries, timeouts, concurrency) and completeness (working directory, composition, schema versioning).
 
 ---
 
@@ -926,7 +943,7 @@ The Go and Rust frameworks (cobra, clap) outperform their Python and JavaScript 
 - All concurrency, credential expiry, and input syntax concerns
 - Observability, pagination, config precedence
 
-**Unique position:** agentyper is the only Python framework explicitly designed for agent ergonomics, yet at v0.1.4 scores 29.2%. It is the right philosophical foundation but needs the execution-reliability, security, and environment layers.
+**Unique position:** agentyper is the only Python framework explicitly designed for agent ergonomics, yet at v0.1.4 scores 30.0%. It is the right philosophical foundation but needs the execution-reliability, security, and environment layers.
 
 ---
 
@@ -1094,4 +1111,4 @@ This section maps the P0 requirements from the requirements catalogue to existin
 
 ---
 
-*CLI Agent Spec v1.6 — 71 currently mapped failure modes, 12 solutions evaluated. Updated 2026-05-07.*
+*CLI Agent Spec v1.7 — 75 currently mapped failure modes, 12 solutions evaluated. Updated 2026-09-26.*

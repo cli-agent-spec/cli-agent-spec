@@ -92,7 +92,7 @@ ajv compile -s "schemas/*.json" --spec=draft7 --strict=false
 - `guides/` — design guides for CLI authors: positive conventions that cannot be expressed as enforceable requirements. See `guides/index.md`.
 - `conformance/` — deterministic conformance kit (`run.py`) and probe profiles; the benchmark mocks are its fixtures.
 - `scripts/` — corpus validators and generators run by CI; see Common commands.
-- `comparison-matrix.md` — 74 failure modes × 12 frameworks coverage table.
+- `comparison-matrix.md` — 75 failure modes × 12 frameworks coverage table.
 
 ### Requirement tiers
 
