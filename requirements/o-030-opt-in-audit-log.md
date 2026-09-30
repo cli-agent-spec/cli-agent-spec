@@ -48,7 +48,7 @@ Each entry MUST NOT exceed 16 KiB. When a serialized entry would, the framework 
 - `--command <path>`: matches a command path exactly or as a whole-word prefix, and MUST accept both spellings, space-separated (`config set`) and dot-separated (`config.set`), whichever one the entries use. The prefix rule holds in each spelling: `config` matches `config set` and `config.set` but never `configure`
 - `--trace-id <id>`: matches `trace_id` exactly
 - `--limit <n>`: keeps the newest `n` matching entries
-- `--cursor <token>`: continues from the `meta.pagination.next_cursor` of a previous `audit-log` answer made with the same filters, returning the next-older batch of up to `n` matching entries. The token is opaque and stateless (REQ-O-003); an invalid token fails with a structured error
+- `--cursor <token>`: continues from the `meta.pagination.next_cursor` of a previous `audit-log` answer made with the same filters, returning the next-older batch of up to `n` matching entries. The token is opaque and stateless (REQ-O-003); a malformed or expired token, or one reused with different filters, fails as `INVALID_CURSOR` (REQ-O-003)
 - `--format jsonl`: one entry per line, followed by the pagination summary line
 
 Filters combine with AND. Entries are always returned oldest first.
@@ -58,6 +58,8 @@ Filters combine with AND. Entries are always returned oldest first.
 - `returned` is the number of entries in the response, and `total` is the number of entries that matched the filters, or `null` when the framework does not count them
 - When `--limit` left out older matching entries, `truncated` and `has_more` are `true` and `next_cursor` is a non-null opaque token. Passing it as `--cursor` with the same filters returns the next-older batch of up to `n` matching entries, still oldest first within the page
 - When no older entry matches, `truncated` and `has_more` are `false` and `next_cursor` is `null`
+
+**Cursor anchor.** The `audit-log` cursor anchors on the position of the last entry the page returned, its `timestamp` plus `request_id`, never on a file offset or a rotated-file index, so rotation between pages does not move it. The next page returns the matching entries still older than the anchor, without an error or a warning, even when entries were removed in between: pruning removes the oldest entries, so the walk ends sooner, `total` may shrink from one page to the next, and `has_more` and `next_cursor` stay accurate for what remains. Entries appended after the first page are newer than the anchor and never appear on a later page; a caller that wants them starts a new query without `--cursor`.
 
 A framework MAY make `audit-log` streaming-default under REQ-O-004, declaring `streaming_default: true` in the manifest; `--no-stream` then MUST return the buffered `data.entries` envelope. In streaming mode (`--format jsonl` or the streaming default) the same pagination fields go on the final summary line, as REQ-O-004 requires.
 
@@ -95,7 +97,10 @@ With the log disabled, `audit-log` exits `4` (`PRECONDITION`) with error code `A
 - `tool audit-log` without `--format jsonl` returns one envelope with the entries in `data.entries` and `meta.pagination`
 - With 250 matching entries, `--limit 100` returns the newest 100 with `returned: 100`, `truncated: true`, `has_more: true`, and a non-null `next_cursor`; `total` is `250` or `null`
 - Passing that `next_cursor` as `--cursor` with the same filters and `--limit 100` returns the 100 entries before those, oldest first; passing the second page's `next_cursor` returns the oldest 50 with `returned: 50`, `truncated: false`, `has_more: false`, and `next_cursor: null`
-- An invalid `--cursor` value fails with a structured error
+- A malformed `--cursor` value exits `2` (`ARG_ERROR`) with error code `INVALID_CURSOR` (REQ-O-003)
+- A `next_cursor` from `tool audit-log --command config --limit 100` passed to `tool audit-log --command deploy --cursor <token>` exits `2` with error code `INVALID_CURSOR`
+- With 250 matching entries, when pruning removes the oldest 120 between the first and second page, passing the first page's `next_cursor` returns the remaining 30 older matches with `returned: 30`, `has_more: false`, and `next_cursor: null`, and no error or warning
+- An entry appended between the first and second page does not appear on the second page
 - With `--format jsonl`, the final line is a summary line carrying the same pagination fields
 - When `audit-log` declares `streaming_default: true` in the manifest, `tool audit-log --no-stream` returns the buffered `data.entries` envelope
 - With the log disabled, `tool audit-log` exits `4` with error code `AUDIT_LOG_DISABLED`
