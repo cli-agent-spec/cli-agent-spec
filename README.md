@@ -149,4 +149,4 @@ Before contributing, read [`AGENTS.md`](AGENTS.md) for conventions: file format,
 
 ---
 
-*CLI Agent Spec v1.7 — 75 failure modes · 158 requirements · 6 canonical schemas · 12 frameworks evaluated*
+*CLI Agent Spec v1.8 — 75 failure modes · 158 requirements · 6 canonical schemas · 12 frameworks evaluated*

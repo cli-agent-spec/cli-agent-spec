@@ -9,7 +9,57 @@
 - A contract `MAJOR` increment always ships in a spec `MINOR` release with a migration section in this file
 - `meta.schema_version` inside a response is neither: it versions one command's output shape (REQ-F-022)
 
-## Unreleased
+## 1.8.0 — 2026-09-30
+
+### Breaking: `--format` selects output representation
+
+- REQ-O-001 makes `--format <format>` the canonical representation flag; `--output` and `-o` must not select a format
+- `--output <path>` is reserved for a destination file; a command that registers it must reject a bare format name (`--output json`) with exit `2` and a suggestion naming `--format json`
+- With `--output <path>`, `--format` selects the file's representation and stdout carries the `ResponseEnvelope`
+- REQ-O-004 (`--format jsonl`) and REQ-O-005 (`--format id`) follow the rename; REQ-O-042 reads `<TOOLNAME>_FORMAT` instead of `<TOOLNAME>_OUTPUT`
+- Every example, check, and agent workaround in the corpus uses `--format`; references to real tools (`aws --output json`, `kubectl -o json`) are unchanged
+
+**Why:** `--output` is a format in cloud CLIs (`aws`, `kubectl`, `az`) and a file path in build and transfer tools (`gcc`, `curl`, `sort`, `pandoc`). An agent that passes `--output json` to a path-typed flag gets exit `0`, empty stdout, and a file named `json`. `--format` has one meaning wherever it appears.
+
+**Migration:** rename the framework's global `--output` flag to `--format`; rename `<TOOLNAME>_OUTPUT` to `<TOOLNAME>_FORMAT`; rename any file-destination flag to `--output <path>` and add the format-name guard.
+
+### Breaking: ManifestResponse 3.0
+
+- The root `flags` map lists global options: flags every command accepts, before or after the command path (REQ-F-079)
+- `CommandEntry.flags` now means command-local flags only; a global option never appears in it, and no local flag reuses a global name or short alias
+- A consumer that reads only `CommandEntry.flags` no longer sees `--format`, `--quiet`, or any other global option; the accepted set for a command is root `flags` plus its own `flags`
+- `CommandEntry.positionals` lists positional arguments in call order as `PositionalEntry` objects (`name`, `type`, `required`, `description`, `enum_values`, `variadic`); before 3.0 a manifest had no place for them, so O-041's "construct any call from the manifest alone" could not hold for a command with positionals (REQ-C-015)
+- `schema_version` must be `3.x`, so a consumer can tell a 3.0 manifest from an older one before reading `flags`; every example and the good democli mock emit `"3.0"`. Earlier examples emitted `"1.0"` under the 2.x contract, so consumers treat any value other than `3.x` as pre-3.0 rather than looking for a `2.` prefix
+
+**Why:** the field keeps its shape but changes meaning, which the versioning rules above treat as a `MAJOR` change. A 2.x consumer that builds calls from `CommandEntry.flags` alone would conclude that `--format` does not exist.
+
+**Migration:** producers emit `"schema_version": "3.0"`, move framework and application-wide flags from every `CommandEntry.flags` into the root `flags` map, and declare each command's positional arguments in `positionals`, in call order, instead of describing them in `description`. Consumers look a flag up in root `flags` first, then in the command's `flags`, place root flags before the command path, and give `positionals` in array order after the local options.
+
+### Breaking: the audit log is opt-in (REQ-F-026 retired)
+
+- REQ-F-026 (append-only audit log) is merged into REQ-O-030 and its ID is retired; the corpus has 158 requirements (78 REQ-F)
+- As a Framework-Automatic requirement, the log made every CLI append to the user's home directory on every invocation, unbounded and without the author knowing. REQ-O-030 keeps it off by default, enabled by the application or by the operator through `<PREFIX>AUDIT_LOG`
+
+**Migration:** stop writing the audit log unconditionally; write it only when the application calls `enable_audit_log()` or the operator sets `<PREFIX>AUDIT_LOG`.
+
+### New failure mode: §78 Output Flag Meaning Collision
+
+- §78 covers an agent passing `--output json` or `-o json` to a tool whose `--output` takes a path: exit `0`, empty stdout, and a stray file named `json`
+- Triage row 16 routes the signal (exit `0`, no JSON, a file named after a format value) to §78; the catch-all row becomes 17
+- REQ-O-001 lists §78 as a source; its format-name guard on path-typed `--output` is the framework fix
+
+### Argument order and global options
+
+- New REQ-F-079 (Global Option Scope): global options are listed once in the manifest root `flags`, accepted in any position on every command path, and never overwritten by a subcommand default; a command-local flag that reuses a global option's long name or short alias fails registration
+- REQ-F-067 adds two acceptance criteria: `--` ends option parsing, and a scalar option repeated with different values exits `2`. Its framework examples are corrected: argparse and Click already accept options after positionals; their real gap is root options after the subcommand, which `parse_intermixed_args()` does not fix
+- REQ-C-027 gives `strict` one meaning: every option, global or local, precedes the first positional and may follow the command path. The criterion that a strict command rejects later options with exit `2` is removed; those tokens are forwarded to the child, which is what `strict` declares
+- §69 is rewritten around four modes (global option after the command path, local option before it, option read as a positional, value overwritten or duplicated). The Agent Workaround moves from "front-load every flag", which breaks local flags, to the canonical order `tool <global> <command path> <local> [--] <positionals>`, and from Tier A to Tier B
+- The conformance kit adds `argument_order` (level 3, REQ-F-067, REQ-F-079): a profile's optional `argument_order` names a read command and a global option; the kit moves the option around the command path, detects a value overwritten by a subcommand default, and expects exit `2` for a conflicting repeat. An optional `positional` also proves a local option after a positional is parsed, not read as a second positional (§69 Mode 3). The good democli mock parses `--format json|plain` globally, lists it in its manifest root `flags`, and `deployments list` takes an optional environment positional
+- `cli-agent-diagnose` routes to §69: a flag error followed by the same tokens succeeding in another order is §69, not §52; exit `2` after a single-value option (`--format`, `--limit`, `--timeout`, and a few more) repeated with different values is §69; `runner.preflight` flags that repeat before the call. Repeatable options such as `--header`, `--env`, and curl's `--output` never count
+
+**Why:** "front-load all flags" traded Mode 1 for Mode 2, and nothing in the manifest told an agent which flags were global. The argparse default-overwrite case exits `0` with the wrong format.
+
+**Migration:** move framework flags from each `CommandEntry.flags` into the root `flags`; register global options with parent parsers using `SUPPRESS` defaults (argparse) or persistent flags (Cobra); rename any local flag that shadows a global name or short alias.
 
 ### REQ-O-030 audit log: gaps closed, AuditLogEntry 1.0, ResponseEnvelope 2.1
 
@@ -26,48 +76,29 @@
 
 **Why:** two conforming frameworks could disagree on every point above, the size and age bounds did not hold for large arguments or rarely used tools, and the log was readable by every local user under a default umask.
 
-### Breaking: `--format` selects output representation
+### ResponseMeta declares its REQ-F fields
 
-- REQ-O-001 makes `--format <format>` the canonical representation flag; `--output` and `-o` must not select a format
-- `--output <path>` is reserved for a destination file; a command that registers it must reject a bare format name (`--output json`) with exit `2` and a suggestion naming `--format json`
-- With `--output <path>`, `--format` selects the file's representation and stdout carries the `ResponseEnvelope`
-- REQ-O-004 (`--format jsonl`) and REQ-O-005 (`--format id`) follow the rename; REQ-O-042 reads `<TOOLNAME>_FORMAT` instead of `<TOOLNAME>_OUTPUT`
-- Every example, check, and agent workaround in the corpus uses `--format`; references to real tools (`aws --output json`, `kubectl -o json`) are unchanged
+- `tool_version`, `update_available` (REQ-F-023), `trace_id`, `command`, and `timestamp` (REQ-F-024) are declared as optional `ResponseMeta` fields; examples using them are now type-checked. Part of `ResponseEnvelope` 2.1
 
-**Why:** `--output` is a format in cloud CLIs (`aws`, `kubectl`, `az`) and a file path in build and transfer tools (`gcc`, `curl`, `sort`, `pandoc`). An agent that passes `--output json` to a path-typed flag gets exit `0`, empty stdout, and a file named `json`. `--format` has one meaning wherever it appears.
+### Validation
 
-**Migration:** rename the framework's global `--output` flag to `--format`; rename `<TOOLNAME>_OUTPUT` to `<TOOLNAME>_FORMAT`; rename any file-destination flag to `--output <path>` and add the format-name guard.
+- The example validator and the conformance kit enforce draft-07 `format` keywords (`date-time` via `rfc3339-validator`) and fail when the checker is unavailable, instead of passing any string
+- The example validator checks meta-only envelope fragments, standalone `ErrorDetail` objects, failure mode index entries, and exit-code entries that lack required fields; field sets for classification are read from the schema files
+- Corpus counters in report templates, the website, mkdocs, and the requirements index footer are checked by `validate_links.py`
+- Skill reference bundles sync by checksum, not size and mtime
 
-### New failure mode: §78 Output Flag Meaning Collision
+### Tooling
 
-- §78 covers an agent passing `--output json` or `-o json` to a tool whose `--output` takes a path: exit `0`, empty stdout, and a stray file named `json`
-- Triage row 16 routes the signal (exit `0`, no JSON, a file named after a format value) to §78; the catch-all row becomes 17
-- REQ-O-001 lists §78 as a source; its format-name guard on path-typed `--output` is the framework fix
+- `cli-agent-diagnose` detects the §78 template echo: `--format <value>` exits `0` and every stdout line is that literal value
+- The preflight hook splits compound commands without surrounding spaces, reads `#` as a comment only at the start of a word, strips trailing comments and backslash-newline continuations, and is checked against bash word splitting by a differential test
+- `cli-agent-readiness` scores a pre-3.0 manifest as an older contract, not as schema-invalid
+- `ManifestResponse` 3.0 adds an optional root `exit_codes` table that every command inherits; `CommandEntry.exit_codes` then holds only additions and overrides
+- Benchmark harness: scenarios S6 to S8 with graders, `--cli-dir` and free-form `--mode` for builds outside the repo, and fixed S2 and S5 graders that counted argument errors and `--help` as live calls
 
-### Breaking: ManifestResponse 3.0
+### Comparison matrix
 
-- The root `flags` map lists global options: flags every command accepts, before or after the command path (REQ-F-079)
-- `CommandEntry.flags` now means command-local flags only; a global option never appears in it, and no local flag reuses a global name or short alias
-- A consumer that reads only `CommandEntry.flags` no longer sees `--format`, `--quiet`, or any other global option; the accepted set for a command is root `flags` plus its own `flags`
-- `CommandEntry.positionals` lists positional arguments in call order as `PositionalEntry` objects (`name`, `type`, `required`, `description`, `enum_values`, `variadic`); before 3.0 a manifest had no place for them, so O-041's "construct any call from the manifest alone" could not hold for a command with positionals (REQ-C-015)
-- `schema_version` must be `3.x`, so a consumer can tell a 3.0 manifest from an older one before reading `flags`; every example and the good democli mock emit `"3.0"`. Earlier examples emitted `"1.0"` under the 2.x contract, so consumers treat any value other than `3.x` as pre-3.0 rather than looking for a `2.` prefix
-
-**Why:** the field keeps its shape but changes meaning, which the versioning rules above treat as a `MAJOR` change. A 2.x consumer that builds calls from `CommandEntry.flags` alone would conclude that `--format` does not exist.
-
-**Migration:** producers emit `"schema_version": "3.0"`, move framework and application-wide flags from every `CommandEntry.flags` into the root `flags` map, and declare each command's positional arguments in `positionals`, in call order, instead of describing them in `description`. Consumers look a flag up in root `flags` first, then in the command's `flags`, place root flags before the command path, and give `positionals` in array order after the local options.
-
-### Argument order and global options
-
-- New REQ-F-079 (Global Option Scope): global options are listed once in the manifest root `flags`, accepted in any position on every command path, and never overwritten by a subcommand default; a command-local flag that reuses a global option's long name or short alias fails registration
-- REQ-F-067 adds two acceptance criteria: `--` ends option parsing, and a scalar option repeated with different values exits `2`. Its framework examples are corrected: argparse and Click already accept options after positionals; their real gap is root options after the subcommand, which `parse_intermixed_args()` does not fix
-- REQ-C-027 gives `strict` one meaning: every option, global or local, precedes the first positional and may follow the command path. The criterion that a strict command rejects later options with exit `2` is removed; those tokens are forwarded to the child, which is what `strict` declares
-- §69 is rewritten around four modes (global option after the command path, local option before it, option read as a positional, value overwritten or duplicated). The Agent Workaround moves from "front-load every flag", which breaks local flags, to the canonical order `tool <global> <command path> <local> [--] <positionals>`, and from Tier A to Tier B
-- The conformance kit adds `argument_order` (level 3, REQ-F-067, REQ-F-079): a profile's optional `argument_order` names a read command and a global option; the kit moves the option around the command path, detects a value overwritten by a subcommand default, and expects exit `2` for a conflicting repeat. An optional `positional` also proves a local option after a positional is parsed, not read as a second positional (§69 Mode 3). The good democli mock parses `--format json|plain` globally, lists it in its manifest root `flags`, and `deployments list` takes an optional environment positional
-- `cli-agent-diagnose` routes to §69: a flag error followed by the same tokens succeeding in another order is §69, not §52; exit `2` after a single-value option (`--format`, `--limit`, `--timeout`, and a few more) repeated with different values is §69; `runner.preflight` flags that repeat before the call. Repeatable options such as `--header`, `--env`, and curl's `--output` never count
-
-**Why:** "front-load all flags" traded Mode 1 for Mode 2, and nothing in the manifest told an agent which flags were global. The argparse default-overwrite case exits `0` with the wrong format.
-
-**Migration:** move framework flags from each `CommandEntry.flags` into the root `flags`; register global options with parent parsers using `SUPPRESS` defaults (argparse) or persistent flags (Cobra); rename any local flag that shadows a global name or short alias.
+- §75–78 rows and rationale notes added; Part 2 score tables are recomputed from all 75 Part 1 cells
+- Part 3 has one analysis section per matrix row, including §69–78
 
 ## 1.7.0 — 2026-09-15
 
