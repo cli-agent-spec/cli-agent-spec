@@ -101,4 +101,4 @@ register command "delete":
 | [REQ-C-004](c-004-destructive-commands-must-support-dry-run.md) | C | Composes: implicit dry-run output mirrors the `--dry-run` contract |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Wraps: confirmation error and success both use `ResponseEnvelope` |
 | [REQ-F-021](f-021-data-meta-separation-in-response-envelope.md) | F | Extends: `meta.confirmed` field added to standard envelope meta |
-| [REQ-O-030](o-030-opt-in-audit-log.md) | O | Consumes: destructive confirmation is recorded in the audit log when it is enabled |
+| [REQ-O-030](o-030-opt-in-audit-log.md) | O | Consumes: `confirm_destructive` in the entry's `args` records confirmation, and refusals are logged, when the audit log is enabled |

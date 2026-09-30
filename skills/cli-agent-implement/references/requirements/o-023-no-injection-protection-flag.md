@@ -10,12 +10,13 @@
 
 ## Description
 
-The framework's external data trust tagging (REQ-F-035) MAY be bypassed for a specific invocation by passing `--no-injection-protection`. This escape hatch is intended for trusted sources (e.g., reading internal configuration authored by the operator). When this flag is passed, external data is not wrapped with trust markers. When the audit log is enabled (REQ-O-030), use of the flag MUST be recorded in it. The flag MUST require explicit acknowledgment in non-interactive mode.
+The framework's external data trust tagging (REQ-F-035) MAY be bypassed for a specific invocation by passing `--no-injection-protection`. This escape hatch is intended for trusted sources (e.g., reading internal configuration authored by the operator). When this flag is passed, external data is not wrapped with trust markers. The framework MUST add an `INJECTION_PROTECTION_DISABLED` warning to `warnings[]` whenever the flag is used, so the audit log (REQ-O-030), when enabled, records it in the entry's `warnings`. The flag MUST require explicit acknowledgment in non-interactive mode.
 
 ## Acceptance Criteria
 
 - `--no-injection-protection` causes external data to be returned without `_trusted: false` tagging
-- With the audit log enabled, use of this flag is recorded in it with a warning
+- `--no-injection-protection` adds an `INJECTION_PROTECTION_DISABLED` warning to `warnings[]`
+- With the audit log enabled, the entry for that invocation has `INJECTION_PROTECTION_DISABLED` in its `warnings`
 - The flag is documented with a security warning in `--help` output
 
 ---
@@ -85,5 +86,5 @@ app.enable_injection_protection()
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
 | [REQ-F-035](f-035-external-data-trust-tagging.md) | F | Provides: trust tagging that this flag disables |
-| [REQ-O-030](o-030-opt-in-audit-log.md) | O | Consumes: flag usage is recorded as a security-relevant audit event when the log is enabled |
+| [REQ-O-030](o-030-opt-in-audit-log.md) | O | Consumes: `INJECTION_PROTECTION_DISABLED` is recorded in the entry's `warnings` when the log is enabled |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Wraps: warning about bypass is included in the standard `warnings` array |

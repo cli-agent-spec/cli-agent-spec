@@ -10,39 +10,82 @@
 
 ## Description
 
-The framework MUST provide a persistent audit log that is **off by default**. It is enabled either by the application (`app.enable_audit_log()`) or by the operator through the prefixed environment variable `<PREFIX>AUDIT_LOG` (REQ-F-073): `1` enables it at the default path, an absolute path enables it at that path, and `0` disables it even when the application enabled it. The operator setting takes precedence, so an agent runtime can turn the log on for a CLI whose author never did, and off for one that did. When the log is disabled, the framework MUST NOT create any file or directory for it.
+The framework MUST provide a persistent audit log that is **off by default**.
 
-When enabled, the framework MUST append one JSONL entry per command invocation, whether the command succeeded or failed. Each entry MUST include: `timestamp`, `command`, `args` (the parsed argument map after REQ-F-034 redaction, never the raw argv), `exit_code`, `duration_ms`, `trace_id`, and `request_id`; `operator` is included when a session identifier is available. Invocations that do no work are not logged: `--help`, `--version`, shell completion, schema or manifest introspection, and `audit-log` itself.
+**Enabling.** The application enables it with `app.enable_audit_log()`, optionally passing a path. The operator controls it through the prefixed environment variable `<PREFIX>AUDIT_LOG` (REQ-F-073), which accepts exactly three kinds of value:
 
-The log MUST be bounded by the framework, not by the operator: it rotates when the active file exceeds a maximum size (default: 10 MB), keeps a maximum number of rotated files (default: 5), and prunes rotated files older than a maximum age (default: 30 days). Entries are append-only within a file; rotation and pruning are the only operations that remove data. Each entry MUST be written as a single `O_APPEND` write of one complete line so that concurrent invocations never interleave, and rotation MUST be safe under concurrent invocations.
+| Value | Effect |
+|-------|--------|
+| `1` | On, at the application's configured path, or at the default path when the application set none |
+| `0` | Off, even when the application enabled it |
+| An absolute path | On, at that path; overrides both the application's path and the default |
 
-The default path is `$XDG_STATE_HOME/<toolname>/audit.jsonl` (falling back to `~/.local/state/<toolname>/audit.jsonl`), or the platform's per-user log directory outside XDG systems. The framework MUST list the audit log path in the manifest's filesystem side effects as type `log` (REQ-C-011) whenever it is enabled.
+Any other value (`true`, `off`, an empty string, a relative path) fails every invocation except `--help` and `--version` with exit `2` (`ARG_ERROR`) and error code `INVALID_AUDIT_LOG_SETTING`, naming the variable and the accepted values. The operator setting takes precedence over the application, so an agent runtime can turn the log on for a CLI whose author never did, and off for one that did. When the log is disabled, the framework MUST NOT create any file or directory for it.
 
-A failed audit write (read-only filesystem, full disk, permission error) MUST NOT change the command's exit code or output data; the framework adds an `AUDIT_LOG_UNAVAILABLE` entry to `warnings[]` instead.
+**What is logged.** When enabled, the framework MUST append one entry per invocation that resolves to a command, whatever its outcome. This includes argument errors raised after the command resolves, `--validate-only` (REQ-O-009), `--dry-run` (REQ-C-004, REQ-O-048), and a destructive command refused for lacking `--confirm-destructive` (REQ-O-021): an incident review needs exactly these. An invocation that never resolves to a command (an unknown command or group) is not logged, because its arguments cannot be redacted without a declared schema and raw argv is never written. Invocations that do no work are not logged: `--help`, `--version`, shell completion, schema or manifest introspection, and `audit-log` itself.
 
-The framework MUST provide a built-in `tool audit-log` command that queries the log across the active and rotated files. The command MUST accept `--since <duration or ISO datetime>`, `--command <name>`, `--trace-id <id>`, `--format jsonl`, and `--limit <n>`.
+**Entry.** Each entry is one line of JSON matching [`audit-log-entry.json`](../schemas/audit-log-entry.json):
+
+- `timestamp`, `command` (the space-separated command path, as in `meta.command`), `exit_code`, `duration_ms`, and `request_id` are always present
+- `args` is the parsed argument map after REQ-F-034 redaction, never the raw argv. Framework flags that change what the invocation did (`--dry-run`, `--validate-only`, `--confirm-destructive`, `--no-injection-protection`) appear in it under their flag names
+- `warnings` lists the `code` of every entry in the response's `warnings[]`, so an over-privileged credential (`CREDENTIAL_OVER_PRIVILEGED`, REQ-O-047) or disabled injection protection (`INJECTION_PROTECTION_DISABLED`, REQ-O-023) is recorded as a queryable code
+- `trace_id` is present when `TOOL_TRACE_ID` is set (REQ-F-025)
+- `session_id` is present when the agent runtime sets `<PREFIX>SESSION_ID`; the framework records the value verbatim and derives it from nothing else
+
+Each entry MUST NOT exceed 16 KiB. When a serialized entry would, the framework replaces values in `args`, largest first, with the string `[TRUNCATED]` until it fits, and sets `truncated: true` on the entry. A command taking a large payload therefore still produces one bounded entry that fits a single write.
+
+**Bounds.** The log MUST be bounded by the framework, not by the operator. It rotates when the active file exceeds a maximum size (default: 10 MB), keeps a maximum number of rotated files (default: 5), and removes data older than a maximum age (default: 30 days). The maximum age applies to entries, not only to rotated files: before appending, the framework rotates the active file when its first entry is older than the maximum age, then deletes rotated files whose last modification is older than the maximum age. Total disk usage therefore never exceeds `max_size × (max_rotated_files + 1)` plus one entry. Entries are append-only within a file; rotation and pruning are the only operations that remove data. Each entry MUST be written as a single `O_APPEND` write of one complete line so that concurrent invocations never interleave, and rotation MUST be safe under concurrent invocations. Rotation and pruning run only while the log is enabled; `tool cleanup` (REQ-O-027) never removes the audit log, so the files of a log that is later disabled remain until the operator deletes them.
+
+**Permissions.** The log holds every command's arguments, and redaction covers declared secrets only: hostnames, account ids, paths, and query text stay in clear. The framework MUST create the log file with mode `0600` and any directory it creates for it with mode `0700` (an owner-only ACL on Windows), regardless of the process umask. It MUST NOT change the mode of an existing file or directory.
+
+**Location.** The default path is `$XDG_STATE_HOME/<toolname>/audit.jsonl` (falling back to `~/.local/state/<toolname>/audit.jsonl`), or the platform's per-user log directory outside XDG systems. While the log is enabled, the framework MUST list its path in the manifest's filesystem side effects as type `log` (REQ-C-011), without `clearable_with`, and MUST set `meta.audit_log_path` on every response; while it is disabled, neither appears.
+
+**Write failures.** The framework writes the entry after the command's exit code is known and before it emits the response. A failed audit write (read-only filesystem, full disk, permission error) MUST NOT change the command's exit code or output data; the framework adds an `AUDIT_LOG_UNAVAILABLE` warning to `warnings[]` instead. When the output carries no envelope (`--format plain`, `tsv`, or a `jsonl` stream), the framework writes that warning to stderr as one JSON `WarningDetail` line.
+
+**Querying.** The framework MUST register a built-in `tool audit-log` command on every CLI, since the operator can enable the log for any of them. It reads across the active and rotated files and accepts:
+
+- `--since <duration or ISO datetime>`: a duration is a positive integer followed by `s`, `m`, `h`, or `d` (`30s`, `15m`, `1h`, `7d`); a datetime is ISO 8601 with a UTC offset. Any other value exits `2`
+- `--command <path>`: matches a command path in the same space-separated form as the entry (`config set`), exactly or as a whole-word prefix, so `config` matches `config set` and `config get` but not `configure`
+- `--trace-id <id>`: matches `trace_id` exactly
+- `--limit <n>`: keeps the newest `n` matching entries
+- `--format jsonl`: one entry per line; the default JSON format returns the entries in `data.entries`
+
+Filters combine with AND. Entries are always returned oldest first. With the log disabled, `audit-log` exits `4` (`PRECONDITION`) with error code `AUDIT_LOG_DISABLED` and a `fix_required` naming `<PREFIX>AUDIT_LOG`, so an agent can tell "nothing was recorded" from "nothing happened".
 
 ## Acceptance Criteria
 
-- With the log not enabled by the application or the operator, running any command creates no audit file or directory
+- With the log not enabled by the application or the operator, running any command creates no audit file or directory, `meta.audit_log_path` is absent, and the manifest lists no `log` side effect for it
 - `<PREFIX>AUDIT_LOG=1 tool deploy` appends one entry to the default path; `<PREFIX>AUDIT_LOG=0` suppresses the log for an application that enabled it
-- An entry is appended for a command that exits non-zero
-- `tool --help`, `tool --version`, and shell completion append no entry
+- With the application's path set, `<PREFIX>AUDIT_LOG=1` writes to the application's path and `<PREFIX>AUDIT_LOG=/tmp/a/audit.jsonl` writes to `/tmp/a/audit.jsonl`
+- `<PREFIX>AUDIT_LOG=true tool deploy` and `<PREFIX>AUDIT_LOG=logs/audit.jsonl tool deploy` exit `2` with error code `INVALID_AUDIT_LOG_SETTING` and write nothing
+- With the log enabled, every response carries `meta.audit_log_path` and the manifest lists that path as a `log` filesystem side effect
+- An entry is appended for a command that exits non-zero, for `--validate-only`, for `--dry-run`, and for a destructive command refused without `--confirm-destructive`
+- An unknown command appends no entry
+- `tool --help`, `tool --version`, shell completion, `tool manifest`, `--schema`, and `tool audit-log` append no entry
 - The entry for a command invoked with a secret argument does not contain the secret value
+- An invocation that emits `CREDENTIAL_OVER_PRIVILEGED` has that code in the entry's `warnings`
+- With `<PREFIX>SESSION_ID=s-1` set, the entry has `session_id: "s-1"`; without it, the entry has no `session_id`
+- Every entry validates against `audit-log-entry.json`
+- An invocation with a 50 MB argument appends one entry of at most 16 KiB with `truncated: true`
+- With a umask of `0022`, a freshly created audit log file has mode `0600` and a directory created for it has mode `0700`
 - The audit log is valid JSONL after concurrent invocations from parallel sessions
 - Total audit log disk usage stays bounded by the configured size and retention across unlimited invocations
-- With the log path unwritable, the command exits with its normal exit code and `warnings[]` contains `AUDIT_LOG_UNAVAILABLE`
-- `tool audit-log --since 1h --format jsonl` returns all invocations from the past hour, one per line
+- An active file whose first entry is older than the maximum age is rotated on the next write, and rotated files older than the maximum age are deleted
+- With the log path unwritable, the command exits with its normal exit code and `warnings[]` contains `AUDIT_LOG_UNAVAILABLE`; with `--format plain`, the warning appears on stderr
+- `tool audit-log --since 1h --format jsonl` returns all invocations from the past hour, one per line, oldest first
+- `tool audit-log --since 2026-03-17T14:00:00Z` returns only entries at or after that time; `--since 1w` exits `2`
+- `tool audit-log --command config` returns entries for `config set` and `config get` but not `configure`
 - `tool audit-log --trace-id abc123` returns only entries with that trace ID
-- `--limit 100` returns at most 100 entries
+- With more than 100 matching entries, `--limit 100` returns the newest 100, oldest first
+- With the log disabled, `tool audit-log` exits `4` with error code `AUDIT_LOG_DISABLED`
 
 ---
 
 ## Schema
 
-**Types:** [`response-envelope.md`](../schemas/response-envelope.md)
+**Types:** [`audit-log-entry.json`](../schemas/audit-log-entry.json) · [`response-envelope.json`](../schemas/response-envelope.json) · [`manifest-response.json`](../schemas/manifest-response.json)
 
-`meta.audit_log_path` is present on every response while the log is enabled. The `audit-log` command returns `data.entries`, an array of audit log entry objects with `timestamp`, `command`, `args`, `exit_code`, `duration_ms`, `trace_id`, and `request_id`.
+Each log line and each item of the `audit-log` command's `data.entries` is an `AuditLogEntry`. `meta.audit_log_path` is present on every response while the log is enabled. The enabled log appears in the manifest as a `FilesystemSideEffect` of type `log`.
 
 ---
 
@@ -72,8 +115,25 @@ $ tool audit-log --since 1h --format jsonl
 ```
 
 ```
-{"timestamp":"2026-03-17T14:00:01Z","command":"deploy","args":{"env":"prod","token":"[REDACTED]"},"exit_code":0,"duration_ms":1247,"trace_id":"abc123","request_id":"req-001"}
-{"timestamp":"2026-03-17T14:05:22Z","command":"delete","args":{"resource_id":"r-42"},"exit_code":5,"duration_ms":8,"trace_id":"def456","request_id":"req-002"}
+{"timestamp":"2026-03-17T14:00:01Z","command":"deploy","args":{"env":"prod","token":"[REDACTED]"},"exit_code":0,"duration_ms":1247,"request_id":"req-001","trace_id":"abc123","warnings":[]}
+{"timestamp":"2026-03-17T14:05:22Z","command":"delete","args":{"resource_id":"r-42","dry_run":true},"exit_code":0,"duration_ms":8,"request_id":"req-002","trace_id":"def456","session_id":"s-1","warnings":["CREDENTIAL_OVER_PRIVILEGED"]}
+```
+
+Querying a disabled log:
+
+```json
+{
+  "ok": false,
+  "data": null,
+  "error": {
+    "code": "AUDIT_LOG_DISABLED",
+    "message": "The audit log is not enabled for this tool",
+    "retryable": false,
+    "fix_required": "Set TOOL_AUDIT_LOG=1 for future invocations; invocations made while the log was disabled were not recorded"
+  },
+  "warnings": [],
+  "meta": { "exit_code": 4, "duration_ms": 3 }
+}
 ```
 
 ---
@@ -91,11 +151,14 @@ Enabled by the operator for a CLI that never opted in:
 
 ```
 $ TOOL_AUDIT_LOG=1 tool deploy --env prod --token abc123
-→ ~/.local/state/tool/audit.jsonl appended:
+→ ~/.local/state/tool/audit.jsonl (mode 0600) appended:
   {"timestamp":"2026-03-17T14:00:01Z","command":"deploy","args":{"env":"prod","token":"[REDACTED]"},"exit_code":0,...}
 
 $ tool deploy --env prod
 → no audit file written (not enabled)
+
+$ TOOL_AUDIT_LOG=yes tool deploy --env prod
+→ exit 2, INVALID_AUDIT_LOG_SETTING: accepted values are 1, 0, or an absolute path
 ```
 
 ---
@@ -104,11 +167,16 @@ $ tool deploy --env prod
 
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
-| [REQ-F-024](f-024-request-id-and-trace-id-in-every-response.md) | F | Provides: `request_id` and `trace_id` values written to each audit log entry |
+| [REQ-F-024](f-024-request-id-and-trace-id-in-every-response.md) | F | Provides: `request_id` and `command` values written to each audit log entry |
 | [REQ-F-025](f-025-tool-trace-id-environment-variable-propagation.md) | F | Provides: the caller-supplied trace ID recorded in each entry |
 | [REQ-F-039](f-039-duration-tracking-in-response-meta.md) | F | Provides: `duration_ms` value written to each audit log entry |
 | [REQ-F-034](f-034-secret-field-auto-redaction-in-logs.md) | F | Enforces: secret fields are redacted in every audit log entry and query result |
 | [REQ-F-042](f-042-log-rotation-in-framework-logger.md) | F | Composes: the audit log uses the same rotation mechanism with its own bounds |
-| [REQ-F-073](f-073-env-var-namespace-prefix.md) | F | Consumes: `<PREFIX>AUDIT_LOG` follows the tool env var prefix |
+| [REQ-F-073](f-073-env-var-namespace-prefix.md) | F | Consumes: `<PREFIX>AUDIT_LOG` and `<PREFIX>SESSION_ID` follow the tool env var prefix |
 | [REQ-C-011](c-011-commands-declare-filesystem-side-effects.md) | C | Extends: the enabled audit log appears in the declared filesystem side effects |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Extends: `meta.audit_log_path` is added to the standard response meta |
+| [REQ-O-009](o-009-validate-only-flag.md) | O | Consumes: `--validate-only` invocations are logged |
+| [REQ-O-021](o-021-confirm-destructive-flag.md) | O | Consumes: destructive confirmation and refusal are recorded through `args` |
+| [REQ-O-023](o-023-no-injection-protection-flag.md) | O | Consumes: `INJECTION_PROTECTION_DISABLED` is recorded in the entry's `warnings` |
+| [REQ-O-027](o-027-tool-cleanup-built-in-command.md) | O | Composes: `tool cleanup` leaves the audit log in place |
+| [REQ-O-047](o-047-tool-check-permissions-built-in-command.md) | O | Consumes: `CREDENTIAL_OVER_PRIVILEGED` is recorded in the entry's `warnings` |

@@ -48,7 +48,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 | **C** — Command Contract | 30 | Command authors declare it at registration |
 | **O** — Opt-In | 50 | Applications enable it explicitly |
 
-**5 canonical JSON schemas** — machine-readable type definitions for `ExitCode`, `ExitCodeEntry`, `ResponseEnvelope`, `ManifestResponse`, and `DispatchRequest`. Generate typed structs for your language directly from the schemas. Every JSON example in the spec prose is validated against them in CI.
+**6 canonical JSON schemas** — machine-readable type definitions for `ExitCode`, `ExitCodeEntry`, `ResponseEnvelope`, `ManifestResponse`, `DispatchRequest`, and `AuditLogEntry`. Generate typed structs for your language directly from the schemas. Every JSON example in the spec prose is validated against them in CI.
 
 **A comparison matrix** — 12 existing frameworks (argparse, Click, Cobra, Clap, Typer, Commander.js, and more) scored against 71 currently mapped failure modes. No framework exceeds 59%.
 
@@ -149,4 +149,4 @@ Before contributing, read [`AGENTS.md`](AGENTS.md) for conventions: file format,
 
 ---
 
-*CLI Agent Spec v1.7 — 75 failure modes · 158 requirements · 5 canonical schemas · 12 frameworks evaluated*
+*CLI Agent Spec v1.7 — 75 failure modes · 158 requirements · 6 canonical schemas · 12 frameworks evaluated*

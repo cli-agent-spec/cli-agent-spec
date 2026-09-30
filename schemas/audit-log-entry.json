@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "audit-log-entry.json",
+  "title": "AuditLogEntry",
+  "description": "One line of the opt-in audit log (REQ-O-030) and one item of the audit-log command's data.entries. Records a single command invocation after secret redaction. A serialized entry never exceeds 16 KiB.",
+  "type": "object",
+  "required": ["timestamp", "command", "args", "exit_code", "duration_ms", "request_id", "warnings"],
+  "additionalProperties": false,
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 date-time at which the invocation started, matching meta.timestamp."
+    },
+    "command": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Space-separated path of the resolved command, matching meta.command (e.g. 'config set')."
+    },
+    "args": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Parsed argument map after REQ-F-034 redaction, keyed by argument name. Never the raw argv. Framework flags such as dry_run and confirm_destructive appear under their flag names."
+    },
+    "exit_code": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 255,
+      "description": "Process exit code of the invocation, matching meta.exit_code."
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Wall-clock milliseconds of the invocation, matching meta.duration_ms."
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique invocation identifier, matching meta.request_id (REQ-F-024)."
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Trace identifier from TOOL_TRACE_ID (REQ-F-025). Present only when that variable is set."
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Agent session identifier read verbatim from <PREFIX>SESSION_ID. Present only when that variable is set."
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]+$"
+      },
+      "description": "Codes of the warnings the response carried in warnings[], in emission order. Empty when there were none."
+    },
+    "truncated": {
+      "type": "boolean",
+      "description": "True when values in args were replaced with [TRUNCATED] to keep the entry within 16 KiB. Absent otherwise."
+    }
+  }
+}
