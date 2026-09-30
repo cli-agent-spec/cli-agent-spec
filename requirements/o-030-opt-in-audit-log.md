@@ -48,11 +48,20 @@ Each entry MUST NOT exceed 16 KiB. When a serialized entry would, the framework 
 - `--command <path>`: matches a command path exactly or as a whole-word prefix, and MUST accept both spellings, space-separated (`config set`) and dot-separated (`config.set`), whichever one the entries use. The prefix rule holds in each spelling: `config` matches `config set` and `config.set` but never `configure`
 - `--trace-id <id>`: matches `trace_id` exactly
 - `--limit <n>`: keeps the newest `n` matching entries
-- `--format jsonl`: one entry per line
+- `--cursor <token>`: continues from the `meta.pagination.next_cursor` of a previous `audit-log` answer made with the same filters, returning the next-older batch of up to `n` matching entries. The token is opaque and stateless (REQ-O-003); an invalid token fails with a structured error
+- `--format jsonl`: one entry per line, followed by the pagination summary line
 
 Filters combine with AND. Entries are always returned oldest first.
 
-`audit-log` is a list command. Its default answer is one buffered envelope with the entries in `data.entries` and `meta.pagination` (REQ-F-018): `returned` is the number of entries in the response, and `has_more` is `true` when `--limit` left out older matching entries. A framework MAY make `audit-log` streaming-default under REQ-O-004, declaring `streaming_default: true` in the manifest; `--no-stream` then MUST return the buffered `data.entries` envelope. With the log disabled, `audit-log` exits `4` (`PRECONDITION`) with error code `AUDIT_LOG_DISABLED` and a `fix_required` naming `<PREFIX>AUDIT_LOG`, so an agent can tell "nothing was recorded" from "nothing happened".
+`audit-log` is a list command and MUST accept `--cursor` as well as `--limit`, so it satisfies REQ-F-018 in full. Its default answer is one buffered envelope with the entries in `data.entries` and `meta.pagination`:
+
+- `returned` is the number of entries in the response, and `total` is the number of entries that matched the filters, or `null` when the framework does not count them
+- When `--limit` left out older matching entries, `truncated` and `has_more` are `true` and `next_cursor` is a non-null opaque token. Passing it as `--cursor` with the same filters returns the next-older batch of up to `n` matching entries, still oldest first within the page
+- When no older entry matches, `truncated` and `has_more` are `false` and `next_cursor` is `null`
+
+A framework MAY make `audit-log` streaming-default under REQ-O-004, declaring `streaming_default: true` in the manifest; `--no-stream` then MUST return the buffered `data.entries` envelope. In streaming mode (`--format jsonl` or the streaming default) the same pagination fields go on the final summary line, as REQ-O-004 requires.
+
+With the log disabled, `audit-log` exits `4` (`PRECONDITION`) with error code `AUDIT_LOG_DISABLED` and a `fix_required` naming `<PREFIX>AUDIT_LOG`, so an agent can tell "nothing was recorded" from "nothing happened".
 
 ## Acceptance Criteria
 
@@ -83,7 +92,11 @@ Filters combine with AND. Entries are always returned oldest first.
 - For a framework whose `meta.command` is dot-separated, entries record `config.set`; `tool audit-log --command config` and `--command "config set"` both return it, and neither returns `configure`
 - `tool audit-log --trace-id abc123` returns only entries with that trace ID
 - With more than 100 matching entries, `--limit 100` returns the newest 100, oldest first
-- `tool audit-log` without `--format jsonl` returns one envelope with the entries in `data.entries` and `meta.pagination`; with more than 100 matching entries, `--limit 100` gives `returned: 100` and `has_more: true`
+- `tool audit-log` without `--format jsonl` returns one envelope with the entries in `data.entries` and `meta.pagination`
+- With 250 matching entries, `--limit 100` returns the newest 100 with `returned: 100`, `truncated: true`, `has_more: true`, and a non-null `next_cursor`; `total` is `250` or `null`
+- Passing that `next_cursor` as `--cursor` with the same filters and `--limit 100` returns the 100 entries before those, oldest first; passing the second page's `next_cursor` returns the oldest 50 with `returned: 50`, `truncated: false`, `has_more: false`, and `next_cursor: null`
+- An invalid `--cursor` value fails with a structured error
+- With `--format jsonl`, the final line is a summary line carrying the same pagination fields
 - When `audit-log` declares `streaming_default: true` in the manifest, `tool audit-log --no-stream` returns the buffered `data.entries` envelope
 - With the log disabled, `tool audit-log` exits `4` with error code `AUDIT_LOG_DISABLED`
 
@@ -125,6 +138,7 @@ $ tool audit-log --since 1h --format jsonl
 ```
 {"timestamp":"2026-03-17T14:00:01Z","command":"deploy","args":{"env":"prod","token":"[REDACTED]"},"exit_code":0,"duration_ms":1247,"request_id":"req-001","trace_id":"abc123","warnings":[]}
 {"timestamp":"2026-03-17T14:05:22Z","command":"delete","args":{"resource_id":"r-42","dry_run":true},"exit_code":0,"duration_ms":8,"request_id":"req-002","trace_id":"def456","session_id":"s-1","warnings":["CREDENTIAL_OVER_PRIVILEGED"]}
+{"_summary":true,"total":2,"returned":2,"truncated":false,"has_more":false,"next_cursor":null,"duration_ms":14}
 ```
 
 Querying a disabled log:
@@ -181,7 +195,8 @@ $ TOOL_AUDIT_LOG=yes tool deploy --env prod
 | [REQ-F-034](f-034-secret-field-auto-redaction-in-logs.md) | F | Enforces: secret fields are redacted in every audit log entry and query result |
 | [REQ-F-042](f-042-log-rotation-in-framework-logger.md) | F | Composes: the audit log uses the same rotation mechanism with its own bounds |
 | [REQ-F-073](f-073-env-var-namespace-prefix.md) | F | Consumes: `<PREFIX>AUDIT_LOG` and the session variable (`<PREFIX>SESSION_ID` unless the framework already reads a prefixed one) follow the tool env var prefix |
-| [REQ-F-018](f-018-pagination-metadata-on-list-commands.md) | F | Provides: `meta.pagination` on the buffered `audit-log` answer |
+| [REQ-F-018](f-018-pagination-metadata-on-list-commands.md) | F | Provides: `meta.pagination` on every `audit-log` answer |
+| [REQ-O-003](o-003-limit-and-cursor-pagination-flags.md) | O | Consumes: `--limit` and the stateless `--cursor` token that pages through `audit-log` |
 | [REQ-O-004](o-004-output-jsonl-stream-flag.md) | O | Extends: `audit-log` MAY be streaming-default, with `--no-stream` returning the buffered envelope |
 | [REQ-C-011](c-011-commands-declare-filesystem-side-effects.md) | C | Extends: the enabled audit log appears in the declared filesystem side effects |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Extends: `meta.audit_log_path` is added to the standard response meta |

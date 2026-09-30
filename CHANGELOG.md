@@ -27,7 +27,7 @@
 ### Audit log accepts framework conventions
 
 - REQ-O-030: an entry's `command` equals `meta.command` exactly, space-separated (`config set`) or dot-separated (`config.set`) as the framework spells it consistently; `audit-log --command` accepts both spellings and keeps the whole-word prefix rule in each. New acceptance criteria cover the dot form and `command` matching `meta.command`
-- REQ-O-030: `audit-log` is a list command. Its default buffered answer carries `data.entries` and `meta.pagination` (REQ-F-018), with `has_more` true when `--limit` left out matching entries; a framework may make it streaming-default under REQ-O-004, and `--no-stream` then returns the buffered envelope
+- REQ-O-030: `audit-log` is a list command. Its default buffered answer carries `data.entries` and `meta.pagination` (REQ-F-018); `total` is the matched count or `null`. It accepts `--cursor`: when `--limit` leaves out older matching entries, `truncated` and `has_more` are `true` and `next_cursor` returns the next-older page, oldest first within it; the last page has `next_cursor: null`. A framework may make it streaming-default under REQ-O-004, and `--no-stream` then returns the buffered envelope; streamed output carries the pagination on its final summary line
 - REQ-O-030: `session_id` comes from the framework's one session variable, a prefixed variable it already reads for the agent session id (for example for REQ-C-007 idempotency keys), else `<PREFIX>SESSION_ID`; the framework documents its name
 - `AuditLogEntry` changes descriptions only (`command`, `session_id`): no instance valid before becomes invalid, so its contract version is unchanged
 
