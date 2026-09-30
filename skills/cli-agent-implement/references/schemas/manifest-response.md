@@ -45,6 +45,7 @@ Two decisions shape the type:
 | `output_formats` | string[] | no | Formats beyond the framework defaults (REQ-O-049) |
 | `examples` | `Example[]` | no | Verbatim invocations |
 | `subcommands` | string[] | no | Dot-separated paths of direct children |
+| `builtin` | boolean | no | `true` when the framework registers the command, not the application; also `true` on a built-in's subcommands, `false` on an application command that replaces a built-in's name. Absent means `false` (REQ-O-041) |
 
 ### CommandEntry — declared contracts
 
@@ -157,6 +158,35 @@ Present only when the command declares them.
 }
 ```
 
+**Valid — application command next to a built-in**
+```json
+{
+  "schema_version": "3.1",
+  "framework_version": "2.1.0",
+  "etag": "sha256:c71e08",
+  "commands": {
+    "deploy": {
+      "description": "Deploy a build to a target environment",
+      "danger_level": "mutating",
+      "required_scopes": ["deploy:write"],
+      "flags": {},
+      "exit_codes": { "0": { "name": "SUCCESS", "description": "Deployment completed", "retryable": false, "side_effects": "complete" } }
+    },
+    "manifest": {
+      "description": "Print the full command tree as JSON",
+      "danger_level": "safe",
+      "required_scopes": [],
+      "builtin": true,
+      "flags": {
+        "etag": { "type": "string", "required": false, "description": "Etag of a cached manifest; returns meta.not_modified when unchanged" }
+      },
+      "exit_codes": { "0": { "name": "SUCCESS", "description": "Manifest returned or unchanged", "retryable": false, "side_effects": "none" } }
+    }
+  }
+}
+```
+`deploy` omits `builtin`, so it is an application command; an agent building a task list keeps it and drops `manifest`.
+
 **Invalid — command entry without required contract fields**
 ```json
 {
@@ -196,6 +226,8 @@ Violation: `requires_editor: true` requires `non_interactive_alternatives`; othe
 - **Repeating global options in every `CommandEntry.flags`.** A global option appears once, in the root `flags`; a copy inside a command reads as a local flag that happens to share the name, and hides whether it is accepted before the command path
 - **Reusing a global short alias for a local flag.** `-f` meaning `--format` at the root and `--force` on one command changes meaning with position; the framework rejects it at registration
 - **Generating the manifest from a static file.** It must be computed from live registrations or the `etag` lies
+- **Separating built-ins by a hard-coded name list.** Frameworks differ in which built-ins they register (`doctor`, `manifest`, `audit-log`, ...), and an application may replace one with its own command; read `builtin` instead
+- **Marking an application command that replaces a built-in's name as `builtin: true`.** The flag follows who registered the command, not its name; the replacement is `false`
 
 ---
 
@@ -213,6 +245,11 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Key format is dot-separated (e.g. `"deploy.rollback"`); split the user-intended subcommand path on spaces and join with `.` to construct the key
 - If the key is not in `commands` — do not guess; emit `REDIRECTED` behavior: try `tool manifest` again in case it was stale, then escalate
 - Check `aliases` before concluding a command does not exist — the agent may be using an alias that maps to a different primary key
+
+**Separating application commands from built-ins**
+- When building a task list, a skill set, or a summary of what the tool does, drop entries with `builtin: true`; they are framework plumbing (`manifest`, `doctor`, `audit-log`) present in every conforming CLI
+- Treat an absent `builtin` as `false`. A pre-3.1 manifest never sets it, so every command there reads as an application command
+- Keep built-ins in the lookup table: they are still callable, and `doctor` or `audit-log` is the right call when diagnosing a failure
 
 **Building a call from `FlagEntry`**
 - A command's accepted flags are the root `flags` plus its own `flags`; a name in neither produces `ARG_ERROR (2)`
@@ -262,6 +299,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert an entry's own `exit_codes` map never repeats a root-table entry unchanged
 - Assert no `CommandEntry.flags` key or `short` value equals a root `flags` key or `short` value
 - Assert `positionals` lists every positional the parser accepts, in order, with no required entry after an optional one and `variadic` only on the last
+- Assert every command the framework registers, and each of its subcommands, carries `builtin: true`, and no application command does
 - Assert `etag` changes when any command registration changes, and is stable across identical registrations (determinism test)
 
 **Tests to generate**

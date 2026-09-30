@@ -103,6 +103,11 @@
           "items": { "type": "string" },
           "description": "Dot-separated paths of direct child commands. Resolve each via the top-level commands map."
         },
+        "builtin": {
+          "type": "boolean",
+          "default": false,
+          "description": "True when the framework registers the command itself rather than the application, such as manifest or doctor. A built-in's subcommands are also true; an application command that replaces a built-in's name is false. Sourced from REQ-O-041."
+        },
         "option_placement": {
           "type": "string",
           "enum": ["any", "strict"],
