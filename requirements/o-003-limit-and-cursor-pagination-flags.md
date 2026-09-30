@@ -12,7 +12,7 @@
 
 The framework MUST register `--limit <n>` and `--cursor <token>` as standard flags on all list commands. `--limit` controls maximum items returned. `--cursor` accepts an opaque pagination token from the previous response's `meta.pagination.next_cursor`. The cursor MUST be stateless (self-contained, not dependent on server-side session).
 
-**Invalid cursor.** The framework MUST reject a `--cursor` value it cannot honor with exit `2` (`ARG_ERROR`), error code `INVALID_CURSOR`, `retryable: false`, and a `fix_required` telling the caller to rerun without `--cursor` to start from the first page. This covers a malformed token, a tampered token, and a token that has expired. The rule is the same for every list command, so an agent recovers from any of them the same way. Because exit `2` is raised before any work begins, the rejected call has no side effects.
+**Invalid cursor.** The framework MUST reject a `--cursor` value it cannot honor with exit `2` (`ARG_ERROR`), error code `INVALID_CURSOR`, `retryable: false`, and a `fix_required` telling the caller to rerun without `--cursor` to start from the first page. This covers a token that fails to decode, fails the framework's integrity check when it has one, or has expired. The rule is the same for every list command, so an agent recovers from any of them the same way. Because exit `2` is raised before any work begins, the rejected call has no side effects.
 
 **Cursor bound to its query.** A token binds the query that produced it: the command's filters and its sort order. Reusing it with a different query (another filter value, an added or removed filter, or a different sort) fails as `INVALID_CURSOR`, never with a page drawn from a different result set. `--limit` is not part of the query: the caller MAY change it between pages, and the next page holds up to the new limit.
 
@@ -21,7 +21,7 @@ The framework MUST register `--limit <n>` and `--cursor <token>` as standard fla
 - `--limit 50` returns at most 50 items
 - Passing `meta.pagination.next_cursor` from response N as `--cursor` returns the next page
 - A malformed `--cursor` value (for example `--cursor not-a-token`) exits `2` with error code `INVALID_CURSOR`, `retryable: false`, and a `fix_required` that says to rerun without `--cursor`; it never crashes
-- A tampered token (one character of a valid `next_cursor` changed) and an expired token each exit `2` with error code `INVALID_CURSOR`
+- An expired token exits `2` with error code `INVALID_CURSOR`
 - A `next_cursor` from `tool list-deployments --status failed` passed to `tool list-deployments --status complete --cursor <token>` exits `2` with error code `INVALID_CURSOR`; the same applies when a filter is added or removed, or the sort order changes
 - A `next_cursor` from a `--limit 2` call passed with `--limit 10` and the same filters returns the next page of up to 10 items
 - Cursor tokens are URL-safe strings (base64url or similar encoding)

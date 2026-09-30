@@ -48,7 +48,7 @@ Each entry MUST NOT exceed 16 KiB. When a serialized entry would, the framework 
 - `--command <path>`: matches a command path exactly or as a whole-word prefix, and MUST accept both spellings, space-separated (`config set`) and dot-separated (`config.set`), whichever one the entries use. The prefix rule holds in each spelling: `config` matches `config set` and `config.set` but never `configure`
 - `--trace-id <id>`: matches `trace_id` exactly
 - `--limit <n>`: keeps the newest `n` matching entries
-- `--cursor <token>`: continues from the `meta.pagination.next_cursor` of a previous `audit-log` answer made with the same filters, returning the next-older batch of up to `n` matching entries. The token is opaque and stateless (REQ-O-003); a malformed, tampered, or expired token, or one reused with different filters, fails as `INVALID_CURSOR` (REQ-O-003)
+- `--cursor <token>`: continues from the `meta.pagination.next_cursor` of a previous `audit-log` answer made with the same filters, returning the next-older batch of up to `n` matching entries. The token is opaque and stateless (REQ-O-003); a malformed or expired token, or one reused with different filters, fails as `INVALID_CURSOR` (REQ-O-003)
 - `--format jsonl`: one entry per line, followed by the pagination summary line
 
 Filters combine with AND. Entries are always returned oldest first.

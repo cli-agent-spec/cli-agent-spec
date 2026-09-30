@@ -22,7 +22,7 @@
 
 ### Cursor errors and audit-log paging are defined
 
-- REQ-O-003: a `--cursor` the framework cannot honor (malformed, tampered, or expired) exits `2` (`ARG_ERROR`) with error code `INVALID_CURSOR`, `retryable: false`, and a `fix_required` to rerun without `--cursor`, the same on every list command. New wire example and acceptance criteria
+- REQ-O-003: a `--cursor` the framework cannot honor (malformed or expired) exits `2` (`ARG_ERROR`) with error code `INVALID_CURSOR`, `retryable: false`, and a `fix_required` to rerun without `--cursor`, the same on every list command. New wire example and acceptance criteria
 - REQ-O-003: a token binds the query that produced it (filters and sort order); reusing it with a different query fails as `INVALID_CURSOR`. `--limit` is not part of the query and may change between pages
 - REQ-O-030: the `audit-log` cursor anchors on the last returned entry's `timestamp` plus `request_id`, never a file offset or rotated-file index. After pruning, the next page returns the older matches that remain, without error, and `total` may shrink; entries appended after the first page never appear on later pages. The invalid-cursor criterion now names exit `2` and `INVALID_CURSOR`, and new criteria cover a token reused with other filters, pruning between pages, and an entry appended between pages
 
