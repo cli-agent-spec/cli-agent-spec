@@ -10,7 +10,7 @@
 
 ## Description
 
-Commands MUST declare all conditional argument requirements in their registration metadata using a `requires` clause, rather than discovering them at runtime. The `requires` clause specifies: when flag A has value V, flag B is required; when flag A is present, flag B is prohibited (mutual exclusion); when flag A is absent, flag B has a different default. The framework validates all declared `requires` relationships during the validate-before-execute phase (Phase 1), before any side effects. The `--schema` output MUST include the full `requires` graph so agents can construct valid calls without trial-and-error discovery.
+Commands MUST declare all conditional argument requirements in their registration metadata using a `requires` clause, rather than discovering them at runtime. The `requires` clause specifies: when flag A has value V, flag B is required; when flag A is present, flag B is prohibited (mutual exclusion); when flag A is absent, flag B has a different default; at least one flag of a group is present; exactly one flag of a group is present. The framework validates all declared `requires` relationships during the validate-before-execute phase (Phase 1), before any side effects. The `--schema` output MUST include the full `requires` graph so agents can construct valid calls without trial-and-error discovery.
 
 ## Acceptance Criteria
 
@@ -18,6 +18,10 @@ Commands MUST declare all conditional argument requirements in their registratio
 - The `--schema` output includes the full conditional dependency graph
 - Mutually exclusive flags are enforced in Phase 1: passing both produces exit 2 before any I/O
 - An agent calling `--schema` can determine all required flags for a given combination of values without making a failing call first
+- A command with an `any_of` rule exits 2 before any I/O when no flag of the group is present
+- A command with a `one_of` rule exits 2 before any I/O when two or more flags of the group are present
+- A command with a `one_of` rule passes Phase 1 validation when exactly one flag of the group is present
+- The `ARG_ERROR` message and its error details name every flag in a violated `any_of` or `one_of` group
 
 ---
 
@@ -38,6 +42,10 @@ Each `ConditionalRule` has one of the following shapes:
 | `if_value` | `if_flag`, `if_value`, `then_required` | When `if_flag` equals `if_value`, flags in `then_required` become required |
 | `if_present` | `if_flag`, `prohibited` | When `if_flag` is present, flags in `prohibited` are forbidden |
 | `default_when_absent` | `if_flag`, `target_flag`, `default` | When `if_flag` is absent, `target_flag` uses this `default` instead of its declared default |
+| `any_of` | `any_of` | At least one flag in `any_of` is present |
+| `one_of` | `one_of` | Exactly one flag in `one_of` is present |
+
+A flag is present when the caller supplies it: on the command line, or through any other explicit input channel the framework treats as supplied. A declared `default` does not make a flag present. `any_of` and `one_of` each list at least two distinct flag names. A `one_of` group already forbids combining its members, so it replaces pairwise `if_flag`/`prohibited` rules between them rather than adding to them.
 
 ---
 
@@ -53,11 +61,15 @@ $ tool export --schema
     "separator": { "type": "string",  "required": false, "description": "Field separator for CSV output" },
     "compress":  { "type": "boolean", "required": false, "default": false, "description": "Compress output" },
     "output":    { "type": "string",  "required": false, "description": "Output file path" },
-    "stdout":    { "type": "boolean", "required": false, "default": false, "description": "Write to stdout instead of file" }
+    "stdout":    { "type": "boolean", "required": false, "default": false, "description": "Write to stdout instead of file" },
+    "isin":      { "type": "string",  "required": false, "description": "Instrument ISIN" },
+    "figi":      { "type": "string",  "required": false, "description": "Instrument FIGI" },
+    "symbol":    { "type": "string",  "required": false, "description": "Instrument ticker symbol" }
   },
   "requires": [
     { "if_flag": "format", "if_value": "csv", "then_required": ["separator"] },
-    { "if_flag": "output", "prohibited": ["stdout"] }
+    { "if_flag": "output", "prohibited": ["stdout"] },
+    { "one_of": ["isin", "figi", "symbol"] }
   ],
   "exit_codes": {
     "0": { "name": "SUCCESS",   "description": "Export completed",                 "retryable": false, "side_effects": "complete" },
@@ -78,15 +90,25 @@ register command "export":
     compress:  type=boolean, required=false, default=false
     output:    type=string,  required=false
     stdout:    type=boolean, required=false, default=false
+    isin:      type=string,  required=false
+    figi:      type=string,  required=false
+    symbol:    type=string,  required=false
   requires:
     - if format == "csv" → separator is required
     - if output present  → stdout is prohibited (mutually exclusive)
+    - exactly one of isin, figi, symbol is present
 
 # tool export --format csv
 #  → exit 2: ARG_ERROR: --format csv requires --separator
 
 # tool export --format json --output report.json --stdout
 #  → exit 2: ARG_ERROR: --output and --stdout are mutually exclusive
+
+# tool export --format json --isin US0378331005 --symbol AAPL
+#  → exit 2: ARG_ERROR: pass exactly one of --isin, --figi, --symbol (got --isin, --symbol)
+
+# tool export --format json
+#  → exit 2: ARG_ERROR: pass exactly one of --isin, --figi, --symbol (got none)
 ```
 
 ---

@@ -109,7 +109,7 @@ Present only when the command declares them.
 | `Example` | `description`, `command` (both required) |
 | `FilesystemSideEffect` | `path`, `type` (`cache` \| `log` \| `temp` \| `credential` \| `config`) required; `ttl_seconds`, `clearable_with` optional |
 | `SubprocessDeclaration` | `binary` required; `user_controlled_args`, `hardcoded_args` optional |
-| `ConditionalRule` | One of `{ if_flag, if_value, then_required }`, `{ if_flag, prohibited }`, `{ if_flag, target_flag, default }` |
+| `ConditionalRule` | One of `{ if_flag, if_value, then_required }`, `{ if_flag, prohibited }`, `{ if_flag, target_flag, default }`, `{ any_of }` (at least one listed flag present), `{ one_of }` (exactly one listed flag present); `any_of` and `one_of` list at least two distinct flags |
 | `DependencyEntry` | `name`, `check_command`, `min_version` required; `version_regex`, `fix_command` optional |
 
 ---
@@ -187,6 +187,31 @@ Present only when the command declares them.
 ```
 `deploy` omits `builtin`, so it is an application command; an agent building a task list keeps it and drops `manifest`.
 
+**Valid — command that needs exactly one identifier flag**
+```json
+{
+  "schema_version": "3.2",
+  "framework_version": "2.1.0",
+  "etag": "sha256:5d20b4",
+  "commands": {
+    "quote": {
+      "description": "Fetch the latest quote for one instrument",
+      "danger_level": "safe",
+      "required_scopes": [],
+      "has_network_io": true,
+      "flags": {
+        "isin":   { "type": "string", "required": false, "description": "Instrument ISIN" },
+        "figi":   { "type": "string", "required": false, "description": "Instrument FIGI" },
+        "symbol": { "type": "string", "required": false, "description": "Instrument ticker symbol" }
+      },
+      "exit_codes": { "0": { "name": "SUCCESS", "description": "Quote returned", "retryable": false, "side_effects": "none" } },
+      "requires": [{ "one_of": ["isin", "figi", "symbol"] }]
+    }
+  }
+}
+```
+Each flag is optional on its own; the `one_of` rule makes exactly one of them mandatory. `tool quote --symbol AAPL` passes, while `tool quote` and `tool quote --isin US0378331005 --symbol AAPL` exit `2`.
+
 **Invalid — command entry without required contract fields**
 ```json
 {
@@ -228,6 +253,8 @@ Violation: `requires_editor: true` requires `non_interactive_alternatives`; othe
 - **Generating the manifest from a static file.** It must be computed from live registrations or the `etag` lies
 - **Separating built-ins by a hard-coded name list.** Frameworks differ in which built-ins they register (`doctor`, `manifest`, `audit-log`, ...), and an application may replace one with its own command; read `builtin` instead
 - **Marking an application command that replaces a built-in's name as `builtin: true`.** The flag follows who registered the command, not its name; the replacement is `false`
+- **Marking every flag of an "exactly one of" group `required: true`.** No call can then satisfy the command; keep each flag `required: false` and declare the group as a `one_of` rule
+- **Emitting pairwise `prohibited` rules next to a `one_of` group.** `one_of` already forbids combining its members; the extra rules repeat the constraint and let the two drift apart
 
 ---
 
@@ -275,6 +302,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - `danger_level` other than `safe` — prefer `--dry-run` first; `safe_default: true` means the command previews until `--live` is passed
 - `option_placement: "strict"` — place every option, global or local, before the first positional argument; anything after it is forwarded to the child process
 - `requires` — evaluate each rule against the flags you plan to send before calling; a violated rule produces `ARG_ERROR (2)`
+- `any_of` and `one_of` groups — send at least one flag of an `any_of` group and exactly one flag of a `one_of` group, choosing the one whose value you already hold; a declared `default` never satisfies either rule
 - `interactive: true` or `requires_editor: true` — always pass `--yes` / `--non-interactive` or one of `non_interactive_alternatives`
 - `async: true` — the response is a job descriptor; poll with its `status_command` instead of waiting on the call
 - `required_scopes` not covered by the active credential — expect `AUTH_REQUIRED (8)`; do not call until credentials change

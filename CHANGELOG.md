@@ -9,6 +9,17 @@
 - A contract `MAJOR` increment always ships in a spec `MINOR` release with a migration section in this file
 - `meta.schema_version` inside a response is neither: it versions one command's output shape (REQ-F-022)
 
+## Unreleased
+
+### ManifestResponse 3.2: group rules in requires
+
+- `ConditionalRule` gains two shapes: `{ "any_of": [...] }` (at least one listed flag is present) and `{ "one_of": [...] }` (exactly one listed flag is present). Each lists at least two distinct flag names (REQ-C-026)
+- REQ-C-026 defines "present": the caller supplies the flag on the command line or through another explicit input channel the framework treats as supplied; a declared default does not count. New acceptance criteria: an `any_of` group with no flag present and a `one_of` group with two or more present exit 2 before any I/O, a `one_of` group with exactly one present passes, and the `ARG_ERROR` message and details name every flag in the group
+- A `one_of` group replaces pairwise `prohibited` rules between its members
+- A producer that emits a group rule emits `schema_version` `3.2`; the three existing shapes are unchanged, so a `3.0` or `3.1` manifest stays valid
+
+**Why:** a command that takes one identifier from several flags (`--isin`, `--figi`, `--symbol`) could not declare that one is needed, so `--schema` did not reveal every required flag and REQ-C-026's own criterion failed for it (#14).
+
 ## 1.9.0 — 2026-09-30
 
 ### Audit log and logger rotation defaults are recommendations
