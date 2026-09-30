@@ -19,6 +19,7 @@ The framework MUST provide a `tool manifest` built-in command that returns the c
 - Global options appear once, in the root `flags` map; each `CommandEntry.flags` lists only that command's local flags (REQ-F-079)
 - `tool manifest --etag <hash>` returns `meta.not_modified: true` when the manifest is unchanged
 - An agent can construct a valid call to any subcommand using only the manifest output, without calling `--help` on any subcommand
+- Every command the framework registers, and each of its subcommands, carries `builtin: true`; no application command does, including one that replaces a built-in's name
 
 ---
 
@@ -29,6 +30,7 @@ The framework MUST provide a `tool manifest` built-in command that returns the c
 Requirement-specific constraints:
 
 - `commands` must include every registered command, including built-ins
+- `builtin` is set from the registering party, not the command name: `true` for framework built-ins and their subcommands, omitted or `false` for application commands
 - `exit_codes` per command must be sourced from REQ-C-001 declarations — never hand-written in the manifest
 - `etag` must be deterministic: identical registrations always produce the same value
 

@@ -18,6 +18,12 @@
 
 **Why:** both requirements put the defaults in parentheses inside a MUST sentence and no criterion tested them, so a framework could not tell whether smaller defaults conformed. Frameworks also read REQ-F-042's defaults (600 MB bound) as the audit log's (#7).
 
+### ManifestResponse 3.1: built-in commands are marked
+
+- `CommandEntry.builtin` (optional boolean, default `false`) is `true` for commands the framework registers itself, such as `manifest`, `doctor`, and `audit-log`, and for their subcommands; an application command that replaces a built-in's name is `false` (REQ-O-041)
+- Agents filter on `builtin` when building a task list or skill set instead of matching a hard-coded list of built-in names
+- A producer that sets `builtin` emits `schema_version` `3.1`; a `3.0` manifest stays valid and reads as having no marked built-ins (#9)
+
 ## 1.8.0 — 2026-09-30
 
 ### Breaking: `--format` selects output representation
