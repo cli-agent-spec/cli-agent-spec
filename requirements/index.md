@@ -2,17 +2,17 @@
 
 > All requirements for an agent-compatible CLI framework, derived from the CLI Agent Spec's 75 documented failure modes.
 
-**159 total** &nbsp;|&nbsp; 79 Framework-Automatic · 30 Command Contract · 50 Opt-In — amended 2026-09-25
+**158 total** &nbsp;|&nbsp; 78 Framework-Automatic · 30 Command Contract · 50 Opt-In — amended 2026-09-30
 
-**By priority:** P0: 51 · P1: 64 · P2: 35 · P3: 9 — REQ-F-079 added: global option scope (§69)
+**By priority:** P0: 51 · P1: 64 · P2: 34 · P3: 9 — REQ-F-026 (append-only audit log) merged into opt-in REQ-O-030; the ID is retired
 
-**By level** ([`levels.md`](levels.md)): Level 1: 12 · Level 2: 51 · Level 3: 159
+**By level** ([`levels.md`](levels.md)): Level 1: 12 · Level 2: 51 · Level 3: 158
 
 ---
 
 ## Framework-Automatic (F)
 
-**79 requirements** &nbsp;|&nbsp; P0: 33 · P1: 30 · P2: 15 · P3: 1
+**78 requirements** &nbsp;|&nbsp; P0: 33 · P1: 30 · P2: 14 · P3: 1
 
 | ID | Priority | Title | Failure mode(s) | Level |
 |----|----------|-------|-------------|-------|
@@ -41,7 +41,6 @@
 | [REQ-F-023](f-023-tool-version-in-every-response.md) | P1 | Tool Version in Every Response | [§22](../challenges/06-high-errors-and-discoverability/22-high-schema-versioning.md) [§32](../challenges/05-high-environment-and-state/32-high-self-update.md) | 3 |
 | [REQ-F-024](f-024-request-id-and-trace-id-in-every-response.md) | P2 | Request ID and Trace ID in Every Response | [§33](../challenges/07-medium-observability/33-medium-observability.md) | 3 |
 | [REQ-F-025](f-025-tool-trace-id-environment-variable-propagation.md) | P2 | TOOL_TRACE_ID Environment Variable Propagation | [§33](../challenges/07-medium-observability/33-medium-observability.md) | 3 |
-| [REQ-F-026](f-026-append-only-audit-log.md) | P2 | Append-Only Audit Log | [§33](../challenges/07-medium-observability/33-medium-observability.md) | 3 |
 | [REQ-F-027](f-027-cwd-in-response-meta.md) | P2 | CWD in Response Meta | [§29](../challenges/05-high-environment-and-state/29-medium-working-directory.md) | 3 |
 | [REQ-F-028](f-028-config-source-tracking-in-response-meta.md) | P1 | Config Source Tracking in Response Meta | [§28](../challenges/05-high-environment-and-state/28-high-config-shadowing.md) | 3 |
 | [REQ-F-029](f-029-auto-update-suppression-in-non-interactive-mode.md) | P1 | Auto-Update Suppression in Non-Interactive Mode | [§32](../challenges/05-high-environment-and-state/32-high-self-update.md) | 3 |
@@ -172,7 +171,7 @@
 | [REQ-O-027](o-027-tool-cleanup-built-in-command.md) | P2 | tool cleanup Built-In Command | [§30](../challenges/05-high-environment-and-state/30-medium-filesystem-side-effects.md) | 3 |
 | [REQ-O-028](o-028-tool-status-built-in-command.md) | P2 | tool status Built-In Command | [§26](../challenges/05-high-environment-and-state/26-high-session-management.md) [§30](../challenges/05-high-environment-and-state/30-medium-filesystem-side-effects.md) | 3 |
 | [REQ-O-029](o-029-tool-changelog-built-in-command.md) | P2 | tool changelog Built-In Command | [§22](../challenges/06-high-errors-and-discoverability/22-high-schema-versioning.md) | 3 |
-| [REQ-O-030](o-030-tool-audit-log-built-in-command.md) | P2 | tool audit-log Built-In Command | [§33](../challenges/07-medium-observability/33-medium-observability.md) | 3 |
+| [REQ-O-030](o-030-opt-in-audit-log.md) | P2 | Opt-In Audit Log and audit-log Command | [§33](../challenges/07-medium-observability/33-medium-observability.md) | 3 |
 | [REQ-O-031](o-031-dependency-version-matrix-declaration.md) | P1 | Dependency Version Matrix Declaration | [§38](../challenges/01-critical-ecosystem-runtime-agent-specific/38-high-dependency-version-mismatch.md) | 3 |
 | [REQ-O-032](o-032-raw-payload-flag-for-mutating-commands.md) | P1 | --raw-payload Flag for Mutating Commands | [§46](../challenges/01-critical-ecosystem-runtime-agent-specific/46-high-api-translation-loss.md) | 3 |
 | [REQ-O-033](o-033-headless-and-token-env-var-flags-for-auth-commands.md) | P0 | --headless and --token-env-var Flags for Auth Commands | [§45](../challenges/01-critical-ecosystem-runtime-agent-specific/45-critical-headless-auth.md) | 2 |
@@ -196,4 +195,4 @@
 
 ---
 
-*CLI Agent Spec v1.7 — 159 requirements (79 REQ-F + 30 REQ-C + 50 REQ-O). Updated 2026-09-26.*
+*CLI Agent Spec v1.7 — 158 requirements (78 REQ-F + 30 REQ-C + 50 REQ-O). Updated 2026-09-30.*

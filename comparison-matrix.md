@@ -508,8 +508,8 @@ Coverage % = (✓ + 0.5 × ~) / 75 × 100, rounded to one decimal place.
 
 - **Best covered by:** None achieves ✓.
 - **Partially covered by:** cobra, clap, mcp
-- **Gap in all solutions:** Yes. No framework injects `meta.request_id`, `meta.trace_id`, or `meta.duration_ms` automatically, and none writes an append-only audit log by default.
-- **Key insight:** Generating a UUID `request_id` per invocation and writing a JSONL audit log entry costs zero application developer effort if the framework handles it automatically.
+- **Gap in all solutions:** Yes. No framework injects `meta.request_id`, `meta.trace_id`, or `meta.duration_ms` automatically, and none offers a bounded, opt-in audit log.
+- **Key insight:** Generating a UUID `request_id` per invocation costs zero application developer effort if the framework handles it automatically. A persistent audit log belongs behind an opt-in switch: written unconditionally, it fills the disk of every user of every CLI built on the framework.
 
 ---
 
@@ -1143,7 +1143,7 @@ This section maps the P0 requirements from the requirements catalogue to existin
 
 11. **Request ID, trace ID, and duration in every response** (REQ-F-024, REQ-F-039): Generate UUID `request_id` per invocation; read `TOOL_TRACE_ID` from env; measure `duration_ms`.
 
-12. **Append-only audit log** (REQ-F-026): Write JSONL audit entries with secret redaction to `~/.local/share/<toolname>/audit.jsonl` after every invocation.
+12. **Opt-in audit log** (REQ-O-030): When the application or the operator enables it (`<PREFIX>AUDIT_LOG=1`), write size-bounded JSONL audit entries with secret redaction to `~/.local/state/<toolname>/audit.jsonl`; write nothing otherwise.
 
 13. **Secret field auto-redaction** (REQ-F-034): Pattern-match argument and field names against `token|secret|password|key|credential|auth`; replace values with `"[REDACTED]"` in logs and audit output.
 

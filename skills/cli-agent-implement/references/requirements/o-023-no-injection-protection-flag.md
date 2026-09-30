@@ -10,12 +10,12 @@
 
 ## Description
 
-The framework's external data trust tagging (REQ-F-035) MAY be bypassed for a specific invocation by passing `--no-injection-protection`. This escape hatch is intended for trusted sources (e.g., reading internal configuration authored by the operator). When this flag is passed, external data is not wrapped with trust markers. The flag MUST be logged in the audit trail. The flag MUST require explicit acknowledgment in non-interactive mode.
+The framework's external data trust tagging (REQ-F-035) MAY be bypassed for a specific invocation by passing `--no-injection-protection`. This escape hatch is intended for trusted sources (e.g., reading internal configuration authored by the operator). When this flag is passed, external data is not wrapped with trust markers. When the audit log is enabled (REQ-O-030), use of the flag MUST be recorded in it. The flag MUST require explicit acknowledgment in non-interactive mode.
 
 ## Acceptance Criteria
 
 - `--no-injection-protection` causes external data to be returned without `_trusted: false` tagging
-- Use of this flag is recorded in the audit log with a warning
+- With the audit log enabled, use of this flag is recorded in it with a warning
 - The flag is documented with a security warning in `--help` output
 
 ---
@@ -85,5 +85,5 @@ app.enable_injection_protection()
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
 | [REQ-F-035](f-035-external-data-trust-tagging.md) | F | Provides: trust tagging that this flag disables |
-| [REQ-F-026](f-026-append-only-audit-log.md) | F | Consumes: flag usage is recorded as a security-relevant audit event |
+| [REQ-O-030](o-030-opt-in-audit-log.md) | O | Consumes: flag usage is recorded as a security-relevant audit event when the log is enabled |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Wraps: warning about bypass is included in the standard `warnings` array |

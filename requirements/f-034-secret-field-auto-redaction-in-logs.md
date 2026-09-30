@@ -55,7 +55,7 @@ $ tool auth login --api-token abc123 --password hunter2
 
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
-| [REQ-F-026](f-026-append-only-audit-log.md) | F | Consumes: every audit log entry passes through the redaction layer defined here |
+| [REQ-O-030](o-030-opt-in-audit-log.md) | O | Consumes: every audit log entry passes through the redaction layer defined here |
 | [REQ-F-051](f-051-debug-and-trace-mode-secret-redaction.md) | F | Extends: applies the same redaction patterns to debug and trace mode output |
 | [REQ-F-058](f-058-high-entropy-field-masking.md) | F | Composes: high-entropy field masking works alongside named-pattern redaction |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Composes: stdout response envelope is not modified — redaction is log-layer only |

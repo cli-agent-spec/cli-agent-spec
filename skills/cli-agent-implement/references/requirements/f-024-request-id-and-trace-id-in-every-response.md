@@ -90,5 +90,5 @@ $ tool get-cluster --id 7
 |-------------|------|--------------|
 | [REQ-F-025](f-025-tool-trace-id-environment-variable-propagation.md) | F | Extends: trace ID propagation to child processes and log entries builds on the value captured here |
 | [REQ-F-021](f-021-data-meta-separation-in-response-envelope.md) | F | Enforces: `request_id` and `trace_id` are volatile fields and belong in `meta` |
-| [REQ-F-026](f-026-append-only-audit-log.md) | F | Consumes: audit log entries include `request_id` and `trace_id` from each invocation |
+| [REQ-O-030](o-030-opt-in-audit-log.md) | O | Consumes: audit log entries include `request_id` and `trace_id` from each invocation |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Provides: response envelope whose `meta` carries these observability fields |

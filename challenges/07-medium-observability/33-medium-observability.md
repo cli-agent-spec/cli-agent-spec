@@ -69,7 +69,7 @@ $ tool audit-log --since 1h --format jsonl
 **For framework design:**
 - Every response includes `meta.request_id` (server-assigned) and `meta.trace_id` (caller-supplied)
 - `TOOL_TRACE_ID` env var propagated automatically
-- Framework writes append-only audit log to `~/.local/share/tool/audit.jsonl`
+- Framework offers an opt-in, size-bounded audit log at `~/.local/state/tool/audit.jsonl`, enabled by the application or by the operator via `TOOL_AUDIT_LOG=1`; it is never written unless enabled
 
 ### Evaluation
 
@@ -78,7 +78,7 @@ $ tool audit-log --since 1h --format jsonl
 | 0 | No `request_id`, no timing, no audit log; tool calls cannot be correlated after the fact |
 | 1 | `meta.request_id` present on some responses; no `duration_ms`; no audit log |
 | 2 | `meta.request_id` and `meta.duration_ms` on all responses; `TOOL_TRACE_ID` env var propagated |
-| 3 | `meta.trace_id` accepts caller-supplied value; `tool audit-log --format jsonl` available; append-only audit log written automatically |
+| 3 | `meta.trace_id` accepts caller-supplied value; an opt-in audit log can be enabled and is bounded in size; `tool audit-log --format jsonl` queries it |
 
 **Check:** Supply `TOOL_TRACE_ID=test-123` and run any command — verify `meta.trace_id == "test-123"` in the JSON response.
 
