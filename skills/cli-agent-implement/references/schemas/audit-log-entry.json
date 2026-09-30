@@ -15,7 +15,7 @@
     "command": {
       "type": "string",
       "minLength": 1,
-      "description": "Space-separated path of the resolved command, matching meta.command (e.g. 'config set')."
+      "description": "Path of the resolved command, equal to meta.command in the framework's consistent spelling: space-separated ('config set') or dot-separated ('config.set')."
     },
     "args": {
       "type": "object",
@@ -46,7 +46,7 @@
     "session_id": {
       "type": "string",
       "minLength": 1,
-      "description": "Agent session identifier read verbatim from <PREFIX>SESSION_ID. Present only when that variable is set."
+      "description": "Agent session identifier read verbatim from the framework's one documented session variable: a prefixed variable it already reads for the session id, else <PREFIX>SESSION_ID. Present only when that variable is set."
     },
     "warnings": {
       "type": "array",
