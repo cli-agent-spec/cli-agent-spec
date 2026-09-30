@@ -1,0 +1,205 @@
+name: Release bot
+
+# Cuts a spec release when .github/release-policy.toml says one is due: it writes the
+# release commit, runs Validate on it, lands it on master, tags it, publishes the GitHub
+# release, and redeploys the site. In the policy's dry-run mode it stops after showing the
+# release commit it would make.
+#
+# A push to master starts it after a batch of merges: the settle job waits the policy's
+# quiet_minutes, and each newer push cancels that wait, so a run of merges gives one release.
+# A run started by hand doesn't wait.
+
+on:
+  push:
+    branches: [master]
+  schedule:
+    - cron: "0 6 * * 1" # Mondays, 06:00 UTC: a backstop in case a batch's run was lost
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "policy: do what release-policy.toml says; dry-run: show the release, push nothing"
+        type: choice
+        options: [dry-run, policy]
+        default: dry-run
+
+permissions:
+  contents: read
+
+env:
+  BOT_NAME: github-actions[bot]
+  BOT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+
+jobs:
+  # The only job a newer run may cancel: it holds no state, and cancelling it stops this
+  # run before anything is written
+  settle:
+    concurrency:
+      group: release-bot-settle
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        if: github.event_name == 'push'
+        with:
+          ref: master
+          sparse-checkout: |
+            .github
+            scripts
+
+      - uses: astral-sh/setup-uv@v6
+        if: github.event_name == 'push'
+        with:
+          python-version: "3.14"
+
+      - name: Wait for the batch of merges to end
+        if: github.event_name == 'push'
+        run: |
+          minutes="$(uv run --no-project python scripts/release.py quiet)"
+          echo "Waiting ${minutes} min for more pushes to master; a newer push cancels this run"
+          sleep "$((minutes * 60))"
+
+  # From here on nothing is cancelled: a newer run queues behind this one
+  prepare:
+    needs: settle
+    concurrency:
+      group: release-bot
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # pushes the release/v* branch in release mode
+      issues: read # release-blocker issues
+    outputs:
+      action: ${{ steps.plan.outputs.action }}
+      mode: ${{ steps.plan.outputs.mode }}
+      version: ${{ steps.plan.outputs.version }}
+      base: ${{ steps.plan.outputs.base }}
+      sha: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.14"
+
+      - name: Plan
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ (inputs.mode || 'policy') == 'dry-run' && '--dry-run' || '' }}
+        run: >-
+          uv run --no-project python scripts/release.py plan
+          --check-blockers $DRY_RUN --github-output "$GITHUB_OUTPUT"
+
+      - name: Write the release commit
+        if: steps.plan.outputs.action == 'release'
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+          DATE: ${{ steps.plan.outputs.date }}
+          MODE: ${{ steps.plan.outputs.mode }}
+        run: |
+          uv run --no-project python scripts/release.py apply --version "$VERSION" --date "$DATE"
+          scripts/sync-skill-references.sh
+          uv run --no-project python scripts/release.py check --version "$VERSION"
+          {
+            echo "### Release $VERSION ($MODE)"
+            echo
+            echo '```diff'
+            git diff
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit and push the release branch
+        id: commit
+        if: steps.plan.outputs.action == 'release' && steps.plan.outputs.mode == 'release'
+        env:
+          VERSION: ${{ steps.plan.outputs.version }}
+        run: |
+          if git ls-remote --exit-code --heads origin "release/v$VERSION" >/dev/null; then
+            # another run is releasing this version; leaving sha empty stops this run here
+            echo "::notice::release/v$VERSION exists: another run is releasing $VERSION"
+            exit 0
+          fi
+          git add -A
+          git -c user.name="$BOT_NAME" -c user.email="$BOT_EMAIL" commit -q -m "Release $VERSION"
+          git push origin "HEAD:refs/heads/release/v$VERSION"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Report a skip
+        if: steps.plan.outputs.action == 'skip'
+        env:
+          REASON: ${{ steps.plan.outputs.reason }} # may quote an issue title: never inline it
+        run: |
+          printf 'No release: %s\n' "$REASON" >> "$GITHUB_STEP_SUMMARY"
+
+  validate:
+    needs: prepare
+    if: needs.prepare.outputs.sha != ''
+    uses: ./.github/workflows/validate.yml
+    with:
+      ref: ${{ needs.prepare.outputs.sha }}
+
+  land:
+    needs: [prepare, validate]
+    if: needs.prepare.outputs.sha != ''
+    concurrency:
+      group: release-bot
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # the push to master, the tag, and the release
+      actions: write # starts deploy-pages.yml; a push with this token starts no workflow
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      SHA: ${{ needs.prepare.outputs.sha }}
+      BASE: ${{ needs.prepare.outputs.base }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Land on master, only if master has not moved
+        id: land
+        run: |
+          git fetch -q origin master "release/v$VERSION"
+          if [ "$(git rev-parse origin/master)" != "$BASE" ]; then
+            # a newer push came in: its own run releases this batch and the new commits
+            echo "::notice::master moved since the plan ($BASE); the newer push's run releases"
+            echo "landed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git push origin "$SHA:refs/heads/master"
+          echo "landed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Tag, publish the release, and redeploy the site
+        if: steps.land.outputs.landed == 'true'
+        run: |
+          git checkout -q "$SHA"
+          git -c user.name="$BOT_NAME" -c user.email="$BOT_EMAIL" \
+            tag -a "v$VERSION" -m "CLI Agent Spec $VERSION" "$SHA"
+          git push origin "v$VERSION"
+          python3 scripts/release.py notes --version "$VERSION" > "$RUNNER_TEMP/notes.md"
+          gh release create "v$VERSION" --verify-tag --title "CLI Agent Spec $VERSION" \
+            --notes-file "$RUNNER_TEMP/notes.md"
+          gh workflow run deploy-pages.yml --ref master
+
+  # Whether Validate or the landing passed or failed, the branch has served its purpose: a
+  # failed release is planned again from master by the next run
+  cleanup:
+    needs: [prepare, validate, land]
+    if: always() && needs.prepare.outputs.sha != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Delete the release branch
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: git push origin --delete "release/v$VERSION"

@@ -5,6 +5,12 @@ on:
     branches: [master]
   pull_request:
   workflow_dispatch:
+  workflow_call: # the release bot runs it on its release commit
+    inputs:
+      ref:
+        description: Commit to validate
+        type: string
+        required: true
 
 permissions:
   contents: read
@@ -14,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }} # empty outside workflow_call: the event's commit
 
       - uses: astral-sh/setup-uv@v6
         with:
