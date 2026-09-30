@@ -24,6 +24,15 @@
 - Agents filter on `builtin` when building a task list or skill set instead of matching a hard-coded list of built-in names
 - A producer that sets `builtin` emits `schema_version` `3.1`; a `3.0` manifest stays valid and reads as having no marked built-ins (#9)
 
+### Audit log accepts framework conventions
+
+- REQ-O-030: an entry's `command` equals `meta.command` exactly, space-separated (`config set`) or dot-separated (`config.set`) as the framework spells it consistently; `audit-log --command` accepts both spellings and keeps the whole-word prefix rule in each. New acceptance criteria cover the dot form and `command` matching `meta.command`
+- REQ-O-030: `audit-log` is a list command. Its default buffered answer carries `data.entries` and `meta.pagination` (REQ-F-018); `total` is the matched count or `null`. It accepts `--cursor`: when `--limit` leaves out older matching entries, `truncated` and `has_more` are `true` and `next_cursor` returns the next-older page, oldest first within it; the last page has `next_cursor: null`. A framework may make it streaming-default under REQ-O-004, and `--no-stream` then returns the buffered envelope; streamed output carries the pagination on its final summary line
+- REQ-O-030: `session_id` comes from the framework's one session variable, a prefixed variable it already reads for the agent session id (for example for REQ-C-007 idempotency keys), else `<PREFIX>SESSION_ID`; the framework documents its name
+- `AuditLogEntry` changes descriptions only (`command`, `session_id`): no instance valid before becomes invalid, so its contract version is unchanged
+
+**Why:** a framework implementing REQ-O-030 (treaty) already spells `meta.command` as a dot path, streams list output, and reads a session id for idempotency keys. REQ-F-024 never pins `meta.command`'s separator, so requiring the space form forced two spellings of one command in one CLI, and a second session variable would record a different value from the one the framework already trusts (#12).
+
 ## 1.8.0 — 2026-09-30
 
 ### Breaking: `--format` selects output representation

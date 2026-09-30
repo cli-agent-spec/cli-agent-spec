@@ -23,13 +23,13 @@ Three design decisions shape the type:
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `timestamp` | string ISO 8601 date-time | yes | Invocation start time, matching `meta.timestamp` |
-| `command` | string | yes | Space-separated command path, matching `meta.command` (`config set`) |
+| `command` | string | yes | Command path equal to `meta.command`, space- or dot-separated as the framework spells it (`config set`, `config.set`) |
 | `args` | object | yes | Parsed argument map after REQ-F-034 redaction; never the raw argv |
 | `exit_code` | integer `0–255` | yes | Process exit code, matching `meta.exit_code` |
 | `duration_ms` | integer | yes | Wall-clock milliseconds, matching `meta.duration_ms` |
 | `request_id` | string | yes | Unique invocation identifier, matching `meta.request_id` |
 | `trace_id` | string | when `TOOL_TRACE_ID` is set | Trace ID propagated from `TOOL_TRACE_ID` (REQ-F-025) |
-| `session_id` | string | when `<PREFIX>SESSION_ID` is set | Agent session identifier, recorded verbatim |
+| `session_id` | string | when the session variable is set | Agent session identifier, recorded verbatim from the framework's one documented session variable (`<PREFIX>SESSION_ID` unless it already reads a prefixed one) |
 | `warnings` | string[] | yes | Codes from the response's `warnings[]`, in emission order; may be empty |
 | `truncated` | boolean | no | `true` when `args` values were replaced to fit 16 KiB |
 
@@ -66,7 +66,7 @@ Violation: `args` must be an object. Raw argv cannot be redacted reliably and le
 - **Writing `trace_id: null` when `TOOL_TRACE_ID` is unset.** Omit the field, as `meta.trace_id` does
 - **Copying full warning objects.** `warnings` holds codes only; message text is for humans and bloats every line
 - **Truncating the serialized line.** Cutting the JSON text produces an invalid line; replace values in `args` and set `truncated`
-- **Using a dot path in `command`.** The entry uses the space-separated form of `meta.command`; the dot form belongs to `DispatchRequest._cmd`
+- **`command` differs from `meta.command`.** The entry repeats `meta.command` exactly; a framework that answers `config.set` in `meta.command` must not log `config set`, or the reverse, and must not mix both spellings in one log
 
 ---
 
@@ -103,7 +103,7 @@ Violation: `args` must be an object. Raw argv cannot be redacted reliably and le
 - `additionalProperties: false` keeps the entry shape predictable for `tool audit-log` filters and external log shippers; command-specific facts belong in `args`
 - The 16 KiB cap keeps each entry a single `O_APPEND` write well under common pipe and filesystem atomicity limits
 - The log file is created with mode `0600`; entries still carry unredacted hostnames, ids, and paths
-- The entry is not wrapped in a `ResponseEnvelope`; `tool audit-log --format json` returns entries inside `data.entries` of a normal envelope
+- The entry is not wrapped in a `ResponseEnvelope`; the buffered `tool audit-log` answer (the default, or `--no-stream` when the command is streaming-default) returns entries inside `data.entries` of a normal envelope with `meta.pagination`
 
 ---
 
