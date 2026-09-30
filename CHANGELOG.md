@@ -11,6 +11,21 @@
 
 ## Unreleased
 
+### REQ-O-030 audit log: gaps closed, AuditLogEntry 1.0, ResponseEnvelope 2.1
+
+- `<PREFIX>AUDIT_LOG` accepts only `1`, `0`, or an absolute path; any other value exits `2` with `INVALID_AUDIT_LOG_SETTING`. `1` keeps the application's path and falls back to the default; an absolute path overrides both
+- `tool audit-log` is registered on every CLI; with the log disabled it exits `4` with `AUDIT_LOG_DISABLED` instead of returning an empty list
+- Every invocation that resolves to a command is logged, including argument errors after resolution, `--validate-only`, `--dry-run`, and refused destructive commands; unresolved commands are not
+- `operator` becomes `session_id`, read verbatim from `<PREFIX>SESSION_ID`; `trace_id` is present only when `TOOL_TRACE_ID` is set; a new `warnings` field records warning codes, so REQ-O-023 and REQ-O-047 events are queryable
+- Entries are capped at 16 KiB (oversized `args` values become `[TRUNCATED]`, with `truncated: true`); the maximum age applies to the active file as well as rotated ones; `tool cleanup` never removes the log
+- The log file is created `0600` and its directory `0700`; existing modes are left unchanged
+- `AUDIT_LOG_UNAVAILABLE` goes to stderr when the output has no envelope; the entry is written before the response is emitted
+- `audit-log` returns entries oldest first, `--limit n` keeps the newest `n`, `--since` accepts `<n>s|m|h|d` or an ISO 8601 datetime, and `--command` matches a space-separated path or a whole-word prefix
+- New canonical schema `AuditLogEntry` 1.0 (`schemas/audit-log-entry.json`); `ResponseEnvelope` 2.1 adds the optional `meta.audit_log_path`
+- REQ-O-023 emits an `INJECTION_PROTECTION_DISABLED` warning whenever `--no-injection-protection` is used; it and `AUDIT_LOG_UNAVAILABLE` join the standard warning codes
+
+**Why:** two conforming frameworks could disagree on every point above, the size and age bounds did not hold for large arguments or rarely used tools, and the log was readable by every local user under a default umask.
+
 ### Breaking: `--format` selects output representation
 
 - REQ-O-001 makes `--format <format>` the canonical representation flag; `--output` and `-o` must not select a format

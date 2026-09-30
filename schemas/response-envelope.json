@@ -245,6 +245,11 @@
           "$ref": "#/definitions/Pagination",
           "description": "Present on every list command response (REQ-F-018), including complete result sets."
         },
+        "audit_log_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Absolute path of the active audit log file. Present on every response while the opt-in audit log is enabled (REQ-O-030), absent otherwise."
+        },
         "_cmd": {
           "type": "string",
           "description": "Dispatched command path echoed from the DispatchRequest. Present only on tool exec output lines (REQ-O-050)."

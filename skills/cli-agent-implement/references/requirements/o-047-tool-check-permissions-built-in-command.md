@@ -209,4 +209,4 @@ if parsed["data"]["over_privileged"]:
 | [REQ-C-002](c-002-command-declares-danger-level.md) | C | Composes: `danger_level` and `required_scopes` form the complete command security profile |
 | [REQ-F-063](f-063-credential-expiry-structured-error.md) | F | Extends: `AUTH_ERROR` exit code used for both expiry and missing-scope failures |
 | [REQ-O-026](o-026-tool-doctor-built-in-command.md) | O | Composes: `doctor` may invoke `check-permissions` as one of its environment health checks |
-| [REQ-O-030](o-030-opt-in-audit-log.md) | O | Consumes: over-privilege warnings are recorded in the audit log when it is enabled |
+| [REQ-O-030](o-030-opt-in-audit-log.md) | O | Consumes: `CREDENTIAL_OVER_PRIVILEGED` is recorded in the entry's `warnings` when the audit log is enabled |
