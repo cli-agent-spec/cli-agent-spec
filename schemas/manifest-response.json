@@ -376,7 +376,7 @@
       }
     },
     "ConditionalRule": {
-      "description": "One conditional argument dependency. Exactly one of the three shapes applies.",
+      "description": "One conditional argument dependency. Exactly one of the five shapes applies.",
       "oneOf": [
         {
           "type": "object",
@@ -405,6 +405,22 @@
             "if_flag": { "type": "string", "description": "Flag whose absence triggers the rule." },
             "target_flag": { "type": "string", "description": "Flag whose default changes." },
             "default": { "description": "Default applied to target_flag when if_flag is absent." }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["any_of"],
+          "additionalProperties": false,
+          "properties": {
+            "any_of": { "type": "array", "items": { "type": "string" }, "minItems": 2, "uniqueItems": true, "description": "Flags of which at least one must be present; a declared default does not count as present." }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["one_of"],
+          "additionalProperties": false,
+          "properties": {
+            "one_of": { "type": "array", "items": { "type": "string" }, "minItems": 2, "uniqueItems": true, "description": "Flags of which exactly one must be present; a declared default does not count as present." }
           }
         }
       ]
