@@ -10,13 +10,13 @@
 
 ## Description
 
-The framework MUST read `TOOL_TRACE_ID` from the environment at startup and associate it with the current invocation. The framework MUST also pass `TOOL_TRACE_ID` to all child processes spawned during the command. All internal framework log entries written to stderr and the audit log MUST include the trace ID when set.
+The framework MUST read `TOOL_TRACE_ID` from the environment at startup and associate it with the current invocation. The framework MUST also pass `TOOL_TRACE_ID` to all child processes spawned during the command. All internal framework log entries written to stderr and to the audit log (when enabled) MUST include the trace ID when set.
 
 ## Acceptance Criteria
 
 - A child process spawned by the framework inherits `TOOL_TRACE_ID`
 - Framework-emitted log lines (stderr) include the trace ID when `TOOL_TRACE_ID` is set
-- Audit log entries include the trace ID
+- Audit log entries include the trace ID when the audit log is enabled
 
 ---
 
@@ -77,6 +77,6 @@ TOOL_TRACE_ID=span-pipeline-42
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
 | [REQ-F-024](f-024-request-id-and-trace-id-in-every-response.md) | F | Provides: captures `TOOL_TRACE_ID` into `meta.trace_id`; this requirement extends propagation to children and logs |
-| [REQ-F-026](f-026-append-only-audit-log.md) | F | Consumes: audit log entries include the trace ID propagated by this requirement |
+| [REQ-O-030](o-030-opt-in-audit-log.md) | O | Consumes: audit log entries include the trace ID propagated by this requirement |
 | [REQ-F-030](f-030-child-process-session-tracking.md) | F | Provides: child process tracking used to pass `TOOL_TRACE_ID` to spawned processes |
 | [REQ-F-021](f-021-data-meta-separation-in-response-envelope.md) | F | Enforces: `trace_id` is a volatile field and belongs in `meta` |

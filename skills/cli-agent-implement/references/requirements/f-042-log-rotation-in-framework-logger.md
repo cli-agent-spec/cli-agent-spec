@@ -62,5 +62,5 @@ framework.logger:
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
 | [REQ-F-043](f-043-temp-file-session-scoped-auto-cleanup.md) | F | Composes: session temp directories are also cleaned up by the framework |
-| [REQ-F-026](f-026-append-only-audit-log.md) | F | Composes: audit log is a separate append-only file subject to the same rotation policy |
+| [REQ-O-030](o-030-opt-in-audit-log.md) | O | Composes: the opt-in audit log rotates with this mechanism under its own size and retention bounds |
 | [REQ-F-051](f-051-debug-and-trace-mode-secret-redaction.md) | F | Enforces: log entries in all verbosity modes have secrets redacted before rotation |

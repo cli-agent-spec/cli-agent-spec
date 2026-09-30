@@ -63,6 +63,6 @@ $ tool deploy --api-key "sk-abc123"
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
 | [REQ-F-034](f-034-secret-field-auto-redaction-in-logs.md) | F | Provides: base secret redaction rules that this requirement extends to debug/trace mode |
-| [REQ-F-026](f-026-append-only-audit-log.md) | F | Enforces: audit log entries written during debug mode are also redacted |
+| [REQ-O-030](o-030-opt-in-audit-log.md) | O | Enforces: audit log entries written during debug mode are also redacted |
 | [REQ-F-042](f-042-log-rotation-in-framework-logger.md) | F | Composes: redacted debug output is written to the rotated log files |
 | [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Enforces: error responses must not include secret values even in debug mode |

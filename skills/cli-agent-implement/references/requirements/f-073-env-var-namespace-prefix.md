@@ -12,7 +12,7 @@
 
 The framework MUST require a tool-scoped prefix for all environment variables the tool reads. The prefix MUST be the tool's binary name uppercased with hyphens replaced by underscores, followed by `_`. For example, a tool named `my-tool` uses prefix `MY_TOOL_`. The framework MUST document the full list of environment variables under this prefix in the manifest response.
 
-Exceptions (read without prefix, per universal convention): `NO_COLOR`, `CI`, `HOME`, `USER`, `PATH`, `SHELL`, `TERM`, `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_CACHE_HOME`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`.
+Exceptions (read without prefix, per universal convention): `NO_COLOR`, `CI`, `HOME`, `USER`, `PATH`, `SHELL`, `TERM`, `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_CACHE_HOME`, `XDG_STATE_HOME`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`.
 
 An agent setting `DEBUG=1` to enable verbose output in one tool must not accidentally enable debug mode in every other tool in the same session. Unprefixed env vars are a cross-tool contamination vector in multi-tool agent pipelines.
 
