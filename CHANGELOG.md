@@ -9,7 +9,7 @@
 - A contract `MAJOR` increment always ships in a spec `MINOR` release with a migration section in this file
 - `meta.schema_version` inside a response is neither: it versions one command's output shape (REQ-F-022)
 
-## Unreleased
+## 1.9.0 — 2026-09-30
 
 ### Audit log and logger rotation defaults are recommendations
 
