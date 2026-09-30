@@ -61,19 +61,35 @@ $ tool export --schema
     "separator": { "type": "string",  "required": false, "description": "Field separator for CSV output" },
     "compress":  { "type": "boolean", "required": false, "default": false, "description": "Compress output" },
     "output":    { "type": "string",  "required": false, "description": "Output file path" },
-    "stdout":    { "type": "boolean", "required": false, "default": false, "description": "Write to stdout instead of file" },
-    "isin":      { "type": "string",  "required": false, "description": "Instrument ISIN" },
-    "figi":      { "type": "string",  "required": false, "description": "Instrument FIGI" },
-    "symbol":    { "type": "string",  "required": false, "description": "Instrument ticker symbol" }
+    "stdout":    { "type": "boolean", "required": false, "default": false, "description": "Write to stdout instead of file" }
   },
   "requires": [
     { "if_flag": "format", "if_value": "csv", "then_required": ["separator"] },
-    { "if_flag": "output", "prohibited": ["stdout"] },
-    { "one_of": ["isin", "figi", "symbol"] }
+    { "if_flag": "output", "prohibited": ["stdout"] }
   ],
   "exit_codes": {
     "0": { "name": "SUCCESS",   "description": "Export completed",                 "retryable": false, "side_effects": "complete" },
     "2": { "name": "ARG_ERROR", "description": "Conditional argument rule violated", "retryable": false, "side_effects": "none"     }
+  }
+}
+```
+
+A group rule declares that exactly one identifier flag is present:
+
+```bash
+$ tool quote --schema
+```
+```json
+{
+  "parameters": {
+    "isin":   { "type": "string", "required": false, "description": "Instrument ISIN" },
+    "figi":   { "type": "string", "required": false, "description": "Instrument FIGI" },
+    "symbol": { "type": "string", "required": false, "description": "Instrument ticker symbol" }
+  },
+  "requires": [{ "one_of": ["isin", "figi", "symbol"] }],
+  "exit_codes": {
+    "0": { "name": "SUCCESS",   "description": "Quote returned",                     "retryable": false, "side_effects": "none" },
+    "2": { "name": "ARG_ERROR", "description": "Conditional argument rule violated", "retryable": false, "side_effects": "none" }
   }
 }
 ```
@@ -90,24 +106,30 @@ register command "export":
     compress:  type=boolean, required=false, default=false
     output:    type=string,  required=false
     stdout:    type=boolean, required=false, default=false
-    isin:      type=string,  required=false
-    figi:      type=string,  required=false
-    symbol:    type=string,  required=false
   requires:
     - if format == "csv" → separator is required
     - if output present  → stdout is prohibited (mutually exclusive)
-    - exactly one of isin, figi, symbol is present
 
 # tool export --format csv
 #  → exit 2: ARG_ERROR: --format csv requires --separator
 
 # tool export --format json --output report.json --stdout
 #  → exit 2: ARG_ERROR: --output and --stdout are mutually exclusive
+```
 
-# tool export --format json --isin US0378331005 --symbol AAPL
+```
+register command "quote":
+  parameters:
+    isin:   type=string, required=false
+    figi:   type=string, required=false
+    symbol: type=string, required=false
+  requires:
+    - exactly one of isin, figi, symbol is present
+
+# tool quote --isin US0378331005 --symbol AAPL
 #  → exit 2: ARG_ERROR: pass exactly one of --isin, --figi, --symbol (got --isin, --symbol)
 
-# tool export --format json
+# tool quote
 #  → exit 2: ARG_ERROR: pass exactly one of --isin, --figi, --symbol (got none)
 ```
 
