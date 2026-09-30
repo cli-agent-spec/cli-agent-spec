@@ -10,7 +10,7 @@
 
 ## Description
 
-The framework's internal logger MUST automatically rotate log files when they exceed a configurable maximum size (default: 100 MB) and MUST retain a configurable maximum number of rotated files (default: 5). The framework MUST prune log files older than a configurable maximum age (default: 30 days). These defaults MUST be configurable via framework-level configuration, not requiring per-command implementation.
+The framework's internal logger MUST automatically rotate log files when they exceed a maximum size and MUST retain at most a maximum number of rotated files. The framework MUST prune log files older than a maximum age. All three MUST be configurable via framework-level configuration, not requiring per-command implementation. The defaults SHOULD be 100 MB, 5 rotated files, and 30 days; a framework MAY ship smaller defaults. Disk usage is then bounded by `max_size × (max_rotated_files + 1)`. These defaults govern the framework's internal logger only; the audit log (REQ-O-030) has its own, smaller defaults.
 
 ## Acceptance Criteria
 
@@ -62,5 +62,5 @@ framework.logger:
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
 | [REQ-F-043](f-043-temp-file-session-scoped-auto-cleanup.md) | F | Composes: session temp directories are also cleaned up by the framework |
-| [REQ-O-030](o-030-opt-in-audit-log.md) | O | Composes: the opt-in audit log rotates with this mechanism under its own size and retention bounds |
+| [REQ-O-030](o-030-opt-in-audit-log.md) | O | Composes: the opt-in audit log rotates with this mechanism under its own size and retention bounds, not the defaults above |
 | [REQ-F-051](f-051-debug-and-trace-mode-secret-redaction.md) | F | Enforces: log entries in all verbosity modes have secrets redacted before rotation |

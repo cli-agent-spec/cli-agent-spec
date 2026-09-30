@@ -9,6 +9,15 @@
 - A contract `MAJOR` increment always ships in a spec `MINOR` release with a migration section in this file
 - `meta.schema_version` inside a response is neither: it versions one command's output shape (REQ-F-022)
 
+## Unreleased
+
+### Audit log and logger rotation defaults are recommendations
+
+- REQ-O-030: configuring the maximum size, rotated file count, and maximum age stays MUST; the default values (10 MB, 5 files, 30 days) become SHOULD. A framework may ship smaller defaults, but its default size bound `max_size × (max_rotated_files + 1)` should not exceed 60 MB. New acceptance criterion: the application can set all three bounds
+- REQ-F-042: the same wording for the framework logger's defaults (100 MB, 5 files, 30 days); it states the derived bound and that its defaults do not apply to the audit log
+
+**Why:** both requirements put the defaults in parentheses inside a MUST sentence and no criterion tested them, so a framework could not tell whether smaller defaults conformed. Frameworks also read REQ-F-042's defaults (600 MB bound) as the audit log's (#7).
+
 ## 1.8.0 — 2026-09-30
 
 ### Breaking: `--format` selects output representation
