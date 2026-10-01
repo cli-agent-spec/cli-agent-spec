@@ -81,7 +81,8 @@
 - A producer that sets either field emits `schema_version` `3.7`; earlier manifests stay valid
 
 **Why:** a flag that takes a JSON object had to declare itself a `string` and describe the shape in prose, and an agent writing to a project-relative `--output` from a subdirectory looked for the file under its working directory (#24).
- — 2026-09-30
+
+## 1.9.0 — 2026-09-30
 
 ### Audit log and logger rotation defaults are recommendations
 
