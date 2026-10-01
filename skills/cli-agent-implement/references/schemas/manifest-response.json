@@ -108,6 +108,11 @@
           "default": false,
           "description": "True when the framework registers the command itself rather than the application, such as manifest or doctor. A built-in's subcommands are also true; an application command that replaces a built-in's name is false. Sourced from REQ-O-041."
         },
+        "output_file": {
+          "type": "string",
+          "enum": ["formatted", "binary"],
+          "description": "Present when the command registers --output <path>. formatted: the file gets the --format representation of the result. binary: the file gets the raw bytes of a binary result and data describes the write as path, bytes, content_type, sha256; --output - exits 2. Sourced from REQ-O-001."
+        },
         "option_placement": {
           "type": "string",
           "enum": ["any", "strict"],

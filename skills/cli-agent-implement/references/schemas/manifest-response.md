@@ -53,6 +53,7 @@ Present only when the command declares them.
 
 | Field | Type | Description |
 |-------|------|-------------|
+| `output_file` | `"formatted"` \| `"binary"` | Command registers `--output <path>`. `formatted`: the file gets the `--format` representation; `binary`: the file gets the raw bytes and `data` is `{path, bytes, content_type, sha256}`; `--output -` exits `2` (REQ-O-001) |
 | `option_placement` | `"any"` \| `"strict"` | `strict`: every option, global or local, precedes the first positional; absent means `any` (REQ-C-027) |
 | `interactive` | boolean | Command may prompt in a TTY; `--yes` and `--non-interactive` exist (REQ-C-005) |
 | `has_network_io` | boolean | Command performs network or long blocking I/O; `--timeout` exists (REQ-C-012) |
@@ -212,6 +213,29 @@ Present only when the command declares them.
 ```
 Each flag is optional on its own; the `one_of` rule makes exactly one of them mandatory. `tool quote --symbol AAPL` passes, while `tool quote` and `tool quote --isin US0378331005 --symbol AAPL` exit `2`.
 
+**Valid — command that writes a binary result to a file**
+```json
+{
+  "schema_version": "3.3",
+  "framework_version": "2.2.0",
+  "etag": "sha256:4be9a1",
+  "commands": {
+    "download": {
+      "description": "Download a Flex report",
+      "danger_level": "safe",
+      "required_scopes": [],
+      "output_file": "binary",
+      "has_network_io": true,
+      "flags": {
+        "output": { "type": "string", "required": false, "description": "Path that receives the report's raw bytes" }
+      },
+      "exit_codes": { "0": { "name": "SUCCESS", "description": "Report written", "retryable": false, "side_effects": "complete" } }
+    }
+  }
+}
+```
+`tool download --output report.xml` writes the XML itself to `report.xml`, and `data` carries `path`, `bytes`, `content_type`, and `sha256`.
+
 **Invalid — command entry without required contract fields**
 ```json
 {
@@ -255,6 +279,7 @@ Violation: `requires_editor: true` requires `non_interactive_alternatives`; othe
 - **Marking an application command that replaces a built-in's name as `builtin: true`.** The flag follows who registered the command, not its name; the replacement is `false`
 - **Marking every flag of an "exactly one of" group `required: true`.** No call can then satisfy the command; keep each flag `required: false` and declare the group as a `one_of` rule
 - **Emitting pairwise `prohibited` rules next to a `one_of` group.** `one_of` already forbids combining its members; the extra rules repeat the constraint and let the two drift apart
+- **Declaring `output_file: "formatted"` on a command that returns a binary result.** The file would then hold a JSON or plain wrapper around base64, not the file the caller asked for; a binary result is `"binary"`
 
 ---
 
@@ -277,6 +302,11 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - When building a task list, a skill set, or a summary of what the tool does, drop entries with `builtin: true`; they are framework plumbing (`manifest`, `doctor`, `audit-log`) present in every conforming CLI
 - Treat an absent `builtin` as `false`. A pre-3.1 manifest never sets it, so every command there reads as an application command
 - Keep built-ins in the lookup table: they are still callable, and `doctor` or `audit-log` is the right call when diagnosing a failure
+
+**Writing a result to a file**
+- `output_file: "binary"`: pass `--output <path>` to get the file itself; `--format` then shapes only the envelope on stdout. Verify the write with `data.sha256` or `data.bytes` instead of reading the file back. Never pass `--output -`; it exits `2`
+- `output_file: "formatted"`: the file holds the `--format` representation of `data`, so choose `--format` for the file's consumer
+- `output_file` absent: the command takes no `--output`; a binary result arrives base64-encoded in `data` (REQ-F-017). Treat a pre-3.3 manifest the same way and read `output_schema` for a binary wrapper
 
 **Building a call from `FlagEntry`**
 - A command's accepted flags are the root `flags` plus its own `flags`; a name in neither produces `ARG_ERROR (2)`
@@ -328,6 +358,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert no `CommandEntry.flags` key or `short` value equals a root `flags` key or `short` value
 - Assert `positionals` lists every positional the parser accepts, in order, with no required entry after an optional one and `variadic` only on the last
 - Assert every command the framework registers, and each of its subcommands, carries `builtin: true`, and no application command does
+- Assert `output_file` is present on exactly the commands that register `--output <path>`, and is `"binary"` exactly when the command's result is a binary value
 - Assert `etag` changes when any command registration changes, and is stable across identical registrations (determinism test)
 
 **Tests to generate**
