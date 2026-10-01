@@ -10,7 +10,7 @@
 
 ## Description
 
-Command authors MUST implement all argument and precondition validation within the command's `validate()` hook, not within `execute()`. The `validate()` hook MUST be free of side effects. Validation MUST check all arguments at once, collecting all errors before returning (not fail-fast on the first error). The framework enforces phase ordering (REQ-F-015) but depends on command authors correctly placing validation logic.
+Command authors MUST implement all argument and precondition validation within the command's `validate()` hook, not within `execute()`. The `validate()` hook MUST be free of side effects. Validation MUST check all arguments at once, collecting all errors before returning (not fail-fast on the first error). The framework enforces phase ordering (REQ-F-015) but depends on command authors correctly placing validation logic. For a passthrough command ([REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md)), phase 1 covers only the framework's own options; the delegated tool validates its arguments after it starts.
 
 ## Acceptance Criteria
 
@@ -115,3 +115,4 @@ register command "deploy":
 | [REQ-F-002](f-002-exit-code-2-reserved-for-validation-failures.md) | F | Provides: `ARG_ERROR (2)` exit code carries the zero-side-effects guarantee |
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: `ARG_ERROR (2)` must be declared in the command's `exit_codes` map |
 | [REQ-O-009](o-009-validate-only-flag.md) | O | Extends: `--validate-only` runs the `validate()` hook in isolation without proceeding to `execute()` |
+| [REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md) | C | Specializes: a passthrough command's forwarded arguments are validated by the delegated tool |

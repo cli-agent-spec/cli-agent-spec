@@ -10,7 +10,7 @@
 
 ## Description
 
-The framework MUST wrap all command output in a standard JSON envelope. The envelope MUST always contain: `ok` (boolean), `data` (the command's primary output — present even when null or empty array), `error` (null on success, structured object on failure), `warnings` (array of `WarningDetail` objects, may be empty), and `meta` (object with framework-populated fields, always including `exit_code` and `duration_ms`). The schema of this envelope MUST NOT vary based on result count, command type, or success/failure state — the same top-level keys MUST always be present.
+The framework MUST wrap all command output in a standard JSON envelope. The envelope MUST always contain: `ok` (boolean), `data` (the command's primary output — present even when null or empty array), `error` (null on success, structured object on failure), `warnings` (array of `WarningDetail` objects, may be empty), and `meta` (object with framework-populated fields, always including `exit_code` and `duration_ms`). The schema of this envelope MUST NOT vary based on result count, command type, or success/failure state — the same top-level keys MUST always be present. A passthrough command ([REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md)) keeps this shape but writes the envelope as the last line of stderr, because the delegated tool owns stdout.
 
 ## Acceptance Criteria
 
@@ -94,3 +94,4 @@ Framework wraps:
 | [REQ-F-003](f-003-json-output-mode-auto-activation.md) | F | Composes: envelope is emitted whenever JSON mode is active |
 | [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Composes: `error` object structure is declared by REQ-C-013 |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Wraps: manifest output uses this envelope as its outer container |
+| [REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md) | C | Specializes: a passthrough command writes the envelope as the last line of stderr |

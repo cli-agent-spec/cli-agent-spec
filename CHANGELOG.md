@@ -95,6 +95,18 @@
 
 **Why:** REQ-F-054 capped every stdin read at 64 KiB, so an NDJSON pipeline of 300 records of 320 bytes failed with `STDIN_TOO_LARGE`, and a consumer of another command's stream could not tell a failed or truncated upstream run from short valid input (#26).
 
+### ManifestResponse 3.9: passthrough commands
+
+- `CommandEntry.arguments` (optional, `"declared"` or `"passthrough"`; absent means `"declared"`) marks a command that hands every token after its path to another tool's parser. The schema requires `option_placement: "strict"`, empty `flags`, and no `positionals` on a passthrough command
+- `CommandEntry.help_argv` (optional, passthrough only) is the argv forwarded in place of a lone `--help` or `-h` after the command path
+- New REQ-C-031 collects the passthrough rules. Framework options go before the command path. In JSON mode the final envelope is the last line of stderr, and the `--output` file when given; stdout belongs to the delegated tool. The process exits with the tool's own code, and a non-zero one gives `error.code: "DELEGATED_EXIT"`, `data.exit_code`, and `retryable: false`
+- REQ-F-001, REQ-F-002, REQ-F-004, REQ-F-006, REQ-C-001, REQ-C-003, REQ-C-006, and REQ-C-015 each name their exemption for passthrough commands only; declared commands are unchanged. `danger_level` (a destructive passthrough command is refused unconfirmed), the timeout, signal handling, session deduplication, and the audit log still apply
+- REQ-O-030 and `AuditLogEntry.args`: a passthrough command records its forwarded argv as `"argv": "[OMITTED]"`. Descriptions only, so `AuditLogEntry` stays 1.0
+- A delegated `2` does not promise "no side effects": `challenges/triage.md` row 6, §14's workaround, `exit-code.md`, and `response-envelope.md` tell an agent to decide from `error.code` and `retryable`, not from the process exit code
+- A producer that sets `arguments` or `help_argv` emits `schema_version` `3.9`; earlier manifests stay valid, and an absent `arguments` reads as `"declared"`
+
+**Why:** a command wrapping another tool's parser (beangulp's `ingest`) cannot put the envelope on stdout or map the tool's exit codes onto the framework table without breaking the tool's own scripts and documentation, and the manifest had no way to say so beyond `option_placement: "strict"` and a sentence in `description` (#25).
+
 ## 1.9.0 — 2026-09-30
 
 ### Audit log and logger rotation defaults are recommendations

@@ -134,6 +134,18 @@
           "$ref": "#/definitions/StdinDeclaration",
           "description": "How the command reads stdin: buffered whole, or line by line as plain lines or typed records. Sourced from REQ-F-054 and REQ-O-004."
         },
+        "arguments": {
+          "type": "string",
+          "enum": ["declared", "passthrough"],
+          "default": "declared",
+          "description": "declared: the framework parses the command's arguments from its flags and positionals. passthrough: every token after the command path goes verbatim to another tool's parser, which owns stdout and the exit code; the final envelope is the last line of stderr, a non-zero delegated code gives error.code DELEGATED_EXIT, and option_placement is strict. Sourced from REQ-C-031."
+        },
+        "help_argv": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "description": "Passthrough commands only: the argv forwarded to the delegated tool in place of a lone --help or -h after the command path. Absent means the lone token is forwarded unchanged. Sourced from REQ-C-031."
+        },
         "option_placement": {
           "type": "string",
           "enum": ["any", "strict"],
@@ -262,6 +274,21 @@
         {
           "if": { "required": ["output_file_base"] },
           "then": { "required": ["output_file"] }
+        },
+        {
+          "if": { "required": ["arguments"], "properties": { "arguments": { "const": "passthrough" } } },
+          "then": {
+            "required": ["option_placement"],
+            "properties": {
+              "option_placement": { "const": "strict" },
+              "flags": { "maxProperties": 0 },
+              "positionals": { "maxItems": 0 }
+            }
+          }
+        },
+        {
+          "if": { "required": ["help_argv"] },
+          "then": { "required": ["arguments"], "properties": { "arguments": { "const": "passthrough" } } }
         }
       ]
     },

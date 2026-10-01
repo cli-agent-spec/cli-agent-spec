@@ -10,7 +10,7 @@
 
 ## Description
 
-The framework MUST provide separate output primitives: `output()` writes to stdout and `log()` / `progress()` / `warn()` write to stderr. The framework MUST route all internal framework messages (progress, debug, timing) to stderr. Command authors MUST NOT be able to accidentally write prose to stdout using the framework's API. Any unhandled exception caught by the framework MUST be serialized to stderr, not stdout.
+The framework MUST provide separate output primitives: `output()` writes to stdout and `log()` / `progress()` / `warn()` write to stderr. The framework MUST route all internal framework messages (progress, debug, timing) to stderr. Command authors MUST NOT be able to accidentally write prose to stdout using the framework's API. Any unhandled exception caught by the framework MUST be serialized to stderr, not stdout. A passthrough command ([REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md)) is exempt: once the delegated tool starts, stdout is the tool's and the structured result is the last line of stderr.
 
 ## Acceptance Criteria
 
@@ -67,3 +67,4 @@ Traceback (most recent call last): ...  → stderr only, never stdout
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Composes: `output()` emits a `ResponseEnvelope` to stdout |
 | [REQ-F-007](f-007-ansi-color-code-suppression.md) | F | Composes: ANSI suppression applies to both streams in JSON mode |
 | [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Composes: structured error responses go to stdout, not stderr |
+| [REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md) | C | Specializes: a passthrough command's stdout belongs to the delegated tool |

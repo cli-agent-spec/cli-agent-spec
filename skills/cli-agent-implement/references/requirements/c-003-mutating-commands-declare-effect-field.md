@@ -10,7 +10,7 @@
 
 ## Description
 
-Every command with `danger_level` of `mutating` or `destructive` MUST include an `effect` field in its success response. The `effect` value MUST be one of: `"created"`, `"updated"`, `"deleted"`, `"noop"`. Command authors MUST determine and set the correct value based on what actually occurred. The framework MUST validate that the `effect` field is present and has a valid value for all non-safe commands.
+Every command with `danger_level` of `mutating` or `destructive` MUST include an `effect` field in its success response. The `effect` value MUST be one of: `"created"`, `"updated"`, `"deleted"`, `"noop"`. Command authors MUST determine and set the correct value based on what actually occurred. The framework MUST validate that the `effect` field is present and has a valid value for all non-safe commands. A passthrough command ([REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md)) is exempt, because the framework cannot know what the delegated tool changed: its `data` is `{"exit_code": n}`, and only a deduplicated replay adds `effect: "noop"`.
 
 ## Acceptance Criteria
 
@@ -105,3 +105,4 @@ register command "deploy":
 | [REQ-C-007](c-007-mutating-commands-accept-idempotency-key.md) | C | Composes: `effect: "noop"` is the canonical response for a deduplicated idempotency-key hit |
 | [REQ-C-004](c-004-destructive-commands-must-support-dry-run.md) | C | Extends: dry-run responses use `would_*` effect prefixes, not the values defined here |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Wraps: `effect` is carried inside the `ResponseEnvelope` |
+| [REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md) | C | Specializes: a passthrough command's `data` carries `exit_code`, not `effect` |

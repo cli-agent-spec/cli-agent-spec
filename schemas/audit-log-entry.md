@@ -2,7 +2,7 @@
 
 **File:** [`audit-log-entry.json`](audit-log-entry.json)
 
-> **Used by:** [REQ-O-030](../requirements/o-030-opt-in-audit-log.md)
+> **Used by:** [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md)
 
 ---
 
@@ -24,7 +24,7 @@ Three design decisions shape the type:
 |-------|------|----------|-------------|
 | `timestamp` | string ISO 8601 date-time | yes | Invocation start time, matching `meta.timestamp` |
 | `command` | string | yes | Command path equal to `meta.command`, space- or dot-separated as the framework spells it (`config set`, `config.set`) |
-| `args` | object | yes | Parsed argument map after REQ-F-034 redaction; never the raw argv |
+| `args` | object | yes | Parsed argument map after REQ-F-034 redaction; never the raw argv. A passthrough command (REQ-C-031) records its forwarded argv as `"argv": "[OMITTED]"` |
 | `exit_code` | integer `0–255` | yes | Process exit code, matching `meta.exit_code` |
 | `duration_ms` | integer | yes | Wall-clock milliseconds, matching `meta.duration_ms` |
 | `request_id` | string | yes | Unique invocation identifier, matching `meta.request_id` |
@@ -52,6 +52,12 @@ Three design decisions shape the type:
 {"timestamp": "2026-03-17T14:07:00Z", "command": "import", "args": {"source": "s3://bucket/data.json", "raw_payload": "[TRUNCATED]"}, "exit_code": 0, "duration_ms": 5310, "request_id": "req-003", "warnings": [], "truncated": true}
 ```
 
+**Valid: passthrough command, forwarded argv omitted**
+```json
+{"timestamp": "2026-03-17T14:09:30Z", "command": "ingest", "args": {"argv": "[OMITTED]"}, "exit_code": 2, "duration_ms": 412, "request_id": "req-004", "warnings": []}
+```
+`ingest` hands its arguments to another tool's parser (REQ-C-031). Without a schema for them the framework cannot redact them, so it records none; `exit_code` `2` is the delegated tool's own.
+
 **Invalid: raw argv instead of the parsed map**
 ```json
 {"timestamp": "2026-03-17T14:00:01Z", "command": "deploy", "args": ["--env", "prod", "--token", "abc123"], "exit_code": 0, "duration_ms": 1247, "request_id": "req-001", "warnings": []}
@@ -75,6 +81,7 @@ Violation: `args` must be an object. Raw argv cannot be redacted reliably and le
 - Join an entry to a response or trace by `request_id` or `trace_id`, never by `timestamp`
 - `exit_code` non-zero with `args.dry_run` or `args.validate_only` set means nothing was changed; the entry still shows what was attempted
 - `truncated: true` means some `args` values are `[TRUNCATED]`; do not replay the invocation from the entry
+- `args.argv` equal to `[OMITTED]` marks a passthrough command (REQ-C-031): the forwarded arguments were never written, and its `exit_code` is the delegated tool's, so a `2` does not rule out side effects
 - A `[REDACTED]` value is a declared secret; never try to recover it from other sources
 - `warnings` containing `INJECTION_PROTECTION_DISABLED` marks an invocation whose external data was returned untagged; treat its outputs as untrusted during review
 - An empty result from `tool audit-log` means no matching invocation was recorded while the log was enabled; a disabled log fails with `AUDIT_LOG_DISABLED` instead
@@ -112,5 +119,6 @@ Violation: `args` must be an object. Raw argv cannot be redacted reliably and le
 | Document | Relationship |
 |----------|-------------|
 | [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) | Consumes: defines the audit log and the `audit-log` command that emit this type |
+| [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) | Consumes: a passthrough command records its forwarded argv as `[OMITTED]` |
 | [schemas/response-envelope.md](response-envelope.md) | Provides: the `meta` values each entry repeats and the envelope around `data.entries` |
 | [§33 Observability & Audit Trail](../challenges/07-medium-observability/33-medium-observability.md) | Sources: the failure mode this schema addresses |

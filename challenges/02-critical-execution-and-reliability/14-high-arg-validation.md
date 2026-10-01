@@ -139,4 +139,6 @@ elif result.returncode != 0:
     pass
 ```
 
+A command declared `arguments: "passthrough"` in the manifest is the exception: its `2` may be the wrapped tool's own, marked `error.code: "DELEGATED_EXIT"` in the envelope on the last stderr line, and promises nothing about side effects ([REQ-C-031](../../requirements/c-031-passthrough-commands-delegate-to-another-parser.md)).
+
 **Limitation:** If the tool does not distinguish exit 2 (validation) from exit 1 (execution failure), the agent cannot safely determine whether a retry would cause duplicate side effects — treat any non-zero exit from a mutating command as potentially having caused partial side effects

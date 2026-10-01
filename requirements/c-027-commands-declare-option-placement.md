@@ -14,6 +14,8 @@ Commands that cannot support interspersed option parsing (typically because they
 
 `strict` has one meaning: every option, global or local, precedes the first positional argument. Options may follow the command path; they need not precede it. Parsing stops at the first positional or at `--`, whichever comes first, and every later token reaches the child process unparsed. An option the agent places after that point is not an error; it is forwarded to the child, which is why the declaration is required rather than discovered.
 
+A command that hands every argument to another tool's parser declares `arguments: "passthrough"` as well ([REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md)); it has no local options, so all options precede the command path, and the delegated tool owns stdout and the exit code.
+
 The declaration is consumed by `tool manifest` (REQ-O-041) and `--schema` (REQ-O-013).
 
 ## Acceptance Criteria
@@ -91,3 +93,4 @@ def run(target: str, extra_args: list[str]):
 | [REQ-C-019](c-019-subprocess-invoking-commands-declare-argument-sche.md) | C | Extends: subprocess-invoking commands also declare their argument schema |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Exposes: manifest is the primary consumer of this declaration |
 | [REQ-O-013](o-013-schema-output-schema-flag.md) | O | Exposes: `--schema` output includes `option_placement` for the command |
+| [REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md) | C | Specializes: a passthrough command is always `strict` and also hands over stdout and the exit code |

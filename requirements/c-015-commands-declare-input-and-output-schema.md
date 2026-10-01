@@ -10,7 +10,7 @@
 
 ## Description
 
-Every command MUST declare a complete input schema (all parameters: name, type, required, default, enum values if applicable, description) and output schema (JSON Schema for the `data` field of the response envelope). The framework MUST auto-generate `--schema` output from these declarations. Command authors MUST NOT write `--schema` output manually; it MUST be derived from the declaration.
+Every command MUST declare a complete input schema (all parameters: name, type, required, default, enum values if applicable, description) and output schema (JSON Schema for the `data` field of the response envelope). The framework MUST auto-generate `--schema` output from these declarations. Command authors MUST NOT write `--schema` output manually; it MUST be derived from the declaration. A passthrough command ([REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md)) is exempt from the input schema: its arguments belong to the delegated tool, so it declares no flags or positionals, and `--schema` shows `arguments: "passthrough"` instead.
 
 **Structured flag values.** A flag whose value is a JSON object SHOULD declare `type: "object"` and the value's JSON Schema in `FlagEntry.schema` rather than `type: "string"` with the shape described in prose, because an agent cannot see the shape it must build otherwise. A flag declared `type: "object"` MUST carry `schema`. The caller passes the value as one argv token of JSON text, as `--raw-payload` takes its payload ([REQ-O-032](o-032-raw-payload-flag-for-mutating-commands.md)): `--filter '{"status":"open"}'`. An `array` flag whose items are objects puts the item schema in `schema`, and each item it receives is one such token. For a flag declared `type: "object"` (or an `array` flag with `schema`), the framework MUST parse and validate the value against `schema` during Phase 1 ([REQ-F-015](f-015-validate-before-execute-phase-order.md)) and exit `2` (`ARG_ERROR`) when the text is not valid JSON or does not match, before any side effect. `schema` appears only on `object` and `array` flags.
 
@@ -107,3 +107,4 @@ register command "deploy":
 | [REQ-F-015](f-015-validate-before-execute-phase-order.md) | F | Enforces: declared `parameters` drive Phase 1 validation before execution |
 | [REQ-C-026](c-026-commands-declare-conditional-argument-dependencies.md) | C | Extends: conditional `requires` graph is part of the `--schema` output |
 | [REQ-O-032](o-032-raw-payload-flag-for-mutating-commands.md) | O | Composes: an `object` flag takes JSON text on argv the same way `--raw-payload` does |
+| [REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md) | C | Specializes: a passthrough command declares no input schema |
