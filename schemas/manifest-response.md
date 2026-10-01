@@ -568,7 +568,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert every command the framework registers, and each of its subcommands, carries `builtin: true`, and no application command does
 - Assert `output_file` is present on exactly the commands that register `--output <path>`, and is `"binary"` exactly when the command's result is a binary value, `"handler"` exactly when the handler writes the file, and `"envelope"` exactly when the framework writes the final envelope to it
 - Assert `output_file_base` appears only with `output_file`, and that a relative `--output` path lands under the declared base from a working directory other than that base
-- Assert every flag whose value the parser reads as a JSON object is `type: "object"` with a `schema` the parser enforces
+- Assert every `type: "object"` flag carries a `schema` the parser enforces, and prefer `type: "object"` for every flag whose value the parser reads as a JSON object
 - Assert every flag's `env_vars` lists exactly the variables its parser reads, in the order it reads them, with the tool-prefixed name first whenever a name without the prefix is listed, and no name from `secret_env_vars`
 - Assert root `env_vars` lists every other variable the tool reads outside the universal exceptions, each with the tool prefix and a `description`, and no name that also appears in a flag's `env_vars` or a `secret_env_vars`
 - Assert `etag` changes when any command registration changes, and is stable across identical registrations (determinism test)

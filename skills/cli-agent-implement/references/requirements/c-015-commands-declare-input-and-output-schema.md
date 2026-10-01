@@ -12,7 +12,7 @@
 
 Every command MUST declare a complete input schema (all parameters: name, type, required, default, enum values if applicable, description) and output schema (JSON Schema for the `data` field of the response envelope). The framework MUST auto-generate `--schema` output from these declarations. Command authors MUST NOT write `--schema` output manually; it MUST be derived from the declaration.
 
-**Structured flag values.** A flag whose value is a JSON object declares `type: "object"` and the value's JSON Schema in `FlagEntry.schema`; it MUST NOT pose as `type: "string"` with the shape described in prose. The caller passes the value as one argv token of JSON text, as `--raw-payload` takes its payload ([REQ-O-032](o-032-raw-payload-flag-for-mutating-commands.md)): `--filter '{"status":"open"}'`. An `array` flag whose items are objects puts the item schema in `schema`, and each item it receives is one such token. The framework MUST parse and validate the value against `schema` during Phase 1 ([REQ-F-015](f-015-validate-before-execute-phase-order.md)) and exit `2` (`ARG_ERROR`) when the text is not valid JSON or does not match, before any side effect. `schema` appears only on `object` and `array` flags.
+**Structured flag values.** A flag whose value is a JSON object SHOULD declare `type: "object"` and the value's JSON Schema in `FlagEntry.schema` rather than `type: "string"` with the shape described in prose, because an agent cannot see the shape it must build otherwise. A flag declared `type: "object"` MUST carry `schema`. The caller passes the value as one argv token of JSON text, as `--raw-payload` takes its payload ([REQ-O-032](o-032-raw-payload-flag-for-mutating-commands.md)): `--filter '{"status":"open"}'`. An `array` flag whose items are objects puts the item schema in `schema`, and each item it receives is one such token. For a flag declared `type: "object"` (or an `array` flag with `schema`), the framework MUST parse and validate the value against `schema` during Phase 1 ([REQ-F-015](f-015-validate-before-execute-phase-order.md)) and exit `2` (`ARG_ERROR`) when the text is not valid JSON or does not match, before any side effect. `schema` appears only on `object` and `array` flags.
 
 ## Acceptance Criteria
 
@@ -21,8 +21,8 @@ Every command MUST declare a complete input schema (all parameters: name, type, 
 - Adding a parameter to a command automatically appears in `--schema` without separate documentation effort
 - Positional arguments appear in the command's `positionals` array in call order, never only in its `description`
 - The `output_schema` is a valid JSON Schema object
-- A flag that takes a JSON object appears with `type: "object"` and a `schema`; `--filter '{"status":"open"}'` passes when the text matches that schema
-- `--filter 'status=open'` (not JSON) and `--filter '{"status":3}'` (does not match `schema`) both exit `2` with an `ARG_ERROR` naming the flag, before any side effect
+- A flag declared `type: "object"` carries a `schema`; `--filter '{"status":"open"}'` passes when the text matches that schema
+- On a flag declared `type: "object"`, `--filter 'status=open'` (not JSON) and `--filter '{"status":3}'` (does not match `schema`) both exit `2` with an `ARG_ERROR` naming the flag, before any side effect
 
 ---
 

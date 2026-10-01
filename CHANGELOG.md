@@ -76,7 +76,7 @@
 ### ManifestResponse 3.7: object flags and the base of a relative `--output`
 
 - `FlagEntry.type` gains `"object"`: the value is one argv token of JSON text, as `--raw-payload` takes it (REQ-O-032). The new `FlagEntry.schema` holds the draft-07 schema of one value: the object for an `object` flag (required there), one item for an `array` flag of objects; it appears on no other type (REQ-C-015)
-- REQ-C-015: a JSON-object flag must not pose as `type: "string"`; the framework validates the value against `schema` in Phase 1 and exits `2` (`ARG_ERROR`) on text that is not JSON or does not match. New acceptance criteria cover both
+- REQ-C-015: a JSON-object flag should declare `type: "object"` rather than `type: "string"` with the shape in prose (a `string` declaration stays conforming); for an `object` flag the framework validates the value against `schema` in Phase 1 and exits `2` (`ARG_ERROR`) on text that is not JSON or does not match. New acceptance criteria cover both
 - `CommandEntry.output_file_base` (optional, `"cwd"`, `"project_root"`, or `"resource"`) names the directory a relative `--output` path resolves against; it appears only with `output_file`, and absence means `cwd`. An absolute path is used as given. A command whose base is not `cwd` must declare it (REQ-O-001)
 - A producer that sets either field emits `schema_version` `3.7`; earlier manifests stay valid
 
