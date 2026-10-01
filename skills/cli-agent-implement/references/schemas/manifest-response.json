@@ -40,6 +40,17 @@
       "description": "Shared exit-code table every command inherits. A CommandEntry.exit_codes lists only codes absent from this table or whose entry differs; the command's effective table is this map overlaid with its own. Hoisting the framework codes here keeps the manifest small for agents that read it whole.",
       "propertyNames": { "pattern": "^(0|[1-9][0-9]*)$" },
       "additionalProperties": { "$ref": "exit-code-entry.json" }
+    },
+    "env_vars": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "allOf": [
+          { "$ref": "#/definitions/EnvVarEntry" },
+          { "required": ["description"] }
+        ]
+      },
+      "description": "Environment variables the tool reads that back no flag and supply no secret, such as TOOL_DEBUG or TOOL_AUDIT_LOG, each with a description. A variable that supplies a flag's value is listed only in that FlagEntry.env_vars, and a secret only in CommandEntry.secret_env_vars. Universal names such as NO_COLOR or HOME are not listed. Sourced from REQ-F-073."
     }
   },
   "definitions": {
@@ -303,6 +314,10 @@
           "type": "boolean",
           "default": false,
           "description": "True when the variable is still read but slated for removal; set a non-deprecated name instead."
+        },
+        "description": {
+          "type": "string",
+          "description": "What the variable controls and the values it accepts. Required on root env_vars entries, optional on a flag's, where the flag's description applies."
         }
       }
     },
