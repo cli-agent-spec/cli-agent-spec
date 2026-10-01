@@ -119,6 +119,28 @@ def read_stdin() -> str:
     return data.decode()
 ```
 
+### Read streams line by line, capped per line (REQ-F-054, REQ-O-004)
+
+The 64 KB cap is for buffered stdin: a payload read whole before the handler runs. A command that consumes a stream (NDJSON from another command) declares line mode instead. The framework reads nothing up front and hands the handler one line at a time, so the stream has no total size; each line has a cap (1 MiB by default). An oversized line exits `1` with `LINE_TOO_LARGE` and the line number, not `2`, because earlier lines may already have been acted on.
+
+```python
+MAX_LINE_BYTES = 1_048_576
+
+def read_lines(stream: BinaryIO) -> Iterator[str]:
+    for number, raw in enumerate(iter(lambda: stream.readline(MAX_LINE_BYTES + 2), b""), start=1):
+        line = raw.rstrip(b"\n").rstrip(b"\r")
+        if len(line) > MAX_LINE_BYTES:
+            fail_structured(
+                code="LINE_TOO_LARGE",
+                message=f"Stdin line {number} exceeds the {MAX_LINE_BYTES}-byte line limit",
+                context={"line": number, "limit_bytes": MAX_LINE_BYTES},
+                exit_code=1,
+            )
+        yield line.decode()
+```
+
+Declare the mode in the manifest (`stdin: {"mode": "lines"}`), so an agent knows it can pipe a long stream. When the lines are another command's records, declare `"records"` with a `record_schema`: the framework then validates each line and stops at the producer's `_summary` line, failing with `UPSTREAM_FAILED` or `UPSTREAM_INCOMPLETE` when the producer failed or was cut off. Line mode removes the size cap, not the §61 hazard: it is deadlock-free when another process writes stdin, but a caller that writes stdin and then reads stdout from one thread still sends large input through `--input-file`.
+
 ### Declare stdin paths in `--schema` output
 
 Agents discover capabilities from machine-readable schema. Every stdin-reading argument must document `stdin_fallback`, `stdin_format`, and `non_tty_behavior` so agents can find the correct invocation pattern without trial-and-error.
@@ -212,7 +234,8 @@ If the schema has no stdin declaration at all, assume the command may silently f
 |------|-------------|-------------------|
 | No silent stdin fallback | REQ-F-009 | Require explicit `--input-file` or `-`; no hidden stdin reads |
 | Non-TTY fail-fast | REQ-F-009 · §50 | On `isatty() == false` with no `--input-file`: exit 4, `STDIN_REQUIRED`, under 1 s |
-| 64 KB stdin cap | REQ-F-054 · §61 | Read at most 64 KB; reject with `STDIN_TOO_LARGE` + hint to `--input-file` |
+| 64 KB stdin cap | REQ-F-054 · §61 | Read at most 64 KB of buffered stdin; reject with `STDIN_TOO_LARGE` + hint to `--input-file` |
+| Per-line cap in line mode | REQ-F-054 · REQ-O-004 | Stream commands read lines lazily with no total cap; reject a line over 1 MiB with `LINE_TOO_LARGE` (exit `1`) |
 | `--input-file` auto-registration | REQ-O-039 | Any command with `stdin_input: true` gets the flag; `--input-file -` == stdin |
 | Schema declaration | §50 · §61 | `stdin_fallback`, `stdin_format`, `non_tty_behavior` present on every stdin arg |
 | Structured errors | REQ-F-004 | All rejections use the response envelope; `code`, `message`, `hint` always present |
@@ -227,7 +250,8 @@ If the schema has no stdin declaration at all, assume the command may silently f
 | [§61 Bidirectional Pipe Payload Deadlock](../challenges/01-critical-ecosystem-runtime-agent-specific/61-critical-pipe-payload-deadlock.md) | Provides: the pipe buffer failure mode this guide prevents |
 | [§10 Interactivity & TTY Requirements](../challenges/02-critical-execution-and-reliability/10-critical-interactivity.md) | Provides: the interactive prompt failure mode referenced in this guide |
 | [REQ-F-009](../requirements/f-009-non-interactive-mode-auto-detection.md) | Enforces: non-TTY detection and fail-fast at validation time |
-| [REQ-F-054](../requirements/f-054-stdin-payload-size-cap-with-input-file-fallback.md) | Enforces: 64 KB stdin cap and `STDIN_TOO_LARGE` error |
+| [REQ-F-054](../requirements/f-054-stdin-payload-size-cap-with-input-file-fallback.md) | Enforces: 64 KB buffered stdin cap, `STDIN_TOO_LARGE` error, and the per-line cap of line mode |
 | [REQ-O-039](../requirements/o-039-input-file-flag-for-stdin-commands.md) | Provides: `--input-file` auto-registration for stdin commands |
 | [REQ-O-006](../requirements/o-006-stdin-as-id-source.md) | Provides: `-` convention for reading a single ID value from stdin |
+| [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) | Provides: the stream terminal line and the records consumer errors |
 | [schemas/response-envelope.md](../schemas/response-envelope.md) | Provides: canonical envelope schema used in all structured errors |
