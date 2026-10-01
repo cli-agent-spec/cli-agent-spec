@@ -29,6 +29,14 @@ The framework MUST register `--format <format>` as a standard flag on all comman
 
 `handler` covers a command whose handler owns the path (a compiler's object file, an archiver's tarball); the handler SHOULD write it through the atomic-write primitive ([REQ-F-070](f-070-atomic-write-via-rename.md)). `envelope` covers a command whose stdout carries something other than a single envelope, such as a child process's output streamed through, so the file is where the agent reads the structured result. The format-name rejection above applies whatever the value.
 
+**Where a relative path lands.** A relative `--output` path resolves against the working directory unless the command declares otherwise in `output_file_base`, which is present only alongside `output_file`. An absolute path is used as given, whatever the base. The values:
+
+- `cwd` (the default, also meant by absence): the working directory of the invocation
+- `project_root`: the project root the tool resolves for this invocation (for example the nearest ancestor holding its project file), so the same relative path lands in the same place from any subdirectory
+- `resource`: the directory of the resource the command acts on (a package, a workspace, a deployment's folder), which the command's description names
+
+A command whose base is not `cwd` MUST declare it, because an agent that resolves the path against its working directory otherwise looks for the file in the wrong place.
+
 **Why not `--output`:** agents learn format selection from two conflicting traditions. Cloud CLIs (`aws`, `kubectl`, `az`, `helm`) use `--output json`; build and transfer tools (`gcc`, `curl`, `sort`, `pandoc`, `go build`) use `--output` for a file path. `--format` selects a representation wherever it appears (`gcloud`, `docker`, `git`, `pandoc`'s `--to`), and the representation applies to whatever destination the result goes to: stdout by default, the file named by `--output` otherwise. An agent that passes `--output json` to a path-typed flag gets exit `0`, an empty stdout, and a stray file named `json`; the reverse mistake (`--format report.json`) fails loudly as an unsupported value.
 
 `--format` values MUST come from a closed set declared at registration and listed in the manifest. An unknown value exits `2` with a structured error listing the supported values; the framework MUST NOT interpret an unrecognized value as a template. Tools that overload `--format` with templates show why: `docker` reads any value other than `json` or `table` as a Go template, so the typo `docker version --format jsn` prints `jsn` instead of failing. `git` guesses from the value (a `%` or a `tformat:` prefix means a template, anything else must be a preset name), which catches `--format=json` but still leaves the agent to learn a second grammar; `gcloud` rejects the typo and lists the valid values, which is the behavior this requirement asks for. Field projection belongs to `--fields` ([REQ-O-002](o-002-fields-selector.md)): `--format tsv --fields hash,subject` covers what `--format='%H %s'` does, with field names validated against the schema. A CLI that wants free-form text templates for human use registers them under a separate flag (`--template`), never as a `--format` value.
@@ -79,6 +87,8 @@ The framework has two distinct output contexts. The `--format` flag governs stru
 - `download` without `--output` returns the binary payload in the envelope as REQ-F-017 encodes it
 - A failed run of a command with a binary result leaves no file at the `--output` path
 - The manifest entry of every command that registers `--output <path>` carries `output_file`: `"binary"` when its result is binary, `"handler"` when its handler writes the file, `"envelope"` when the framework writes the final JSON envelope to the file, `"formatted"` otherwise; no other command carries it
+- A command that resolves a relative `--output` against anything but the working directory declares `output_file_base`; `output_file_base` never appears without `output_file`
+- On an `output_file_base: "project_root"` command run from a subdirectory, `--output out/r.json` writes `<project root>/out/r.json`, and an absolute `--output` path is written as given
 - On an `output_file: "envelope"` command, `--output result.json --format plain` writes a valid JSON `ResponseEnvelope` to `result.json`
 - `--format` with a value outside the declared set (`--format jsn`, `--format '%H %s'`) exits `2`, lists the supported values, and writes nothing to stdout or to any file
 
@@ -90,7 +100,7 @@ The framework has two distinct output contexts. The `--format` flag governs stru
 
 The `--format json` format uses the `ResponseEnvelope` shape. The `--format jsonl` and `--format tsv` formats use command-specific row shapes without the envelope wrapper.
 
-The manifest declares the `--output` behavior in `CommandEntry.output_file` ([`manifest-response.md`](../schemas/manifest-response.md)).
+The manifest declares the `--output` behavior in `CommandEntry.output_file` and the base of a relative path in `CommandEntry.output_file_base` ([`manifest-response.md`](../schemas/manifest-response.md)).
 
 ---
 

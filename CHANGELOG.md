@@ -73,6 +73,15 @@
 
 **Why:** `"formatted"` and `"binary"` both assume the framework renders the result into the file, so a command whose handler owns the path, or whose stdout carries something other than an envelope and saves the envelope to `--output`, fit neither and had to mislabel itself or omit the key, which reads as "no `--output`" (#27).
 
+### ManifestResponse 3.7: object flags and the base of a relative `--output`
+
+- `FlagEntry.type` gains `"object"`: the value is one argv token of JSON text, as `--raw-payload` takes it (REQ-O-032). The new `FlagEntry.schema` holds the draft-07 schema of one value: the object for an `object` flag (required there), one item for an `array` flag of objects; it appears on no other type (REQ-C-015)
+- REQ-C-015: a JSON-object flag should declare `type: "object"` rather than `type: "string"` with the shape in prose (a `string` declaration stays conforming); for an `object` flag the framework validates the value against `schema` in Phase 1 and exits `2` (`ARG_ERROR`) on text that is not JSON or does not match. New acceptance criteria cover both
+- `CommandEntry.output_file_base` (optional, `"cwd"`, `"project_root"`, or `"resource"`) names the directory a relative `--output` path resolves against; it appears only with `output_file`, and absence means `cwd`. An absolute path is used as given. A command whose base is not `cwd` must declare it (REQ-O-001)
+- A producer that sets either field emits `schema_version` `3.7`; earlier manifests stay valid
+
+**Why:** a flag that takes a JSON object had to declare itself a `string` and describe the shape in prose, and an agent writing to a project-relative `--output` from a subdirectory looked for the file under its working directory (#24).
+
 ## 1.9.0 — 2026-09-30
 
 ### Audit log and logger rotation defaults are recommendations
