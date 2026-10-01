@@ -55,6 +55,7 @@ Present only when the command declares them.
 | Field | Type | Description |
 |-------|------|-------------|
 | `output_file` | `"formatted"` \| `"binary"` \| `"handler"` \| `"envelope"` | Command registers `--output <path>`. `formatted`: the file gets the `--format` representation; `binary`: the file gets the raw bytes and `data` is `{path, bytes, content_type, sha256}`, and `--output -` exits `2`; `handler`: the handler writes the file, described by the command's documentation; `envelope`: the file gets the final `ResponseEnvelope` as JSON whatever `--format` says (REQ-O-001) |
+| `output_file_base` | `"cwd"` \| `"project_root"` \| `"resource"` | Directory a relative `--output` path resolves against; only with `output_file`, absent means `cwd`. An absolute path is used as given (REQ-O-001) |
 | `option_placement` | `"any"` \| `"strict"` | `strict`: every option, global or local, precedes the first positional; absent means `any` (REQ-C-027) |
 | `interactive` | boolean | Command may prompt in a TTY; `--yes` and `--non-interactive` exist (REQ-C-005) |
 | `has_network_io` | boolean | Command performs network or long blocking I/O; `--timeout` exists (REQ-C-012) |
@@ -84,7 +85,7 @@ Present only when the command declares them.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `type` | `"string"` \| `"integer"` \| `"number"` \| `"boolean"` \| `"array"` \| `"enum"` | yes | Value type |
+| `type` | `"string"` \| `"integer"` \| `"number"` \| `"boolean"` \| `"array"` \| `"enum"` \| `"object"` | yes | Value type; an `object` value is one argv token of JSON text (REQ-C-015) |
 | `required` | boolean | yes | Flag must be present |
 | `description` | string | yes | What the flag controls, including range or format |
 | `default` | any | no | Omit (do not set `null`) when no default exists |
@@ -93,6 +94,7 @@ Present only when the command declares them.
 | `pattern` | string | no | Anchored regex the value must match; exclusive with `pattern_type` (REQ-C-020) |
 | `pattern_type` | `"alphanumeric_id"` \| `"uuid"` \| `"semver"` \| `"filepath"` \| `"url"` | no | Built-in validation preset (REQ-C-020) |
 | `env_vars` | `EnvVarEntry[]` | no | Variables the flag reads when not passed, in precedence order (first set wins); the tool-prefixed name comes first whenever a name without the prefix is listed. Never a secret (REQ-F-073) |
+| `schema` | JSON Schema object | when `type` is `"object"` | Draft-07 schema of one value: the object itself for `object`, one item for `array`; never on other types (REQ-C-015) |
 
 ### PositionalEntry
 
@@ -342,6 +344,70 @@ Every variable the tool reads has one home: `TOOL_FORMAT` backs `--format`, `TOO
 ```
 `tool build --output app` writes the executable the command describes; `--format` does not change it. `tool test --output result.json --format plain` streams the runner's output to stdout and writes the final envelope to `result.json` as JSON.
 
+**Valid — object flag and project-relative output**
+```json
+{
+  "schema_version": "3.7",
+  "framework_version": "2.5.0",
+  "etag": "sha256:7a03be",
+  "commands": {
+    "report": {
+      "description": "Render a report for the matching orders into the project's reports directory",
+      "danger_level": "mutating",
+      "required_scopes": ["orders:read"],
+      "output_file": "formatted",
+      "output_file_base": "project_root",
+      "flags": {
+        "filter": {
+          "type": "object",
+          "required": false,
+          "description": "Order filter as JSON text",
+          "schema": {
+            "type": "object",
+            "properties": { "status": { "type": "string" }, "min_total": { "type": "number" } },
+            "additionalProperties": false
+          }
+        },
+        "line": {
+          "type": "array",
+          "required": false,
+          "description": "Extra line item as JSON text; repeat for more",
+          "schema": {
+            "type": "object",
+            "required": ["sku", "qty"],
+            "properties": { "sku": { "type": "string" }, "qty": { "type": "integer", "minimum": 1 } }
+          }
+        },
+        "output": { "type": "string", "required": true, "description": "Report path, relative to the project root" }
+      },
+      "exit_codes": { "0": { "name": "SUCCESS", "description": "Report written", "retryable": false, "side_effects": "complete" } }
+    }
+  }
+}
+```
+`tool report --filter '{"status":"open"}' --output reports/open.json` writes `<project root>/reports/open.json` from any subdirectory. Each `--line` value is one JSON object matching `schema`.
+
+**Invalid — object flag without its schema**
+```json
+{
+  "schema_version": "3.7",
+  "framework_version": "2.5.0",
+  "etag": "sha256:7a03be",
+  "commands": {
+    "search": {
+      "description": "Search orders",
+      "danger_level": "safe",
+      "required_scopes": [],
+      "flags": {
+        "filter": { "type": "object", "required": false, "description": "Order filter as JSON text" }
+      },
+      "exit_codes": {}
+    }
+  }
+}
+```
+Violation: an `object` flag requires `schema`; without it an agent cannot build a value the command accepts.
+
 **Invalid — command entry without required contract fields**
 ```json
 {
@@ -399,6 +465,8 @@ Violation: a root `env_vars` entry requires `description`; no flag's `descriptio
 - **Emitting pairwise `prohibited` rules next to a `one_of` group.** `one_of` already forbids combining its members; the extra rules repeat the constraint and let the two drift apart
 - **Declaring `output_file: "formatted"` on a command that returns a binary result.** The file would then hold a JSON or plain wrapper around base64, not the file the caller asked for; a binary result is `"binary"`
 - **Omitting `output_file` because the handler writes the file itself.** Absence tells the agent the command has no `--output`; declare `"handler"`
+- **Leaving `output_file_base` out when `--output` does not resolve against the working directory.** Absence means `cwd`, so the agent looks for the file in the wrong place; declare `project_root` or `resource`
+- **Declaring a JSON-valued flag as `type: "string"`.** The agent then has no shape to build and no signal that the value is parsed as JSON; declare `type: "object"` with `schema`
 - **Naming a flag's environment variables only in its `description`.** "(read from `$A` or `$B` when not passed)" is prose an agent must parse; list the names in `env_vars`, in precedence order
 - **Listing a secret in `env_vars`.** A token or password is not a flag value (REQ-C-016); declare its variable in `secret_env_vars`
 - **Listing a borrowed name before the tool-prefixed one.** `CLOUDFALL_PROJECT` ahead of `TOOL_PROJECT` lets a variable set for another tool override the one set for this tool (REQ-F-073)
@@ -433,6 +501,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - `output_file: "formatted"`: the file holds the `--format` representation of `data`, so choose `--format` for the file's consumer
 - `output_file: "handler"`: the command's handler writes the file; read the command's `description` for what it holds, and do not expect `--format` to change it
 - `output_file: "envelope"`: the file holds the final `ResponseEnvelope` as JSON whatever `--format` says; read `ok`, `data`, and `error` from the file, not from stdout
+- `output_file_base` other than `cwd`: a relative `--output` lands under the project root (`project_root`) or the target resource's directory (`resource`), not the working directory. Pass an absolute path when the file must land in a known place; it is used as given
 - `output_file` absent: the command takes no `--output`; a binary result arrives base64-encoded in `data` (REQ-F-017). Treat a pre-3.3 manifest the same way and read `output_schema` for a binary wrapper
 
 **Building a call from `FlagEntry`**
@@ -443,6 +512,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Pass each option once; a scalar option repeated with a different value produces `ARG_ERROR (2)`
 - `required: true` flags must always be present; absence will produce `ARG_ERROR (2)`
 - `type: "enum"` — only values in `enum_values` are accepted; sending any other value produces `ARG_ERROR (2)`
+- `type: "object"`: pass one argv token of compact JSON text that validates against `schema` (`--filter '{"status":"open"}'`); text that is not a JSON object, or does not match, produces `ARG_ERROR (2)`. An `array` flag with `schema` takes each item as such a token
 - `default` absent — the flag is optional but has no fallback; omitting it changes behavior; include explicitly if the outcome matters
 - `short` present — both `--flag-name value` and `-f value` are valid; prefer long form for clarity in agent-constructed calls
 
@@ -497,6 +567,8 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert `positionals` lists every positional the parser accepts, in order, with no required entry after an optional one and `variadic` only on the last
 - Assert every command the framework registers, and each of its subcommands, carries `builtin: true`, and no application command does
 - Assert `output_file` is present on exactly the commands that register `--output <path>`, and is `"binary"` exactly when the command's result is a binary value, `"handler"` exactly when the handler writes the file, and `"envelope"` exactly when the framework writes the final envelope to it
+- Assert `output_file_base` appears only with `output_file`, and that a relative `--output` path lands under the declared base from a working directory other than that base
+- Assert every flag whose value the parser reads as a JSON object is `type: "object"` with a `schema` the parser enforces
 - Assert every flag's `env_vars` lists exactly the variables its parser reads, in the order it reads them, with the tool-prefixed name first whenever a name without the prefix is listed, and no name from `secret_env_vars`
 - Assert root `env_vars` lists every other variable the tool reads outside the universal exceptions, each with the tool prefix and a `description`, and no name that also appears in a flag's `env_vars` or a `secret_env_vars`
 - Assert `etag` changes when any command registration changes, and is stable across identical registrations (determinism test)
@@ -519,6 +591,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - `exit_codes` keys are strings (`"0"`, `"2"`) because JSON object keys are always strings
 - `FlagEntry.default` must be omitted (not `null`) when no default exists, to distinguish "optional without fallback" from "default is null"
 - `output_formats` must list only values the command actually accepts; do not list formats that resolve to an error
+- `FlagEntry.schema` is a plain draft-07 schema, so a generated MCP `inputSchema` uses it as the property's schema for an `object` flag and as `items` for an `array` flag; the CLI side still takes JSON text on argv
 
 ## Related
 

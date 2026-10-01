@@ -124,6 +124,12 @@
           "enum": ["formatted", "binary", "handler", "envelope"],
           "description": "Present exactly when the command registers --output <path>; absent means no --output. formatted: the file gets the --format representation of the result. binary: the file gets the raw bytes of a binary result and data describes the write as path, bytes, content_type, sha256; --output - exits 2. handler: the command handler writes the file and the command's own documentation describes its contents. envelope: the framework writes the final ResponseEnvelope as JSON to the file whatever --format selects; --format shapes only stdout. Sourced from REQ-O-001."
         },
+        "output_file_base": {
+          "type": "string",
+          "enum": ["cwd", "project_root", "resource"],
+          "default": "cwd",
+          "description": "Directory a relative --output path resolves against; an absolute path is used as given. Present only when output_file is; absent means cwd. cwd: the working directory of the invocation. project_root: the project root the tool resolves for the invocation, whatever the working directory. resource: the directory of the resource the command acts on, as its description states. Sourced from REQ-O-001."
+        },
         "option_placement": {
           "type": "string",
           "enum": ["any", "strict"],
@@ -248,6 +254,10 @@
         {
           "if": { "required": ["gui_operations"] },
           "then": { "required": ["headless_behavior"] }
+        },
+        {
+          "if": { "required": ["output_file_base"] },
+          "then": { "required": ["output_file"] }
         }
       ]
     },
@@ -258,8 +268,8 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["string", "integer", "number", "boolean", "array", "enum"],
-          "description": "Scalar type of the flag value."
+          "enum": ["string", "integer", "number", "boolean", "array", "enum", "object"],
+          "description": "Type of the flag value. object: one JSON object passed as a single argv token of JSON text, its shape declared in schema."
         },
         "required": {
           "type": "boolean",
@@ -296,9 +306,24 @@
           "minItems": 1,
           "items": { "$ref": "#/definitions/EnvVarEntry" },
           "description": "Environment variables the flag reads when it is not passed, in precedence order: the first one set wins, and a passed flag beats them all. A list that holds a name without the tool prefix also holds the tool-prefixed name, first. Never lists a secret; secrets are declared in CommandEntry.secret_env_vars. Sourced from REQ-F-073."
+        },
+        "schema": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "JSON Schema draft-07 of one value: the object itself when type is object, one item when type is array. Required when type is object; present otherwise only when type is array. Sourced from REQ-C-015."
         }
       },
-      "not": { "required": ["pattern", "pattern_type"] }
+      "not": { "required": ["pattern", "pattern_type"] },
+      "allOf": [
+        {
+          "if": { "required": ["type"], "properties": { "type": { "const": "object" } } },
+          "then": { "required": ["schema"] }
+        },
+        {
+          "if": { "required": ["schema"] },
+          "then": { "properties": { "type": { "enum": ["object", "array"] } } }
+        }
+      ]
     },
     "EnvVarEntry": {
       "type": "object",
