@@ -28,7 +28,7 @@ When the operator can also turn debug or trace mode on through a prefixed enviro
 
 **Types:** [`manifest-response.json`](../schemas/manifest-response.json) · [`manifest-response.md`](../schemas/manifest-response.md)
 
-No dedicated schema type for redaction. A debug variable that backs no flag is an `EnvVarEntry` in `ManifestResponse.env_vars` (ManifestResponse 3.5)
+No dedicated schema type for redaction. A debug variable that backs no flag is an `EnvVarEntry` in `ManifestResponse.env_vars` (ManifestResponse 3.5).
 
 ---
 
