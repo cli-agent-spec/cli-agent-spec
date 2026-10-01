@@ -55,6 +55,16 @@
 
 **Why:** frameworks wrote "(read from `$A` or `$B` when not passed)" into flag descriptions because `FlagEntry` allowed no other place, and REQ-F-073 forbade the borrowed names outright. Contamination comes from variables a tool reads without saying so; a declared name is visible to the agent (#20).
 
+### ManifestResponse 3.5: variables that back no flag are declared
+
+- Root `env_vars` (optional, an array of `{name, deprecated?, description}`) lists every variable the tool reads that backs no flag and supplies no secret, such as `<TOOLNAME>_DEBUG`, `<PREFIX>AUDIT_LOG`, and `<PREFIX>SESSION_ID`. Each entry requires `description`; universal names such as `NO_COLOR` and `HOME` are not listed
+- `EnvVarEntry` gains an optional `description`, which stays optional in a flag's `env_vars`
+- REQ-F-073: every recognized variable appears in exactly one of root `env_vars`, a flag's `env_vars`, or `secret_env_vars`. New acceptance criteria; the wire example shows root `env_vars`
+- REQ-F-051 and REQ-O-030 declare their variables in root `env_vars` when no flag backs them, with new acceptance criteria
+- A producer that sets root `env_vars` emits `schema_version` `3.5`; a `3.4` manifest stays valid, and on it an absent root `env_vars` means unknown, not none
+
+**Why:** REQ-F-073 promises that `tool manifest` lists every variable the tool recognizes, but after 3.4 the manifest had homes only for flag-backed variables and secrets, and its root rejects unknown fields, so `<TOOLNAME>_DEBUG` and the audit log's variables could not appear anywhere (#23).
+
 ## 1.9.0 — 2026-09-30
 
 ### Audit log and logger rotation defaults are recommendations

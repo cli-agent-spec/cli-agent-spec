@@ -12,24 +12,39 @@
 
 When `--debug`, `--trace`, `--verbose`, or any elevated verbosity flag is active, the framework MUST apply the same secret redaction rules defined in REQ-F-034 to ALL output, including HTTP request/response dumps, environment variable listings, and argument echoing. The framework MUST redact: HTTP headers matching `Authorization`, `Cookie`, `X-Api-Key`, `X-Auth-Token`, `Proxy-Authorization`; environment variables matching `*_KEY`, `*_SECRET`, `*_TOKEN`, `*_PASSWORD`, `*_PASS`, `API_*`, `AUTH_*`; and any argument declared as `secret: true` in the command schema. Redacted values MUST be replaced with `[REDACTED]`.
 
+When the operator can also turn debug or trace mode on through a prefixed environment variable (`<TOOLNAME>_DEBUG`, REQ-F-073), the manifest MUST declare it: in the `env_vars` of the flag it backs, such as a root `--debug`, or in the manifest's root `env_vars` when no flag backs it, so an agent can see that a leftover variable changes what every call writes to stderr.
+
 ## Acceptance Criteria
 
 - An HTTP request log in debug mode shows `Authorization: [REDACTED]`, not the actual token
 - Environment variable dumps in trace mode show `AWS_SECRET_ACCESS_KEY=[REDACTED]`
 - An argument declared as `secret: true` is never echoed in any verbosity level
 - The redaction applies to both stderr debug output and any audit log entries created during debug mode
+- A debug or trace variable the framework reads appears in `tool manifest`, in the `env_vars` of the flag it backs or, when no flag backs it, in root `env_vars` with a `description`
 
 ---
 
 ## Schema
 
-No dedicated schema type — this requirement governs debug output filtering without adding new wire-format fields
+**Types:** [`manifest-response.json`](../schemas/manifest-response.json) · [`manifest-response.md`](../schemas/manifest-response.md)
+
+No dedicated schema type for redaction. A debug variable that backs no flag is an `EnvVarEntry` in `ManifestResponse.env_vars` (ManifestResponse 3.5)
 
 ---
 
 ## Wire Format
 
-No wire-format fields — this requirement governs framework behavior only
+Redaction adds no wire-format fields. The manifest declares a debug variable that backs no flag at the root:
+
+```json
+{
+  "schema_version": "3.5",
+  "framework_version": "2.4.0",
+  "etag": "sha256:0b7d93",
+  "env_vars": [{ "name": "TOOL_DEBUG", "description": "1 turns on debug output on stderr, with secrets redacted" }],
+  "commands": {}
+}
+```
 
 ---
 
@@ -66,3 +81,4 @@ $ tool deploy --api-key "sk-abc123"
 | [REQ-O-030](o-030-opt-in-audit-log.md) | O | Enforces: audit log entries written during debug mode are also redacted |
 | [REQ-F-042](f-042-log-rotation-in-framework-logger.md) | F | Composes: redacted debug output is written to the rotated log files |
 | [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Enforces: error responses must not include secret values even in debug mode |
+| [REQ-F-073](f-073-env-var-namespace-prefix.md) | F | Consumes: the debug variable carries the tool prefix and is declared in the manifest |

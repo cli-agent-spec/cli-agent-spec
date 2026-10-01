@@ -20,7 +20,7 @@ The framework MUST provide a persistent audit log that is **off by default**.
 | `0` | Off, even when the application enabled it |
 | An absolute path | On, at that path; overrides both the application's path and the default |
 
-Any other value (`true`, `off`, an empty string, a relative path) fails every invocation except `--help` and `--version` with exit `2` (`ARG_ERROR`) and error code `INVALID_AUDIT_LOG_SETTING`, naming the variable and the accepted values. The operator setting takes precedence over the application, so an agent runtime can turn the log on for a CLI whose author never did, and off for one that did. When the log is disabled, the framework MUST NOT create any file or directory for it.
+Any other value (`true`, `off`, an empty string, a relative path) fails every invocation except `--help` and `--version` with exit `2` (`ARG_ERROR`) and error code `INVALID_AUDIT_LOG_SETTING`, naming the variable and the accepted values. The operator setting takes precedence over the application, so an agent runtime can turn the log on for a CLI whose author never did, and off for one that did. When the log is disabled, the framework MUST NOT create any file or directory for it. Whether or not the log is enabled, the manifest MUST declare `<PREFIX>AUDIT_LOG` and the session variable in its root `env_vars`, each with a `description` (REQ-F-073, ManifestResponse 3.5), since neither backs a flag.
 
 **What is logged.** When enabled, the framework MUST append one entry per invocation that resolves to a command, whatever its outcome. This includes argument errors raised after the command resolves, `--validate-only` (REQ-O-009), `--dry-run` (REQ-C-004, REQ-O-048), and a destructive command refused for lacking `--confirm-destructive` (REQ-O-021): an incident review needs exactly these. An invocation that never resolves to a command (an unknown command or group) is not logged, because its arguments cannot be redacted without a declared schema and raw argv is never written. Invocations that do no work are not logged: `--help`, `--version`, shell completion, schema or manifest introspection, and `audit-log` itself.
 
@@ -79,6 +79,7 @@ With the log disabled, `audit-log` exits `4` (`PRECONDITION`) with error code `A
 - An invocation that emits `CREDENTIAL_OVER_PRIVILEGED` has that code in the entry's `warnings`
 - With the framework's session variable set to `s-1`, the entry has `session_id: "s-1"`; without it, the entry has no `session_id`
 - A framework that has no other session variable uses `<PREFIX>SESSION_ID`, and its documentation names the session variable it reads
+- `tool manifest` lists `<PREFIX>AUDIT_LOG` and the session variable in root `env_vars`, each with a `description`, whether or not the log is enabled
 - Every entry validates against `audit-log-entry.json`
 - An invocation with a 50 MB argument appends one entry of at most 16 KiB with `truncated: true`
 - With a umask of `0022`, a freshly created audit log file has mode `0600` and a directory created for it has mode `0700`
@@ -111,7 +112,7 @@ With the log disabled, `audit-log` exits `4` (`PRECONDITION`) with error code `A
 
 **Types:** [`audit-log-entry.json`](../schemas/audit-log-entry.json) · [`response-envelope.json`](../schemas/response-envelope.json) · [`manifest-response.json`](../schemas/manifest-response.json)
 
-Each log line and each item of the `audit-log` command's `data.entries` is an `AuditLogEntry`. `meta.audit_log_path` is present on every response while the log is enabled. The enabled log appears in the manifest as a `FilesystemSideEffect` of type `log`.
+Each log line and each item of the `audit-log` command's `data.entries` is an `AuditLogEntry`. `meta.audit_log_path` is present on every response while the log is enabled. The enabled log appears in the manifest as a `FilesystemSideEffect` of type `log`. `<PREFIX>AUDIT_LOG` and the session variable are `EnvVarEntry` items in the manifest's root `env_vars`.
 
 ---
 
@@ -199,7 +200,7 @@ $ TOOL_AUDIT_LOG=yes tool deploy --env prod
 | [REQ-F-039](f-039-duration-tracking-in-response-meta.md) | F | Provides: `duration_ms` value written to each audit log entry |
 | [REQ-F-034](f-034-secret-field-auto-redaction-in-logs.md) | F | Enforces: secret fields are redacted in every audit log entry and query result |
 | [REQ-F-042](f-042-log-rotation-in-framework-logger.md) | F | Composes: the audit log uses the same rotation mechanism with its own bounds |
-| [REQ-F-073](f-073-env-var-namespace-prefix.md) | F | Consumes: `<PREFIX>AUDIT_LOG` and the session variable (`<PREFIX>SESSION_ID` unless the framework already reads a prefixed one) follow the tool env var prefix |
+| [REQ-F-073](f-073-env-var-namespace-prefix.md) | F | Consumes: `<PREFIX>AUDIT_LOG` and the session variable (`<PREFIX>SESSION_ID` unless the framework already reads a prefixed one) follow the tool env var prefix and are declared in root `env_vars` |
 | [REQ-F-018](f-018-pagination-metadata-on-list-commands.md) | F | Provides: `meta.pagination` on every `audit-log` answer |
 | [REQ-O-003](o-003-limit-and-cursor-pagination-flags.md) | O | Consumes: `--limit` and the stateless `--cursor` token that pages through `audit-log` |
 | [REQ-O-004](o-004-output-jsonl-stream-flag.md) | O | Extends: `audit-log` MAY be streaming-default, with `--no-stream` returning the buffered envelope |
