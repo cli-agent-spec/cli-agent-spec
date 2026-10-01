@@ -58,7 +58,7 @@ Present only when the command declares them.
 | `output_file_base` | `"cwd"` \| `"project_root"` \| `"resource"` | Directory a relative `--output` path resolves against; only with `output_file`, absent means `cwd`. An absolute path is used as given (REQ-O-001) |
 | `stdin` | `StdinDeclaration` | Command declares stdin input; `--input-file` exists and reads the same way. `mode` is `buffered` (whole, up to `max_bytes`), `lines` (one line at a time, each up to `max_line_bytes`, no total cap), or `records` (lines checked against `record_schema`, ended by a `_summary` line) (REQ-F-054, REQ-O-004) |
 | `option_placement` | `"any"` \| `"strict"` | `strict`: every option, global or local, precedes the first positional; absent means `any` (REQ-C-027) |
-| `arguments` | `"declared"` \| `"passthrough"` | `passthrough`: every token after the command path goes verbatim to another tool, which owns stdout and the exit code; the envelope is the last line of stderr. Requires `option_placement: "strict"`, empty `flags`, and no `positionals`; absent means `declared` (REQ-C-031) |
+| `arguments` | `"declared"` \| `"passthrough"` | `passthrough`: every token after the command path goes verbatim to another tool, which owns stdout and the exit code; the envelope is the last line of stderr. Requires `option_placement: "strict"`, empty `flags`, and no `positionals`, and excludes `danger_level: "destructive"`; absent means `declared` (REQ-C-031) |
 | `help_argv` | string[] | Passthrough only: the argv forwarded in place of a lone `--help` or `-h` after the command path; absent means the token is forwarded unchanged (REQ-C-031) |
 | `interactive` | boolean | Command may prompt in a TTY; `--yes` and `--non-interactive` exist (REQ-C-005) |
 | `has_network_io` | boolean | Command performs network or long blocking I/O; `--timeout` exists (REQ-C-012) |
@@ -651,7 +651,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - `required_scopes` not covered by the active credential — expect `AUTH_REQUIRED (8)`; do not call until credentials change
 
 **Calling a passthrough command (`arguments: "passthrough"`)**
-- Put every global option and framework flag (`--format`, `--output`, `--timeout`, `--confirm-destructive`) before the command path; every token after it goes to the delegated tool, `--help` and `--` included
+- Put every global option and framework flag (`--format`, `--output`, `--timeout`) before the command path; every token after it goes to the delegated tool, `--help` and `--` included
 - Read stdout as the delegated tool's output, not as an envelope. The envelope is the last line of stderr; when that line is not an envelope, the framework rejected its own options before the tool started and the envelope is on stdout
 - Classify by `error.code`: `DELEGATED_EXIT` means the tool chose the exit code, and `data.exit_code` repeats it. A delegated `2` is the tool's usage error and does not rule out side effects; decide from `retryable`, which is `false`, not from the code
 - For the tool's own help, call `tool <cmd> --help`; the framework forwards `help_argv` when the command declares it
@@ -681,7 +681,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert `output_file` is present on exactly the commands that register `--output <path>`, and is `"binary"` exactly when the command's result is a binary value, `"handler"` exactly when the handler writes the file, and `"envelope"` exactly when the framework writes the final envelope to it
 - Assert `output_file_base` appears only with `output_file`, and that a relative `--output` path lands under the declared base from a working directory other than that base
 - Assert every `type: "object"` flag carries a `schema` the parser enforces, and prefer `type: "object"` for every flag whose value the parser reads as a JSON object
-- Assert every `arguments: "passthrough"` command has `option_placement: "strict"`, empty `flags`, and no `positionals`, and that `help_argv` appears only on such commands
+- Assert every `arguments: "passthrough"` command has `option_placement: "strict"`, empty `flags`, no `positionals`, and a `danger_level` other than `destructive`, and that `help_argv` appears only on such commands
 - Assert every flag's `env_vars` lists exactly the variables its parser reads, in the order it reads them, with the tool-prefixed name first whenever a name without the prefix is listed, and no name from `secret_env_vars`
 - Assert root `env_vars` lists every other variable the tool reads outside the universal exceptions, each with the tool prefix and a `description`, and no name that also appears in a flag's `env_vars` or a `secret_env_vars`
 - Assert `stdin` is present on exactly the commands that declare stdin input, with the `mode` the handler reads in, `record_schema` equal to the registered record type, and no `max_bytes` outside `buffered` mode
