@@ -14,7 +14,9 @@ The framework MUST register `--format <format>` as a standard flag on all comman
 
 `--format` is the sole canonical flag for selecting response representation. The framework SHOULD NOT expose aliases such as `--output` or `-o` for the same behavior, because aliases increase discovery ambiguity, complicate help and schema extraction, and reduce transferability of agent behavior across commands and tools.
 
-`--output` is reserved for a destination path. A command that writes its result to a file MUST name that flag `--output <path>` (or `--output-dir <path>` for a directory); it MUST NOT use `--output` to select a representation. When `--output <path>` is present, `--format` selects the representation written to the file and stdout carries the `ResponseEnvelope` describing the write. A command that registers `--output <path>` MUST reject a value that exactly matches a supported format name (`json`, `jsonl`, `tsv`, `plain`, `table`, `id`) with exit `2` and a suggestion naming `--format <value>`, instead of writing a file with that name.
+`--output` is reserved for a destination path. A command that writes its result to a file MUST name that flag `--output <path>` (or `--output-dir <path>` for a directory); it MUST NOT use `--output` to select a representation. When `--output <path>` is present, `--format` selects the representation written to the file (except for a binary result, below) and stdout carries the `ResponseEnvelope` describing the write. A command that registers `--output <path>` MUST reject a value that exactly matches a supported format name (`json`, `jsonl`, `tsv`, `plain`, `table`, `id`) with exit `2` and a suggestion naming `--format <value>`, instead of writing a file with that name.
+
+**Binary results.** A command whose result is a single binary value (the payload [REQ-F-017](f-017-binary-field-base64-encoding.md) wraps as `{"type": "binary", ...}`) is the exception: its result *is* a file (a downloaded report, an export dump, a rendered image), and no `--format` representation of it is that file. When such a command receives `--output <path>`, the framework MUST write the raw bytes to the path through the atomic-write primitive ([REQ-F-070](f-070-atomic-write-via-rename.md)), and `--format` selects only the representation of the response on stdout. The envelope's `data` describes the write as `{path, bytes, content_type, sha256}`: `bytes` is the byte count, `sha256` the lowercase hex digest of the file's contents, and `content_type` is present only when the command declares one. `--output -` on a binary result MUST exit `2` and write nothing, because stdout carries only envelopes. Without `--output`, the payload stays in the envelope as REQ-F-017 encodes it. The manifest marks a command that registers `--output <path>` with `output_file` (`"formatted"` or `"binary"`), so an agent knows before the call whether the file gets the `--format` representation or the raw bytes. Downloaders already behave this way (`curl -o`, `gh release download`, `aws s3 cp`).
 
 **Why not `--output`:** agents learn format selection from two conflicting traditions. Cloud CLIs (`aws`, `kubectl`, `az`, `helm`) use `--output json`; build and transfer tools (`gcc`, `curl`, `sort`, `pandoc`, `go build`) use `--output` for a file path. `--format` selects a representation wherever it appears (`gcloud`, `docker`, `git`, `pandoc`'s `--to`), and the representation applies to whatever destination the result goes to: stdout by default, the file named by `--output` otherwise. An agent that passes `--output json` to a path-typed flag gets exit `0`, an empty stdout, and a stray file named `json`; the reverse mistake (`--format report.json`) fails loudly as an unsupported value.
 
@@ -61,6 +63,11 @@ The framework has two distinct output contexts. The `--format` flag governs stru
 - No alias flag such as `--output` or `-o` selects the same response representation behavior
 - `--output json` on a command whose `--output` takes a path exits `2` with a suggestion naming `--format json`, and writes no file
 - `--format csv --output report.csv` writes CSV to `report.csv` and emits a `ResponseEnvelope` on stdout
+- `download --output report.xml --format json` on a command with a binary result writes the raw bytes to `report.xml`; stdout is a `ResponseEnvelope` whose `data.bytes` equals the file size and whose `data.sha256` matches the file's digest
+- `download --output -` on a command with a binary result exits `2` and writes nothing to stdout or to any file
+- `download` without `--output` returns the binary payload in the envelope as REQ-F-017 encodes it
+- A failed run of a command with a binary result leaves no file at the `--output` path
+- The manifest entry of every command that registers `--output <path>` carries `output_file`: `"binary"` when its result is binary, `"formatted"` otherwise
 - `--format` with a value outside the declared set (`--format jsn`, `--format '%H %s'`) exits `2`, lists the supported values, and writes nothing to stdout or to any file
 
 ---
@@ -70,6 +77,8 @@ The framework has two distinct output contexts. The `--format` flag governs stru
 **Type:** [`response-envelope.md`](../schemas/response-envelope.md)
 
 The `--format json` format uses the `ResponseEnvelope` shape. The `--format jsonl` and `--format tsv` formats use command-specific row shapes without the envelope wrapper.
+
+The manifest declares the `--output` behavior in `CommandEntry.output_file` ([`manifest-response.md`](../schemas/manifest-response.md)).
 
 ---
 
@@ -100,6 +109,27 @@ $ tool list --format jsonl
 {"id": "2", "name": "bob"}
 ```
 
+Binary result written to `--output`: the file holds the raw bytes, stdout holds the envelope describing the write:
+
+```bash
+$ tool download --output report.xml --format json
+```
+
+```json
+{
+  "ok": true,
+  "data": {
+    "path": "report.xml",
+    "bytes": 48213,
+    "content_type": "application/xml",
+    "sha256": "9f2c4a7e1b0d83f5c6a2e9d417b38c05f1e6a9d2c4b7e8f03a5d6c1b2e9f4a70"
+  },
+  "error": null,
+  "warnings": [],
+  "meta": { "exit_code": 0, "duration_ms": 812 }
+}
+```
+
 ---
 
 ## Example
@@ -123,6 +153,8 @@ app.enable_format_flag(formats=["json", "jsonl", "tsv", "plain"])
 |-------------|------|--------------|
 | [REQ-F-003](f-003-json-output-mode-auto-activation.md) | F | Extends: `--format json` makes auto-activation explicit and overridable |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Provides: `ResponseEnvelope` used by `--format json` mode |
+| [REQ-F-017](f-017-binary-field-base64-encoding.md) | F | Consumes: a binary result is written raw to `--output` instead of base64-encoded in the envelope |
+| [REQ-F-070](f-070-atomic-write-via-rename.md) | F | Consumes: every `--output` write, formatted or raw, goes through the atomic rename |
 | [REQ-F-079](f-079-global-option-scope.md) | F | Enforces: `--format` is accepted in any position on every command and listed in the manifest root `flags` |
 | [REQ-O-002](o-002-fields-selector.md) | O | Composes: `--fields` filters the `data` object within `--format json` responses |
 | [REQ-O-004](o-004-output-jsonl-stream-flag.md) | O | Specializes: `--format jsonl` is the non-buffered streaming variant |

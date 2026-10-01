@@ -100,3 +100,4 @@ register command "get-image":
 | [REQ-F-016](f-016-utf-8-sanitization-before-serialization.md) | F | Composes: binary encoding runs before UTF-8 sanitization to prevent mangling |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Provides: response envelope that carries the binary wrapper in `data` |
 | [REQ-C-015](c-015-commands-declare-input-and-output-schema.md) | C | Provides: output schema declaration mechanism used to annotate binary fields |
+| [REQ-O-001](o-001-output-format-flag.md) | O | Extends: with `--output <path>`, a binary result is written as raw bytes and the envelope describes the write |

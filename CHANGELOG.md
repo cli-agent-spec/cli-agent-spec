@@ -27,6 +27,19 @@
 - REQ-O-030: the `audit-log` cursor anchors on the last returned entry's `timestamp` plus `request_id`, never a file offset or rotated-file index. After pruning, the next page returns the older matches that remain, without error, and `total` may shrink; entries appended after the first page never appear on later pages. The invalid-cursor criterion now names exit `2` and `INVALID_CURSOR`, and new criteria cover a token reused with other filters, pruning between pages, and an entry appended between pages
 
 **Why:** both requirements said an invalid cursor "fails with a structured error" without an exit or error code, and left undefined what a token means under different filters or after rotation removes entries between pages, so frameworks would diverge and an agent could not branch on the failure (#15).
+### `--output` writes a binary result's raw bytes
+
+- REQ-O-001: when a command's result is a single binary value (REQ-F-017) and `--output <path>` is given, the file gets the raw bytes through the atomic write (REQ-F-070), and `--format` selects only the representation of the response on stdout
+- The envelope's `data` describes the write: `{path, bytes, content_type, sha256}`; `content_type` is present only when the command declares one
+- `--output -` on a binary result exits `2` and writes nothing; without `--output`, the payload stays base64-encoded in the envelope as before
+- Commands whose result is not binary are unchanged: `--format` still selects the file's representation
+
+**Why:** a downloader, exporter, or renderer's result is a file. Writing it "in the `--format` representation" produced a JSON or plain wrapper around base64, so such commands rolled their own path flag and file write and lost the atomic write, the no-file-on-failure guarantee, and a uniform envelope (#19).
+
+### ManifestResponse 3.3: file output is marked
+
+- `CommandEntry.output_file` (optional, `"formatted"` or `"binary"`) is present on every command that registers `--output <path>`, so an agent knows before the call whether the file gets the `--format` representation or the raw bytes (REQ-O-001)
+- A producer that sets `output_file` emits `schema_version` `3.3`; a `3.2` manifest stays valid
 
 ## 1.9.0 — 2026-09-30
 
