@@ -12,12 +12,16 @@
 
 The framework MUST automatically register `--input-file <path>` for any command that declares `stdin_input: true`. When `--input-file` is passed, the framework reads input from the file instead of stdin, bypassing the pipe buffer limit entirely. The file is read in streaming fashion; there is no size limit for file-based input. `--input-file -` is equivalent to stdin (preserving backward compatibility). The framework MUST document that payloads larger than 64KB should use `--input-file` rather than stdin piping.
 
+A line-mode command (`stdin_input: "lines"` or `"records"`, REQ-F-054) gets the same flag. It reads the file one line at a time with the command's per-line cap and no total cap, and `--input-file -` reads stdin as lines.
+
 ## Acceptance Criteria
 
 - `tool process --input-file /path/to/large.json` reads from the file, not stdin
 - `tool process --input-file -` reads from stdin (equivalent to piping)
 - A 10MB file passed via `--input-file` is processed successfully
-- A 10MB payload via stdin is rejected with `STDIN_TOO_LARGE` and `hint: "use --input-file"`
+- A 10MB payload via stdin to a buffered command is rejected with `STDIN_TOO_LARGE` and `hint: "use --input-file"`
+- A command that declares `stdin_input: "lines"` has `--input-file` registered, and a 10MB file of short lines passed through it is processed successfully
+- A file passed to a line-mode command whose third line exceeds the per-line cap exits `1` with `LINE_TOO_LARGE` and `context.line: 3`
 
 ---
 
@@ -49,7 +53,7 @@ $ tool process --input-file ./payload.json --format json
 
 ## Example
 
-Opt-in: automatically registered for commands that declare `stdin_input: true`.
+Opt-in: automatically registered for commands that declare `stdin_input: true`, `"lines"`, or `"records"`.
 
 ```
 register command "process":
@@ -75,3 +79,4 @@ $ cat payload.json | tool process --input-file -
 | [REQ-F-054](f-054-stdin-payload-size-cap-with-input-file-fallback.md) | F | Provides: the `STDIN_TOO_LARGE` error that directs callers to use this flag |
 | [REQ-F-009](f-009-non-interactive-mode-auto-detection.md) | F | Composes: non-TTY detection governs whether stdin is read at all |
 | [REQ-O-006](o-006-stdin-as-id-source.md) | O | Composes: stdin ID source and `--input-file` are complementary stdin patterns |
+| [REQ-O-004](o-004-output-jsonl-stream-flag.md) | O | Composes: a records consumer reads `--input-file <path>` as a finished stream, so end of file ends the input |

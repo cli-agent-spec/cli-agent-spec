@@ -108,7 +108,7 @@ ECOSYSTEM & AGENT-SPECIFIC
   □ Standard {ok, data, error, meta} envelope on all JSON responses
   □ Async job commands return job_id + status_command + poll_interval_ms; status uses exit 0/3/4/7
   □ Stdin reads declared in schema; non-TTY stdin reads fail immediately with exit 4
-  □ Subprocess invocations use exec-array; stdin payload capped at 64KB with --input-file fallback
+  □ Subprocess invocations use exec-array; buffered stdin payload capped at 64KB with --input-file fallback; line-mode stdin capped per line
   □ --schema returns full command tree in single call; no N+1 help round trips needed
   □ Auth errors distinguish CREDENTIALS_EXPIRED (exit 10) from PERMISSION_DENIED (exit 8)
   □ Conditional argument dependencies declared in schema; all missing co-args reported in one error

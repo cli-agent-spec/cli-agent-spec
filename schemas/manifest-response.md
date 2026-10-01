@@ -2,7 +2,7 @@
 
 **File:** [`manifest-response.json`](manifest-response.json)
 
-> **Used by:** [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-013](../requirements/o-013-schema-output-schema-flag.md) · [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) · [REQ-C-005](../requirements/c-005-interactive-commands-must-support-yes-non-interact.md) · [REQ-C-008](../requirements/c-008-multi-step-commands-emit-step-manifest.md) · [REQ-C-010](../requirements/c-010-background-process-commands-declare-metadata.md) · [REQ-C-011](../requirements/c-011-commands-declare-filesystem-side-effects.md) · [REQ-C-012](../requirements/c-012-commands-with-network-i-o-support-timeout.md) · [REQ-C-015](../requirements/c-015-commands-declare-input-and-output-schema.md) · [REQ-C-016](../requirements/c-016-secrets-accepted-only-via-env-var-or-file.md) · [REQ-C-018](../requirements/c-018-commands-declare-platform-requirements.md) · [REQ-C-019](../requirements/c-019-subprocess-invoking-commands-declare-argument-sche.md) · [REQ-C-020](../requirements/c-020-resource-id-fields-declare-validation-pattern.md) · [REQ-C-021](../requirements/c-021-auth-commands-declare-headless-mode-support.md) · [REQ-C-022](../requirements/c-022-async-commands-declare-job-descriptor-schema.md) · [REQ-C-023](../requirements/c-023-editor-requiring-commands-declare-non-interactive-.md) · [REQ-C-024](../requirements/c-024-gui-launching-commands-declare-headless-behavior.md) · [REQ-C-025](../requirements/c-025-config-writing-commands-declare-write-scope.md) · [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) · [REQ-C-027](../requirements/c-027-commands-declare-option-placement.md) · [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) · [REQ-F-051](../requirements/f-051-debug-and-trace-mode-secret-redaction.md) · [REQ-F-073](../requirements/f-073-env-var-namespace-prefix.md) · [REQ-F-079](../requirements/f-079-global-option-scope.md) · [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) · [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) · [REQ-O-042](../requirements/o-042-output-format-env-var-default.md) · [REQ-O-048](../requirements/o-048-destructive-commands-default-dry-run.md) · [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md)
+> **Used by:** [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-013](../requirements/o-013-schema-output-schema-flag.md) · [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) · [REQ-C-005](../requirements/c-005-interactive-commands-must-support-yes-non-interact.md) · [REQ-C-008](../requirements/c-008-multi-step-commands-emit-step-manifest.md) · [REQ-C-010](../requirements/c-010-background-process-commands-declare-metadata.md) · [REQ-C-011](../requirements/c-011-commands-declare-filesystem-side-effects.md) · [REQ-C-012](../requirements/c-012-commands-with-network-i-o-support-timeout.md) · [REQ-C-015](../requirements/c-015-commands-declare-input-and-output-schema.md) · [REQ-C-016](../requirements/c-016-secrets-accepted-only-via-env-var-or-file.md) · [REQ-C-018](../requirements/c-018-commands-declare-platform-requirements.md) · [REQ-C-019](../requirements/c-019-subprocess-invoking-commands-declare-argument-sche.md) · [REQ-C-020](../requirements/c-020-resource-id-fields-declare-validation-pattern.md) · [REQ-C-021](../requirements/c-021-auth-commands-declare-headless-mode-support.md) · [REQ-C-022](../requirements/c-022-async-commands-declare-job-descriptor-schema.md) · [REQ-C-023](../requirements/c-023-editor-requiring-commands-declare-non-interactive-.md) · [REQ-C-024](../requirements/c-024-gui-launching-commands-declare-headless-behavior.md) · [REQ-C-025](../requirements/c-025-config-writing-commands-declare-write-scope.md) · [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) · [REQ-C-027](../requirements/c-027-commands-declare-option-placement.md) · [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) · [REQ-F-051](../requirements/f-051-debug-and-trace-mode-secret-redaction.md) · [REQ-F-073](../requirements/f-073-env-var-namespace-prefix.md) · [REQ-F-079](../requirements/f-079-global-option-scope.md) · [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) · [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) · [REQ-O-042](../requirements/o-042-output-format-env-var-default.md) · [REQ-O-048](../requirements/o-048-destructive-commands-default-dry-run.md) · [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md) · [REQ-F-054](../requirements/f-054-stdin-payload-size-cap-with-input-file-fallback.md)
 > Returned as the `data` field of a [`ResponseEnvelope`](response-envelope.md).
 
 ---
@@ -56,6 +56,7 @@ Present only when the command declares them.
 |-------|------|-------------|
 | `output_file` | `"formatted"` \| `"binary"` \| `"handler"` \| `"envelope"` | Command registers `--output <path>`. `formatted`: the file gets the `--format` representation; `binary`: the file gets the raw bytes and `data` is `{path, bytes, content_type, sha256}`, and `--output -` exits `2`; `handler`: the handler writes the file, described by the command's documentation; `envelope`: the file gets the final `ResponseEnvelope` as JSON whatever `--format` says (REQ-O-001) |
 | `output_file_base` | `"cwd"` \| `"project_root"` \| `"resource"` | Directory a relative `--output` path resolves against; only with `output_file`, absent means `cwd`. An absolute path is used as given (REQ-O-001) |
+| `stdin` | `StdinDeclaration` | Command declares stdin input; `--input-file` exists and reads the same way. `mode` is `buffered` (whole, up to `max_bytes`), `lines` (one line at a time, each up to `max_line_bytes`, no total cap), or `records` (lines checked against `record_schema`, ended by a `_summary` line) (REQ-F-054, REQ-O-004) |
 | `option_placement` | `"any"` \| `"strict"` | `strict`: every option, global or local, precedes the first positional; absent means `any` (REQ-C-027) |
 | `interactive` | boolean | Command may prompt in a TTY; `--yes` and `--non-interactive` exist (REQ-C-005) |
 | `has_network_io` | boolean | Command performs network or long blocking I/O; `--timeout` exists (REQ-C-012) |
@@ -117,6 +118,7 @@ Present only when the command declares them.
 | `ConditionalRule` | One of `{ if_flag, if_value, then_required }`, `{ if_flag, prohibited }`, `{ if_flag, target_flag, default }`, `{ any_of }` (at least one listed flag present), `{ one_of }` (exactly one listed flag present); `any_of` and `one_of` list at least two distinct flags |
 | `DependencyEntry` | `name`, `check_command`, `min_version` required; `version_regex`, `fix_command` optional |
 | `EnvVarEntry` | `name` required; `deprecated` optional (boolean, absent means `false`); `description` optional in a flag's `env_vars`, required in root `env_vars` |
+| `StdinDeclaration` | `mode` (`buffered` \| `lines` \| `records`) required; `max_bytes` (buffered only, absent means `65536`), `max_line_bytes` (lines and records only, absent means `1048576`), `record_schema` (records only, required there) |
 
 ---
 
@@ -408,6 +410,62 @@ Every variable the tool reads has one home: `TOOL_FORMAT` backs `--format`, `TOO
 ```
 Violation: an `object` flag requires `schema`; without it an agent cannot build a value the command accepts.
 
+**Valid — a producer piped into a records consumer**
+```json
+{
+  "schema_version": "3.8",
+  "framework_version": "2.4.0",
+  "etag": "sha256:61c0de",
+  "commands": {
+    "import": {
+      "description": "Import a JSON payload as one batch",
+      "danger_level": "mutating",
+      "required_scopes": ["data:write"],
+      "stdin": { "mode": "buffered" },
+      "flags": {
+        "input-file": { "type": "string", "required": false, "description": "Read the payload from this path instead of stdin; - is stdin" }
+      },
+      "exit_codes": { "0": { "name": "SUCCESS", "description": "Batch imported", "retryable": false, "side_effects": "complete" } }
+    },
+    "tag": {
+      "description": "Tag each security read from stdin, one record per line",
+      "danger_level": "mutating",
+      "required_scopes": ["data:write"],
+      "stdin": {
+        "mode": "records",
+        "max_line_bytes": 65536,
+        "record_schema": {
+          "type": "object",
+          "required": ["id", "symbol"],
+          "properties": { "id": { "type": "string" }, "symbol": { "type": "string" } }
+        }
+      },
+      "flags": {
+        "input-file": { "type": "string", "required": false, "description": "Read the records from this path instead of stdin; - is stdin" }
+      },
+      "exit_codes": {
+        "0": { "name": "SUCCESS", "description": "Every record tagged", "retryable": false, "side_effects": "complete" },
+        "1": { "name": "GENERAL_ERROR", "description": "A line was too large, a record was invalid, or the upstream stream failed or ended early", "retryable": false, "side_effects": "partial" }
+      }
+    }
+  }
+}
+```
+`import` refuses more than 64 KiB on stdin; a bigger payload goes through `--input-file`. `tool list-securities --stream | tool tag` streams any number of records into `tag`, each line at most 64 KiB, and `tag` stops at the producer's `_summary` line.
+
+**Invalid — records mode without a record schema**
+```json
+{
+  "schema_version": "3.8",
+  "framework_version": "2.4.0",
+  "etag": "sha256:61c0de",
+  "commands": {
+    "tag": { "description": "Tag securities", "danger_level": "mutating", "required_scopes": [], "stdin": { "mode": "records" }, "flags": {}, "exit_codes": {} }
+  }
+}
+```
+Violation: `records` mode requires `record_schema`; without it an agent cannot tell which producers fit, and a command that checks nothing per line is `lines` mode.
+
 **Invalid — command entry without required contract fields**
 ```json
 {
@@ -469,6 +527,8 @@ Violation: a root `env_vars` entry requires `description`; no flag's `descriptio
 - **Declaring a JSON-valued flag as `type: "string"`.** The agent then has no shape to build and no signal that the value is parsed as JSON; declare `type: "object"` with `schema`
 - **Naming a flag's environment variables only in its `description`.** "(read from `$A` or `$B` when not passed)" is prose an agent must parse; list the names in `env_vars`, in precedence order
 - **Listing a secret in `env_vars`.** A token or password is not a flag value (REQ-C-016); declare its variable in `secret_env_vars`
+- **Declaring `stdin: {mode: "buffered"}` on a command that consumes a record stream.** The 64 KiB total cap then rejects any real pipeline; a command that handles one line at a time declares `lines` or `records`
+- **Declaring `max_bytes` on a `lines` or `records` command.** Line mode has no total cap, so the field is rejected; the per-line cap is `max_line_bytes`
 - **Listing a borrowed name before the tool-prefixed one.** `CLOUDFALL_PROJECT` ahead of `TOOL_PROJECT` lets a variable set for another tool override the one set for this tool (REQ-F-073)
 - **Reading a variable the manifest never names.** `TOOL_DEBUG` or `TOOL_AUDIT_LOG` backs no flag, so it belongs in root `env_vars`; documenting it only in a README leaves an agent unable to see that it changes the tool's behavior
 - **Listing one variable in two places.** A name in root `env_vars` appears in no flag's `env_vars` and no `secret_env_vars`; a variable that supplies a flag's value is declared on that flag only
@@ -503,6 +563,12 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - `output_file: "envelope"`: the file holds the final `ResponseEnvelope` as JSON whatever `--format` says; read `ok`, `data`, and `error` from the file, not from stdout
 - `output_file_base` other than `cwd`: a relative `--output` lands under the project root (`project_root`) or the target resource's directory (`resource`), not the working directory. Pass an absolute path when the file must land in a known place; it is used as given
 - `output_file` absent: the command takes no `--output`; a binary result arrives base64-encoded in `data` (REQ-F-017). Treat a pre-3.3 manifest the same way and read `output_schema` for a binary wrapper
+
+**Feeding stdin from `stdin`**
+- `mode: "buffered"`: pipe at most `max_bytes` (absent means `65536`); write anything bigger to a file and pass `--input-file <path>`, or the call exits `2` with `STDIN_TOO_LARGE`
+- `mode: "lines"` or `"records"`: pipe a stream of any length, each line at most `max_line_bytes` (absent means `1048576`); a longer line exits `1` with `LINE_TOO_LARGE` and `context.line`. When you write stdin and read stdout from the same thread, write the input to a file and pass `--input-file` instead; only a separate writer, such as the producer in a shell pipeline, keeps both pipes draining
+- `mode: "records"`: before piping a producer into the command, check the producer's item type against `record_schema`. Feed it a REQ-O-004 stream that ends with a `_summary` line; a stream without one exits `1` with `UPSTREAM_INCOMPLETE`, and an upstream error line exits `1` with `UPSTREAM_FAILED`
+- `stdin` absent on a `3.8` or later manifest: the command reads no stdin payload. On a pre-3.8 manifest, absent means unknown; treat a command that accepts `--input-file` as buffered with the 65536-byte cap
 
 **Building a call from `FlagEntry`**
 - A command's accepted flags are the root `flags` plus its own `flags`; a name in neither produces `ARG_ERROR (2)`
@@ -571,6 +637,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert every `type: "object"` flag carries a `schema` the parser enforces, and prefer `type: "object"` for every flag whose value the parser reads as a JSON object
 - Assert every flag's `env_vars` lists exactly the variables its parser reads, in the order it reads them, with the tool-prefixed name first whenever a name without the prefix is listed, and no name from `secret_env_vars`
 - Assert root `env_vars` lists every other variable the tool reads outside the universal exceptions, each with the tool prefix and a `description`, and no name that also appears in a flag's `env_vars` or a `secret_env_vars`
+- Assert `stdin` is present on exactly the commands that declare stdin input, with the `mode` the handler reads in, `record_schema` equal to the registered record type, and no `max_bytes` outside `buffered` mode
 - Assert `etag` changes when any command registration changes, and is stable across identical registrations (determinism test)
 
 **Tests to generate**
@@ -609,6 +676,8 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 | [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) | Sources: `TOOL_AUDIT_LOG` and the session variable listed in root `env_vars` |
 | [REQ-O-042](../requirements/o-042-output-format-env-var-default.md) | Sources: `TOOL_FORMAT` listed in the root `format` flag's `env_vars` |
 | [REQ-C-027](../requirements/c-027-commands-declare-option-placement.md) | Sources: `option_placement` per command |
+| [REQ-F-054](../requirements/f-054-stdin-payload-size-cap-with-input-file-fallback.md) | Sources: `stdin` mode and the `max_bytes` and `max_line_bytes` caps |
+| [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) | Sources: `streaming_default`, and the `records` mode a stream consumer reads in with its `record_schema` |
 | [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) | Sources: `requires` conditional rules |
 | [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) | Sources: top-level `dependencies` |
 | [schemas/exit-code-entry.md](exit-code-entry.md) | Provides: `ExitCodeEntry` type used in `exit_codes` map |

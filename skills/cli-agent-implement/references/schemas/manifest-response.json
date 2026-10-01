@@ -130,6 +130,10 @@
           "default": "cwd",
           "description": "Directory a relative --output path resolves against; an absolute path is used as given. Present only when output_file is; absent means cwd. cwd: the working directory of the invocation. project_root: the project root the tool resolves for the invocation, whatever the working directory. resource: the directory of the resource the command acts on, as its description states. Sourced from REQ-O-001."
         },
+        "stdin": {
+          "$ref": "#/definitions/StdinDeclaration",
+          "description": "How the command reads stdin: buffered whole, or line by line as plain lines or typed records. Sourced from REQ-F-054 and REQ-O-004."
+        },
         "option_placement": {
           "type": "string",
           "enum": ["any", "strict"],
@@ -381,6 +385,50 @@
       },
       "if": { "properties": { "type": { "const": "enum" } } },
       "then": { "required": ["enum_values"] }
+    },
+    "StdinDeclaration": {
+      "type": "object",
+      "description": "How the command reads stdin. Present when the command declares stdin input; --input-file <path> is then registered and reads the same way. Sourced from REQ-F-054 and REQ-O-004.",
+      "required": ["mode"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["buffered", "lines", "records"],
+          "description": "buffered: stdin is read whole before the handler runs, up to max_bytes. lines: the handler reads one line at a time as it asks, with no total cap and each line up to max_line_bytes. records: lines mode where each line is one JSON record checked against record_schema and the stream ends on a _summary line."
+        },
+        "max_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 65536,
+          "description": "Total stdin cap in bytes for buffered mode; TOOL_MAX_STDIN_BYTES overrides it at run time. Absent means 65536. Sourced from REQ-F-054."
+        },
+        "max_line_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1048576,
+          "description": "Cap in bytes on one line, line terminator excluded, for lines and records mode. Absent means 1048576. Sourced from REQ-F-054."
+        },
+        "record_schema": {
+          "type": "object",
+          "description": "JSON Schema draft-07 object one record must match in records mode. Compare it with a producer's output_schema item type before piping. Sourced from REQ-O-004.",
+          "additionalProperties": true
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "mode": { "const": "buffered" } } },
+          "then": { "not": { "anyOf": [{ "required": ["max_line_bytes"] }, { "required": ["record_schema"] }] } }
+        },
+        {
+          "if": { "properties": { "mode": { "const": "lines" } } },
+          "then": { "not": { "anyOf": [{ "required": ["max_bytes"] }, { "required": ["record_schema"] }] } }
+        },
+        {
+          "if": { "properties": { "mode": { "const": "records" } } },
+          "then": { "required": ["record_schema"], "not": { "required": ["max_bytes"] } }
+        }
+      ]
     },
     "Example": {
       "type": "object",

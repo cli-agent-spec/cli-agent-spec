@@ -635,7 +635,7 @@ Coverage % = (✓ + 0.5 × ~) / 75 × 100, rounded to one decimal place.
 - **Best covered by:** pydantic (✓), openapi (✓), mcp (✓) — structurally immune (no stdin consumption)
 - **Partially covered by:** argparse, typer, click, cobra, clap, commander-js, agentyper
 - **Affected:** python-fire (✗ — may consume stdin unexpectedly)
-- **Key insight:** The framework must enforce a stdin size cap (default 64 KB) and auto-register `--input-file` for any command that consumes stdin, redirecting large payloads to file-based input.
+- **Key insight:** The framework must enforce a stdin size cap (default 64 KB) on buffered stdin and auto-register `--input-file` for any command that consumes stdin, redirecting large payloads to file-based input. Commands that read a stream line by line cap each line instead.
 
 ---
 

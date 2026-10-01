@@ -58,3 +58,4 @@ $ mytool deploy
 | [REQ-F-030](f-030-child-process-session-tracking.md) | F | Composes: child process tracking ensures all pipeline stages are monitored |
 | [REQ-F-013](f-013-sigterm-handler-installation.md) | F | Composes: SIGTERM handler ensures stdout is flushed before the process exits in a pipeline |
 | [REQ-F-014](f-014-sigpipe-handler-installation.md) | F | Composes: SIGPIPE handler governs behavior when the downstream consumer closes the pipe |
+| [REQ-O-004](o-004-output-jsonl-stream-flag.md) | O | Composes: in a pipeline the caller's shell runs, a records consumer reports the upstream failure itself (`UPSTREAM_FAILED`, `UPSTREAM_INCOMPLETE`) |

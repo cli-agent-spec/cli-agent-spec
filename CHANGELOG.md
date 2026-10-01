@@ -82,6 +82,19 @@
 
 **Why:** a flag that takes a JSON object had to declare itself a `string` and describe the shape in prose, and an agent writing to a project-relative `--output` from a subdirectory looked for the file under its working directory (#24).
 
+### ManifestResponse 3.8: line-mode stdin and records consumers
+
+- REQ-F-054: the 65536-byte cap (`TOOL_MAX_STDIN_BYTES`, exit `2` `STDIN_TOO_LARGE`) now names buffered stdin, and is unchanged there. A command that declares line mode (`stdin_input: "lines"` or `"records"`) reads nothing before the handler runs and gets one line at a time, with no total cap and a per-line cap (default 1048576 bytes). A longer line exits `1` with `LINE_TOO_LARGE` and `context.line`: `1`, not `2`, because the handler has already started (REQ-F-002)
+- REQ-F-054 and §61: line mode avoids the pipe deadlock only when a separate process writes stdin, as in a shell pipeline; a caller that writes stdin and reads stdout from one thread still uses `--input-file`
+- REQ-O-039: `--input-file` is registered on line-mode commands too and reads the file as lines with the same per-line cap; `--input-file -` reads stdin as lines
+- REQ-O-004: a stream ends with one terminal line, the `_summary` line on success or the error `ResponseEnvelope` (`ok: false`) when the command fails after its first line
+- REQ-O-004: a records consumer skips blank and heartbeat lines (REQ-O-038), validates each other line against its record type, and stops at the `_summary` line. An upstream error envelope exits `1` with `UPSTREAM_FAILED` (`context.line`, `upstream`, `upstream_exit_code`), end of stdin without a terminal line exits `1` with `UPSTREAM_INCOMPLETE` (`context.line`, `records`), and an invalid line exits `1` with `RECORD_INVALID` (`context.line`, `field`); all carry `retryable: false`. Read through `--input-file <path>`, end of file ends the input without a `_summary` line
+- `CommandEntry.stdin` (optional, `{mode, max_bytes?, max_line_bytes?, record_schema?}`) declares how a command reads stdin: `buffered` with `max_bytes`, `lines` with `max_line_bytes`, or `records` with `max_line_bytes` and a required `record_schema`. An agent picks a pipe or `--input-file` and matches a producer's items to `record_schema` before the call
+- REQ-F-065 links to REQ-O-004 for pipelines the caller's shell runs, and §56 names the records consumer errors as a framework defense
+- A producer that sets `stdin` emits `schema_version` `3.8`; older manifests stay valid
+
+**Why:** REQ-F-054 capped every stdin read at 64 KiB, so an NDJSON pipeline of 300 records of 320 bytes failed with `STDIN_TOO_LARGE`, and a consumer of another command's stream could not tell a failed or truncated upstream run from short valid input (#26).
+
 ## 1.9.0 — 2026-09-30
 
 ### Audit log and logger rotation defaults are recommendations
