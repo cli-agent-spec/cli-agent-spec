@@ -186,7 +186,7 @@ A tool that manages versioned cloud resources should look like **kubectl + terra
 
 ### Tool-specific variables (always use `TOOLNAME_` prefix)
 
-See REQ-F-073. All tool-specific env vars must be namespaced to prevent cross-tool contamination in multi-tool agent pipelines.
+See REQ-F-073. All tool-specific env vars must be namespaced to prevent cross-tool contamination in multi-tool agent pipelines. A flag may also read a service's established name or one shared across a tool family, but only when the manifest declares it in the flag's `env_vars` after the prefixed name.
 
 ---
 

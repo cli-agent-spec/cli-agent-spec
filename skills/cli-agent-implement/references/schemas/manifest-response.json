@@ -153,7 +153,7 @@
         "secret_env_vars": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "Environment variable names that supply secret values for this command. Sourced from REQ-C-016."
+          "description": "Environment variable names that supply secret values for this command. A secret is never a flag value, so these names never appear in FlagEntry.env_vars. Sourced from REQ-C-016."
         },
         "platform": {
           "type": "array",
@@ -279,9 +279,32 @@
           "type": "string",
           "enum": ["alphanumeric_id", "uuid", "semver", "filepath", "url"],
           "description": "Built-in validation preset for resource identifiers. Mutually exclusive with pattern. Sourced from REQ-C-020."
+        },
+        "env_vars": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/EnvVarEntry" },
+          "description": "Environment variables the flag reads when it is not passed, in precedence order: the first one set wins, and a passed flag beats them all. A list that holds a name without the tool prefix also holds the tool-prefixed name, first. Never lists a secret; secrets are declared in CommandEntry.secret_env_vars. Sourced from REQ-F-073."
         }
       },
       "not": { "required": ["pattern", "pattern_type"] }
+    },
+    "EnvVarEntry": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+          "description": "Exact environment variable name, such as TOOL_PROJECT."
+        },
+        "deprecated": {
+          "type": "boolean",
+          "default": false,
+          "description": "True when the variable is still read but slated for removal; set a non-deprecated name instead."
+        }
+      }
     },
     "PositionalEntry": {
       "type": "object",

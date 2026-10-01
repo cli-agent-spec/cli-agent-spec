@@ -21,12 +21,15 @@ If both `--format` and `<TOOLNAME>_FORMAT` are present, `--format` MUST take pre
 - `_FORMAT=table tool list` has no effect on output format selection
 - `TOOL_FORMAT=bogus tool list` fails with the same validation error shape and exit code as `tool list --format bogus`
 - Help and configuration discovery surfaces the exact env var name that the tool honors
+- `tool manifest` lists the name in the `env_vars` of the root `format` flag, for example `"env_vars": [{ "name": "TOOL_FORMAT" }]`
 
 ---
 
 ## Schema
 
-No dedicated schema type — this requirement defines process-level default selection and precedence without adding new wire-format fields
+**Types:** [`manifest-response.json`](../schemas/manifest-response.json) · [`manifest-response.md`](../schemas/manifest-response.md)
+
+No dedicated schema type. The variable is declared in `FlagEntry.env_vars` of the root `format` flag (ManifestResponse 3.4); this requirement otherwise defines process-level default selection and precedence.
 
 ---
 
@@ -82,3 +85,4 @@ $ tool list --format json
 | [REQ-O-001](o-001-output-format-flag.md) | O | Extends: `<TOOLNAME>_FORMAT` provides a process-level default for the canonical `--format` flag |
 | [REQ-F-003](f-003-json-output-mode-auto-activation.md) | F | Composes: auto-JSON still applies only when neither flag nor env var selected a format |
 | [REQ-O-016](o-016-no-config-flag.md) | O | Composes: `--no-config` still permits env var overrides including output-format defaults |
+| [REQ-F-073](f-073-env-var-namespace-prefix.md) | F | Specializes: `<TOOLNAME>_FORMAT` is a prefixed variable declared in the `format` flag's `env_vars` |

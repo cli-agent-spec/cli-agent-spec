@@ -41,6 +41,20 @@
 - `CommandEntry.output_file` (optional, `"formatted"` or `"binary"`) is present on every command that registers `--output <path>`, so an agent knows before the call whether the file gets the `--format` representation or the raw bytes (REQ-O-001)
 - A producer that sets `output_file` emits `schema_version` `3.3`; a `3.2` manifest stays valid
 
+### ManifestResponse 3.4: a flag declares the environment variables it reads
+
+- `FlagEntry.env_vars` (optional, an array of `{name, deprecated?}`) lists the variables a flag reads when it is not passed, in precedence order: the first one set wins, and a passed flag beats them all. Root `flags` use it too, so `--format` lists `TOOL_FORMAT` (REQ-O-042)
+- Agents set the first non-deprecated name instead of parsing the flag's `description`; on a pre-3.4 manifest an absent `env_vars` means unknown, not none
+- `secret_env_vars` keeps its meaning: a secret is never a flag value (REQ-C-016), so its variable never appears in `env_vars`
+- A producer that sets `env_vars` emits `schema_version` `3.4`; a `3.3` manifest stays valid
+
+### Declared environment variables without the tool prefix
+
+- REQ-F-073: a flag may read a variable outside the tool prefix and the universal exceptions, such as a service's established name or one shared across a tool family (`CLOUDFALL_PROJECT`), only when the manifest declares it in that flag's `env_vars` and the tool-prefixed name is listed first. The framework rejects a registration that reads an undeclared one
+- REQ-F-073's promise that the manifest lists every recognized variable now points at `env_vars` and `secret_env_vars`; its wire format no longer shows an `environment` field the schema never had
+
+**Why:** frameworks wrote "(read from `$A` or `$B` when not passed)" into flag descriptions because `FlagEntry` allowed no other place, and REQ-F-073 forbade the borrowed names outright. Contamination comes from variables a tool reads without saying so; a declared name is visible to the agent (#20).
+
 ## 1.9.0 — 2026-09-30
 
 ### Audit log and logger rotation defaults are recommendations
