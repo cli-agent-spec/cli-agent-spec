@@ -10,7 +10,7 @@
 
 ## Description
 
-The framework MUST define and enforce a fixed, documented exit code table. Commands MUST NOT exit with any code outside this table for a standard condition. The table MUST include: `0` (success), `1` (general error — last resort), `2` (argument/validation error — zero side effects guaranteed), `3` (operation started but failed mid-way, partial side effects), `4` (precondition not met), `5` (not found), `6` (conflict / already exists), `7` (permission denied — valid credentials, wrong access level), `8` (auth required — credentials missing or invalid), `9` (payment required), `10` (timeout — partial side effects possible), `11` (rate limited — retry after back-off), `12` (service unavailable), `13` (command redirected — use replacement verbatim). The framework MUST provide named constants for every code; commands MUST reference these constants, never literal integers.
+The framework MUST define and enforce a fixed, documented exit code table. Commands MUST NOT exit with any code outside this table for a standard condition. The table MUST include: `0` (success), `1` (general error — last resort), `2` (argument/validation error — zero side effects guaranteed), `3` (operation started but failed mid-way, partial side effects), `4` (precondition not met), `5` (not found), `6` (conflict / already exists), `7` (permission denied — valid credentials, wrong access level), `8` (auth required — credentials missing or invalid), `9` (payment required), `10` (timeout — partial side effects possible), `11` (rate limited — retry after back-off), `12` (service unavailable), `13` (command redirected — use replacement verbatim). The framework MUST provide named constants for every code; commands MUST reference these constants, never literal integers. A passthrough command ([REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md)) is the one exemption: it exits with the delegated tool's own code, reported as `DELEGATED_EXIT` when non-zero, and the table's meanings do not apply to that code.
 
 ## Acceptance Criteria
 
@@ -96,3 +96,4 @@ raise CommandError(5, "User not found")
 | [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Composes: error responses carry the emitted code in `meta.exit_code`; `error.code` may reuse its name |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Composes: envelope `ok` is derived from whether exit code is `SUCCESS` |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Exposes: manifest includes the exit code table per command |
+| [REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md) | C | Specializes: a passthrough command exits with the delegated tool's own code |

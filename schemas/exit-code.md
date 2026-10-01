@@ -139,6 +139,7 @@ Rules for agents consuming exit codes at runtime. Apply these when the response 
 - Envelope and process exit code disagree in either direction — treat the call as failed; the side that reports failure wins
 - `ok: false` but process exit code is `0` — a pipeline or wrapper masked the code (§56); use `meta.exit_code` for classification
 - Exit code says retryable but `error.retryable: false` — trust `error.retryable`; it is the more specific signal
+- Any code with `error.code: "DELEGATED_EXIT"` — a passthrough command (REQ-C-031) passed through its delegated tool's own code, and this table does not apply; a delegated `2` carries no zero-side-effect guarantee. The envelope is the last line of stderr
 
 **Retry budget**
 - Codes marked retryable do not imply infinite retries — apply a retry budget (e.g. 3 attempts) before escalating

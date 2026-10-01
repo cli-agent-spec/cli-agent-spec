@@ -2,7 +2,7 @@
 
 **File:** [`response-envelope.json`](response-envelope.json)
 
-> **Used by:** [REQ-F-004](../requirements/f-004-consistent-json-response-envelope.md) · [REQ-F-018](../requirements/f-018-pagination-metadata-on-list-commands.md) · [REQ-F-023](../requirements/f-023-tool-version-in-every-response.md) · [REQ-F-024](../requirements/f-024-request-id-and-trace-id-in-every-response.md) · [REQ-C-009](../requirements/c-009-multi-step-commands-report-completed-failed-skippe.md) · [REQ-C-013](../requirements/c-013-error-responses-include-code-and-message.md) · [REQ-C-014](../requirements/c-014-error-responses-include-retryable-and-retry-after-.md) · [REQ-C-028](../requirements/c-028-already-exists-response-pattern.md) · [REQ-C-030](../requirements/c-030-error-responses-include-fix-command.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-050](../requirements/o-050-tool-exec-built-in-command.md) · all commands in JSON output mode
+> **Used by:** [REQ-F-004](../requirements/f-004-consistent-json-response-envelope.md) · [REQ-F-018](../requirements/f-018-pagination-metadata-on-list-commands.md) · [REQ-F-023](../requirements/f-023-tool-version-in-every-response.md) · [REQ-F-024](../requirements/f-024-request-id-and-trace-id-in-every-response.md) · [REQ-C-009](../requirements/c-009-multi-step-commands-report-completed-failed-skippe.md) · [REQ-C-013](../requirements/c-013-error-responses-include-code-and-message.md) · [REQ-C-014](../requirements/c-014-error-responses-include-retryable-and-retry-after-.md) · [REQ-C-028](../requirements/c-028-already-exists-response-pattern.md) · [REQ-C-030](../requirements/c-030-error-responses-include-fix-command.md) · [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-050](../requirements/o-050-tool-exec-built-in-command.md) · all commands in JSON output mode
 
 ---
 
@@ -236,6 +236,18 @@ Present in `error.redirect` when exit code is `REDIRECTED (13)`.
 }
 ```
 
+**DELEGATED_EXIT — a passthrough command's tool exited non-zero**
+```json
+{
+  "ok": false,
+  "data": { "exit_code": 2 },
+  "error": { "code": "DELEGATED_EXIT", "message": "The delegated tool exited 2", "retryable": false },
+  "warnings": [],
+  "meta": { "exit_code": 2, "duration_ms": 412 }
+}
+```
+Written as the last line of stderr, not stdout, by a command declared `arguments: "passthrough"` (REQ-C-031). The `2` is the delegated tool's own code, not `ARG_ERROR`: it promises nothing about side effects.
+
 **Invalid — `ok` contradicts `meta.exit_code`**
 ```json
 {
@@ -281,6 +293,7 @@ Rules for agents parsing `ResponseEnvelope` at runtime, including handling malfo
 - Classify from the process exit code when you have it, otherwise from `meta.exit_code`
 - Process exit code and envelope disagree in either direction — treat the call as failed; the side reporting failure wins
 - `ok: false` with process exit code `0` — a pipeline or wrapper masked the code (§56); classify by `meta.exit_code`
+- `error.code: "DELEGATED_EXIT"` — a passthrough command (REQ-C-031) exited with its delegated tool's own code, repeated in `data.exit_code`; the code has no meaning from the framework's table, so a `2` here does not mean nothing changed. Do not retry; inspect state before reissuing
 - `ok: false` with non-null `data` — `data` is a declared failure payload (partial results, conflicting resource, check report); read `error` first and never treat `data` as the requested result
 
 **Missing or null fields**

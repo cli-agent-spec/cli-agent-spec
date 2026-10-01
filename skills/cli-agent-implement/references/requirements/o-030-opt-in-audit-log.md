@@ -27,7 +27,7 @@ Any other value (`true`, `off`, an empty string, a relative path) fails every in
 **Entry.** Each entry is one line of JSON matching [`audit-log-entry.json`](../schemas/audit-log-entry.json):
 
 - `timestamp`, `command`, `exit_code`, `duration_ms`, and `request_id` are always present. `command` MUST equal the invocation's `meta.command` exactly, in whichever spelling the framework uses consistently for it: space-separated (`config set`) or dot-separated (`config.set`)
-- `args` is the parsed argument map after REQ-F-034 redaction, never the raw argv. Framework flags that change what the invocation did (`--dry-run`, `--validate-only`, `--confirm-destructive`, `--no-injection-protection`) appear in it under their flag names
+- `args` is the parsed argument map after REQ-F-034 redaction, never the raw argv. Framework flags that change what the invocation did (`--dry-run`, `--validate-only`, `--confirm-destructive`, `--no-injection-protection`) appear in it under their flag names. A passthrough command (REQ-C-031) has no parsed map for the arguments it forwards, so `args` records them as `"argv": "[OMITTED]"`
 - `warnings` lists the `code` of every entry in the response's `warnings[]`, so an over-privileged credential (`CREDENTIAL_OVER_PRIVILEGED`, REQ-O-047) or disabled injection protection (`INJECTION_PROTECTION_DISABLED`, REQ-O-023) is recorded as a queryable code
 - `trace_id` is present when `TOOL_TRACE_ID` is set (REQ-F-025)
 - `session_id` is present when the agent runtime sets the framework's session variable. A framework that already reads an agent session id from a prefixed environment variable (for example to scope REQ-C-007 idempotency keys) uses that variable; otherwise the session variable is `<PREFIX>SESSION_ID`. The framework reads exactly one variable, records its value verbatim, derives `session_id` from nothing else, and documents the variable's name
@@ -211,3 +211,4 @@ $ TOOL_AUDIT_LOG=yes tool deploy --env prod
 | [REQ-O-023](o-023-no-injection-protection-flag.md) | O | Consumes: `INJECTION_PROTECTION_DISABLED` is recorded in the entry's `warnings` |
 | [REQ-O-027](o-027-tool-cleanup-built-in-command.md) | O | Composes: `tool cleanup` leaves the audit log in place |
 | [REQ-O-047](o-047-tool-check-permissions-built-in-command.md) | O | Consumes: `CREDENTIAL_OVER_PRIVILEGED` is recorded in the entry's `warnings` |
+| [REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md) | C | Consumes: a passthrough command's forwarded argv is recorded as `[OMITTED]` |

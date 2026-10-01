@@ -2,7 +2,7 @@
 
 **File:** [`manifest-response.json`](manifest-response.json)
 
-> **Used by:** [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-013](../requirements/o-013-schema-output-schema-flag.md) · [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) · [REQ-C-005](../requirements/c-005-interactive-commands-must-support-yes-non-interact.md) · [REQ-C-008](../requirements/c-008-multi-step-commands-emit-step-manifest.md) · [REQ-C-010](../requirements/c-010-background-process-commands-declare-metadata.md) · [REQ-C-011](../requirements/c-011-commands-declare-filesystem-side-effects.md) · [REQ-C-012](../requirements/c-012-commands-with-network-i-o-support-timeout.md) · [REQ-C-015](../requirements/c-015-commands-declare-input-and-output-schema.md) · [REQ-C-016](../requirements/c-016-secrets-accepted-only-via-env-var-or-file.md) · [REQ-C-018](../requirements/c-018-commands-declare-platform-requirements.md) · [REQ-C-019](../requirements/c-019-subprocess-invoking-commands-declare-argument-sche.md) · [REQ-C-020](../requirements/c-020-resource-id-fields-declare-validation-pattern.md) · [REQ-C-021](../requirements/c-021-auth-commands-declare-headless-mode-support.md) · [REQ-C-022](../requirements/c-022-async-commands-declare-job-descriptor-schema.md) · [REQ-C-023](../requirements/c-023-editor-requiring-commands-declare-non-interactive-.md) · [REQ-C-024](../requirements/c-024-gui-launching-commands-declare-headless-behavior.md) · [REQ-C-025](../requirements/c-025-config-writing-commands-declare-write-scope.md) · [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) · [REQ-C-027](../requirements/c-027-commands-declare-option-placement.md) · [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) · [REQ-F-051](../requirements/f-051-debug-and-trace-mode-secret-redaction.md) · [REQ-F-073](../requirements/f-073-env-var-namespace-prefix.md) · [REQ-F-079](../requirements/f-079-global-option-scope.md) · [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) · [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) · [REQ-O-042](../requirements/o-042-output-format-env-var-default.md) · [REQ-O-048](../requirements/o-048-destructive-commands-default-dry-run.md) · [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md) · [REQ-F-054](../requirements/f-054-stdin-payload-size-cap-with-input-file-fallback.md)
+> **Used by:** [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-013](../requirements/o-013-schema-output-schema-flag.md) · [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) · [REQ-C-005](../requirements/c-005-interactive-commands-must-support-yes-non-interact.md) · [REQ-C-008](../requirements/c-008-multi-step-commands-emit-step-manifest.md) · [REQ-C-010](../requirements/c-010-background-process-commands-declare-metadata.md) · [REQ-C-011](../requirements/c-011-commands-declare-filesystem-side-effects.md) · [REQ-C-012](../requirements/c-012-commands-with-network-i-o-support-timeout.md) · [REQ-C-015](../requirements/c-015-commands-declare-input-and-output-schema.md) · [REQ-C-016](../requirements/c-016-secrets-accepted-only-via-env-var-or-file.md) · [REQ-C-018](../requirements/c-018-commands-declare-platform-requirements.md) · [REQ-C-019](../requirements/c-019-subprocess-invoking-commands-declare-argument-sche.md) · [REQ-C-020](../requirements/c-020-resource-id-fields-declare-validation-pattern.md) · [REQ-C-021](../requirements/c-021-auth-commands-declare-headless-mode-support.md) · [REQ-C-022](../requirements/c-022-async-commands-declare-job-descriptor-schema.md) · [REQ-C-023](../requirements/c-023-editor-requiring-commands-declare-non-interactive-.md) · [REQ-C-024](../requirements/c-024-gui-launching-commands-declare-headless-behavior.md) · [REQ-C-025](../requirements/c-025-config-writing-commands-declare-write-scope.md) · [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) · [REQ-C-027](../requirements/c-027-commands-declare-option-placement.md) · [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) · [REQ-F-051](../requirements/f-051-debug-and-trace-mode-secret-redaction.md) · [REQ-F-073](../requirements/f-073-env-var-namespace-prefix.md) · [REQ-F-079](../requirements/f-079-global-option-scope.md) · [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) · [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) · [REQ-O-042](../requirements/o-042-output-format-env-var-default.md) · [REQ-O-048](../requirements/o-048-destructive-commands-default-dry-run.md) · [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md) · [REQ-F-054](../requirements/f-054-stdin-payload-size-cap-with-input-file-fallback.md) · [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md)
 > Returned as the `data` field of a [`ResponseEnvelope`](response-envelope.md).
 
 ---
@@ -58,6 +58,8 @@ Present only when the command declares them.
 | `output_file_base` | `"cwd"` \| `"project_root"` \| `"resource"` | Directory a relative `--output` path resolves against; only with `output_file`, absent means `cwd`. An absolute path is used as given (REQ-O-001) |
 | `stdin` | `StdinDeclaration` | Command declares stdin input; `--input-file` exists and reads the same way. `mode` is `buffered` (whole, up to `max_bytes`), `lines` (one line at a time, each up to `max_line_bytes`, no total cap), or `records` (lines checked against `record_schema`, ended by a `_summary` line) (REQ-F-054, REQ-O-004) |
 | `option_placement` | `"any"` \| `"strict"` | `strict`: every option, global or local, precedes the first positional; absent means `any` (REQ-C-027) |
+| `arguments` | `"declared"` \| `"passthrough"` | `passthrough`: every token after the command path goes verbatim to another tool, which owns stdout and the exit code; the envelope is the last line of stderr. Requires `option_placement: "strict"`, empty `flags`, and no `positionals`, and excludes `danger_level: "destructive"`; absent means `declared` (REQ-C-031) |
+| `help_argv` | string[] | Passthrough only: the argv forwarded in place of a lone `--help` or `-h` after the command path; absent means the token is forwarded unchanged (REQ-C-031) |
 | `interactive` | boolean | Command may prompt in a TTY; `--yes` and `--non-interactive` exist (REQ-C-005) |
 | `has_network_io` | boolean | Command performs network or long blocking I/O; `--timeout` exists (REQ-C-012) |
 | `steps` | string[] | Ordered step names of a multi-step command (REQ-C-008) |
@@ -466,6 +468,44 @@ Violation: an `object` flag requires `schema`; without it an agent cannot build 
 ```
 Violation: `records` mode requires `record_schema`; without it an agent cannot tell which producers fit, and a command that checks nothing per line is `lines` mode.
 
+**Valid — passthrough command that wraps another tool's parser**
+```json
+{
+  "schema_version": "3.9",
+  "framework_version": "1.4.0",
+  "etag": "sha256:c41d07",
+  "commands": {
+    "ingest": {
+      "description": "Run beangulp on bank statements; every argument goes to beangulp",
+      "danger_level": "mutating",
+      "required_scopes": [],
+      "arguments": "passthrough",
+      "help_argv": ["extract", "--help"],
+      "option_placement": "strict",
+      "flags": {},
+      "exit_codes": {
+        "2":  { "name": "ARG_ERROR", "description": "A framework option before the command path is invalid; the tool did not start", "retryable": false, "side_effects": "none" },
+        "10": { "name": "TIMEOUT", "description": "The delegated tool ran past the timeout; partial writes may have occurred", "retryable": false, "side_effects": "partial" }
+      }
+    }
+  }
+}
+```
+`ledger --format json ingest extract a.csv` hands `extract a.csv` to beangulp; beangulp writes stdout and chooses the exit code, and the envelope is the last line of stderr. `ledger ingest --help` runs beangulp with `extract --help`.
+
+**Invalid — passthrough command with interspersed options**
+```json
+{
+  "schema_version": "3.9",
+  "framework_version": "1.4.0",
+  "etag": "sha256:c41d07",
+  "commands": {
+    "ingest": { "description": "Run beangulp", "danger_level": "mutating", "required_scopes": [], "arguments": "passthrough", "option_placement": "any", "flags": {}, "exit_codes": {} }
+  }
+}
+```
+Violation: `arguments: "passthrough"` requires `option_placement: "strict"`; every token after the command path belongs to the delegated tool, so no option can follow it.
+
 **Invalid — command entry without required contract fields**
 ```json
 {
@@ -529,6 +569,8 @@ Violation: a root `env_vars` entry requires `description`; no flag's `descriptio
 - **Listing a secret in `env_vars`.** A token or password is not a flag value (REQ-C-016); declare its variable in `secret_env_vars`
 - **Declaring `stdin: {mode: "buffered"}` on a command that consumes a record stream.** The 64 KiB total cap then rejects any real pipeline; a command that handles one line at a time declares `lines` or `records`
 - **Declaring `max_bytes` on a `lines` or `records` command.** Line mode has no total cap, so the field is rejected; the per-line cap is `max_line_bytes`
+- **Marking a passthrough command only through `option_placement: "strict"` and its `description`.** `strict` also fits a command that parses its own options and forwards the rest; only `arguments: "passthrough"` tells an agent that stdout, the exit code, and every token after the path belong to another tool
+- **Declaring `help_argv` on a declared command.** The framework answers `--help` itself there; `help_argv` exists only where a lone `--help` would otherwise reach the delegated tool
 - **Listing a borrowed name before the tool-prefixed one.** `CLOUDFALL_PROJECT` ahead of `TOOL_PROJECT` lets a variable set for another tool override the one set for this tool (REQ-F-073)
 - **Reading a variable the manifest never names.** `TOOL_DEBUG` or `TOOL_AUDIT_LOG` backs no flag, so it belongs in root `env_vars`; documenting it only in a README leaves an agent unable to see that it changes the tool's behavior
 - **Listing one variable in two places.** A name in root `env_vars` appears in no flag's `env_vars` and no `secret_env_vars`; a variable that supplies a flag's value is declared on that flag only
@@ -611,6 +653,13 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - `async: true` — the response is a job descriptor; poll with its `status_command` instead of waiting on the call
 - `required_scopes` not covered by the active credential — expect `AUTH_REQUIRED (8)`; do not call until credentials change
 
+**Calling a passthrough command (`arguments: "passthrough"`)**
+- Put every global option and framework flag (`--format`, `--output`, `--timeout`) before the command path; every token after it goes to the delegated tool, `--help` and `--` included
+- Read stdout as the delegated tool's output, not as an envelope. The envelope is the last line of stderr; when that line is not an envelope, the framework rejected its own options before the tool started and the envelope is on stdout
+- Classify by `error.code`: `DELEGATED_EXIT` means the tool chose the exit code, and `data.exit_code` repeats it. A delegated `2` is the tool's usage error and does not rule out side effects; decide from `retryable`, which is `false`, not from the code
+- For the tool's own help, call `tool <cmd> --help`; the framework forwards `help_argv` when the command declares it
+- An absent `arguments` means `declared`, including on a pre-3.9 manifest; such a manifest cannot mark a passthrough command, so treat a `strict` command whose `description` says its arguments go to another tool as one
+
 **Manifest staleness**
 - If a command call returns `REDIRECTED (13)` for a path that exists in the manifest — the manifest is stale; re-fetch unconditionally and update the cache
 - If a call returns `ARG_ERROR (2)` for a flag shown as valid in the manifest — possible version skew; re-fetch manifest before retrying
@@ -635,6 +684,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert `output_file` is present on exactly the commands that register `--output <path>`, and is `"binary"` exactly when the command's result is a binary value, `"handler"` exactly when the handler writes the file, and `"envelope"` exactly when the framework writes the final envelope to it
 - Assert `output_file_base` appears only with `output_file`, and that a relative `--output` path lands under the declared base from a working directory other than that base
 - Assert every `type: "object"` flag carries a `schema` the parser enforces, and prefer `type: "object"` for every flag whose value the parser reads as a JSON object
+- Assert every `arguments: "passthrough"` command has `option_placement: "strict"`, empty `flags`, no `positionals`, and a `danger_level` other than `destructive`, and that `help_argv` appears only on such commands
 - Assert every flag's `env_vars` lists exactly the variables its parser reads, in the order it reads them, with the tool-prefixed name first whenever a name without the prefix is listed, and no name from `secret_env_vars`
 - Assert root `env_vars` lists every other variable the tool reads outside the universal exceptions, each with the tool prefix and a `description`, and no name that also appears in a flag's `env_vars` or a `secret_env_vars`
 - Assert `stdin` is present on exactly the commands that declare stdin input, with the `mode` the handler reads in, `record_schema` equal to the registered record type, and no `max_bytes` outside `buffered` mode
@@ -679,6 +729,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 | [REQ-F-054](../requirements/f-054-stdin-payload-size-cap-with-input-file-fallback.md) | Sources: `stdin` mode and the `max_bytes` and `max_line_bytes` caps |
 | [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) | Sources: `streaming_default`, and the `records` mode a stream consumer reads in with its `record_schema` |
 | [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) | Sources: `requires` conditional rules |
+| [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) | Sources: `arguments` and `help_argv` per command |
 | [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) | Sources: top-level `dependencies` |
 | [schemas/exit-code-entry.md](exit-code-entry.md) | Provides: `ExitCodeEntry` type used in `exit_codes` map |
 | [schemas/response-envelope.md](response-envelope.md) | Wraps: manifest is returned as the `data` field of a `ResponseEnvelope` |

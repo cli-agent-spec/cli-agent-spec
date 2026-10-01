@@ -20,7 +20,7 @@
     "args": {
       "type": "object",
       "additionalProperties": true,
-      "description": "Parsed argument map after REQ-F-034 redaction, keyed by argument name. Never the raw argv. Framework flags such as dry_run and confirm_destructive appear under their flag names."
+      "description": "Parsed argument map after REQ-F-034 redaction, keyed by argument name. Never the raw argv. Framework flags such as dry_run and confirm_destructive appear under their flag names. A passthrough command (REQ-C-031) records its forwarded argv as argv: [OMITTED]."
     },
     "exit_code": {
       "type": "integer",

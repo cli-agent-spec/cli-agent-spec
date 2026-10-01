@@ -19,6 +19,7 @@
       "limitation": "Without semantic exit codes the agent must parse error text to decide retry safety — unreliable across versions and locales",
       "requirements": [
         "REQ-C-001",
+        "REQ-C-031",
         "REQ-F-001",
         "REQ-F-002"
       ],
@@ -74,6 +75,7 @@
       "tier": "B",
       "limitation": "If a tool routes structured data to stderr or mixes help text and JSON in the same stream with no separator, there is no reliable parse strategy — the tool requires a fix from its author before it can be safely used by agents",
       "requirements": [
+        "REQ-C-031",
         "REQ-F-006",
         "REQ-F-048",
         "REQ-O-025"
@@ -366,7 +368,7 @@
         6
       ],
       "problem": "Many CLI tools begin executing — creating files, sending requests, modifying state — before validating all their arguments. When validation fails mid-execution, the tool has already caused partial side effects that must be undone.\n\n**Validation scattered through execution:**\n```bash\n$ tool deploy --env prod --version 1.2.3 --notify-slack \"#invalid channel\"\n# Step 1: connect to prod ✓\n# Step 2: deploy version 1.2.3 ✓  ← side effect happened\n# Step 3: notify slack → Error: invalid channel name\nexit 1\n# Deployment happened, notification didn't. Partial success with exit 1.\n# Agent sees failure, may retry → redeploys unnecessarily\n```\n\n**Required arg not validated until needed:**\n```bash\n$ tool backup --destination s3://my-bucket --encrypt --key-file /missing.pem\n# Starts backup (writes 2GB to temp)\n# Reaches encryption step → Error: key file not found\n# 2GB of temp data must be cleaned up\n# Wasted time, disk I/O, and the agent's turn budget\n```\n\n**Type validation only on use:**\n```bash\n$ tool process --workers \"abc\"\n# Starts processing\n# Spawns worker pool → Error: invalid literal for int(): 'abc'\n# Work already partially started\n```",
-      "workaround": "**Signature:** argument or type error (`invalid literal`, `not found`) appears only after progress output; `exit 1` not `exit 2`; side effects exist despite the bad argument\n\n**Tier:** B (one observable check, then one command)\n\n**Use `--validate-only` before executing mutating commands when available:**\n\n```python\n# Dry-run validation first — no side effects\nvalidate_result = run([*cmd, \"--validate-only\"])\nif validate_result.returncode == 2:\n    errors = json.loads(validate_result.stdout).get(\"errors\", [])\n    # Fix argument errors before executing\n    raise ValueError(f\"Argument errors: {errors}\")\n\n# Only execute after validation passes\nresult = run(cmd)\n```\n\n**Detect validation failure by exit code:**\n```python\nresult = run(cmd)\nif result.returncode == 2:\n    # Validation failure — no side effects occurred, safe to fix and retry\n    parsed = json.loads(result.stdout)\n    bad_params = [e[\"param\"] for e in parsed.get(\"errors\", [])]\nelif result.returncode != 0:\n    # Execution failure — side effects may have occurred, check state before retrying\n    pass\n```\n\n**Limitation:** If the tool does not distinguish exit 2 (validation) from exit 1 (execution failure), the agent cannot safely determine whether a retry would cause duplicate side effects — treat any non-zero exit from a mutating command as potentially having caused partial side effects"
+      "workaround": "**Signature:** argument or type error (`invalid literal`, `not found`) appears only after progress output; `exit 1` not `exit 2`; side effects exist despite the bad argument\n\n**Tier:** B (one observable check, then one command)\n\n**Use `--validate-only` before executing mutating commands when available:**\n\n```python\n# Dry-run validation first — no side effects\nvalidate_result = run([*cmd, \"--validate-only\"])\nif validate_result.returncode == 2:\n    errors = json.loads(validate_result.stdout).get(\"errors\", [])\n    # Fix argument errors before executing\n    raise ValueError(f\"Argument errors: {errors}\")\n\n# Only execute after validation passes\nresult = run(cmd)\n```\n\n**Detect validation failure by exit code:**\n```python\nresult = run(cmd)\nif result.returncode == 2:\n    # Validation failure — no side effects occurred, safe to fix and retry\n    parsed = json.loads(result.stdout)\n    bad_params = [e[\"param\"] for e in parsed.get(\"errors\", [])]\nelif result.returncode != 0:\n    # Execution failure — side effects may have occurred, check state before retrying\n    pass\n```\n\nA command declared `arguments: \"passthrough\"` in the manifest is the exception: its `2` may be the wrapped tool's own, marked `error.code: \"DELEGATED_EXIT\"` in the envelope on the last stderr line, and promises nothing about side effects ([REQ-C-031](../../requirements/c-031-passthrough-commands-delegate-to-another-parser.md)).\n\n**Limitation:** If the tool does not distinguish exit 2 (validation) from exit 1 (execution failure), the agent cannot safely determine whether a retry would cause duplicate side effects — treat any non-zero exit from a mutating command as potentially having caused partial side effects"
     },
     {
       "id": 15,
@@ -1657,6 +1659,7 @@
       "limitation": "A CLI that supports neither `--` nor global options after the command path may reject parts of the canonical order, and without a manifest the global/local split is a guess; one failed call confirms which flags belong to the root",
       "requirements": [
         "REQ-C-027",
+        "REQ-C-031",
         "REQ-F-067",
         "REQ-F-079"
       ],

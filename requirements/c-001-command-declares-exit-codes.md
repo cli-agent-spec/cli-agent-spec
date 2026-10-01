@@ -10,7 +10,7 @@
 
 ## Description
 
-Every command MUST declare a complete, exhaustive map of all exit codes it may emit, as part of its registration metadata. The framework MUST refuse to register a command that lacks this declaration. The exit code map MUST use the framework's named constants (REQ-F-001). The declared exit codes MUST be exposed in the command's `--schema` output.
+Every command MUST declare a complete, exhaustive map of all exit codes it may emit, as part of its registration metadata. The framework MUST refuse to register a command that lacks this declaration. The exit code map MUST use the framework's named constants (REQ-F-001). The declared exit codes MUST be exposed in the command's `--schema` output. A passthrough command ([REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md)) declares only the codes the framework emits for it; the delegated tool's own codes pass through as `DELEGATED_EXIT` undeclared.
 
 ## Acceptance Criteria
 
@@ -104,3 +104,4 @@ register command "broken":
 | [REQ-C-015](c-015-commands-declare-input-and-output-schema.md) | C | Composes: `exit_codes` is part of the `--schema` output |
 | [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Composes: error responses reference the codes declared here |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Aggregates: manifest collects exit code declarations from all commands |
+| [REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md) | C | Specializes: a passthrough command does not declare the delegated tool's codes |

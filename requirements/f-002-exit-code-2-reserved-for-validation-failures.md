@@ -10,7 +10,7 @@
 
 ## Description
 
-The framework MUST ensure that exit code `2` is emitted if and only if command execution was aborted during input validation, before any side effect occurred. The framework MUST guarantee this by enforcing the validate-before-execute phase boundary (see REQ-F-015). A command that exits `2` requires no cleanup or rollback; the caller corrects the input and reissues. The error response carries `retryable: false` (the identical invocation fails deterministically) with `fix_required` stating the correction.
+The framework MUST ensure that exit code `2` is emitted if and only if command execution was aborted during input validation, before any side effect occurred. The framework MUST guarantee this by enforcing the validate-before-execute phase boundary (see REQ-F-015). A command that exits `2` requires no cleanup or rollback; the caller corrects the input and reissues. The error response carries `retryable: false` (the identical invocation fails deterministically) with `fix_required` stating the correction. A passthrough command ([REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md)) is exempt for the delegated tool's own `2`, which carries `error.code: "DELEGATED_EXIT"` and no zero-side-effect guarantee; the framework's own `ARG_ERROR` for that command keeps this guarantee.
 
 ## Acceptance Criteria
 
@@ -77,3 +77,4 @@ Framework-Automatic: no command author action needed. The framework enforces the
 | [REQ-F-015](f-015-validate-before-execute-phase-order.md) | F | Enforces: phase boundary that makes the `ARG_ERROR` guarantee enforceable |
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Consumes: `ARG_ERROR` must appear in every command's declared exit code map |
 | [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Composes: error response carries `phase` field alongside `code` and `message` |
+| [REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md) | C | Specializes: a delegated `2` from a passthrough command is not `ARG_ERROR` and promises nothing about side effects |
