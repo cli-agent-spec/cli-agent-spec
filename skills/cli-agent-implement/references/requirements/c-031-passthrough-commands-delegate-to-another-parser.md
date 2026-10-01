@@ -77,7 +77,10 @@ Manifest entry:
       "help_argv": ["extract", "--help"],
       "option_placement": "strict",
       "flags": {},
-      "exit_codes": {}
+      "exit_codes": {
+        "2":  { "name": "ARG_ERROR", "description": "A framework option before the command path is invalid; the tool did not start", "retryable": false, "side_effects": "none" },
+        "10": { "name": "TIMEOUT", "description": "The delegated tool ran past the timeout; partial writes may have occurred", "retryable": false, "side_effects": "partial" }
+      }
     }
   }
 }
