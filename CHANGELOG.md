@@ -65,6 +65,14 @@
 
 **Why:** REQ-F-073 promises that `tool manifest` lists every variable the tool recognizes, but after 3.4 the manifest had homes only for flag-backed variables and secrets, and its root rejects unknown fields, so `<TOOLNAME>_DEBUG` and the audit log's variables could not appear anywhere (#23).
 
+### ManifestResponse 3.6: handler-written and envelope `--output` files
+
+- `CommandEntry.output_file` gains two values: `"handler"` (the command handler writes the file; the command's own documentation describes its contents and `--format` does not select it) and `"envelope"` (the framework writes the final `ResponseEnvelope` as JSON to the file whatever `--format` selects; `--format` shapes only stdout) (REQ-O-001)
+- The key stays on every command that registers `--output <path>`, so absence still means the command has no `--output`. New acceptance criterion: an `"envelope"` command given `--format plain` still writes a JSON envelope to the file
+- A producer that emits either value emits `schema_version` `3.6`; earlier manifests stay valid
+
+**Why:** `"formatted"` and `"binary"` both assume the framework renders the result into the file, so a command whose handler owns the path, or whose stdout carries something other than an envelope and saves the envelope to `--output`, fit neither and had to mislabel itself or omit the key, which reads as "no `--output`" (#27).
+
 ## 1.9.0 — 2026-09-30
 
 ### Audit log and logger rotation defaults are recommendations
