@@ -14,9 +14,9 @@ For commands that process or return large datasets, the framework MUST support `
 
 Commands that stream by default (see §76) MUST additionally declare `streaming_default: true`. A streaming-default command MUST accept `--no-stream` (equivalent to `--format json`) to return a buffered `ResponseEnvelope` for compatibility with envelope-only consumers. The `streaming_default` field MUST be advertised in the manifest and in `--help` text.
 
-A stream ends with exactly one terminal line. On success it is the summary line (`"_summary": true`). When the command fails after its first line, the terminal line is instead the error `ResponseEnvelope` (`"ok": false`, REQ-F-004), and the process exits with that envelope's `meta.exit_code`. A line holding `"_summary": true` or an `"ok"` boolean beside an `"error"` key is therefore never an item.
+A stream ends with exactly one terminal line. On success it is the summary line (`"_summary": true`). When the command fails after its first line, the terminal line is instead the error `ResponseEnvelope` (`"ok": false`, REQ-F-004), and the process exits with that envelope's `meta.exit_code`. A line holding `"_summary": true` or an `"ok"` boolean beside an `"error"` key is therefore never an item, and neither is a heartbeat line (`"heartbeat": true`, REQ-O-038).
 
-**Records consumers.** A command that reads such a stream from another command declares `stdin_input: "records"` with a record type; the manifest shows it as `CommandEntry.stdin` with `mode: "records"` and `record_schema` (ManifestResponse 3.8). The framework reads the stream through line mode (REQ-F-054, per-line cap, no total cap), skips blank lines, and classifies every other line in order:
+**Records consumers.** A command that reads such a stream from another command declares `stdin_input: "records"` with a record type; the manifest shows it as `CommandEntry.stdin` with `mode: "records"` and `record_schema` (ManifestResponse 3.8). The framework reads the stream through line mode (REQ-F-054, per-line cap, no total cap), skips blank lines and heartbeat lines (`"heartbeat": true`, REQ-O-038), and classifies every other line in order:
 
 - The summary line ends the input. The framework reads nothing after it and hands the handler no record for it
 - An error envelope (`"ok": false`) ends the run with exit `1` and error code `UPSTREAM_FAILED`. `context` carries `line` (1-based), `upstream` (the upstream `error` object, with the consumer's own secret redaction applied), and `upstream_exit_code` (the envelope's `meta.exit_code`)
@@ -29,7 +29,7 @@ All four failures happen after the handler has started, so they exit `1`, not `2
 
 - `--stream` causes output to begin appearing before the command completes
 - Each line of streaming output is a valid, self-contained JSON object
-- The final line of streaming output is a summary object containing `pagination` metadata
+- On success, the final line of streaming output is a summary object containing `pagination` metadata
 - A command that does not declare `supports_streaming: true` emits a warning when `--stream` is passed
 - A command that declares `streaming_default: true` emits JSONL without any flags
 - Passing `--no-stream` to a streaming-default command returns a valid `ResponseEnvelope`
@@ -41,6 +41,7 @@ All four failures happen after the handler has started, so they exit `1`, not `2
 - A records consumer fed a line that is not a JSON object, or a record missing a required field, exits `1` with `error.code: "RECORD_INVALID"` and that line's number in `context.line`
 - A records consumer given `--input-file <path>` whose file has two items and no summary line hands the handler two records and exits `0`
 - Every one of these consumer errors carries `retryable: false`
+- A records consumer fed an item, a heartbeat line, an item, and a summary line hands the handler two records and exits `0`
 
 ---
 
@@ -183,5 +184,6 @@ register command "annotate":
 | [REQ-F-065](f-065-pipeline-exit-code-propagation.md) | F | Composes: REQ-F-065 covers pipelines the framework runs; `UPSTREAM_FAILED` and `UPSTREAM_INCOMPLETE` surface an upstream failure in a pipeline the caller's shell runs |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Wraps: a failed stream ends with the standard error envelope |
 | [REQ-O-039](o-039-input-file-flag-for-stdin-commands.md) | O | Composes: `--input-file <path>` feeds a records consumer a finished file, so end of file ends the input |
+| [REQ-O-038](o-038-heartbeat-ms-flag-for-long-running-commands.md) | O | Composes: a records consumer skips the producer's heartbeat lines, which are neither records nor terminal lines |
 | [§76](../challenges/04-critical-output-and-parsing/76-high-streaming-default-incompatibility.md) | — | Provides: failure mode when `streaming_default` is undeclared |
 | [Guide: Streaming vs Envelope](../guides/streaming-vs-envelope.md) | — | Provides: decision criteria for choosing streaming-default vs envelope-default |
