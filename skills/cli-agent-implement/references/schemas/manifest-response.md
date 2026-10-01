@@ -54,7 +54,7 @@ Present only when the command declares them.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `output_file` | `"formatted"` \| `"binary"` | Command registers `--output <path>`. `formatted`: the file gets the `--format` representation; `binary`: the file gets the raw bytes and `data` is `{path, bytes, content_type, sha256}`; `--output -` exits `2` (REQ-O-001) |
+| `output_file` | `"formatted"` \| `"binary"` \| `"handler"` \| `"envelope"` | Command registers `--output <path>`. `formatted`: the file gets the `--format` representation; `binary`: the file gets the raw bytes and `data` is `{path, bytes, content_type, sha256}`, and `--output -` exits `2`; `handler`: the handler writes the file, described by the command's documentation; `envelope`: the file gets the final `ResponseEnvelope` as JSON whatever `--format` says (REQ-O-001) |
 | `option_placement` | `"any"` \| `"strict"` | `strict`: every option, global or local, precedes the first positional; absent means `any` (REQ-C-027) |
 | `interactive` | boolean | Command may prompt in a TTY; `--yes` and `--non-interactive` exist (REQ-C-005) |
 | `has_network_io` | boolean | Command performs network or long blocking I/O; `--timeout` exists (REQ-C-012) |
@@ -310,6 +310,38 @@ Each flag is optional on its own; the `one_of` rule makes exactly one of them ma
 ```
 Every variable the tool reads has one home: `TOOL_FORMAT` backs `--format`, `TOOL_TOKEN` is a secret, and the four that back no flag sit in root `env_vars`, each described because no flag's `description` covers it.
 
+**Valid — commands whose `--output` is not a `--format` rendering**
+```json
+{
+  "schema_version": "3.6",
+  "framework_version": "2.4.0",
+  "etag": "sha256:51c8e0",
+  "commands": {
+    "build": {
+      "description": "Compile the project into a single executable written to --output",
+      "danger_level": "mutating",
+      "required_scopes": [],
+      "output_file": "handler",
+      "flags": {
+        "output": { "type": "string", "required": true, "description": "Path of the compiled executable" }
+      },
+      "exit_codes": { "0": { "name": "SUCCESS", "description": "Executable written", "retryable": false, "side_effects": "complete" } }
+    },
+    "test": {
+      "description": "Run the test suite, streaming the runner's own output",
+      "danger_level": "safe",
+      "required_scopes": [],
+      "output_file": "envelope",
+      "flags": {
+        "output": { "type": "string", "required": false, "description": "Path that receives the final JSON envelope" }
+      },
+      "exit_codes": { "0": { "name": "SUCCESS", "description": "All tests passed", "retryable": false, "side_effects": "none" } }
+    }
+  }
+}
+```
+`tool build --output app` writes the executable the command describes; `--format` does not change it. `tool test --output result.json --format plain` streams the runner's output to stdout and writes the final envelope to `result.json` as JSON.
+
 **Invalid — command entry without required contract fields**
 ```json
 {
@@ -366,6 +398,7 @@ Violation: a root `env_vars` entry requires `description`; no flag's `descriptio
 - **Marking every flag of an "exactly one of" group `required: true`.** No call can then satisfy the command; keep each flag `required: false` and declare the group as a `one_of` rule
 - **Emitting pairwise `prohibited` rules next to a `one_of` group.** `one_of` already forbids combining its members; the extra rules repeat the constraint and let the two drift apart
 - **Declaring `output_file: "formatted"` on a command that returns a binary result.** The file would then hold a JSON or plain wrapper around base64, not the file the caller asked for; a binary result is `"binary"`
+- **Omitting `output_file` because the handler writes the file itself.** Absence tells the agent the command has no `--output`; declare `"handler"`
 - **Naming a flag's environment variables only in its `description`.** "(read from `$A` or `$B` when not passed)" is prose an agent must parse; list the names in `env_vars`, in precedence order
 - **Listing a secret in `env_vars`.** A token or password is not a flag value (REQ-C-016); declare its variable in `secret_env_vars`
 - **Listing a borrowed name before the tool-prefixed one.** `CLOUDFALL_PROJECT` ahead of `TOOL_PROJECT` lets a variable set for another tool override the one set for this tool (REQ-F-073)
@@ -398,6 +431,8 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 **Writing a result to a file**
 - `output_file: "binary"`: pass `--output <path>` to get the file itself; `--format` then shapes only the envelope on stdout. Verify the write with `data.sha256` or `data.bytes` instead of reading the file back. Never pass `--output -`; it exits `2`
 - `output_file: "formatted"`: the file holds the `--format` representation of `data`, so choose `--format` for the file's consumer
+- `output_file: "handler"`: the command's handler writes the file; read the command's `description` for what it holds, and do not expect `--format` to change it
+- `output_file: "envelope"`: the file holds the final `ResponseEnvelope` as JSON whatever `--format` says; read `ok`, `data`, and `error` from the file, not from stdout
 - `output_file` absent: the command takes no `--output`; a binary result arrives base64-encoded in `data` (REQ-F-017). Treat a pre-3.3 manifest the same way and read `output_schema` for a binary wrapper
 
 **Building a call from `FlagEntry`**
@@ -461,7 +496,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert no `CommandEntry.flags` key or `short` value equals a root `flags` key or `short` value
 - Assert `positionals` lists every positional the parser accepts, in order, with no required entry after an optional one and `variadic` only on the last
 - Assert every command the framework registers, and each of its subcommands, carries `builtin: true`, and no application command does
-- Assert `output_file` is present on exactly the commands that register `--output <path>`, and is `"binary"` exactly when the command's result is a binary value
+- Assert `output_file` is present on exactly the commands that register `--output <path>`, and is `"binary"` exactly when the command's result is a binary value, `"handler"` exactly when the handler writes the file, and `"envelope"` exactly when the framework writes the final envelope to it
 - Assert every flag's `env_vars` lists exactly the variables its parser reads, in the order it reads them, with the tool-prefixed name first whenever a name without the prefix is listed, and no name from `secret_env_vars`
 - Assert root `env_vars` lists every other variable the tool reads outside the universal exceptions, each with the tool prefix and a `description`, and no name that also appears in a flag's `env_vars` or a `secret_env_vars`
 - Assert `etag` changes when any command registration changes, and is stable across identical registrations (determinism test)
