@@ -48,7 +48,7 @@ In all examples, the integer code is the surrounding map key; entries do not con
 { "name": "TIMEOUT", "description": "Deployment timed out — partial writes may have occurred", "retryable": false, "side_effects": "partial" }
 ```
 
-**Valid — timeout declared as retryable because the command is idempotent (map key `"10"`)**
+**Valid — timeout declared as retryable because no writes were attempted (map key `"10"`)**
 ```json
 { "name": "TIMEOUT", "description": "Config read timed out — no writes were attempted", "retryable": true, "side_effects": "none" }
 ```
@@ -71,7 +71,7 @@ Violation: `retryable` and `side_effects` are required.
 
 - **Omitting the `SUCCESS` entry (map key `"0"`).** Every command must declare it — even if the success path is obvious. The manifest and `--schema` output require it
 - **Using vague descriptions like `"Error"` or `"Failed"`.** The description must state the condition specifically so an agent can act without reading message text
-- **Setting `retryable: true` when side effects may have occurred.** The invariant is a hard guarantee. If any write could have occurred, `side_effects` must be `"partial"` and `retryable` must be `false`
+- **Setting `retryable: true` when side effects may have occurred.** The invariant is a hard guarantee. If any write could have occurred, `side_effects` must be `"partial"` and `retryable` must be `false`, even when rerunning is safe; declare that on the command as `idempotent: true` ([`manifest-response.md`](manifest-response.md))
 - **Setting `retryable: true` on validation errors.** Safe is not the same as useful: the identical call fails deterministically until the input changes. Declare `retryable: false`; the envelope carries `fix_required` for the correction
 - **Using `side_effects: "complete"` on failure codes.** `"complete"` means the intended operation finished — it is only appropriate for `SUCCESS (0)`
 - **Declaring only the happy path.** Every code the command may emit must have an entry. An undeclared code emitted at runtime is a contract violation
@@ -86,6 +86,8 @@ Rules for agents reading `ExitCodeEntry` values from a command's `--schema` outp
 **Using entries to plan retries**
 - If an entry has `retryable: true` and `side_effects: "none"` — the identical call may be re-run directly; no state inspection needed
 - If an entry has `retryable: true` and `side_effects: "partial"` — this is a schema violation (see invariant in **Values** above); treat conservatively as non-retryable until state is inspected
+- If an entry has `retryable: false` and `side_effects: "partial"`, and the command's manifest entry declares `idempotent: true` — rerun the identical command once without inspecting state; it converges on the state a clean run leaves. A second failure with the same `error.code` is deterministic: stop and escalate
+- The convergent rerun never applies to `ARG_ERROR (2)`, to an exit with `side_effects: "none"`, or to an error carrying `fix_required` or `fix_command`; those follow `retryable` and the fix fields. Without `idempotent: true`, inspect state before any rerun
 - If no entry exists for the received exit code — the command violated its contract; treat as `GENERAL_ERROR` behavior
 
 **Contradiction in received data**

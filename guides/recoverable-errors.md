@@ -27,13 +27,14 @@ The corresponding contracts: [REQ-C-013](../requirements/c-013-error-responses-i
 
 ## The three recovery classes
 
-Every failure your tool can emit belongs to exactly one class, and the field combination encodes which:
+Every failure your tool can emit belongs to exactly one class, and the field combination (with the command's `idempotent` declaration) encodes which:
 
 | Class | Encoding | Agent behavior |
 |-------|----------|----------------|
 | Transient | `retryable: true` (+ `retry_after_ms`) | Wait, reissue unchanged, bounded attempts |
 | Caller-correctable | `retryable: false` + `fix_required` (+ `fix_command`) | Apply the fix, reissue once |
-| Terminal | `retryable: false`, neither fix field | Stop; escalate with the error verbatim |
+| Convergent | `retryable: false`, neither fix field, `side_effects: "partial"` on a command declared `idempotent: true` | Rerun the identical command once; stop if it fails the same way |
+| Terminal | `retryable: false`, neither fix field, no convergent rerun | Stop; escalate with the error verbatim |
 
 The complete decision procedure an agent needs — and the test of your error design is that this is *all* it needs:
 
@@ -42,10 +43,14 @@ if error.retryable:            wait retry_after_ms, reissue (≤3 attempts)
 elif error.fix_command:        run it; if exit 0, reissue once
 elif error.fix_required:       apply the stated fix if achievable, reissue once;
                                else escalate with the condition
+elif command.idempotent and exit_entry.side_effects == "partial":
+                               reissue once unchanged; same error.code again: escalate
 else:                          stop, escalate verbatim
 ```
 
-If any error your tool emits requires logic outside these four lines, the error is misclassified or underspecified. The classification must hold under the spec's `retryable` semantics: `true` means the identical unchanged invocation may succeed and no side effects occurred (see [`exit-code.md`](../schemas/exit-code.md)); "the user could fix this and retry" is never `retryable: true` — it is caller-correctable.
+`exit_entry` is the command's declared `ExitCodeEntry` for the exit code received, and `command.idempotent` comes from its manifest entry ([REQ-C-002](../requirements/c-002-command-declares-danger-level.md)). The convergent rung sits below the fix rungs on purpose: an idempotent command still never reruns a validation failure (`exit 2` with `fix_required`), because the identical call fails until the input changes.
+
+If any error your tool emits requires logic outside these five branches, the error is misclassified or underspecified. The classification must hold under the spec's `retryable` semantics: `true` means the identical unchanged invocation may succeed and no side effects occurred (see [`exit-code.md`](../schemas/exit-code.md)); "the user could fix this and retry" is never `retryable: true` — it is caller-correctable. Neither is "rerunning converges": a command that wrote some files before failing declares the exit `retryable: false` with `side_effects: "partial"` and declares itself `idempotent`, so the invariant stays true and the agent still knows the rerun is safe.
 
 ---
 
@@ -135,6 +140,8 @@ The exit code carries the same classification out-of-band: `AUTH_REQUIRED (8)` h
 | [REQ-C-013](../requirements/c-013-error-responses-include-code-and-message.md) | Enforces: `code` + `message` (rung 1) |
 | [REQ-C-014](../requirements/c-014-error-responses-include-retryable-and-retry-after-.md) | Enforces: `retryable` + `retry_after_ms` + `fix_required` (rungs 2–3) |
 | [REQ-C-030](../requirements/c-030-error-responses-include-fix-command.md) | Enforces: executable `fix_command` (rung 4) with registration-time safety checks |
+| [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) | Enforces: the `idempotent` declaration behind the convergent rerun |
+| [§12 Idempotency & Safe Retries](../challenges/02-critical-execution-and-reliability/12-critical-idempotency.md) | Sources: the safe-retry failure the convergent rerun addresses |
 | [REQ-F-063](../requirements/f-063-credential-expiry-structured-error.md) | Specializes: auth-specific remediation fields |
 | [`response-envelope.md`](../schemas/response-envelope.md) | Provides: the `ErrorDetail` shape carrying all four rungs |
 | [`exit-code.md`](../schemas/exit-code.md) | Provides: the out-of-band classification (`retryable` semantics, *after fix* codes) |

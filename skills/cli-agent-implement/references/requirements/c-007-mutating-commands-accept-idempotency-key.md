@@ -14,6 +14,8 @@ Every command with `danger_level: "mutating"` or `"destructive"` MUST accept an 
 
 A streaming command (one that declares `supports_streaming: true`, REQ-O-004) is exempt and MUST NOT accept `--idempotency-key`, in its buffered answer as well as with `--stream`: a replay returns one stored result, and a stream is a sequence of events with no single result to return. The framework MUST refuse to register a streaming mutating command that accepts the flag. A streaming command is never destructive (REQ-O-004), so the exemption covers only `danger_level: "mutating"`; every non-streaming mutating or destructive command still MUST accept the key.
 
+The key deduplicates one request; it does not say that a repeat with the same arguments is safe. That property is the command's `idempotent` declaration ([REQ-C-002](c-002-command-declares-danger-level.md)), which tells an agent to recover a partial failure by rerunning the identical command. A non-streaming command declared `idempotent` still accepts `--idempotency-key`.
+
 ## Acceptance Criteria
 
 - Invoking a mutating command twice with the same `--idempotency-key` returns `effect: "noop"` on the second call
@@ -108,6 +110,7 @@ register command "create-order":
 |-------------|------|--------------|
 | [REQ-C-002](c-002-command-declares-danger-level.md) | C | Provides: `danger_level: mutating/destructive` triggers `--idempotency-key` requirement |
 | [REQ-C-003](c-003-mutating-commands-declare-effect-field.md) | C | Composes: `effect: "noop"` is the canonical response value for an idempotency-key hit |
+| [REQ-C-002](c-002-command-declares-danger-level.md) | C | Composes: `idempotent` declares convergence on rerun, which the key does not imply |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Wraps: idempotency response uses `ResponseEnvelope` |
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: `SUCCESS (0)` covers both the live execution and the noop case |
 | [REQ-O-004](o-004-output-jsonl-stream-flag.md) | O | Specializes: a streaming mutating command takes no `--idempotency-key` |
