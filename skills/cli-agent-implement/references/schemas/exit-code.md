@@ -119,7 +119,7 @@ Violation: `128 + SIGINT` is shell-reserved. A command must not choose it; only 
 
 - **Confusing `PERMISSION_DENIED (7)` and `AUTH_REQUIRED (8)`.** `PERMISSION_DENIED` means the credentials are valid but insufficient — retrying with the same credentials will never succeed. `AUTH_REQUIRED` means the credentials themselves are the problem
 
-- **Treating all `TIMEOUT (10)` exits as non-retryable.** For idempotent commands or read-only operations that time out without side effects, declare `retryable: true, side_effects: "none"` in `ExitCodeEntry`. Only declare `retryable: false` when partial writes may have occurred — the `ExitCodeEntry` invariant requires it when `side_effects` is `"partial"`
+- **Treating all `TIMEOUT (10)` exits as non-retryable.** For operations that time out before any write, declare `retryable: true, side_effects: "none"` in `ExitCodeEntry`. Declare `retryable: false` when partial writes may have occurred, even on a command declared `idempotent`: the `ExitCodeEntry` invariant requires it when `side_effects` is `"partial"`
 
 ---
 
@@ -149,7 +149,7 @@ Rules for agents consuming exit codes at runtime. Apply these when the response 
 
 **Side effects under uncertainty**
 - Code is `GENERAL_ERROR (1)` (side effects unknown) — treat as `side_effects: "partial"`; inspect state before retrying
-- Code is `TIMEOUT (10)` — partial side effects are possible; do not assume the operation is idempotent without checking
+- Code is `TIMEOUT (10)` — partial side effects are possible; do not assume the operation is idempotent unless its manifest entry declares `idempotent: true`, which makes rerunning the identical command once the recovery
 
 ---
 

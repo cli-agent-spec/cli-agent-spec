@@ -134,6 +134,7 @@ When no signal decides, these rules bound the damage. They restate the corpus-wi
 
 - Read-only command: retry once after a 1 s back-off; a second identical failure is deterministic — stop
 - Mutating command: never blind-retry; verify what was committed first ([§12](02-critical-execution-and-reliability/12-critical-idempotency.md), [§13](02-critical-execution-and-reliability/13-critical-partial-failure.md)); resume rather than re-run
+- Mutating command the manifest declares `idempotent: true`, after a non-retryable exit whose `ExitCodeEntry` declares `side_effects: "partial"`: rerun the identical command once without inspecting state; a second failure with the same `error.code` is deterministic, so stop. Never for `exit 2` or an error carrying `fix_required` or `fix_command`
 - Explicitly retryable signals (`retryable: true`, `exit 11`, `exit 12`): at most 3 attempts with exponential back-off
 - Unknown signals: at most 1 retry, then treat as non-retryable
 - Escalate with all four observables captured verbatim; never paraphrase stderr

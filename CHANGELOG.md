@@ -86,6 +86,16 @@
 
 **Why:** a mutating command that previews unless its own `--yes` is given could state that only in the flag's `description`, because `safe_default` is a boolean, destructive-only, and names `--live`. An agent reading the manifest expected a bare call to run (#40).
 
+### ManifestResponse 3.15: idempotent commands
+
+- `CommandEntry.idempotent` (optional boolean, absent means `false`): a repeat with the same arguments converges on the same state, whatever a previous attempt left behind. A delete of a named resource qualifies as much as a file rewrite; on a `safe` command the field is redundant and accepted without warning (REQ-C-002)
+- The `ExitCodeEntry` invariant is unchanged: a partial-failure exit of an idempotent command stays `retryable: false`, `side_effects: "partial"`, because `retryable: true` still promises that nothing was written
+- New agent rule: on a non-retryable exit whose entry declares `side_effects: "partial"` from a command declared `idempotent: true`, rerun the identical command once without inspecting state, and stop if it fails with the same `error.code`. The rule never covers `ARG_ERROR (2)` or an error carrying `fix_required` or `fix_command`. `guides/recoverable-errors.md` gains a convergent rung, and `exit-code-entry.md`, `exit-code.md`, `manifest-response.md`, §12, and `challenges/triage.md`'s default retry policy state the rule
+- REQ-C-002 and REQ-C-007 separate `idempotent` from `--idempotency-key`, which deduplicates one request and returns `effect: "noop"`; a command declared `idempotent` still accepts the key
+- A producer that sets `idempotent` emits `schema_version` `3.15`; a pre-3.15 manifest stays valid
+
+**Why:** a mutating command that is safe to rerun after a partial failure (a snapshot writer that rewrites one file per server) had nowhere to say so, and its only honest exit declaration, `retryable: false` with `side_effects: "partial"`, sent agents to inspect state before every rerun (#41).
+
 ## 1.10.0 — 2026-10-01
 
 ### ManifestResponse 3.2: group rules in requires

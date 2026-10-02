@@ -78,6 +78,7 @@ tool deploy --version 1.2.3 --dry-run
 - Mark commands as `safe` (read-only, always idempotent) or `unsafe` (mutating)
 - Require `--idempotency-key` for all `unsafe` commands, or generate one automatically
 - Exempt streaming commands from the key: a stream has no single result to replay, so each event carries its own `effect` and the summary line counts them (REQ-O-004)
+- Let a command declare `idempotent: true` when a repeat with the same arguments converges on the same state, whatever a previous attempt left behind; keep its partial-failure exits `retryable: false`, `side_effects: "partial"`
 - Emit `effect` field in all responses
 - Implement `--dry-run` as a framework-level feature, not per-command
 
@@ -120,6 +121,14 @@ if parsed.get("effect") == "noop":
     # Already completed — safe to treat as success
     pass
 ```
+
+**When the manifest declares the command `idempotent: true`, rerun it after a partial failure instead of inspecting state:**
+```bash
+# exit 3 (PARTIAL_FAILURE), entry declares retryable: false, side_effects: partial
+# idempotent: true, so the identical rerun converges; one attempt, then escalate
+tool observe
+```
+This covers non-retryable exits whose `ExitCodeEntry` declares `side_effects: "partial"`. It never covers `ARG_ERROR (2)` or an error carrying `fix_required` or `fix_command`; apply the fix first.
 
 **Before retrying a failed mutating call, check whether the operation succeeded:**
 ```bash

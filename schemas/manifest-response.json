@@ -84,6 +84,11 @@
           "enum": ["safe", "mutating", "destructive"],
           "description": "Mutation risk level. safe: read-only, no side effects on state (writes only cache, log, temp, or output paths); mutating: creates or modifies state; destructive: permanently deletes or irreversibly modifies state. Sourced from REQ-C-002."
         },
+        "idempotent": {
+          "type": "boolean",
+          "default": false,
+          "description": "True when a repeat with the same arguments converges on the same state, whatever a previous attempt left behind. A non-retryable exit whose ExitCodeEntry declares side_effects partial is then recovered by rerunning the identical command without inspecting state. Absent means false; redundant on a safe command. Distinct from --idempotency-key, which deduplicates one request. Sourced from REQ-C-002."
+        },
         "required_scopes": {
           "type": "array",
           "items": { "type": "string" },

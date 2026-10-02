@@ -59,6 +59,7 @@ Present only when the command declares them.
 | `output_file` | `"formatted"` \| `"binary"` \| `"handler"` \| `"envelope"` | Command registers `--output <path>`. `formatted`: the file gets the `--format` representation; `binary`: the file gets the raw bytes and `data` is `{path, bytes, content_type, sha256}`, and `--output -` exits `2`; `handler`: the handler writes the file, described by the command's documentation; `envelope`: the file gets the final `ResponseEnvelope` as JSON whatever `--format` says (REQ-O-001) |
 | `output_file_base` | `"cwd"` \| `"project_root"` \| `"resource"` | Directory a relative `--output` path resolves against; only with `output_file`, absent means `cwd`. An absolute path is used as given (REQ-O-001) |
 | `stdin` | `StdinDeclaration` | Command declares stdin input; `--input-file` exists and reads the same way. `mode` is `buffered` (whole, up to `max_bytes`), `lines` (one line at a time, each up to `max_line_bytes`, no total cap), or `records` (lines checked against `record_schema`, ended by a `_summary` line) (REQ-F-054, REQ-O-004) |
+| `idempotent` | boolean | A repeat with the same arguments converges on the same state, whatever a previous attempt left behind; a non-retryable exit with `side_effects: "partial"` is recovered by rerunning the identical command. Absent means `false`; redundant on a `safe` command. Not `--idempotency-key`, which deduplicates one request (REQ-C-002) |
 | `option_placement` | `"any"` \| `"strict"` | `strict`: every option, global or local, precedes the first positional; absent means `any` (REQ-C-027) |
 | `arguments` | `"declared"` \| `"passthrough"` | `passthrough`: every token after the command path goes verbatim to another tool, which owns stdout and the exit code; the envelope is the last line of stderr. Requires `option_placement: "strict"`, empty `flags`, and no `positionals`, and excludes `danger_level: "destructive"`; absent means `declared` (REQ-C-031) |
 | `help_argv` | string[] | Passthrough only: the argv forwarded in place of a lone `--help` or `-h` after the command path; absent means the token is forwarded unchanged (REQ-C-031) |
@@ -708,6 +709,30 @@ Violation: `stderr: "child_log"` promises that stdout carries only the envelope,
 ```
 Violation: `confirm_flag` excludes `safe_default: true`; a command has one confirmation mechanism, either the injected `--live` or its own flag.
 
+**Valid — idempotent command whose partial failure is rerun**
+```json
+{
+  "schema_version": "3.15",
+  "framework_version": "0.9.0",
+  "etag": "sha256:5be2a0",
+  "commands": {
+    "observe": {
+      "description": "Rewrite one snapshot file per server from its live state",
+      "danger_level": "mutating",
+      "idempotent": true,
+      "required_scopes": ["servers:read"],
+      "has_network_io": true,
+      "flags": {},
+      "exit_codes": {
+        "0": { "name": "SUCCESS", "description": "Every snapshot file is rewritten", "retryable": false, "side_effects": "complete" },
+        "3": { "name": "PARTIAL_FAILURE", "description": "Some snapshot files are rewritten and others are not", "retryable": false, "side_effects": "partial" }
+      }
+    }
+  }
+}
+```
+Exit `3` stays `retryable: false` because files were written. `idempotent: true` tells the agent that rerunning `tool observe` unchanged converges on the state a clean run leaves, so the rerun is the recovery and no state inspection comes first.
+
 **Invalid — command entry without required contract fields**
 ```json
 {
@@ -756,6 +781,8 @@ Violation: a root `env_vars` entry requires `description`; no flag's `descriptio
 - **Declaring a static `default` for a flag whose default depends on the environment.** `--format` resolves to `json` without a terminal and `plain` in one (REQ-F-003); omit `default` and state the rule in `description`, so an agent passes the value it needs
 - **Setting `default: null` for flags without a default.** Omit the key; `null` reads as "the default value is null"
 - **Declaring `retryable: true` with partial side effects in `exit_codes`.** The `ExitCodeEntry` invariant rejects it; timeouts that may have written are `retryable: false`
+- **Declaring `retryable: true` on a partial exit because the command is idempotent.** `retryable: true` still promises that nothing was written; keep the exit `retryable: false`, `side_effects: "partial"`, and declare `idempotent: true` on the command
+- **Declaring `idempotent: true` on a command that only deduplicates.** A command that skips a repeat by its `--idempotency-key` (REQ-C-007) but appends, increments, or sends on every new key does not converge; `idempotent` means the same arguments reach the same state with or without a key
 - **Repeating global options in every `CommandEntry.flags`.** A global option appears once, in the root `flags`; a copy inside a command reads as a local flag that happens to share the name, and hides whether it is accepted before the command path
 - **Reusing a global short alias for a local flag.** `-f` meaning `--format` at the root and `--force` on one command changes meaning with position; the framework rejects it at registration
 - **Generating the manifest from a static file.** It must be computed from live registrations or the `etag` lies
@@ -865,6 +892,9 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 **Pre-planning retries from `exit_codes`**
 - Before the first call, read the command's `exit_codes` map and identify which codes are retryable
 - Build the retry/rollback plan before calling, not reactively — this avoids ambiguity about whether a retry is safe after a partial failure
+- `idempotent: true` — a non-retryable exit whose entry declares `side_effects: "partial"` (such as `PARTIAL_FAILURE (3)`, a `TIMEOUT (10)` that may have written, or `130`/`143` after a signal) is recovered by rerunning the identical command once, without inspecting state. A second failure with the same `error.code` is deterministic: stop and escalate
+- The rerun rule never covers `ARG_ERROR (2)` or any error carrying `fix_required` or `fix_command`: the identical call fails until the input changes, so apply the fix first. Exits with `side_effects: "none"` follow `retryable` as usual
+- An absent `idempotent` means `false`, including on a pre-3.15 manifest: verify what was committed before rerunning a mutating command
 
 **Reading declared contracts before calling**
 - `danger_level` other than `safe` — prefer `--dry-run` first; `safe_default: true` means the command previews until `--live` is passed
@@ -915,6 +945,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert every `type: "object"` flag carries a `schema` the parser enforces, and prefer `type: "object"` for every flag whose value the parser reads as a JSON object
 - Assert every `arguments: "passthrough"` command has `option_placement: "strict"`, empty `flags`, no `positionals`, and a `danger_level` other than `destructive`, and that `help_argv` appears only on such commands
 - Assert every `confirm_flag` names a boolean flag in the command's `flags` or the root `flags`, appears only on `mutating` or `destructive` commands without `safe_default: true` or `arguments: "passthrough"`, and that a call without it previews with `meta.dry_run: true` while `--dry-run` plus the flag still previews
+- Assert `idempotent: true` only on commands whose tests show that a rerun after each declared partial exit leaves the state a clean run leaves; accept it on a `safe` command without warning
 - Assert every flag's `env_vars` lists exactly the variables its parser reads, in the order it reads them, with the tool-prefixed name first whenever a name without the prefix is listed, and no name from `secret_env_vars`
 - Assert root `env_vars` lists every other variable the tool reads outside the universal exceptions, each with a `description` and either the tool prefix or a declared name that immediately follows its setting's prefixed entry, and no name that also appears in a flag's `env_vars`, a `secret_env_vars`, or a `token_env_vars`
 - Assert root `secret_env_vars` lists exactly the secrets every command reads, and that none of them repeats in a command's `secret_env_vars` or a flag's `env_vars`; assert no name in an auth command's `token_env_vars` repeats in that command's `secret_env_vars`
@@ -953,7 +984,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 | [REQ-O-001](../requirements/o-001-output-format-flag.md) | Sources: the root `format` flag's `media_types` and the spec's media type table |
 | [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) | Sources: `exit_codes` per command |
 | [REQ-C-015](../requirements/c-015-commands-declare-input-and-output-schema.md) | Sources: `flags` and `positionals` per command |
-| [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) | Sources: `danger_level` per command |
+| [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) | Sources: `danger_level` and `idempotent` per command |
 | [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) | Sources: `required_scopes` per command |
 | [REQ-F-079](../requirements/f-079-global-option-scope.md) | Sources: top-level `flags` (global options) |
 | [REQ-F-073](../requirements/f-073-env-var-namespace-prefix.md) | Sources: `FlagEntry.env_vars`, root `env_vars`, root `secret_env_vars`, the four homes of a variable, and the precedence rule for names without the tool prefix |
