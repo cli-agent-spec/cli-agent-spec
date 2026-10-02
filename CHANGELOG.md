@@ -13,7 +13,7 @@
 
 ### External content in `error.context` is tagged and masked
 
-- REQ-F-035: when `error.context` holds external content (a wrapped program's stderr, a remote log tail, an upstream error body), it carries `_source: "external"` and `_trusted: false` at its top level, and its external string values get REQ-F-058's high-entropy masking. A free-text value keeps its text: only each high-entropy substring is replaced. Keys the framework computes itself (`exit_code`, `line`, `code`) are never masked
+- REQ-F-035: when `error.context` holds external content (a wrapped program's stderr, a remote log tail, an upstream error body), it carries `_source: "external"` and `_trusted: false` at its top level, and its external string values get REQ-F-058's high-entropy masking. A free-text value keeps its text: only each high-entropy substring is replaced. Keys an agent branches on (`exit_code`, `line`, `code`, `retryable`) are never masked
 - A framework helper's own subprocess-failure context marks the child's stderr external by default, without command author action
 - Outside text an author wants tagged and masked goes in `error.context` (REQ-C-013); `detail` keeps its meaning, and `response-envelope.md` tells an agent to treat `message`, `detail`, and `cause` as untrusted text always
 - REQ-O-004: the `UPSTREAM_FAILED` context is external; the upstream's strings are masked, but `line`, `upstream_exit_code`, `upstream.code`, and `upstream.retryable` are not. REQ-C-031: a passthrough envelope copies no delegated output, so it carries no tags
