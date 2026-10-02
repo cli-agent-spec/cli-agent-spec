@@ -48,7 +48,7 @@
 ### ManifestResponse 3.11: child log on stderr
 
 - `CommandEntry.stderr` (optional, `"child_log"`; absent means the framework's own diagnostics only) marks a command that streams a wrapped program's output (`ansible-playbook`, `terraform apply`) to stderr as plain text, line by line, regardless of `--format` and verbosity
-- REQ-F-038 names the exception: auto-quiet and `--verbose` leave a declared child log streaming, `--quiet` (REQ-O-008) still silences it, and stdout still carries only the envelope. A command without the declaration is unchanged
+- REQ-F-038 names the exception: auto-quiet, `--verbose`, and `--debug` leave a declared child log streaming, `--quiet` (REQ-O-008) still silences it, and stdout still carries only the envelope. A command without the declaration is unchanged
 - The schema and REQ-C-031 reject `child_log` on a passthrough command, whose stdout belongs to the delegated tool and whose envelope is the last line of stderr
 - An agent may discard stderr for such a command and never reads stderr text as a failure signal; the exit code and the envelope stay authoritative
 - A producer that sets `stderr` emits `schema_version` `3.11`; earlier manifests stay valid
