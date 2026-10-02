@@ -56,12 +56,7 @@
           { "required": ["description"] }
         ]
       },
-      "description": "Environment variables the tool reads that back no flag and supply no secret, such as TOOL_DEBUG or TOOL_AUDIT_LOG, each with a description. A name without the tool prefix immediately follows the entry for the same setting's tool-prefixed name, which the tool reads first. A name here appears nowhere else in the manifest: a variable that supplies a flag's value is listed only in that FlagEntry.env_vars, and a secret only in a secret_env_vars or token_env_vars. Universal names such as NO_COLOR or HOME are not listed. Sourced from REQ-F-073."
-    },
-    "secret_env_vars": {
-      "type": "array",
-      "items": { "type": "string" },
-      "description": "Environment variable names that supply a secret every command reads, such as a tool-wide API key; never a value or a default. A name here appears in no CommandEntry.secret_env_vars and no FlagEntry.env_vars; each command's effective secrets are these plus its own. Sourced from REQ-F-073 and REQ-C-016."
+      "description": "Environment variables the tool reads that back no flag and supply no secret, such as TOOL_DEBUG or TOOL_AUDIT_LOG, each with a description. A variable that supplies a flag's value is listed only in that FlagEntry.env_vars, and a secret only in CommandEntry.secret_env_vars. Universal names such as NO_COLOR or HOME are not listed. Sourced from REQ-F-073."
     }
   },
   "definitions": {
@@ -206,7 +201,7 @@
         "secret_env_vars": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "Environment variable names that supply secret values for this command, beyond the root secret_env_vars every command reads. A secret is never a flag value, so these names never appear in FlagEntry.env_vars. Sourced from REQ-C-016."
+          "description": "Environment variable names that supply secret values for this command. A secret is never a flag value, so these names never appear in FlagEntry.env_vars. Sourced from REQ-C-016."
         },
         "platform": {
           "type": "array",
@@ -229,7 +224,7 @@
         "token_env_vars": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "Auth commands only: environment variables that supply a pre-acquired token. Required when headless_supported is false. A name here is not repeated in this command's secret_env_vars. Sourced from REQ-C-021 and REQ-F-073."
+          "description": "Auth commands only: environment variables that supply a pre-acquired token. Required when headless_supported is false. Sourced from REQ-C-021."
         },
         "async": {
           "type": "boolean",
