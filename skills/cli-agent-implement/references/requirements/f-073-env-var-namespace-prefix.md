@@ -31,7 +31,7 @@ An agent setting `DEBUG=1` to enable verbose output in one tool must not acciden
 
 - All tool-specific configuration env vars are documented under the `TOOLNAME_` prefix
 - Setting `DEBUG=1` does not affect the tool unless the tool explicitly reads `TOOLNAME_DEBUG`
-- The framework rejects (with a warning) any framework plugin that reads an unprefixed custom env var it does not declare in a flag's `env_vars`
+- The framework rejects (with a warning) any framework plugin that reads an unprefixed custom env var it does not declare in a flag's `env_vars` or, after the prefixed entry for the same setting, in root `env_vars`
 - `tool manifest` lists every variable that supplies a flag's value in that flag's `env_vars`, in the order the parser reads them, every token variable of an auth command in its `token_env_vars`, and every other secret variable in root `secret_env_vars` when every command reads it, otherwise in the `secret_env_vars` of each command that reads it
 - A flag whose `env_vars` holds a name without the prefix (outside the exceptions) also lists the tool-prefixed name, first; the framework rejects a registration that breaks this
 - No name in a command's or the root `secret_env_vars` appears in any flag's `env_vars`; no name in an auth command's `token_env_vars` also appears in that command's `secret_env_vars`; no name in root `secret_env_vars` appears in any command's `secret_env_vars`
