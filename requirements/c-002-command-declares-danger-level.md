@@ -10,7 +10,7 @@
 
 ## Description
 
-Every command MUST declare a `danger_level` as part of its registration metadata, chosen from: `safe` (read-only, no side effects), `mutating` (creates or modifies state), or `destructive` (permanently deletes or irreversibly modifies state). The framework MUST refuse to register a command without this declaration. The framework MUST use this declaration to enforce related behaviors (e.g., requiring `--dry-run` for destructive commands per REQ-C-004).
+Every command MUST declare a `danger_level` as part of its registration metadata, chosen from: `safe` (read-only, no side effects), `mutating` (creates or modifies state), or `destructive` (permanently deletes or irreversibly modifies state). The framework MUST refuse to register a command without this declaration. The framework MUST use this declaration to enforce related behaviors (e.g., requiring `--dry-run` for destructive commands per REQ-C-004). A streaming command (REQ-O-004) MUST NOT declare `destructive`, and the framework refuses to register one that does.
 
 ## Acceptance Criteria
 
@@ -18,6 +18,8 @@ Every command MUST declare a `danger_level` as part of its registration metadata
 - The `--schema` output for every command includes `danger_level`
 - Commands with `danger_level: "destructive"` trigger framework-level dry-run enforcement (REQ-C-004)
 - Commands with `danger_level: "safe"` do not require `--idempotency-key` (REQ-C-007)
+- Commands with `danger_level: "mutating"` require `--idempotency-key` unless they stream, and a streaming one that accepts it raises a registration error (REQ-C-007)
+- Registering a streaming command with `danger_level: "destructive"` raises a framework error (REQ-O-004)
 
 ---
 
@@ -95,5 +97,6 @@ register command "update-email":
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: `danger_level` is part of the same `--schema` output as `exit_codes` |
 | [REQ-C-003](c-003-mutating-commands-declare-effect-field.md) | C | Extends: `danger_level: mutating/destructive` triggers `effect` field requirement |
 | [REQ-C-004](c-004-destructive-commands-must-support-dry-run.md) | C | Enforces: `danger_level: destructive` requires `--dry-run` support |
-| [REQ-C-007](c-007-mutating-commands-accept-idempotency-key.md) | C | Enforces: `danger_level: mutating/destructive` requires `--idempotency-key` |
+| [REQ-C-007](c-007-mutating-commands-accept-idempotency-key.md) | C | Enforces: `danger_level: mutating/destructive` requires `--idempotency-key` on every non-streaming command |
+| [REQ-O-004](o-004-output-jsonl-stream-flag.md) | O | Enforces: a streaming command is never `destructive` |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Aggregates: manifest exposes `danger_level` for every registered command |

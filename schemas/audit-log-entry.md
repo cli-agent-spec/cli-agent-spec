@@ -30,6 +30,7 @@ Three design decisions shape the type:
 | `request_id` | string | yes | Unique invocation identifier, matching `meta.request_id` |
 | `trace_id` | string | when `TOOL_TRACE_ID` is set | Trace ID propagated from `TOOL_TRACE_ID` (REQ-F-025) |
 | `session_id` | string | when the session variable is set | Agent session identifier, recorded verbatim from the framework's one documented session variable (`<PREFIX>SESSION_ID` unless it already reads a prefixed one) |
+| `effects` | object | mutating streams | Events per effect value of a mutating stream (REQ-O-004): its summary line's `effects`, or the events emitted before a failure |
 | `warnings` | string[] | yes | Codes from the response's `warnings[]`, in emission order; may be empty |
 | `truncated` | boolean | no | `true` when `args` values were replaced to fit 16 KiB |
 
@@ -46,6 +47,12 @@ Three design decisions shape the type:
 ```json
 {"timestamp": "2026-03-17T14:05:22Z", "command": "delete", "args": {"resource_id": "r-42", "dry_run": true}, "exit_code": 0, "duration_ms": 8, "request_id": "req-002", "session_id": "s-1", "warnings": ["CREDENTIAL_OVER_PRIVILEGED"]}
 ```
+
+**Mutating stream: one entry for the whole run**
+```json
+{"timestamp": "2026-03-17T14:06:10Z", "command": "sync-users", "args": {"source": "users.csv"}, "exit_code": 0, "duration_ms": 412, "request_id": "req-005", "effects": {"created": 2, "noop": 1}, "warnings": []}
+```
+`sync-users` streamed three events (REQ-O-004); the entry repeats its summary line's `effects` instead of logging each event.
 
 **Large payload truncated to fit the entry cap**
 ```json
@@ -81,6 +88,7 @@ Violation: `args` must be an object. Raw argv cannot be redacted reliably and le
 - Join an entry to a response or trace by `request_id` or `trace_id`, never by `timestamp`
 - `exit_code` non-zero with `args.dry_run` or `args.validate_only` set means nothing was changed; the entry still shows what was attempted
 - `truncated: true` means some `args` values are `[TRUNCATED]`; do not replay the invocation from the entry
+- `effects` marks a mutating stream and counts its events; with a non-zero `exit_code`, the counts cover the events completed before the failure. An absent `effects` on an entry written before AuditLogEntry 1.1 means unknown, not zero
 - `args.argv` equal to `[OMITTED]` marks a passthrough command (REQ-C-031): the forwarded arguments were never written, and its `exit_code` is the delegated tool's, so a `2` does not rule out side effects
 - A `[REDACTED]` value is a declared secret; never try to recover it from other sources
 - `warnings` containing `INJECTION_PROTECTION_DISABLED` marks an invocation whose external data was returned untagged; treat its outputs as untrusted during review
@@ -92,7 +100,8 @@ Violation: `args` must be an object. Raw argv cannot be redacted reliably and le
 
 **Type representation**
 - Generate `args` as a string-keyed map of JSON values, not as a typed struct; its keys are the command's argument names
-- Generate `warnings` as a list of strings and `trace_id`, `session_id`, and `truncated` as optional fields that are omitted, not `null`
+- Generate `warnings` as a list of strings and `trace_id`, `session_id`, `effects`, and `truncated` as optional fields that are omitted, not `null`
+- Generate `effects` as a string-keyed map of non-negative integers; its keys are effect values such as `created` or `would_create`
 
 **Construction**
 - Build the entry from the same values the envelope factory writes to `meta`, after the exit code is known and before the response is emitted

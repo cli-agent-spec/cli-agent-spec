@@ -77,6 +77,7 @@ tool deploy --version 1.2.3 --dry-run
 **For framework design:**
 - Mark commands as `safe` (read-only, always idempotent) or `unsafe` (mutating)
 - Require `--idempotency-key` for all `unsafe` commands, or generate one automatically
+- Exempt streaming commands from the key: a stream has no single result to replay, so each event carries its own `effect` and the summary line counts them (REQ-O-004)
 - Emit `effect` field in all responses
 - Implement `--dry-run` as a framework-level feature, not per-command
 

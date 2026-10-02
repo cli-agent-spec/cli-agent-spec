@@ -48,6 +48,12 @@
       "minLength": 1,
       "description": "Agent session identifier read verbatim from the framework's one documented session variable: a prefixed variable it already reads for the session id, else <PREFIX>SESSION_ID. Present only when that variable is set."
     },
+    "effects": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z][a-z_]*$" },
+      "additionalProperties": { "type": "integer", "minimum": 0 },
+      "description": "Per-effect event counts of a mutating stream (REQ-O-004): its summary line's effects, or the counts of the events it emitted before failing. Absent on any other invocation."
+    },
     "warnings": {
       "type": "array",
       "items": {

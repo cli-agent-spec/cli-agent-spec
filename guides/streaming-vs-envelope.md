@@ -64,6 +64,12 @@ This decouples liveness signaling from output format. Heartbeat lines are safe t
 
 ---
 
+## Streams That Change State
+
+A command that applies one change per input item (a bulk import, a sync) can stream its events so the agent sees each one as it lands. It declares `danger_level: "mutating"`; a destructive command cannot stream, because a stream cannot stop for confirmation before each action. Each event carries its own `effect`, the summary line counts the events per effect, and `--dry-run`, when offered, turns every event into a `would_*` preview. The command takes no `--idempotency-key`: a retry after a failure starts from the events already received, not from a replayed result (REQ-O-004).
+
+---
+
 ## Decision Table
 
 | Command type | Duration | Partial results actionable? | Recommended default |
@@ -73,6 +79,7 @@ This decouples liveness signaling from output format. Heartbeat lines are safe t
 | Query / list (bounded) | <5s | Each item independently | `ResponseEnvelope` + `--stream` opt-in |
 | Query / list (unbounded) | Variable | Each item independently | `streaming_default: true` |
 | Long-running job (single result) | >5s | No | `ResponseEnvelope` + heartbeats |
+| Bulk mutation, one change per item | Variable | Each change independently | `ResponseEnvelope` + `--stream` opt-in, `effect` per event |
 | Log tail / watch / follow | Unbounded | Each event independently | `streaming_default: true` |
 | AI / token-streaming generation | >5s | Each token/chunk independently | `streaming_default: true` |
 
@@ -86,6 +93,7 @@ This decouples liveness signaling from output format. Heartbeat lines are safe t
 | [§60 OS Output Buffer Deadlock](../challenges/01-critical-ecosystem-runtime-agent-specific/60-critical-output-buffer-deadlock.md) | Provides: why envelope-default commands still need unbuffered stdout |
 | [§5 Pagination & Large Output](../challenges/04-critical-output-and-parsing/05-high-pagination.md) | Provides: the unbounded-size failure mode that motivates streaming-default |
 | [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) | Enforces: `--stream` / `streaming_default` declaration contract |
+| [REQ-C-003](../requirements/c-003-mutating-commands-declare-effect-field.md) | Provides: the `effect` values a mutating stream reports on each event |
 | [REQ-O-038](../requirements/o-038-heartbeat-ms-flag-for-long-running-commands.md) | Provides: heartbeat mechanism for long-running envelope-default commands |
 | [REQ-F-053](../requirements/f-053-stdout-unbuffering-in-non-tty-mode.md) | Provides: stdout unbuffering required for streaming or heartbeats to work |
 | [schemas/response-envelope.md](../schemas/response-envelope.md) | Provides: canonical envelope schema for non-streaming output |

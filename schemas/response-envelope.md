@@ -103,6 +103,7 @@ Present in `error.redirect` when exit code is `REDIRECTED (13)`.
 | `not_modified` | boolean | no | `true` on etag cache hit; `data` is `null` |
 | `truncated` | boolean | no | The framework byte cap cut the output (REQ-F-052). Narrow the query or paginate |
 | `pagination` | `Pagination` | list commands | Present on every list response, including complete result sets (REQ-F-018) |
+| `effects` | object | mutating streams | Events per effect value (`{"created": 2, "noop": 1}`) on the buffered answer of a mutating streaming command; its summary line carries the same field (REQ-O-004) |
 | `audit_log_path` | string | while the audit log is enabled | Absolute path of the active audit log file (REQ-O-030) |
 | `_cmd` | string | exec only | Dispatched command path echoed from the request (REQ-O-050) |
 | `_line` | integer | exec only | 1-based input line this response answers (REQ-O-050) |
