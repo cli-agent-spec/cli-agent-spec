@@ -2,7 +2,7 @@
 
 **File:** [`manifest-response.json`](manifest-response.json)
 
-> **Used by:** [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-013](../requirements/o-013-schema-output-schema-flag.md) · [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) · [REQ-C-005](../requirements/c-005-interactive-commands-must-support-yes-non-interact.md) · [REQ-C-008](../requirements/c-008-multi-step-commands-emit-step-manifest.md) · [REQ-C-010](../requirements/c-010-background-process-commands-declare-metadata.md) · [REQ-C-011](../requirements/c-011-commands-declare-filesystem-side-effects.md) · [REQ-C-012](../requirements/c-012-commands-with-network-i-o-support-timeout.md) · [REQ-C-015](../requirements/c-015-commands-declare-input-and-output-schema.md) · [REQ-C-016](../requirements/c-016-secrets-accepted-only-via-env-var-or-file.md) · [REQ-C-018](../requirements/c-018-commands-declare-platform-requirements.md) · [REQ-C-019](../requirements/c-019-subprocess-invoking-commands-declare-argument-sche.md) · [REQ-C-020](../requirements/c-020-resource-id-fields-declare-validation-pattern.md) · [REQ-C-021](../requirements/c-021-auth-commands-declare-headless-mode-support.md) · [REQ-C-022](../requirements/c-022-async-commands-declare-job-descriptor-schema.md) · [REQ-C-023](../requirements/c-023-editor-requiring-commands-declare-non-interactive-.md) · [REQ-C-024](../requirements/c-024-gui-launching-commands-declare-headless-behavior.md) · [REQ-C-025](../requirements/c-025-config-writing-commands-declare-write-scope.md) · [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) · [REQ-C-027](../requirements/c-027-commands-declare-option-placement.md) · [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) · [REQ-F-051](../requirements/f-051-debug-and-trace-mode-secret-redaction.md) · [REQ-F-073](../requirements/f-073-env-var-namespace-prefix.md) · [REQ-F-079](../requirements/f-079-global-option-scope.md) · [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) · [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) · [REQ-O-042](../requirements/o-042-output-format-env-var-default.md) · [REQ-O-048](../requirements/o-048-destructive-commands-default-dry-run.md) · [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md) · [REQ-F-054](../requirements/f-054-stdin-payload-size-cap-with-input-file-fallback.md) · [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) · [REQ-F-038](../requirements/f-038-verbosity-auto-quiet-in-non-tty-context.md)
+> **Used by:** [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-013](../requirements/o-013-schema-output-schema-flag.md) · [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) · [REQ-C-005](../requirements/c-005-interactive-commands-must-support-yes-non-interact.md) · [REQ-C-008](../requirements/c-008-multi-step-commands-emit-step-manifest.md) · [REQ-C-010](../requirements/c-010-background-process-commands-declare-metadata.md) · [REQ-C-011](../requirements/c-011-commands-declare-filesystem-side-effects.md) · [REQ-C-012](../requirements/c-012-commands-with-network-i-o-support-timeout.md) · [REQ-C-015](../requirements/c-015-commands-declare-input-and-output-schema.md) · [REQ-C-016](../requirements/c-016-secrets-accepted-only-via-env-var-or-file.md) · [REQ-C-018](../requirements/c-018-commands-declare-platform-requirements.md) · [REQ-C-019](../requirements/c-019-subprocess-invoking-commands-declare-argument-sche.md) · [REQ-C-020](../requirements/c-020-resource-id-fields-declare-validation-pattern.md) · [REQ-C-021](../requirements/c-021-auth-commands-declare-headless-mode-support.md) · [REQ-C-022](../requirements/c-022-async-commands-declare-job-descriptor-schema.md) · [REQ-C-023](../requirements/c-023-editor-requiring-commands-declare-non-interactive-.md) · [REQ-C-024](../requirements/c-024-gui-launching-commands-declare-headless-behavior.md) · [REQ-C-025](../requirements/c-025-config-writing-commands-declare-write-scope.md) · [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) · [REQ-C-027](../requirements/c-027-commands-declare-option-placement.md) · [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) · [REQ-F-051](../requirements/f-051-debug-and-trace-mode-secret-redaction.md) · [REQ-F-073](../requirements/f-073-env-var-namespace-prefix.md) · [REQ-F-079](../requirements/f-079-global-option-scope.md) · [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) · [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) · [REQ-O-042](../requirements/o-042-output-format-env-var-default.md) · [REQ-O-048](../requirements/o-048-destructive-commands-default-dry-run.md) · [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md) · [REQ-F-054](../requirements/f-054-stdin-payload-size-cap-with-input-file-fallback.md) · [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) · [REQ-F-038](../requirements/f-038-verbosity-auto-quiet-in-non-tty-context.md) · [REQ-O-001](../requirements/o-001-output-format-flag.md)
 > Returned as the `data` field of a [`ResponseEnvelope`](response-envelope.md).
 
 ---
@@ -26,7 +26,7 @@ Two decisions shape the type:
 | `framework_version` | string | yes | Version of the tool binary |
 | `etag` | string | yes | Deterministic content hash. Changes only when registrations change |
 | `commands` | `Record<string, CommandEntry>` | yes | Flat map keyed by dot-separated path such as `"deploy.rollback"` |
-| `flags` | `Record<string, FlagEntry>` | no | Global options every command accepts in any position, keyed by name without `--` (REQ-F-079) |
+| `flags` | `Record<string, FlagEntry>` | no | Global options every command accepts in any position, keyed by name without `--`; only `format` may carry `media_types` (REQ-F-079) |
 | `exit_codes` | `Record<string, ExitCodeEntry>` | no | Shared exit-code table every command inherits |
 | `dependencies` | `DependencyEntry[]` | no | External runtime dependencies checked by `tool doctor` (REQ-O-031) |
 | `env_vars` | `EnvVarEntry[]` | no | Variables the tool reads that back no flag and supply no secret, such as `TOOL_DEBUG` or `TOOL_AUDIT_LOG`; each entry carries `description`. Universal names (`NO_COLOR`, `HOME`, ...) are not listed (REQ-F-073) |
@@ -44,6 +44,7 @@ Two decisions shape the type:
 | `aliases` | string[] | no | Alternative invocation names |
 | `output_schema` | object | no | JSON Schema for `data` on success (REQ-C-015) |
 | `output_formats` | string[] | no | Formats beyond the framework defaults (REQ-O-049) |
+| `output_media_types` | `MediaTypeMap` | no | Media type each `--format` value writes for this command, overriding the root `media_types`; required for an `output_formats` value neither the spec's table nor the root map covers (REQ-O-049) |
 | `examples` | `Example[]` | no | Verbatim invocations |
 | `subcommands` | string[] | no | Dot-separated paths of direct children |
 | `builtin` | boolean | no | `true` when the framework registers the command, not the application; also `true` on a built-in's subcommands, `false` on an application command that replaces a built-in's name. Absent means `false` (REQ-O-041) |
@@ -99,6 +100,7 @@ Present only when the command declares them.
 | `pattern_type` | `"alphanumeric_id"` \| `"uuid"` \| `"semver"` \| `"filepath"` \| `"url"` | no | Built-in validation preset (REQ-C-020) |
 | `env_vars` | `EnvVarEntry[]` | no | Variables the flag reads when not passed, in precedence order (first set wins); the tool-prefixed name comes first whenever a name without the prefix is listed. Never a secret (REQ-F-073) |
 | `schema` | JSON Schema object | when `type` is `"object"` | Draft-07 schema of one value: the object itself for `object`, one item for `array`; never on other types (REQ-C-015) |
+| `media_types` | `MediaTypeMap` | when the root `format` flag lists a value outside the spec's table | Root `format` flag only, with `type: "enum"`: media type of each `enum_values` value. Every key is in `enum_values`; a spec value listed here maps to the spec's media type (REQ-O-001) |
 
 ### PositionalEntry
 
@@ -121,6 +123,7 @@ Present only when the command declares them.
 | `ConditionalRule` | One of `{ if_flag, if_value, then_required }`, `{ if_flag, prohibited }`, `{ if_flag, target_flag, default }`, `{ any_of }` (at least one listed flag present), `{ one_of }` (exactly one listed flag present); `any_of` and `one_of` list at least two distinct flags |
 | `DependencyEntry` | `name`, `check_command`, `min_version` required; `version_regex`, `fix_command` optional |
 | `EnvVarEntry` | `name` required; `deprecated` optional (boolean, absent means `false`); `description` optional in a flag's `env_vars`, required in root `env_vars` |
+| `MediaTypeMap` | Map from a `--format` value to a lowercase `type/subtype` media type without parameters, such as `{"html": "text/html"}`; at least one entry |
 | `StdinDeclaration` | `mode` (`buffered` \| `lines` \| `records`) required; `max_bytes` (buffered only, absent means `65536`), `max_line_bytes` (lines and records only, absent means `1048576`), `record_schema` (records only, required there) |
 
 ---
@@ -316,6 +319,57 @@ Each flag is optional on its own; the `one_of` rule makes exactly one of them ma
 }
 ```
 Every variable the tool reads has one home: `TOOL_FORMAT` backs `--format`, `TOOL_TOKEN` is a secret, and the four that back no flag sit in root `env_vars`, each described because no flag's `description` covers it.
+
+**Valid — a tool's own format values with their media types**
+```json
+{
+  "schema_version": "3.12",
+  "framework_version": "2.6.0",
+  "etag": "sha256:0b7e19",
+  "flags": {
+    "format": {
+      "type": "enum",
+      "required": false,
+      "enum_values": ["json", "jsonl", "plain", "html"],
+      "description": "Output representation; json when stdout is not a terminal, plain in a terminal",
+      "media_types": { "html": "text/html" }
+    }
+  },
+  "commands": {
+    "report": {
+      "description": "Summarize the ledger for a period",
+      "danger_level": "safe",
+      "required_scopes": [],
+      "output_formats": ["toon", "csv"],
+      "output_media_types": { "toon": "text/plain", "csv": "text/csv" },
+      "flags": {},
+      "exit_codes": {}
+    }
+  }
+}
+```
+`--format html` writes a page a person reads, so an agent treats it as an opaque artifact; `json`, `jsonl`, and `plain` take the spec's media types without listing them. `report` adds two formats of its own and declares what each writes.
+
+**Invalid — media types on a command-local flag**
+```json
+{
+  "schema_version": "3.12",
+  "framework_version": "2.6.0",
+  "etag": "sha256:0b7e19",
+  "commands": {
+    "export": {
+      "description": "Export the ledger",
+      "danger_level": "safe",
+      "required_scopes": [],
+      "flags": {
+        "style": { "type": "enum", "required": false, "enum_values": ["html", "pdf"], "description": "Rendering of the export", "media_types": { "html": "text/html", "pdf": "application/pdf" } }
+      },
+      "exit_codes": {}
+    }
+  }
+}
+```
+Violation: only the root `format` flag carries `media_types`; a command-specific `--format` value declares its media type in the command's `output_media_types`.
 
 **Valid — commands whose `--output` is not a `--format` rendering**
 ```json
@@ -654,6 +708,9 @@ Violation: a root `env_vars` entry requires `description`; no flag's `descriptio
 - **Listing a borrowed name before the tool-prefixed one.** `CLOUDFALL_PROJECT` ahead of `TOOL_PROJECT` lets a variable set for another tool override the one set for this tool (REQ-F-073)
 - **Reading a variable the manifest never names.** `TOOL_DEBUG` or `TOOL_AUDIT_LOG` backs no flag, so it belongs in root `env_vars`; documenting it only in a README leaves an agent unable to see that it changes the tool's behavior
 - **Listing one variable in two places.** A name in root `env_vars` appears in no flag's `env_vars` and no `secret_env_vars`; a variable that supplies a flag's value is declared on that flag only
+- **Naming a format's media type only in the `--format` `description`.** "html writes text/html" is prose an agent must parse; declare it in the root `format` flag's `media_types`
+- **Leaving a tool's own format value out of `media_types`.** An agent can then assume nothing about it and must treat its output as opaque; every value outside the spec's table has an entry
+- **Mapping a spec value to another media type.** `json` is always `application/json`; a variant with another shape is a new format value with its own name
 - **Listing universal names in root `env_vars`.** `NO_COLOR`, `CI`, `HOME`, and the other REQ-F-073 exceptions are read by every conforming tool; listing them adds noise without telling the agent anything
 
 ---
@@ -717,6 +774,9 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 
 **Selecting output format from `output_formats`**
 - If `output_formats` is absent, treat `json` as the only guaranteed format — do not attempt non-standard values
+- Look up a value's media type in the command's `output_media_types`, then the root `format` flag's `media_types`, then the spec's table in REQ-O-001 (`json` → `application/json`, `jsonl` → `application/x-ndjson`, and `tsv`, `plain`, `table`, `id` as text)
+- Parse output as JSON only when its media type is `application/json`, `application/x-ndjson` (one value per line), or ends in `+json`; treat any other format's output, such as `text/html`, as an opaque artifact to store or hand to a person
+- A value with no media type from any of the three sources (always the case for a non-spec value on a pre-3.12 manifest) is opaque too
 - If `output_formats` is present, select the most appropriate format for your consumer: `json` for programmatic parsing, an LLM-optimized value (e.g. `toon`) when the language model is the final reader and token cost matters
 - Never assume a format value is valid unless it appears in `output_formats` or is one of the framework defaults
 
@@ -774,6 +834,8 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert every flag's `env_vars` lists exactly the variables its parser reads, in the order it reads them, with the tool-prefixed name first whenever a name without the prefix is listed, and no name from `secret_env_vars`
 - Assert root `env_vars` lists every other variable the tool reads outside the universal exceptions, each with the tool prefix and a `description`, and no name that also appears in a flag's `env_vars` or a `secret_env_vars`
 - Assert `stderr: "child_log"` appears on exactly the commands that stream a wrapped program's output to stderr, never on a passthrough command, and that `--quiet` leaves stderr empty for them
+- Assert the root `format` flag's `media_types` keys are all in its `enum_values`, cover every value outside the spec's media type table, and map each spec value they list to the table's media type; assert no other flag carries `media_types`
+- Assert every `output_formats` value covered by neither the spec's table nor the root `media_types` has an `output_media_types` entry, and every `output_media_types` key is a value the command accepts
 - Assert `stdin` is present on exactly the commands that declare stdin input, with the `mode` the handler reads in, `record_schema` equal to the registered record type, and no `max_bytes` outside `buffered` mode
 - Assert `etag` changes when any command registration changes, and is stable across identical registrations (determinism test)
 
@@ -802,7 +864,8 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 | Document | Relationship |
 |---|---|
 | [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) | Consumes: the command that returns this schema |
-| [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md) | Sources: `output_formats` field — LLM-optimized formats are declared here |
+| [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md) | Sources: `output_formats` and `output_media_types`: command-specific formats and what each writes |
+| [REQ-O-001](../requirements/o-001-output-format-flag.md) | Sources: the root `format` flag's `media_types` and the spec's media type table |
 | [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) | Sources: `exit_codes` per command |
 | [REQ-C-015](../requirements/c-015-commands-declare-input-and-output-schema.md) | Sources: `flags` and `positionals` per command |
 | [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) | Sources: `danger_level` per command |

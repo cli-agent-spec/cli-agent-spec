@@ -43,6 +43,19 @@ A command whose base is not `cwd` MUST declare it, because an agent that resolve
 
 `--format` values MUST come from a closed set declared at registration and listed in the manifest. An unknown value exits `2` with a structured error listing the supported values; the framework MUST NOT interpret an unrecognized value as a template. Tools that overload `--format` with templates show why: `docker` reads any value other than `json` or `table` as a Go template, so the typo `docker version --format jsn` prints `jsn` instead of failing. `git` guesses from the value (a `%` or a `tformat:` prefix means a template, anything else must be a preset name), which catches `--format=json` but still leaves the agent to learn a second grammar; `gcloud` rejects the typo and lists the valid values, which is the behavior this requirement asks for. Field projection belongs to `--fields` ([REQ-O-002](o-002-fields-selector.md)): `--format tsv --fields hash,subject` covers what `--format='%H %s'` does, with field names validated against the schema. A CLI that wants free-form text templates for human use registers them under a separate flag (`--template`), never as a `--format` value.
 
+**Media types.** The spec fixes the media type of each format value it defines:
+
+| Value | Media type |
+|-------|------------|
+| `json` | `application/json` |
+| `jsonl` | `application/x-ndjson` |
+| `tsv` | `text/tab-separated-values` |
+| `plain` | `text/plain` |
+| `table` | `text/plain` |
+| `id` | `text/plain` |
+
+A tool MAY register its own format values beside these, such as `html` for a self-contained page a person reads. The manifest's root `format` flag MUST then carry `media_types`, a map from format value to media type (`{"html": "text/html"}`), with an entry for every value outside the table above; an entry for a value in the table is optional and, when present, MUST equal the table's media type. Every key MUST be one of the flag's `enum_values`, and only the `format` flag carries `media_types`. A media type is written lowercase as `type/subtype`, without parameters. A command-specific format value (REQ-O-049) declares its media type in the command's `output_media_types` instead. An agent parses a format's output as JSON only when its media type is `application/json`, `application/x-ndjson`, or a `+json` type, and treats any other format's output as an opaque artifact.
+
 If the framework also implements [REQ-O-042](o-042-output-format-env-var-default.md), the environment variable provides only a default value. `--format` remains the authoritative interface and MUST override the environment variable whenever both are present.
 
 ## Output modes and the role of `--format`
@@ -92,6 +105,8 @@ The framework has two distinct output contexts. The `--format` flag governs stru
 - A command that resolves a relative `--output` against anything but the working directory declares `output_file_base`; `output_file_base` never appears without `output_file`
 - On an `output_file_base: "project_root"` command run from a subdirectory, `--output out/r.json` writes `<project root>/out/r.json`, and an absolute `--output` path is written as given
 - On an `output_file: "envelope"` command, `--output result.json --format plain` writes a valid JSON `ResponseEnvelope` to `result.json`
+- The root `format` flag in the manifest carries `media_types` with an entry for every `enum_values` value outside the spec's media type table, every key is one of `enum_values`, and every spec value it lists maps to the table's media type
+- No flag other than the root `format` flag carries `media_types`
 - `--format` with a value outside the declared set (`--format jsn`, `--format '%H %s'`) exits `2`, lists the supported values, and writes nothing to stdout or to any file
 
 ---
@@ -102,7 +117,7 @@ The framework has two distinct output contexts. The `--format` flag governs stru
 
 The `--format json` format uses the `ResponseEnvelope` shape. The `--format jsonl` and `--format tsv` formats use command-specific row shapes without the envelope wrapper.
 
-The manifest declares the `--output` behavior in `CommandEntry.output_file` and the base of a relative path in `CommandEntry.output_file_base` ([`manifest-response.md`](../schemas/manifest-response.md)).
+The manifest declares the media type of a tool's own format values in the root `format` flag's `media_types` ([`manifest-response.md`](../schemas/manifest-response.md)), and the `--output` behavior in `CommandEntry.output_file` and the base of a relative path in `CommandEntry.output_file_base` ([`manifest-response.md`](../schemas/manifest-response.md)).
 
 ---
 
@@ -184,3 +199,5 @@ app.enable_format_flag(formats=["json", "jsonl", "tsv", "plain"])
 | [REQ-O-004](o-004-output-jsonl-stream-flag.md) | O | Specializes: `--format jsonl` is the non-buffered streaming variant |
 | [REQ-O-042](o-042-output-format-env-var-default.md) | O | Specializes: tool-scoped env var may supply the default when `--format` is omitted |
 | [REQ-C-011](c-011-commands-declare-filesystem-side-effects.md) | C | Composes: a command-chosen product path is a `type: "output"` side effect, not an `--output` path |
+| [REQ-O-049](o-049-llm-token-budget-flags.md) | O | Composes: a command-specific format value declares its media type in `output_media_types` |
+| [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Exposes: `media_types` appears on the root `format` flag in the manifest |

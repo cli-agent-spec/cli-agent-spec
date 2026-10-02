@@ -32,8 +32,14 @@
     },
     "flags": {
       "type": "object",
-      "description": "Global options: flags every command accepts, before or after the command path, keyed by flag name without leading --. A CommandEntry.flags map never repeats a name or short alias listed here. Sourced from REQ-F-079.",
-      "additionalProperties": { "$ref": "#/definitions/FlagEntry" }
+      "description": "Global options: flags every command accepts, before or after the command path, keyed by flag name without leading --. A CommandEntry.flags map never repeats a name or short alias listed here. Only the format flag may carry media_types. Sourced from REQ-F-079.",
+      "properties": {
+        "format": {
+          "$ref": "#/definitions/FlagEntry",
+          "description": "The --format flag (REQ-O-001); the only flag that may carry media_types."
+        }
+      },
+      "additionalProperties": { "allOf": [{ "$ref": "#/definitions/FlagEntry" }, { "not": { "required": ["media_types"] } }] }
     },
     "exit_codes": {
       "type": "object",
@@ -80,8 +86,8 @@
         },
         "flags": {
           "type": "object",
-          "description": "Command-local flags: map from flag name (without leading --) to FlagEntry. Global options live in the root flags map and are never repeated here. Sourced from REQ-C-015.",
-          "additionalProperties": { "$ref": "#/definitions/FlagEntry" }
+          "description": "Command-local flags: map from flag name (without leading --) to FlagEntry. Global options live in the root flags map and are never repeated here; no local flag carries media_types. Sourced from REQ-C-015.",
+          "additionalProperties": { "allOf": [{ "$ref": "#/definitions/FlagEntry" }, { "not": { "required": ["media_types"] } }] }
         },
         "positionals": {
           "type": "array",
@@ -103,6 +109,10 @@
           "type": "array",
           "items": { "type": "string" },
           "description": "Format values accepted by --format beyond the framework defaults (json, jsonl, tsv, plain). Omit when only defaults are supported. Sourced from REQ-O-049."
+        },
+        "output_media_types": {
+          "$ref": "#/definitions/MediaTypeMap",
+          "description": "Map from a --format value this command accepts to the media type it writes, overriding the root format flag's media_types for this command. Required for each output_formats value outside the spec's format table and the root media_types. Sourced from REQ-O-049."
         },
         "examples": {
           "type": "array",
@@ -352,6 +362,10 @@
           "type": "object",
           "additionalProperties": true,
           "description": "JSON Schema draft-07 of one value: the object itself when type is object, one item when type is array. Required when type is object; present otherwise only when type is array. Sourced from REQ-C-015."
+        },
+        "media_types": {
+          "$ref": "#/definitions/MediaTypeMap",
+          "description": "Root format flag only: map from each enum value to the media type it writes. Required for every value outside the spec's format table, optional for the spec's values, and every key is one of enum_values. Sourced from REQ-O-001."
         }
       },
       "not": { "required": ["pattern", "pattern_type"] },
@@ -363,8 +377,22 @@
         {
           "if": { "required": ["schema"] },
           "then": { "properties": { "type": { "enum": ["object", "array"] } } }
+        },
+        {
+          "if": { "required": ["media_types"] },
+          "then": { "required": ["enum_values"], "properties": { "type": { "const": "enum" } } }
         }
       ]
+    },
+    "MediaTypeMap": {
+      "type": "object",
+      "description": "Map from a --format value to the media type that value writes, as a lowercase type/subtype without parameters such as text/html. Sourced from REQ-O-001.",
+      "minProperties": 1,
+      "propertyNames": { "minLength": 1 },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]*/[a-z0-9][a-z0-9!#$&^_.+-]*$"
+      }
     },
     "EnvVarEntry": {
       "type": "object",

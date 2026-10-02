@@ -18,6 +18,8 @@ The framework MUST provide three flags that let an LLM caller manage how much ou
 
 Token counting MUST use the same tokenizer as the primary consumer (typically `cl100k_base` or the framework's declared default). If the tokenizer is configurable, `--tokenizer <name>` selects it.
 
+**Command-specific formats.** A command that accepts `--format` values beyond the framework's lists them in its manifest entry's `output_formats`. Beside it, `output_media_types` maps a format value to the media type it writes (`{"toon": "text/plain"}`). It is required for every `output_formats` value that neither the spec's media type table (REQ-O-001) nor the root `format` flag's `media_types` covers, and an entry overrides the root map for that command. Every key is a value the command accepts for `--format`. `output_formats` keeps its string-list type.
+
 These flags are distinct from `--fields` (which filters by key) and the framework's byte-level hard cap (REQ-F-052). They operate on the token dimension, which is what LLM callers actually spend.
 
 ## Acceptance Criteria
@@ -27,6 +29,7 @@ These flags are distinct from `--fields` (which filters by key) and the framewor
 - `--token-offset 200 --token-limit 200` returns the second window of 200 tokens
 - All three flags are available on every command without per-command implementation
 - `meta.token_count` is present in every response when `--token-count` is passed, regardless of `--format` value
+- A command whose `output_formats` lists a value covered by neither the spec's media type table nor the root `media_types` declares it in `output_media_types`
 
 ---
 
@@ -42,6 +45,10 @@ Requirement-specific `meta` fields:
 | `meta.token_limit` | integer | When `--token-limit` was passed |
 | `meta.token_count` | integer | When `--token-count` was passed |
 | `meta.token_offset` | integer | When `--token-offset` was nonzero |
+
+**Type:** [`manifest-response.md`](../schemas/manifest-response.md)
+
+`CommandEntry.output_formats` (string array) lists command-specific format values, and `CommandEntry.output_media_types` (map from format value to media type) declares what each writes.
 
 ---
 
@@ -120,4 +127,4 @@ else:
 | [REQ-F-052](f-052-response-size-hard-cap-with-truncation-indicator.md) | F | Provides: byte-level hard cap; token budget flags operate on the token dimension instead |
 | [REQ-O-002](o-002-fields-selector.md) | O | Composes: `--fields` reduces the key space before token limiting reduces the token count |
 | [REQ-O-001](o-001-output-format-flag.md) | O | Composes: token budget flags apply after format selection, not before |
-| [schemas/manifest-response.md](../schemas/manifest-response.md) | Exposes: `output_formats` field in `CommandEntry` declares when LLM-optimized formats are available alongside token budget flags |
+| [schemas/manifest-response.md](../schemas/manifest-response.md) | Exposes: `output_formats` and `output_media_types` in `CommandEntry` declare when LLM-optimized formats are available and what each writes |
