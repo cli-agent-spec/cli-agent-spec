@@ -86,6 +86,7 @@ Present only when the command declares them.
 | `requires` | `ConditionalRule[]` | Conditional argument dependencies (REQ-C-026) |
 | `streaming_default` | boolean | Command streams JSONL unless `--no-stream` (REQ-O-004) |
 | `safe_default` | boolean | Command dry-runs unless `--live` (REQ-O-048) |
+| `confirm_flag` | string | Boolean flag, without `--`, of the command or root that runs the command; without it the command previews (`would_*` effect, `meta.dry_run: true`, exit `0`), and `--dry-run` wins over it. Only on `mutating` or `destructive` commands, never with `safe_default: true` or `arguments: "passthrough"` (REQ-O-048) |
 
 ### FlagEntry
 
@@ -671,6 +672,42 @@ Violation: `arguments: "passthrough"` requires `option_placement: "strict"`; eve
 ```
 Violation: `stderr: "child_log"` promises that stdout carries only the envelope, while a passthrough command gives stdout to the delegated tool and puts the envelope on the last line of stderr. A passthrough command's stderr already carries the delegated tool's own stderr ahead of that line.
 
+**Valid — mutating command that previews unless `--yes` is given**
+```json
+{
+  "schema_version": "3.14",
+  "framework_version": "1.5.0",
+  "etag": "sha256:5e9a12",
+  "commands": {
+    "migrate": {
+      "description": "Apply pending schema migrations",
+      "danger_level": "mutating",
+      "required_scopes": [],
+      "confirm_flag": "yes",
+      "flags": {
+        "yes": { "type": "boolean", "required": false, "default": false, "description": "Apply the migrations; omit to preview them" },
+        "dry-run": { "type": "boolean", "required": false, "default": false, "description": "Preview the migrations even when --yes is given" }
+      },
+      "exit_codes": {}
+    }
+  }
+}
+```
+`db migrate` previews with `meta.dry_run: true`; `db migrate --yes` applies the migrations; `db migrate --dry-run --yes` previews.
+
+**Invalid — confirm flag next to `safe_default`**
+```json
+{
+  "schema_version": "3.14",
+  "framework_version": "1.5.0",
+  "etag": "sha256:5e9a12",
+  "commands": {
+    "rollback": { "description": "Roll back the last deployment", "danger_level": "destructive", "required_scopes": [], "safe_default": true, "confirm_flag": "yes", "flags": { "yes": { "type": "boolean", "required": false, "description": "Run the rollback" } }, "exit_codes": {} }
+  }
+}
+```
+Violation: `confirm_flag` excludes `safe_default: true`; a command has one confirmation mechanism, either the injected `--live` or its own flag.
+
 **Invalid — command entry without required contract fields**
 ```json
 {
@@ -737,6 +774,8 @@ Violation: a root `env_vars` entry requires `description`; no flag's `descriptio
 - **Declaring `stdin: {mode: "buffered"}` on a command that consumes a record stream.** The 64 KiB total cap then rejects any real pipeline; a command that handles one line at a time declares `lines` or `records`
 - **Declaring `max_bytes` on a `lines` or `records` command.** Line mode has no total cap, so the field is rejected; the per-line cap is `max_line_bytes`
 - **Marking a passthrough command only through `option_placement: "strict"` and its `description`.** `strict` also fits a command that parses its own options and forwards the rest; only `arguments: "passthrough"` tells an agent that stdout, the exit code, and every token after the path belong to another tool
+- **Stating "previews unless `--yes`" only in a flag's `description`.** An agent that reads the manifest then expects a bare call to run; declare `confirm_flag` so the preview default is machine-readable
+- **Declaring `confirm_flag` with a name the command does not accept.** The name must be a boolean flag in the command's `flags` or the root `flags`; the framework refuses any other at registration
 - **Declaring `help_argv` on a declared command.** The framework answers `--help` itself there; `help_argv` exists only where a lone `--help` would otherwise reach the delegated tool
 - **Saying only in `description` that a command streams a wrapped program's log.** An agent cannot match prose before the call; declare `stderr: "child_log"` so it knows stderr will be busy and carries no failure signal
 - **Letting auto-quiet or `--verbose` gate a declared child log.** `child_log` streams whatever the verbosity; only `--quiet` silences it, so a log that appears only under `--verbose` is a framework diagnostic, not a child log
@@ -830,6 +869,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 **Reading declared contracts before calling**
 - `danger_level` other than `safe` — prefer `--dry-run` first; `safe_default: true` means the command previews until `--live` is passed
 - `filesystem_side_effects` with `type: "output"` — the command writes its product there, even when it is `safe`; read the result from that path, and do not run `tool cleanup` expecting it to go. A pre-3.10 manifest cannot mark it and may declare it `cache`
+- `confirm_flag` present: a call without `--<confirm_flag>` only previews and exits `0` with `meta.dry_run: true`. Read the `would_*` preview, then repeat the call with the flag to run it; check `meta.dry_run` rather than the exit code to know whether it ran. `--dry-run` wins, so drop it from the confirmed call. On a pre-3.14 manifest an absent `confirm_flag` means unknown; read the flag descriptions
 - `option_placement: "strict"` — place every option, global or local, before the first positional argument; anything after it is forwarded to the child process
 - `requires` — evaluate each rule against the flags you plan to send before calling; a violated rule produces `ARG_ERROR (2)`
 - `any_of` and `one_of` groups — send at least one flag of an `any_of` group and exactly one flag of a `one_of` group, choosing the one whose value you already hold; a declared `default` never satisfies either rule
@@ -874,6 +914,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert `output_file_base` appears only with `output_file`, and that a relative `--output` path lands under the declared base from a working directory other than that base
 - Assert every `type: "object"` flag carries a `schema` the parser enforces, and prefer `type: "object"` for every flag whose value the parser reads as a JSON object
 - Assert every `arguments: "passthrough"` command has `option_placement: "strict"`, empty `flags`, no `positionals`, and a `danger_level` other than `destructive`, and that `help_argv` appears only on such commands
+- Assert every `confirm_flag` names a boolean flag in the command's `flags` or the root `flags`, appears only on `mutating` or `destructive` commands without `safe_default: true` or `arguments: "passthrough"`, and that a call without it previews with `meta.dry_run: true` while `--dry-run` plus the flag still previews
 - Assert every flag's `env_vars` lists exactly the variables its parser reads, in the order it reads them, with the tool-prefixed name first whenever a name without the prefix is listed, and no name from `secret_env_vars`
 - Assert root `env_vars` lists every other variable the tool reads outside the universal exceptions, each with a `description` and either the tool prefix or a declared name that immediately follows its setting's prefixed entry, and no name that also appears in a flag's `env_vars`, a `secret_env_vars`, or a `token_env_vars`
 - Assert root `secret_env_vars` lists exactly the secrets every command reads, and that none of them repeats in a command's `secret_env_vars` or a flag's `env_vars`; assert no name in an auth command's `token_env_vars` repeats in that command's `secret_env_vars`
@@ -925,6 +966,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 | [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) | Sources: `requires` conditional rules |
 | [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) | Sources: `arguments` and `help_argv` per command |
 | [REQ-F-038](../requirements/f-038-verbosity-auto-quiet-in-non-tty-context.md) | Sources: `stderr` per command, the child log that auto-quiet leaves alone |
+| [REQ-O-048](../requirements/o-048-destructive-commands-default-dry-run.md) | Sources: `safe_default` and `confirm_flag` per command |
 | [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) | Sources: top-level `dependencies` |
 | [schemas/exit-code-entry.md](exit-code-entry.md) | Provides: `ExitCodeEntry` type used in `exit_codes` map |
 | [schemas/response-envelope.md](response-envelope.md) | Wraps: manifest is returned as the `data` field of a `ResponseEnvelope` |

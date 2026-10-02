@@ -99,6 +99,18 @@ $ trade execute --symbol BTC --amount 10000 --live
 - `meta.dry_run` is always present in the response envelope
 - `safe_default` is exposed in the manifest so agents can detect it programmatically
 
+**A command whose own flag confirms it declares `confirm_flag`:**
+```
+register command "migrate":
+  danger_level: mutating
+  flags: yes (boolean), dry-run (boolean)
+  confirm_flag: yes    # previews without --yes; --dry-run --yes still previews
+```
+
+- A `mutating` or `destructive` command that already runs only with a flag such as `--yes` names it in `confirm_flag` instead of describing the preview default in the flag's `description`
+- The framework refuses `confirm_flag` on a `safe` command, next to `safe_default: true`, and when it names no declared boolean flag
+- `--dry-run` wins over the confirm flag, here and in `tool exec --dry-run`
+
 ### Evaluation
 
 | Score | Condition |
@@ -106,7 +118,7 @@ $ trade execute --symbol BTC --amount 10000 --live
 | 0 | High-stakes commands execute immediately with no dry-run default; `safe_default` not declared |
 | 1 | `--dry-run` is available but opt-in; no `safe_default` mode; default is live execution |
 | 2 | Commands support `safe_default: true`; framework injects `--live`; dry-run exits 0 with `would_*` effect |
-| 3 | `safe_default` declared in manifest; `meta.dry_run` always present; agent can detect and enforce safe-default mode programmatically |
+| 3 | `safe_default` or `confirm_flag` declared in manifest; `meta.dry_run` always present; agent can detect and enforce safe-default mode programmatically |
 
 **Check:** Invoke a `safe_default: true` command without any flags — verify it returns a `would_*` effect, exits 0, and causes no side effects. Then invoke with `--live` — verify the effect field lacks the `would_` prefix and `meta.dry_run` is `false`.
 
@@ -124,11 +136,12 @@ $ trade execute --symbol BTC --amount 10000 --live
 manifest = json.loads(run(["tool", "manifest"]).stdout)
 cmd = next(c for c in manifest["commands"] if c["name"] == "execute")
 
-if cmd.get("safe_default"):
+if cmd.get("safe_default") or cmd.get("confirm_flag"):
     # Natural preview → commit workflow
     preview = run(cmd_args)                      # dry-run by default
     verify_scope(json.loads(preview.stdout))
-    result = run([*cmd_args, "--live"])
+    confirm = "--live" if cmd.get("safe_default") else f"--{cmd['confirm_flag']}"
+    result = run([*cmd_args, confirm])
 else:
     # No safe-default mode — pass --dry-run explicitly at every callsite
     preview = run([*cmd_args, "--dry-run"])
