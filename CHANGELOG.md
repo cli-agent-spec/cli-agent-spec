@@ -55,6 +55,16 @@
 
 **Why:** a command that wraps a tool whose log a person reads later had to break auto-quiet silently or hide the log, and the closed `CommandEntry` left only its `description` to warn an agent that stderr would be busy (#35).
 
+### ManifestResponse 3.12: media types of format values
+
+- REQ-O-001 fixes a media type for each spec format value: `json` → `application/json`, `jsonl` → `application/x-ndjson`, `tsv` → `text/tab-separated-values`, `plain`, `table`, and `id` → `text/plain`
+- `FlagEntry.media_types` (optional, root `format` flag only): a map from format value to lowercase `type/subtype` media type. Required for every value outside the spec's table; a spec value listed there maps to the table's media type, and every key is one of `enum_values`. The schema rejects it on any other flag and on a non-`enum` flag
+- `CommandEntry.output_media_types` (optional) is the same map beside REQ-O-049's `output_formats`, which keeps its type; it is required for a command-specific value that neither the table nor the root map covers, and overrides the root map for that command
+- An agent parses only output whose media type is `application/json`, `application/x-ndjson`, or a `+json` type, and treats every other format's output as an opaque artifact
+- A producer that sets either map emits `schema_version` `3.12`; earlier manifests stay valid
+
+**Why:** a tool can register its own `--format` values beside the spec's (`html` for a page a person reads), and an agent had no way to learn from the manifest that such a value is not JSON, short of parsing the flag's `description` (#36).
+
 ## 1.10.0 — 2026-10-01
 
 ### ManifestResponse 3.2: group rules in requires
