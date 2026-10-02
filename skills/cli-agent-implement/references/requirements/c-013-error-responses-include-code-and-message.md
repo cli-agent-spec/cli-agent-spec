@@ -10,7 +10,7 @@
 
 ## Description
 
-Every error response MUST include an `error` object with: `code` (string, `DOMAIN_NOUN_CONDITION` format, machine-readable), `message` (string, human-readable, complete sentence), and optionally `cause` (the underlying system error), `suggestion` (an actionable next step), `docs_url` (a URL to documentation), and `context` (an object of relevant key-value pairs). Stack traces MUST NOT appear in `error.message` or any stdout field; they MUST be sent only to stderr or a log file.
+Every error response MUST include an `error` object with: `code` (string, `DOMAIN_NOUN_CONDITION` format, machine-readable), `message` (string, human-readable, complete sentence), and optionally `cause` (the underlying system error), `suggestion` (an actionable next step), `docs_url` (a URL to documentation), and `context` (an object of relevant key-value pairs). A `context` that holds external content, such as a wrapped program's stderr, carries the REQ-F-035 trust tags; external text goes in `context`, not in `message`, `detail`, or `cause`. Stack traces MUST NOT appear in `error.message` or any stdout field; they MUST be sent only to stderr or a log file.
 
 ## Acceptance Criteria
 
@@ -104,3 +104,4 @@ register command "connect":
 | [REQ-F-001](f-001-standard-exit-code-table.md) | F | Provides: `ExitCode` names that `error.code` may reuse for well-known failure categories |
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: the exit code in `meta.exit_code` must be declared in the command's `exit_codes` map |
 | [REQ-C-014](c-014-error-responses-include-retryable-and-retry-after-.md) | C | Extends: adds `retryable` and `retry_after_ms` fields to the error object defined here |
+| [REQ-F-035](f-035-external-data-trust-tagging.md) | F | Enforces: a `context` holding external content carries `_source` and `_trusted` and is masked |

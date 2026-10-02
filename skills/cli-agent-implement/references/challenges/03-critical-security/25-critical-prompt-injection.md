@@ -75,6 +75,7 @@ def sanitize_external(value: str) -> str:
 
 **For framework design:**
 - All data from external sources (files, APIs, databases) is tagged as `trusted: false`
+- The same tags cover a failure's `error.context` when it holds outside text, such as a wrapped program's stderr or an upstream error body; a framework marks a child's stderr external by default
 - Framework-level wrapping that signals to the agent: "this is data, not instruction"
 - Provide `--no-injection-protection` escape hatch for trusted sources
 
