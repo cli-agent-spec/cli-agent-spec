@@ -75,6 +75,17 @@
 
 **Why:** implementing ManifestResponse 3.5 left a tool-wide secret with no home, forbade a root setting's established unprefixed name that a flag could declare, left `token_env_vars` out of the "three homes", and made tools that read `COLUMNS` or a CA bundle variable non-conforming (#37).
 
+### ManifestResponse 3.14: a command's own flag confirms execution
+
+- `CommandEntry.confirm_flag` (optional string) names a boolean flag of the command or root, such as `yes`. Without that flag the command previews under the dry-run contract (`would_*` effect, `meta.dry_run: true`, exit `0`, no side effects) and prompts for nothing; with it the command runs, with `meta.dry_run: false` and `meta.confirmed: true` (REQ-O-048)
+- `--dry-run` wins: `--dry-run --yes` previews, and `tool exec --dry-run` previews a dispatched `confirm_flag` command even when its line passes the flag (REQ-O-050)
+- The framework refuses `confirm_flag` at registration on a `safe` command, next to `safe_default: true`, on a passthrough command (REQ-C-031), on a command without a dry-run path, and when it names no declared boolean flag. The schema rejects the first three
+- With REQ-O-021 enabled, a destructive command's `confirm_flag` is `confirm-destructive`, and without it the command previews and exits `0` instead of exiting `2` with `CONFIRMATION_REQUIRED`. REQ-C-005's `--yes` stays a no-op on commands that never prompt, except where `confirm_flag` is `yes`
+- REQ-O-048 is retitled "High-Stakes Commands Default to Dry-Run Mode" and covers both `safe_default` and `confirm_flag`; `safe_default` is unchanged
+- A producer that sets `confirm_flag` emits `schema_version` `3.14`; a pre-3.14 manifest stays valid, and on it an absent `confirm_flag` means unknown, not "runs without a flag"
+
+**Why:** a mutating command that previews unless its own `--yes` is given could state that only in the flag's `description`, because `safe_default` is a boolean, destructive-only, and names `--live`. An agent reading the manifest expected a bare call to run (#40).
+
 ## 1.10.0 — 2026-10-01
 
 ### ManifestResponse 3.2: group rules in requires

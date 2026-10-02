@@ -10,11 +10,11 @@
 
 ## Description
 
-The framework MUST provide `--confirm-destructive` as a standard flag on all commands with `danger_level: "destructive"`. Without this flag, a destructive command MUST exit with a structured error (exit `2`) explaining that the flag is required and showing what would be affected (equivalent to an implicit `--dry-run` output). With this flag, the command proceeds. This is distinct from `--yes` (which auto-confirms interactive prompts) and specifically guards destructive operations in automated contexts.
+The framework MUST provide `--confirm-destructive` as a standard flag on all commands with `danger_level: "destructive"`. Without this flag, a destructive command MUST exit with a structured error (exit `2`) explaining that the flag is required and showing what would be affected (equivalent to an implicit `--dry-run` output). With this flag, the command proceeds. This is distinct from `--yes` (which auto-confirms interactive prompts) and specifically guards destructive operations in automated contexts. A destructive command that declares `confirm_flag` (REQ-O-048) names `confirm-destructive` as that flag, and without it previews under the dry-run contract and exits `0` instead of exiting `2`.
 
 ## Acceptance Criteria
 
-- A destructive command invoked without `--confirm-destructive` exits `2` with a JSON error listing what would be affected
+- A destructive command invoked without `--confirm-destructive` exits `2` with a JSON error listing what would be affected, unless it declares `confirm_flag: "confirm-destructive"` (REQ-O-048), in which case it previews and exits `0`
 - A destructive command invoked with `--confirm-destructive` proceeds normally
 - The `--schema` output for destructive commands includes `requires_confirmation: true`
 - `--confirm-destructive` is absent on non-destructive commands
@@ -99,6 +99,7 @@ register command "delete":
 |-------------|------|--------------|
 | [REQ-C-002](c-002-command-declares-danger-level.md) | C | Provides: `danger_level: "destructive"` declaration that triggers this flag |
 | [REQ-C-004](c-004-destructive-commands-must-support-dry-run.md) | C | Composes: implicit dry-run output mirrors the `--dry-run` contract |
+| [REQ-O-048](o-048-destructive-commands-default-dry-run.md) | O | Composes: a destructive command with `confirm_flag: "confirm-destructive"` previews without the flag instead of exiting `2` |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Wraps: confirmation error and success both use `ResponseEnvelope` |
 | [REQ-F-021](f-021-data-meta-separation-in-response-envelope.md) | F | Extends: `meta.confirmed` field added to standard envelope meta |
 | [REQ-O-030](o-030-opt-in-audit-log.md) | O | Consumes: `confirm_destructive` in the entry's `args` records confirmation, and refusals are logged, when the audit log is enabled |

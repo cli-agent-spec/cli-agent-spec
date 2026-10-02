@@ -190,7 +190,7 @@
 | [REQ-O-045](o-045-integration-artifact-version-declaration.md) | P1 | Integration Artifact Version Declaration | [§72](../challenges/01-critical-ecosystem-runtime-agent-specific/72-high-integration-artifact-drift.md) [§47](../challenges/01-critical-ecosystem-runtime-agent-specific/47-high-mcp-schema-staleness.md) | 3 |
 | [REQ-O-046](o-046-agents-md-ci-validation.md) | P2 | AGENTS.md CI Validation | [§73](../challenges/01-critical-ecosystem-runtime-agent-specific/73-high-documentation-accuracy-drift.md) [§44](../challenges/01-critical-ecosystem-runtime-agent-specific/44-medium-knowledge-packaging.md) | 3 |
 | [REQ-O-047](o-047-tool-check-permissions-built-in-command.md) | P0 | tool check-permissions Built-In Command | [§74](../challenges/03-critical-security/74-critical-credential-scope-declaration.md) | 2 |
-| [REQ-O-048](o-048-destructive-commands-default-dry-run.md) | P0 | Destructive Commands Default to Dry-Run Mode | [§75](../challenges/03-critical-security/75-critical-safe-default-execution.md) | 2 |
+| [REQ-O-048](o-048-destructive-commands-default-dry-run.md) | P0 | High-Stakes Commands Default to Dry-Run Mode | [§75](../challenges/03-critical-security/75-critical-safe-default-execution.md) | 2 |
 | [REQ-O-049](o-049-llm-token-budget-flags.md) | P2 | LLM Token Budget Flags | [§4](../challenges/04-critical-output-and-parsing/04-medium-verbosity.md) [§43](../challenges/01-critical-ecosystem-runtime-agent-specific/43-critical-output-size-unboundedness.md) | 3 |
 | [REQ-O-050](o-050-tool-exec-built-in-command.md) | P2 | tool exec Built-In Command | [§77](../challenges/02-critical-execution-and-reliability/77-high-no-batch-dispatch.md) | 3 |
 

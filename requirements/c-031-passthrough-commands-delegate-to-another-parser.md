@@ -14,7 +14,7 @@ Some commands wrap another tool's own argument parser: an `ingest` command that 
 
 **Arguments.** A passthrough command declares no local flags and no positionals. Every token after its command path reaches the delegated tool verbatim, including `--`, `--help`, and tokens spelled like the framework's own options, so global options and framework flags (`--format`, `--output`, `--timeout`, `--schema`) go before the command path. A passthrough command therefore also declares `option_placement: "strict"` (REQ-C-027). When the command declares `help_argv`, a lone `--help` or `-h` after the command path is forwarded as that argv instead, such as `["extract", "--help"]`; without it, the lone token is forwarded unchanged.
 
-**Never destructive.** A passthrough command MUST NOT declare `danger_level: "destructive"`, and the framework refuses that registration. The framework cannot preview what the delegated tool would change, so it cannot offer the dry run (REQ-C-004) or the confirmation preview (REQ-O-021) a destructive command owes the caller. A passthrough command declares `safe` or `mutating`; a tool that can delete or irreversibly change state is wrapped by a declared command that validates its own arguments instead.
+**Never destructive.** A passthrough command MUST NOT declare `danger_level: "destructive"`, and the framework refuses that registration. The framework cannot preview what the delegated tool would change, so it cannot offer the dry run (REQ-C-004) or the confirmation preview (REQ-O-021) a destructive command owes the caller. A passthrough command declares `safe` or `mutating`; a tool that can delete or irreversibly change state is wrapped by a declared command that validates its own arguments instead. For the same reason a passthrough command MUST NOT declare `confirm_flag` (REQ-O-048): it has no preview to fall back to without the flag.
 
 **The envelope.** In JSON mode, once the framework's own options pass validation, the delegated tool owns stdout (file descriptor 1 included) and the framework writes the final `ResponseEnvelope` as the last line of stderr, after the tool exits. When `--output <path>` is given before the command path, the same envelope also goes to that file (`output_file: "envelope"`). An error found while validating the framework's own options is reported on stdout as for any command, because no tool has run. On success, `data` is `{"exit_code": 0}`. The framework copies none of the delegated tool's output into the envelope, so its `error.context` holds no external content and carries no trust tags (REQ-F-035); the tool's own stderr lines before the envelope are untagged output an agent treats as untrusted.
 
@@ -47,6 +47,7 @@ Some commands wrap another tool's own argument parser: an `ingest` command that 
 - An invalid framework option before the command path exits `2` with `ARG_ERROR` on stdout and the delegated tool does not start
 - The framework rejects at registration a passthrough command that declares `danger_level: "destructive"`
 - The framework rejects at registration a passthrough command that declares `stderr: "child_log"`; the delegated tool's own stderr already precedes the envelope line
+- The framework rejects at registration a passthrough command that declares `confirm_flag`
 - A timed-out or signalled delegated tool ends with exit `10` or `128 + N` and an envelope on the last line of stderr
 - A repeated argv in the same session does not start the delegated tool and returns `effect: "noop"`
 - An audit log entry for a passthrough command has `args.argv` equal to `"[OMITTED]"` and contains no forwarded token
@@ -129,6 +130,7 @@ register command "ingest":
 | [REQ-C-015](c-015-commands-declare-input-and-output-schema.md) | C | Specializes: no input schema for the delegated arguments |
 | [REQ-C-002](c-002-command-declares-danger-level.md) | C | Consumes: `danger_level` is `safe` or `mutating`, never `destructive` |
 | [REQ-C-004](c-004-destructive-commands-must-support-dry-run.md) | C | Composes: a passthrough command cannot be destructive because it cannot offer a dry run |
+| [REQ-O-048](o-048-destructive-commands-default-dry-run.md) | O | Composes: a passthrough command declares no `confirm_flag` because it cannot preview |
 | [REQ-C-007](c-007-mutating-commands-accept-idempotency-key.md) | C | Composes: session deduplication keys on the forwarded argv |
 | [REQ-F-012](f-012-timeout-exit-code-and-json-error.md) | F | Composes: the timeout covers the delegated tool |
 | [REQ-O-030](o-030-opt-in-audit-log.md) | O | Composes: the audit log records the forwarded argv as `[OMITTED]` |

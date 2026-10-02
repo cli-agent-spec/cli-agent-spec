@@ -153,7 +153,7 @@
           "type": "string",
           "enum": ["declared", "passthrough"],
           "default": "declared",
-          "description": "declared: the framework parses the command's arguments from its flags and positionals. passthrough: every token after the command path goes verbatim to another tool's parser, which owns stdout and the exit code; the final envelope is the last line of stderr, a non-zero delegated code gives error.code DELEGATED_EXIT, option_placement is strict, and danger_level is never destructive. Sourced from REQ-C-031."
+          "description": "declared: the framework parses the command's arguments from its flags and positionals. passthrough: every token after the command path goes verbatim to another tool's parser, which owns stdout and the exit code; the final envelope is the last line of stderr, a non-zero delegated code gives error.code DELEGATED_EXIT, option_placement is strict, danger_level is never destructive, and confirm_flag is absent. Sourced from REQ-C-031."
         },
         "help_argv": {
           "type": "array",
@@ -276,6 +276,12 @@
         "safe_default": {
           "type": "boolean",
           "description": "True when the command runs in dry-run mode unless --live is passed. Sourced from REQ-O-048."
+        },
+        "confirm_flag": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^-]",
+          "description": "Name, without leading --, of a boolean flag of the command or root that confirms execution. Without it the command previews under the dry-run contract (would_* effect, meta.dry_run true, exit 0, no side effects); with it the command runs. --dry-run wins over it. Only on mutating or destructive commands, never with safe_default true. Sourced from REQ-O-048."
         }
       },
       "allOf": [
@@ -304,7 +310,8 @@
               "danger_level": { "enum": ["safe", "mutating"] },
               "flags": { "maxProperties": 0 },
               "positionals": { "maxItems": 0 }
-            }
+            },
+            "not": { "required": ["confirm_flag"] }
           }
         },
         {
@@ -314,6 +321,15 @@
         {
           "if": { "required": ["stderr"] },
           "then": { "not": { "required": ["arguments"], "properties": { "arguments": { "const": "passthrough" } } } }
+        },
+        {
+          "if": { "required": ["confirm_flag"] },
+          "then": {
+            "properties": {
+              "danger_level": { "enum": ["mutating", "destructive"] },
+              "safe_default": { "const": false }
+            }
+          }
         }
       ]
     },

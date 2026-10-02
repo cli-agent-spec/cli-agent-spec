@@ -17,7 +17,7 @@ Per-line output streams to stdout as JSONL. Each output line is a `ResponseEnvel
 The command supports two flags:
 
 - `--ignore-errors`: continue dispatching after a line failure (default: stop at first failure)
-- `--dry-run`: forward `dry_run: true` to every dispatched command whose `danger_level` is `"mutating"` or `"destructive"`; commands with `danger_level: "safe"` ignore it
+- `--dry-run`: forward `dry_run: true` to every dispatched command whose `danger_level` is `"mutating"` or `"destructive"`; commands with `danger_level: "safe"` ignore it. A forwarded `dry_run: true` wins over a confirm flag on the dispatched line, so a command that declares `confirm_flag` (REQ-O-048) previews even when its line passes that flag
 
 Exit codes:
 
@@ -36,6 +36,7 @@ Exit codes:
 - Without `--ignore-errors`, dispatch stops at the first failure and exits `1`
 - With `--ignore-errors`, dispatch continues past line failures; exit code is still `1` if any line failed
 - `--dry-run` is forwarded to every dispatched command that declares `danger_level != "safe"`
+- With `--dry-run`, a dispatched command that declares `confirm_flag` previews (`meta.dry_run: true`, no side effects) even when its line passes the confirm flag
 - A JSONL parse error on any line emits an error response for that line with `error.code: "DISPATCH_PARSE_ERROR"` and `error.phase: "validation"`; no side effects for that line
 - A fully malformed stream (cannot parse any line) exits `2`
 - The command is available with zero per-command implementation work once enabled at the framework level
@@ -103,6 +104,7 @@ results = [json.loads(line) for line in result.stdout.splitlines() if line.strip
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: exit code declarations applied per dispatched line |
 | [REQ-C-002](c-002-command-declares-danger-level.md) | C | Composes: `danger_level` declarations used to route `--dry-run` forwarding |
 | [REQ-C-004](c-004-destructive-commands-must-support-dry-run.md) | C | Composes: `--dry-run` forwarded per-line to declared mutating/destructive commands |
+| [REQ-O-048](o-048-destructive-commands-default-dry-run.md) | O | Composes: a forwarded `--dry-run` wins over a dispatched line's confirm flag |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Enforces: each output line is a `ResponseEnvelope` |
 | [REQ-O-032](o-032-raw-payload-flag-for-mutating-commands.md) | O | Provides: `--input` flag that `exec` uses to forward per-line payload |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Provides: manifest `commands` map whose dot-path keys are valid `_cmd` values |
