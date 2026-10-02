@@ -71,7 +71,7 @@
         "danger_level": {
           "type": "string",
           "enum": ["safe", "mutating", "destructive"],
-          "description": "Mutation risk level. safe: read-only; mutating: creates or modifies state; destructive: permanently deletes or irreversibly modifies state. Sourced from REQ-C-002."
+          "description": "Mutation risk level. safe: read-only, no side effects on state (writes only cache, log, temp, or output paths); mutating: creates or modifies state; destructive: permanently deletes or irreversibly modifies state. Sourced from REQ-C-002."
         },
         "required_scopes": {
           "type": "array",

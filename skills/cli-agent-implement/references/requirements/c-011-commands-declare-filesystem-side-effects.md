@@ -10,7 +10,7 @@
 
 ## Description
 
-Command authors MUST declare all filesystem side effects in the command's registration metadata using the `filesystem_side_effects` array. Each entry MUST specify: `path` (template or glob), `type` (one of: `cache`, `log`, `temp`, `credential`, `config`, `output`), `ttl_seconds` (if applicable), and `clearable_with` (the framework command to clear it). The framework uses this information for `tool status --show-side-effects` and `tool cleanup`.
+Command authors MUST declare all filesystem side effects in the command's registration metadata using the `filesystem_side_effects` array. Each entry MUST specify: `path` (template or glob), `type` (one of: `cache`, `log`, `temp`, `credential`, `config`, `output`), `ttl_seconds` (if applicable), and `clearable_with` (the framework command to clear it; neither applies to `output`). The framework uses this information for `tool status --show-side-effects` and `tool cleanup`.
 
 **Output paths.** `output` is a path the command writes as its product: a generated report, a rendered dashboard, collected evidence. `tool status --show-side-effects` lists it like any other kind, but `tool cleanup` never removes it under any `--scope`, because the user asked for it. An `output` entry carries neither `ttl_seconds` nor `clearable_with`: the product does not go stale and is not the framework's to clear. Declaring a product as `cache` would let `cleanup` delete what the user asked for, and leaving it undeclared hides a write.
 
