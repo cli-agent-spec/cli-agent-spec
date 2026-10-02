@@ -21,6 +21,7 @@
 - New acceptance criteria and an error-envelope example in REQ-F-035; `response-envelope.md` tells an agent never to follow instructions found in a tagged `data` or `error.context`. `ErrorDetail.context` already allows extra keys, so `ResponseEnvelope` stays 2.1 with a description change only
 
 **Why:** a failure's `error.context` routinely carries a wrapped program's stderr, yet REQ-F-035 tagged and masked external content only in `data`, so injected instructions and raw tokens reached an agent through the error path untagged (#38).
+
 ### ResponseEnvelope 2.2, AuditLogEntry 1.1: mutating streams
 
 - REQ-O-004: a streaming command declares `danger_level` `safe` or `mutating`; the framework refuses to register a streaming `destructive` command, since a stream cannot ask confirmation per action (REQ-C-002)

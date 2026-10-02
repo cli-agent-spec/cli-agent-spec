@@ -12,7 +12,7 @@
 
 Every command with `danger_level: "mutating"` or `"destructive"` MUST accept an `--idempotency-key <string>` argument. The command MUST use this key to detect and short-circuit duplicate invocations, returning the original result with `effect: "noop"` and the original response data. When no key is supplied, the framework MAY auto-generate one (deterministic, based on command + args + session) or MUST document that the operation is not deduplication-safe.
 
-A streaming command (REQ-O-004) is exempt and MUST NOT accept `--idempotency-key`: a replay returns one stored result, and a stream is a sequence of events with no single result to return. The framework MUST refuse to register a streaming mutating command that accepts the flag. A streaming command is never destructive (REQ-O-004), so the exemption covers only `danger_level: "mutating"`; every non-streaming mutating or destructive command still MUST accept the key.
+A streaming command (one that declares `supports_streaming: true`, REQ-O-004) is exempt and MUST NOT accept `--idempotency-key`, in its buffered answer as well as with `--stream`: a replay returns one stored result, and a stream is a sequence of events with no single result to return. The framework MUST refuse to register a streaming mutating command that accepts the flag. A streaming command is never destructive (REQ-O-004), so the exemption covers only `danger_level: "mutating"`; every non-streaming mutating or destructive command still MUST accept the key.
 
 ## Acceptance Criteria
 
