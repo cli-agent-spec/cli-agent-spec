@@ -146,6 +146,11 @@
           "minItems": 1,
           "description": "Passthrough commands only: the argv forwarded to the delegated tool in place of a lone --help or -h after the command path. Absent means the lone token is forwarded unchanged. Sourced from REQ-C-031."
         },
+        "stderr": {
+          "type": "string",
+          "enum": ["child_log"],
+          "description": "child_log: stderr carries a wrapped program's output as plain text, line by line, regardless of --format and verbosity; --quiet silences it and stdout carries only the envelope. Absent means stderr carries the framework's own diagnostics only. Never on a passthrough command. Sourced from REQ-F-038."
+        },
         "option_placement": {
           "type": "string",
           "enum": ["any", "strict"],
@@ -290,6 +295,10 @@
         {
           "if": { "required": ["help_argv"] },
           "then": { "required": ["arguments"], "properties": { "arguments": { "const": "passthrough" } } }
+        },
+        {
+          "if": { "required": ["stderr"] },
+          "then": { "not": { "required": ["arguments"], "properties": { "arguments": { "const": "passthrough" } } } }
         }
       ]
     },
