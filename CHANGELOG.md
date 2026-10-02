@@ -21,6 +21,18 @@
 - New acceptance criteria and an error-envelope example in REQ-F-035; `response-envelope.md` tells an agent never to follow instructions found in a tagged `data` or `error.context`. `ErrorDetail.context` already allows extra keys, so `ResponseEnvelope` stays 2.1 with a description change only
 
 **Why:** a failure's `error.context` routinely carries a wrapped program's stderr, yet REQ-F-035 tagged and masked external content only in `data`, so injected instructions and raw tokens reached an agent through the error path untagged (#38).
+### ResponseEnvelope 2.2, AuditLogEntry 1.1: mutating streams
+
+- REQ-O-004: a streaming command declares `danger_level` `safe` or `mutating`; the framework refuses to register a streaming `destructive` command, since a stream cannot ask confirmation per action (REQ-C-002)
+- REQ-O-004, REQ-C-003: on a mutating stream, every item line carries its own `effect`, and the summary line carries `effects`, the number of events per effect value (`{"created": 2, "noop": 1}`). A buffered answer puts the events in `data` and the counts in `meta.effects`
+- REQ-O-004: `--dry-run` covers the whole stream: every event reports a `would_*` effect (`would_noop` for an unchanged one), the summary line carries `"dry_run": true`, and a failed dry-run stream's error envelope carries `meta.dry_run: true`
+- REQ-O-004: a mutating stream that fails after a live effect other than `noop` ends on an error envelope with `retryable: false`
+- REQ-C-007: a streaming mutating command MUST NOT accept `--idempotency-key`, and the framework refuses to register one that does; every non-streaming mutating or destructive command still must accept it. REQ-C-002 names the exemption
+- REQ-O-030: a stream is one invocation and gets one audit entry, whose new optional `effects` holds the summary line's counts, or the counts of the events emitted before a failure
+- `ResponseMeta.effects` (optional) makes `ResponseEnvelope` 2.2, and `AuditLogEntry.effects` (optional) makes `AuditLogEntry` 1.1; earlier instances stay valid
+- §12 and the streaming guide describe the exemption and the per-event effect
+
+**Why:** REQ-C-003's `effect`, REQ-C-007's replay, dry-run, and the audit entry all assumed one result per run, so a bulk import or sync that streams its changes had no contract for reporting, previewing, retrying, or auditing them (#34).
 
 ## 1.10.0 — 2026-10-01
 

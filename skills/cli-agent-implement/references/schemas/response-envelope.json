@@ -245,6 +245,12 @@
           "$ref": "#/definitions/Pagination",
           "description": "Present on every list command response (REQ-F-018), including complete result sets."
         },
+        "effects": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[a-z][a-z_]*$" },
+          "additionalProperties": { "type": "integer", "minimum": 0 },
+          "description": "Number of events per effect value of a mutating streaming command (REQ-O-004) on its buffered answer; the summary line carries the same field. Absent on any other response."
+        },
         "audit_log_path": {
           "type": "string",
           "minLength": 1,
