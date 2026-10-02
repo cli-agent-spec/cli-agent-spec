@@ -10,11 +10,11 @@
 
 ## Description
 
-The framework MUST provide `--quiet` (suppress all stderr; stdout JSON only), `--verbose` (progress messages on stderr), and `--debug` (full debug trace on stderr) as standard flags on every command. These MUST override the auto-quiet behavior (REQ-F-038). The verbosity levels MUST be mutually exclusive. In `--debug` mode, all framework-internal operations (config loading, lock acquisition, HTTP requests) MUST be logged to stderr.
+The framework MUST provide `--quiet` (suppress all stderr; stdout JSON only), `--verbose` (progress messages on stderr), and `--debug` (full debug trace on stderr) as standard flags on every command. These MUST override the auto-quiet behavior (REQ-F-038). The verbosity levels MUST be mutually exclusive. `--quiet` also silences the wrapped program's log of a command that declares `stderr: "child_log"`, which `--verbose`, `--debug`, and auto-quiet leave streaming (REQ-F-038). In `--debug` mode, all framework-internal operations (config loading, lock acquisition, HTTP requests) MUST be logged to stderr.
 
 ## Acceptance Criteria
 
-- `--quiet` produces zero bytes on stderr (even for warnings)
+- `--quiet` produces zero bytes on stderr (even for warnings), including on a command that declares `stderr: "child_log"`
 - `--verbose` produces progress messages on stderr and the JSON result on stdout
 - `--debug` produces full diagnostic trace on stderr including all HTTP requests and config resolution steps
 - Passing `--verbose` with `CI=true` overrides the auto-quiet mode

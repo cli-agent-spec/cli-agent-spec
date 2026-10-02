@@ -46,6 +46,7 @@ Some commands wrap another tool's own argument parser: an `ingest` command that 
 - A delegated exit code `n` is the process exit code; when `n` is non-zero the envelope has `error.code: "DELEGATED_EXIT"`, `data.exit_code: n`, `meta.exit_code: n`, and `retryable: false`
 - An invalid framework option before the command path exits `2` with `ARG_ERROR` on stdout and the delegated tool does not start
 - The framework rejects at registration a passthrough command that declares `danger_level: "destructive"`
+- The framework rejects at registration a passthrough command that declares `stderr: "child_log"`; the delegated tool's own stderr already precedes the envelope line
 - A timed-out or signalled delegated tool ends with exit `10` or `128 + N` and an envelope on the last line of stderr
 - A repeated argv in the same session does not start the delegated tool and returns `effect: "noop"`
 - An audit log entry for a passthrough command has `args.argv` equal to `"[OMITTED]"` and contains no forwarded token
@@ -133,3 +134,4 @@ register command "ingest":
 | [REQ-O-030](o-030-opt-in-audit-log.md) | O | Composes: the audit log records the forwarded argv as `[OMITTED]` |
 | [REQ-F-035](f-035-external-data-trust-tagging.md) | F | Composes: the envelope copies no delegated output, so it carries no trust tags |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Exposes: `arguments` and `help_argv` appear in the manifest |
+| [REQ-F-038](f-038-verbosity-auto-quiet-in-non-tty-context.md) | F | Composes: a passthrough command never declares `stderr: "child_log"` |

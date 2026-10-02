@@ -2,7 +2,7 @@
 
 **File:** [`manifest-response.json`](manifest-response.json)
 
-> **Used by:** [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-013](../requirements/o-013-schema-output-schema-flag.md) · [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) · [REQ-C-005](../requirements/c-005-interactive-commands-must-support-yes-non-interact.md) · [REQ-C-008](../requirements/c-008-multi-step-commands-emit-step-manifest.md) · [REQ-C-010](../requirements/c-010-background-process-commands-declare-metadata.md) · [REQ-C-011](../requirements/c-011-commands-declare-filesystem-side-effects.md) · [REQ-C-012](../requirements/c-012-commands-with-network-i-o-support-timeout.md) · [REQ-C-015](../requirements/c-015-commands-declare-input-and-output-schema.md) · [REQ-C-016](../requirements/c-016-secrets-accepted-only-via-env-var-or-file.md) · [REQ-C-018](../requirements/c-018-commands-declare-platform-requirements.md) · [REQ-C-019](../requirements/c-019-subprocess-invoking-commands-declare-argument-sche.md) · [REQ-C-020](../requirements/c-020-resource-id-fields-declare-validation-pattern.md) · [REQ-C-021](../requirements/c-021-auth-commands-declare-headless-mode-support.md) · [REQ-C-022](../requirements/c-022-async-commands-declare-job-descriptor-schema.md) · [REQ-C-023](../requirements/c-023-editor-requiring-commands-declare-non-interactive-.md) · [REQ-C-024](../requirements/c-024-gui-launching-commands-declare-headless-behavior.md) · [REQ-C-025](../requirements/c-025-config-writing-commands-declare-write-scope.md) · [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) · [REQ-C-027](../requirements/c-027-commands-declare-option-placement.md) · [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) · [REQ-F-051](../requirements/f-051-debug-and-trace-mode-secret-redaction.md) · [REQ-F-073](../requirements/f-073-env-var-namespace-prefix.md) · [REQ-F-079](../requirements/f-079-global-option-scope.md) · [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) · [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) · [REQ-O-042](../requirements/o-042-output-format-env-var-default.md) · [REQ-O-048](../requirements/o-048-destructive-commands-default-dry-run.md) · [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md) · [REQ-F-054](../requirements/f-054-stdin-payload-size-cap-with-input-file-fallback.md) · [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md)
+> **Used by:** [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-013](../requirements/o-013-schema-output-schema-flag.md) · [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) · [REQ-C-005](../requirements/c-005-interactive-commands-must-support-yes-non-interact.md) · [REQ-C-008](../requirements/c-008-multi-step-commands-emit-step-manifest.md) · [REQ-C-010](../requirements/c-010-background-process-commands-declare-metadata.md) · [REQ-C-011](../requirements/c-011-commands-declare-filesystem-side-effects.md) · [REQ-C-012](../requirements/c-012-commands-with-network-i-o-support-timeout.md) · [REQ-C-015](../requirements/c-015-commands-declare-input-and-output-schema.md) · [REQ-C-016](../requirements/c-016-secrets-accepted-only-via-env-var-or-file.md) · [REQ-C-018](../requirements/c-018-commands-declare-platform-requirements.md) · [REQ-C-019](../requirements/c-019-subprocess-invoking-commands-declare-argument-sche.md) · [REQ-C-020](../requirements/c-020-resource-id-fields-declare-validation-pattern.md) · [REQ-C-021](../requirements/c-021-auth-commands-declare-headless-mode-support.md) · [REQ-C-022](../requirements/c-022-async-commands-declare-job-descriptor-schema.md) · [REQ-C-023](../requirements/c-023-editor-requiring-commands-declare-non-interactive-.md) · [REQ-C-024](../requirements/c-024-gui-launching-commands-declare-headless-behavior.md) · [REQ-C-025](../requirements/c-025-config-writing-commands-declare-write-scope.md) · [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) · [REQ-C-027](../requirements/c-027-commands-declare-option-placement.md) · [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) · [REQ-F-051](../requirements/f-051-debug-and-trace-mode-secret-redaction.md) · [REQ-F-073](../requirements/f-073-env-var-namespace-prefix.md) · [REQ-F-079](../requirements/f-079-global-option-scope.md) · [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) · [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) · [REQ-O-042](../requirements/o-042-output-format-env-var-default.md) · [REQ-O-048](../requirements/o-048-destructive-commands-default-dry-run.md) · [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md) · [REQ-F-054](../requirements/f-054-stdin-payload-size-cap-with-input-file-fallback.md) · [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) · [REQ-F-038](../requirements/f-038-verbosity-auto-quiet-in-non-tty-context.md)
 > Returned as the `data` field of a [`ResponseEnvelope`](response-envelope.md).
 
 ---
@@ -60,6 +60,7 @@ Present only when the command declares them.
 | `option_placement` | `"any"` \| `"strict"` | `strict`: every option, global or local, precedes the first positional; absent means `any` (REQ-C-027) |
 | `arguments` | `"declared"` \| `"passthrough"` | `passthrough`: every token after the command path goes verbatim to another tool, which owns stdout and the exit code; the envelope is the last line of stderr. Requires `option_placement: "strict"`, empty `flags`, and no `positionals`, and excludes `danger_level: "destructive"`; absent means `declared` (REQ-C-031) |
 | `help_argv` | string[] | Passthrough only: the argv forwarded in place of a lone `--help` or `-h` after the command path; absent means the token is forwarded unchanged (REQ-C-031) |
+| `stderr` | `"child_log"` | `child_log`: stderr carries a wrapped program's output as plain text, line by line, whatever `--format` and verbosity say; `--quiet` silences it, and stdout carries only the envelope. Absent means stderr carries the framework's own diagnostics only. Never on a passthrough command (REQ-F-038) |
 | `interactive` | boolean | Command may prompt in a TTY; `--yes` and `--non-interactive` exist (REQ-C-005) |
 | `has_network_io` | boolean | Command performs network or long blocking I/O; `--timeout` exists (REQ-C-012) |
 | `steps` | string[] | Ordered step names of a multi-step command (REQ-C-008) |
@@ -546,6 +547,41 @@ Violation: an `output` path is the command's product; it does not expire and no 
 ```
 Violation: `arguments: "passthrough"` requires `option_placement: "strict"`; every token after the command path belongs to the delegated tool, so no option can follow it.
 
+**Valid — command that streams a wrapped program's log to stderr**
+```json
+{
+  "schema_version": "3.11",
+  "framework_version": "2.1.0",
+  "etag": "sha256:5be0a3",
+  "commands": {
+    "provision": {
+      "description": "Run the site playbook against the inventory; ansible-playbook's log streams to stderr",
+      "danger_level": "mutating",
+      "required_scopes": [],
+      "stderr": "child_log",
+      "flags": {
+        "limit": { "type": "string", "required": false, "description": "Host pattern passed to ansible-playbook as --limit" }
+      },
+      "exit_codes": {}
+    }
+  }
+}
+```
+`infra --format json provision` writes ansible-playbook's log to stderr, line by line, as it runs, even without a terminal; stdout holds only the final envelope. `infra --quiet provision` writes nothing to stderr.
+
+**Invalid — child log on a passthrough command**
+```json
+{
+  "schema_version": "3.11",
+  "framework_version": "1.4.0",
+  "etag": "sha256:c41d07",
+  "commands": {
+    "ingest": { "description": "Run beangulp", "danger_level": "mutating", "required_scopes": [], "arguments": "passthrough", "option_placement": "strict", "stderr": "child_log", "flags": {}, "exit_codes": {} }
+  }
+}
+```
+Violation: `stderr: "child_log"` promises that stdout carries only the envelope, while a passthrough command gives stdout to the delegated tool and puts the envelope on the last line of stderr. A passthrough command's stderr already carries the delegated tool's own stderr ahead of that line.
+
 **Invalid — command entry without required contract fields**
 ```json
 {
@@ -613,6 +649,8 @@ Violation: a root `env_vars` entry requires `description`; no flag's `descriptio
 - **Declaring `max_bytes` on a `lines` or `records` command.** Line mode has no total cap, so the field is rejected; the per-line cap is `max_line_bytes`
 - **Marking a passthrough command only through `option_placement: "strict"` and its `description`.** `strict` also fits a command that parses its own options and forwards the rest; only `arguments: "passthrough"` tells an agent that stdout, the exit code, and every token after the path belong to another tool
 - **Declaring `help_argv` on a declared command.** The framework answers `--help` itself there; `help_argv` exists only where a lone `--help` would otherwise reach the delegated tool
+- **Saying only in `description` that a command streams a wrapped program's log.** An agent cannot match prose before the call; declare `stderr: "child_log"` so it knows stderr will be busy and carries no failure signal
+- **Letting auto-quiet or `--verbose` gate a declared child log.** `child_log` streams whatever the verbosity; only `--quiet` silences it, so a log that appears only under `--verbose` is a framework diagnostic, not a child log
 - **Listing a borrowed name before the tool-prefixed one.** `CLOUDFALL_PROJECT` ahead of `TOOL_PROJECT` lets a variable set for another tool override the one set for this tool (REQ-F-073)
 - **Reading a variable the manifest never names.** `TOOL_DEBUG` or `TOOL_AUDIT_LOG` backs no flag, so it belongs in root `env_vars`; documenting it only in a README leaves an agent unable to see that it changes the tool's behavior
 - **Listing one variable in two places.** A name in root `env_vars` appears in no flag's `env_vars` and no `secret_env_vars`; a variable that supplies a flag's value is declared on that flag only
@@ -703,6 +741,11 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - For the tool's own help, call `tool <cmd> --help`; the framework forwards `help_argv` when the command declares it
 - An absent `arguments` means `declared`, including on a pre-3.9 manifest; such a manifest cannot mark a passthrough command, so treat a `strict` command whose `description` says its arguments go to another tool as one
 
+**Reading stderr from `stderr`**
+- `stderr: "child_log"`: expect a wrapped program's log on stderr, as plain text, whatever `--format` and verbosity say. Discard it or keep only its tail for a person; pass `--quiet` to silence it when no one will read it
+- Never treat stderr text from such a command as a failure signal, even when it contains words like `ERROR` or `failed`; the exit code and the envelope on stdout stay authoritative
+- `stderr` absent: stderr carries only the framework's own diagnostics (REQ-F-006, REQ-F-038). On a pre-3.11 manifest absent means unknown; a command whose `description` says it streams another program's log may still do so
+
 **Manifest staleness**
 - If a command call returns `REDIRECTED (13)` for a path that exists in the manifest — the manifest is stale; re-fetch unconditionally and update the cache
 - If a call returns `ARG_ERROR (2)` for a flag shown as valid in the manifest — possible version skew; re-fetch manifest before retrying
@@ -730,6 +773,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert every `arguments: "passthrough"` command has `option_placement: "strict"`, empty `flags`, no `positionals`, and a `danger_level` other than `destructive`, and that `help_argv` appears only on such commands
 - Assert every flag's `env_vars` lists exactly the variables its parser reads, in the order it reads them, with the tool-prefixed name first whenever a name without the prefix is listed, and no name from `secret_env_vars`
 - Assert root `env_vars` lists every other variable the tool reads outside the universal exceptions, each with the tool prefix and a `description`, and no name that also appears in a flag's `env_vars` or a `secret_env_vars`
+- Assert `stderr: "child_log"` appears on exactly the commands that stream a wrapped program's output to stderr, never on a passthrough command, and that `--quiet` leaves stderr empty for them
 - Assert `stdin` is present on exactly the commands that declare stdin input, with the `mode` the handler reads in, `record_schema` equal to the registered record type, and no `max_bytes` outside `buffered` mode
 - Assert `etag` changes when any command registration changes, and is stable across identical registrations (determinism test)
 
@@ -773,6 +817,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 | [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) | Sources: `streaming_default`, and the `records` mode a stream consumer reads in with its `record_schema` |
 | [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) | Sources: `requires` conditional rules |
 | [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) | Sources: `arguments` and `help_argv` per command |
+| [REQ-F-038](../requirements/f-038-verbosity-auto-quiet-in-non-tty-context.md) | Sources: `stderr` per command, the child log that auto-quiet leaves alone |
 | [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) | Sources: top-level `dependencies` |
 | [schemas/exit-code-entry.md](exit-code-entry.md) | Provides: `ExitCodeEntry` type used in `exit_codes` map |
 | [schemas/response-envelope.md](response-envelope.md) | Wraps: manifest is returned as the `data` field of a `ResponseEnvelope` |
