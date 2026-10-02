@@ -10,7 +10,7 @@
 
 ## Description
 
-Every error response MUST include an `error` object with: `code` (string, `DOMAIN_NOUN_CONDITION` format, machine-readable), `message` (string, human-readable, complete sentence), and optionally `cause` (the underlying system error), `suggestion` (an actionable next step), `docs_url` (a URL to documentation), and `context` (an object of relevant key-value pairs). A `context` that holds external content, such as a wrapped program's stderr, carries the REQ-F-035 trust tags; external text goes in `context`, not in `message`, `detail`, or `cause`. Stack traces MUST NOT appear in `error.message` or any stdout field; they MUST be sent only to stderr or a log file.
+Every error response MUST include an `error` object with: `code` (string, `DOMAIN_NOUN_CONDITION` format, machine-readable), `message` (string, human-readable, complete sentence), and optionally `cause` (the underlying system error), `suggestion` (an actionable next step), `docs_url` (a URL to documentation), and `context` (an object of relevant key-value pairs). A `context` that holds external content, such as a wrapped program's stderr, carries the REQ-F-035 trust tags; outside text the author wants tagged and masked goes in `context`. Stack traces MUST NOT appear in `error.message` or any stdout field; they MUST be sent only to stderr or a log file.
 
 ## Acceptance Criteria
 
