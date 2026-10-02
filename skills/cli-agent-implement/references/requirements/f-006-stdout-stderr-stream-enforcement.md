@@ -68,3 +68,4 @@ Traceback (most recent call last): ...  → stderr only, never stdout
 | [REQ-F-007](f-007-ansi-color-code-suppression.md) | F | Composes: ANSI suppression applies to both streams in JSON mode |
 | [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Composes: structured error responses go to stdout, not stderr |
 | [REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md) | C | Specializes: a passthrough command's stdout belongs to the delegated tool |
+| [REQ-C-032](c-032-protocol-server-commands-declare-stdout-protocol.md) | C | Specializes: a protocol command's stdout belongs to the protocol it declares |

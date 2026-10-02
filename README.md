@@ -2,7 +2,7 @@
 
 **Your CLI tool works perfectly for humans. For AI agents, it silently hangs, corrupts data, leaks secrets, and exhausts context windows — and you would never know.**
 
-This is a specification for building CLI tools that AI agents can call reliably: **75 documented failure modes**, **159 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
+This is a specification for building CLI tools that AI agents can call reliably: **75 documented failure modes**, **160 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
 
 > **No existing CLI framework covers more than 59% of the currently mapped failure modes.**
 
@@ -40,12 +40,12 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 **75 failure modes** — each documented with severity, frequency, detectability, token cost, time cost, and context cost from the agent's perspective. Grouped into 7 parts: ecosystem/runtime, execution, security, output, environment, errors, and observability.
 
-**159 requirements** across 3 tiers:
+**160 requirements** across 3 tiers:
 
 | Tier | Count | Who implements it |
 |------|-------|------------------|
 | **F** — Framework-Automatic | 78 | The framework enforces it; command authors get it for free |
-| **C** — Command Contract | 31 | Command authors declare it at registration |
+| **C** — Command Contract | 32 | Command authors declare it at registration |
 | **O** — Opt-In | 50 | Applications enable it explicitly |
 
 **6 canonical JSON schemas** — machine-readable type definitions for `ExitCode`, `ExitCodeEntry`, `ResponseEnvelope`, `ManifestResponse`, `DispatchRequest`, and `AuditLogEntry`. Generate typed structs for your language directly from the schemas. Every JSON example in the spec prose is validated against them in CI.
@@ -69,7 +69,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 | Path | Contents |
 |------|----------|
 | [`challenges/`](challenges/index.md) | 75 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround; [`index.json`](challenges/index.json) carries the same taxonomy as data |
-| [`requirements/`](requirements/index.md) | 159 requirements with acceptance criteria, wire format, and examples, grouped into three [conformance levels](requirements/levels.md) |
+| [`requirements/`](requirements/index.md) | 160 requirements with acceptance criteria, wire format, and examples, grouped into three [conformance levels](requirements/levels.md) |
 | [`conformance/`](conformance/README.md) | Deterministic conformance kit: probes a CLI and reports pass or fail per check and per level |
 | [`schemas/`](schemas/index.md) | JSON Schema draft-07 definitions for all 5 types |
 | [`guides/`](guides/index.md) | Design guides: positive conventions that cannot be expressed as enforceable requirements |
@@ -149,4 +149,4 @@ Before contributing, read [`AGENTS.md`](AGENTS.md) for conventions: file format,
 
 ---
 
-*CLI Agent Spec v1.10 — 75 failure modes · 159 requirements · 6 canonical schemas · 12 frameworks evaluated*
+*CLI Agent Spec v1.10 — 75 failure modes · 160 requirements · 6 canonical schemas · 12 frameworks evaluated*

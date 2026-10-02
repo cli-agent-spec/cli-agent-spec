@@ -75,3 +75,4 @@ meta.timeout_ms = 30000    # all other commands
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Composes: `timeout_ms` is added to `ResponseMeta` in the standard envelope |
 | [REQ-F-001](f-001-standard-exit-code-table.md) | F | Provides: `TIMEOUT (10)` is the exit code emitted when the limit is exceeded |
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: commands that can time out must declare `TIMEOUT (10)` in their exit code map |
+| [REQ-C-032](c-032-protocol-server-commands-declare-stdout-protocol.md) | C | Specializes: a protocol command's timeout stops when serving begins |

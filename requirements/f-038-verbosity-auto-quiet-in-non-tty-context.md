@@ -100,3 +100,4 @@ $ infra --format json --quiet provision | cat
 | [REQ-O-008](o-008-quiet-verbose-debug-verbosity-flags.md) | O | Composes: `--quiet` silences a declared child log too |
 | [REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md) | C | Composes: a passthrough command never declares `stderr: "child_log"` |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Exposes: `stderr` appears in the manifest |
+| [REQ-C-032](c-032-protocol-server-commands-declare-stdout-protocol.md) | C | Composes: a protocol command never declares `stderr: "child_log"` |

@@ -114,3 +114,4 @@ register command "create-order":
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Wraps: idempotency response uses `ResponseEnvelope` |
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: `SUCCESS (0)` covers both the live execution and the noop case |
 | [REQ-O-004](o-004-output-jsonl-stream-flag.md) | O | Specializes: a streaming mutating command takes no `--idempotency-key` |
+| [REQ-C-032](c-032-protocol-server-commands-declare-stdout-protocol.md) | C | Specializes: a protocol command takes no `--idempotency-key` |

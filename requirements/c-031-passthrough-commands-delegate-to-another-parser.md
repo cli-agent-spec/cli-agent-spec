@@ -137,3 +137,4 @@ register command "ingest":
 | [REQ-F-035](f-035-external-data-trust-tagging.md) | F | Composes: the envelope copies no delegated output, so it carries no trust tags |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Exposes: `arguments` and `help_argv` appear in the manifest |
 | [REQ-F-038](f-038-verbosity-auto-quiet-in-non-tty-context.md) | F | Composes: a passthrough command never declares `stderr: "child_log"` |
+| [REQ-C-032](c-032-protocol-server-commands-declare-stdout-protocol.md) | C | Composes: a protocol command is never passthrough |

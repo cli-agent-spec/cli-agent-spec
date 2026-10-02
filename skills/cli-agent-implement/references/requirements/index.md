@@ -2,11 +2,11 @@
 
 > All requirements for an agent-compatible CLI framework, derived from the CLI Agent Spec's 75 documented failure modes.
 
-**159 total** &nbsp;|&nbsp; 78 Framework-Automatic · 31 Command Contract · 50 Opt-In — amended 2026-10-01
+**160 total** &nbsp;|&nbsp; 78 Framework-Automatic · 32 Command Contract · 50 Opt-In — amended 2026-10-02
 
-**By priority:** P0: 51 · P1: 65 · P2: 34 · P3: 9 — REQ-F-026 (append-only audit log) merged into opt-in REQ-O-030; the ID is retired
+**By priority:** P0: 51 · P1: 66 · P2: 34 · P3: 9 — REQ-F-026 (append-only audit log) merged into opt-in REQ-O-030; the ID is retired
 
-**By level** ([`levels.md`](levels.md)): Level 1: 12 · Level 2: 51 · Level 3: 159
+**By level** ([`levels.md`](levels.md)): Level 1: 12 · Level 2: 51 · Level 3: 160
 
 ---
 
@@ -99,7 +99,7 @@
 
 ## Command Contract (C)
 
-**31 requirements** &nbsp;|&nbsp; P0: 12 · P1: 16 · P2: 1 · P3: 2
+**32 requirements** &nbsp;|&nbsp; P0: 12 · P1: 17 · P2: 1 · P3: 2
 
 | ID | Priority | Title | Failure mode(s) | Level |
 |----|----------|-------|-------------|-------|
@@ -134,6 +134,7 @@
 | [REQ-C-029](c-029-command-declares-required-scopes.md) | P0 | Command Declares Required Scopes | [§74](../challenges/03-critical-security/74-critical-credential-scope-declaration.md) | 2 |
 | [REQ-C-030](c-030-error-responses-include-fix-command.md) | P1 | Error Responses Include Executable fix_command | [§18](../challenges/06-high-errors-and-discoverability/18-high-error-quality.md) [§19](../challenges/06-high-errors-and-discoverability/19-high-retry-hints.md) [§53](../challenges/01-critical-ecosystem-runtime-agent-specific/53-critical-credential-expiry.md) | 3 |
 | [REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md) | P1 | Passthrough Commands Delegate to Another Tool's Parser | [§69](../challenges/01-critical-ecosystem-runtime-agent-specific/69-high-argument-order-ambiguity.md) [§1](../challenges/04-critical-output-and-parsing/01-critical-exit-codes.md) [§3](../challenges/04-critical-output-and-parsing/03-high-stderr-stdout.md) | 3 |
+| [REQ-C-032](c-032-protocol-server-commands-declare-stdout-protocol.md) | P1 | Protocol Server Commands Declare Their Stdout Protocol | [§3](../challenges/04-critical-output-and-parsing/03-high-stderr-stdout.md) [§2](../challenges/04-critical-output-and-parsing/02-critical-output-format.md) [§50](../challenges/01-critical-ecosystem-runtime-agent-specific/50-critical-stdin-deadlock.md) [§11](../challenges/02-critical-execution-and-reliability/11-critical-timeouts.md) | 3 |
 
 ---
 
@@ -196,4 +197,4 @@
 
 ---
 
-*CLI Agent Spec v1.10 — 159 requirements (78 REQ-F + 31 REQ-C + 50 REQ-O). Updated 2026-10-01.*
+*CLI Agent Spec v1.10 — 160 requirements (78 REQ-F + 32 REQ-C + 50 REQ-O). Updated 2026-10-02.*

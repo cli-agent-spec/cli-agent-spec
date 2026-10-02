@@ -171,6 +171,16 @@
           "enum": ["child_log"],
           "description": "child_log: stderr carries a wrapped program's output as plain text, line by line, regardless of --format and verbosity; --quiet silences it and stdout carries only the envelope. Absent means stderr carries the framework's own diagnostics only. Never on a passthrough command. Sourced from REQ-F-038."
         },
+        "stdout": {
+          "type": "string",
+          "enum": ["protocol"],
+          "description": "protocol: the command serves the long-lived protocol named in protocol over stdio, so stdout is the protocol channel from the first byte and never carries a ResponseEnvelope; a failure before serving begins goes to stderr, in JSON mode as an envelope on its last line, with a declared exit code, and exit 0 means a clean shutdown such as stdin end-of-file. Absent means stdout carries envelopes. Sourced from REQ-C-032."
+        },
+        "protocol": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+          "description": "Name of the protocol the command serves on stdin and stdout, in lowercase kebab-case: mcp-stdio (Model Context Protocol over stdio), lsp (Language Server Protocol), dap (Debug Adapter Protocol), or another protocol's name in the same form. Present exactly when stdout is protocol. Sourced from REQ-C-032."
+        },
         "option_placement": {
           "type": "string",
           "enum": ["any", "strict"],
@@ -326,6 +336,35 @@
         {
           "if": { "required": ["stderr"] },
           "then": { "not": { "required": ["arguments"], "properties": { "arguments": { "const": "passthrough" } } } }
+        },
+        {
+          "if": { "required": ["stdout"] },
+          "then": {
+            "required": ["protocol"],
+            "not": {
+              "anyOf": [
+                { "required": ["arguments"], "properties": { "arguments": { "const": "passthrough" } } },
+                { "required": ["stderr"] },
+                { "required": ["stdin"] },
+                { "required": ["interactive"], "properties": { "interactive": { "const": true } } },
+                { "required": ["streaming_default"], "properties": { "streaming_default": { "const": true } } },
+                { "required": ["output_file"] },
+                { "required": ["output_schema"] },
+                { "required": ["output_formats"] },
+                { "required": ["output_media_types"] },
+                { "required": ["async"], "properties": { "async": { "const": true } } },
+                { "required": ["spawns_background_process"], "properties": { "spawns_background_process": { "const": true } } },
+                { "required": ["cleanup_command"] },
+                { "required": ["max_lifetime_seconds"] },
+                { "required": ["confirm_flag"] },
+                { "required": ["safe_default"], "properties": { "safe_default": { "const": true } } }
+              ]
+            }
+          }
+        },
+        {
+          "if": { "required": ["protocol"] },
+          "then": { "required": ["stdout"] }
         },
         {
           "if": { "required": ["confirm_flag"] },

@@ -105,6 +105,18 @@
 
 **Why:** REQ-C-026 defined a flag as present when the caller supplies it, so `--no-exact` could be read as choosing `exact` in a `one_of(exact, fuzzy)` group, and two conforming frameworks could accept and reject the same call (#50).
 
+### ManifestResponse 3.16: protocol servers on stdout
+
+- New REQ-C-032: a command that serves a long-lived protocol over stdio (`tool mcp serve`, a language server) declares `CommandEntry.stdout: "protocol"` and names the protocol in `CommandEntry.protocol`, a lowercase kebab-case string with documented values `mcp-stdio`, `lsp`, and `dap`. Each field requires the other; absent `stdout` means stdout carries envelopes, as before
+- Stdout is the protocol channel from the first byte and never carries an envelope. A failure before serving begins writes nothing to stdout: it exits with a declared code, and in JSON mode the envelope is the last line of stderr. An invalid flag exits `2` and the server never starts
+- Exit `0` is a clean shutdown (stdin end-of-file or the protocol's own shutdown sequence) and writes no envelope; any other exit ends stderr with the envelope in JSON mode, and a signal exits `128 + N`. A malformed request is answered inside the protocol, never by exit `2`
+- A protocol server is a foreground process, not a background process (REQ-C-010) or an async job (REQ-C-022). The wall-clock timeout covers only the time before serving begins; the client ends the session by closing stdin or sending a signal
+- The schema and the framework reject `stdout: "protocol"` next to `arguments: "passthrough"`, `stderr`, `stdin`, `interactive: true`, `streaming_default: true`, `output_file`, `output_schema`, `output_formats`, `output_media_types`, `async: true`, the REQ-C-010 fields, `confirm_flag`, or `safe_default: true`. A protocol command takes no `--idempotency-key` (REQ-C-007) and, even when `destructive`, no `--dry-run` (REQ-C-004)
+- An agent that sees `stdout: "protocol"` starts the command only as a client of the named protocol and never parses its stdout as an envelope
+- A producer that sets `stdout` emits `schema_version` `3.16`; a pre-3.16 manifest stays valid, and on it an absent `stdout` cannot mark a protocol command
+
+**Why:** a tool can ship its own protocol server as a command, such as an MCP server over stdio, yet `CommandEntry` had no way to say that its stdout is not an envelope, so an agent could try to parse one from MCP messages (#51).
+
 ## 1.10.0 — 2026-10-01
 
 ### ManifestResponse 3.2: group rules in requires
