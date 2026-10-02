@@ -10,7 +10,7 @@
 
 ## Description
 
-The framework MUST provide a built-in `tool cleanup` command that removes all known filesystem side effect paths declared by registered commands. The command MUST accept `--scope <type>` (one of: `all`, `temp`, `cache`, `logs`) to limit cleanup to specific categories. The command MUST output a structured JSON summary of what was removed and total disk space reclaimed. The command MUST NOT remove files younger than `--min-age <seconds>` (default: 0).
+The framework MUST provide a built-in `tool cleanup` command that removes all known filesystem side effect paths declared by registered commands. The command MUST accept `--scope <type>` (one of: `all`, `temp`, `cache`, `logs`) to limit cleanup to specific categories. The command MUST output a structured JSON summary of what was removed and total disk space reclaimed. The command MUST NOT remove files younger than `--min-age <seconds>` (default: 0). It MUST NOT remove a path declared `type: "output"` under any scope, `all` included: that path is a command's product, which the user asked for.
 
 ## Acceptance Criteria
 
@@ -18,6 +18,7 @@ The framework MUST provide a built-in `tool cleanup` command that removes all kn
 - `tool cleanup --format json` returns a list of removed paths and total bytes freed
 - `tool cleanup --min-age 3600` does not remove any file or directory created in the last hour
 - `tool cleanup --scope cache` does not affect logs or temp files
+- `tool cleanup --scope all` leaves every path declared `type: "output"` in place
 
 ---
 

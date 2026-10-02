@@ -35,6 +35,16 @@
 
 **Why:** REQ-C-003's `effect`, REQ-C-007's replay, dry-run, and the audit entry all assumed one result per run, so a bulk import or sync that streams its changes had no contract for reporting, previewing, retrying, or auditing them (#34).
 
+### ManifestResponse 3.10: an `output` side-effect kind for a command's product
+
+- `FilesystemSideEffect.type` gains `"output"`: a path the command writes as its product (a generated report, a rendered dashboard, collected evidence). The schema rejects `ttl_seconds` and `clearable_with` on an `output` entry
+- REQ-C-011: `tool status --show-side-effects` lists an `output` path; `tool cleanup` never removes it, under any `--scope` including `all` (REQ-O-027, REQ-O-028)
+- REQ-C-011 and REQ-C-002: `cache`, `log`, `temp`, and `output` writes are not state changes, so a command whose only writes are of these kinds stays `danger_level: "safe"`; `credential` and `config` writes make it at least `mutating`
+- REQ-C-011 and REQ-O-001: `type: "output"` declares a location the command chooses itself; a path the caller names per call with `--output` is declared by `output_file` and is not repeated as an `output` entry. A default location used when `--output` is absent is an `output` entry
+- A producer that declares an `output` side effect emits `schema_version` `3.10`; the other five kinds are unchanged, so earlier manifests stay valid
+
+**Why:** a command that writes its product to a path it chooses had no fitting kind: declaring it `cache` let `cleanup` delete what the user asked for, leaving it undeclared broke REQ-C-011, and `mutating` over-declared a read-only command (#39).
+
 ## 1.10.0 — 2026-10-01
 
 ### ManifestResponse 3.2: group rules in requires

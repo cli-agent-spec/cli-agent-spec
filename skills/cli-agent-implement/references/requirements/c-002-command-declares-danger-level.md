@@ -10,7 +10,9 @@
 
 ## Description
 
-Every command MUST declare a `danger_level` as part of its registration metadata, chosen from: `safe` (read-only, no side effects), `mutating` (creates or modifies state), or `destructive` (permanently deletes or irreversibly modifies state). The framework MUST refuse to register a command without this declaration. The framework MUST use this declaration to enforce related behaviors (e.g., requiring `--dry-run` for destructive commands per REQ-C-004). A streaming command (REQ-O-004) MUST NOT declare `destructive`, and the framework refuses to register one that does.
+Every command MUST declare a `danger_level` as part of its registration metadata, chosen from: `safe` (read-only, no side effects on state), `mutating` (creates or modifies state), or `destructive` (permanently deletes or irreversibly modifies state). The framework MUST refuse to register a command without this declaration. The framework MUST use this declaration to enforce related behaviors (e.g., requiring `--dry-run` for destructive commands per REQ-C-004). A streaming command (REQ-O-004) MUST NOT declare `destructive`, and the framework refuses to register one that does.
+
+Writes of declared `cache`, `log`, `temp`, and `output` paths (REQ-C-011) are not state changes: a command whose only writes are of those kinds stays `safe`. A report generator that writes its product to a declared `output` path is `safe`, not `mutating`. Writing a `credential` or `config` path, or any undeclared path, is a state change.
 
 ## Acceptance Criteria
 
@@ -20,6 +22,7 @@ Every command MUST declare a `danger_level` as part of its registration metadata
 - Commands with `danger_level: "safe"` do not require `--idempotency-key` (REQ-C-007)
 - Commands with `danger_level: "mutating"` require `--idempotency-key` unless they stream, and a streaming one that accepts it raises a registration error (REQ-C-007)
 - Registering a streaming command with `danger_level: "destructive"` raises a framework error (REQ-O-004)
+- A command whose only declared filesystem writes are `cache`, `log`, `temp`, or `output` paths may register as `safe`
 
 ---
 

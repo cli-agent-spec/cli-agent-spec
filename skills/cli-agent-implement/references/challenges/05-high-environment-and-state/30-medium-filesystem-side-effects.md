@@ -95,7 +95,8 @@ $ tool status --show-side-effects --format json
 
 **For framework design:**
 - Every command declares `filesystem_side_effects` in its schema
-- Framework provides `tool cleanup` that removes all known side effect paths
+- A path the command writes as its product (a report, a rendered page) is declared `type: "output"`, which `tool cleanup` never removes
+- Framework provides `tool cleanup` that removes all known side effect paths except `output` ones
 - Temp files use a session-scoped directory, auto-cleaned when session ends
 - Log rotation built into framework (max size, max age)
 
