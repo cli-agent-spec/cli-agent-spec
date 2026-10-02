@@ -96,6 +96,15 @@
 
 **Why:** a mutating command that is safe to rerun after a partial failure (a snapshot writer that rewrites one file per server) had nowhere to say so, and its only honest exit declaration, `retryable: false` with `side_effects: "partial"`, sent agents to inspect state before every rerun (#41).
 
+### A boolean flag given as false is not present
+
+- REQ-C-026: a boolean flag is present only when its value is true. An explicit false (`--no-exact`, or false through any other explicit input channel) is the same as leaving the flag out, for `if_present`, `default_when_absent`, `any_of`, and `one_of` alike
+- `if_value` compares values, so `if_value: false` still matches an explicit false
+- New acceptance criterion: with `one_of: ["exact", "fuzzy"]`, `--no-exact --fuzzy` passes Phase 1, and `--no-exact` alone exits 2
+- `ConditionalRule` descriptions in `manifest-response.json` and `manifest-response.md` state the definition; `ManifestResponse` stays 3.15 with a description change only
+
+**Why:** REQ-C-026 defined a flag as present when the caller supplies it, so `--no-exact` could be read as choosing `exact` in a `one_of(exact, fuzzy)` group, and two conforming frameworks could accept and reject the same call (#50).
+
 ## 1.10.0 — 2026-10-01
 
 ### ManifestResponse 3.2: group rules in requires

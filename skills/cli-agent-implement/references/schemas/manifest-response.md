@@ -123,7 +123,7 @@ Present only when the command declares them.
 | `Example` | `description`, `command` (both required) |
 | `FilesystemSideEffect` | `path`, `type` (`cache` \| `log` \| `temp` \| `credential` \| `config` \| `output`) required; `ttl_seconds`, `clearable_with` optional, and never on `output` (the command's product, which `cleanup` never removes) |
 | `SubprocessDeclaration` | `binary` required; `user_controlled_args`, `hardcoded_args` optional |
-| `ConditionalRule` | One of `{ if_flag, if_value, then_required }`, `{ if_flag, prohibited }`, `{ if_flag, target_flag, default }`, `{ any_of }` (at least one listed flag present), `{ one_of }` (exactly one listed flag present); `any_of` and `one_of` list at least two distinct flags |
+| `ConditionalRule` | One of `{ if_flag, if_value, then_required }`, `{ if_flag, prohibited }`, `{ if_flag, target_flag, default }`, `{ any_of }` (at least one listed flag present), `{ one_of }` (exactly one listed flag present); `any_of` and `one_of` list at least two distinct flags. A declared `default` and a boolean flag given as false (`--no-exact`) are not present; `if_value` compares values, so `if_value: false` matches an explicit false (REQ-C-026) |
 | `DependencyEntry` | `name`, `check_command`, `min_version` required; `version_regex`, `fix_command` optional |
 | `EnvVarEntry` | `name` required; `deprecated` optional (boolean, absent means `false`); `description` optional in a flag's `env_vars`, required in root `env_vars` |
 | `MediaTypeMap` | Map from a `--format` value to a lowercase `type/subtype` media type without parameters, such as `{"html": "text/html"}`; at least one entry |
@@ -902,7 +902,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - `confirm_flag` present: a call without `--<confirm_flag>` only previews and exits `0` with `meta.dry_run: true`. Read the `would_*` preview, then repeat the call with the flag to run it; check `meta.dry_run` rather than the exit code to know whether it ran. `--dry-run` wins, so drop it from the confirmed call. On a pre-3.14 manifest an absent `confirm_flag` means unknown; read the flag descriptions
 - `option_placement: "strict"` — place every option, global or local, before the first positional argument; anything after it is forwarded to the child process
 - `requires` — evaluate each rule against the flags you plan to send before calling; a violated rule produces `ARG_ERROR (2)`
-- `any_of` and `one_of` groups — send at least one flag of an `any_of` group and exactly one flag of a `one_of` group, choosing the one whose value you already hold; a declared `default` never satisfies either rule
+- `any_of` and `one_of` groups — send at least one flag of an `any_of` group and exactly one flag of a `one_of` group, choosing the one whose value you already hold; a declared `default` never satisfies either rule, and neither does a boolean flag given as false (`--no-exact` leaves `exact` absent)
 - `interactive: true` or `requires_editor: true` — always pass `--yes` / `--non-interactive` or one of `non_interactive_alternatives`
 - `async: true` — the response is a job descriptor; poll with its `status_command` instead of waiting on the call
 - `required_scopes` not covered by the active credential — expect `AUTH_REQUIRED (8)`; do not call until credentials change
