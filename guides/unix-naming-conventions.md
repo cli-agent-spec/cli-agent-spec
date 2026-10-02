@@ -180,13 +180,17 @@ A tool that manages versioned cloud resources should look like **kubectl + terra
 | `CI` | Headless mode: suppress prompts, spinners, color, telemetry |
 | `HOME` | User home directory |
 | `XDG_CONFIG_HOME` / `XDG_DATA_HOME` / `XDG_CACHE_HOME` | Config/data/cache locations |
-| `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` | Network proxy |
+| `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY` / `ALL_PROXY` and lowercase `http_proxy` / `https_proxy` / `no_proxy` / `all_proxy` | Network proxy |
+| `REQUESTS_CA_BUNDLE` / `SSL_CERT_FILE` | CA bundle for TLS verification behind a proxy |
+| `COLUMNS` | Terminal width for table and wrapped output |
+| `PWD` | Working directory |
+| `GITHUB_ACTIONS` / `JENKINS_URL` | CI provider detection, alongside `CI` |
 | `PAGER` | Pager program (set to `cat` for non-interactive) |
 | `EDITOR` / `VISUAL` | Editor (must be no-op in non-TTY; see §62) |
 
 ### Tool-specific variables (always use `TOOLNAME_` prefix)
 
-See REQ-F-073. All tool-specific env vars must be namespaced to prevent cross-tool contamination in multi-tool agent pipelines. A flag may also read a service's established name or one shared across a tool family, but only when the manifest declares it in the flag's `env_vars` after the prefixed name. A prefixed variable that backs no flag, such as `TOOLNAME_DEBUG`, is declared in the manifest's root `env_vars`.
+See REQ-F-073. All tool-specific env vars must be namespaced to prevent cross-tool contamination in multi-tool agent pipelines. A flag may also read a service's established name or one shared across a tool family, but only when the manifest declares it in the flag's `env_vars` after the prefixed name. A prefixed variable that backs no flag, such as `TOOLNAME_DEBUG`, is declared in the manifest's root `env_vars`, where an established name for the same setting may follow it. A secret every command reads is declared once in the root `secret_env_vars`.
 
 ---
 

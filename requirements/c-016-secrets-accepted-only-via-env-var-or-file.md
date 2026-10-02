@@ -31,6 +31,8 @@ Secret parameters appear in `CommandEntry.flags` using the `--x-from-env` / `--x
 |-------|------|-------------|
 | `secret_env_vars` | string[] | Environment variable names that supply secret values for this command |
 
+A secret every command reads, such as a tool-wide API key, is listed once in the manifest's root `secret_env_vars` (ManifestResponse 3.13) instead of on each command; REQ-F-073 gives each variable one home.
+
 ---
 
 ## Wire Format
@@ -80,3 +82,4 @@ register command "login":
 | [REQ-C-021](c-021-auth-commands-declare-headless-mode-support.md) | C | Composes: `token_env_vars` from headless auth declaration mirrors `secret_env_vars` |
 | [REQ-C-015](c-015-commands-declare-input-and-output-schema.md) | C | Composes: `secret_env_vars` is part of the `--schema` output |
 | [REQ-F-051](f-051-debug-and-trace-mode-secret-redaction.md) | F | Enforces: secret values read from env are redacted in debug/trace output |
+| [REQ-F-073](f-073-env-var-namespace-prefix.md) | F | Composes: places a secret in a command's or the root `secret_env_vars`, and a pre-acquired token in `token_env_vars` |

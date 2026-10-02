@@ -86,3 +86,4 @@ register command "auth login-device":
 | [REQ-F-009](f-009-non-interactive-mode-auto-detection.md) | F | Provides: non-TTY detection that triggers enforcement of `headless_supported: false` |
 | [REQ-C-015](c-015-commands-declare-input-and-output-schema.md) | C | Composes: `headless_supported` and `token_env_vars` are part of the `--schema` output |
 | [REQ-F-063](f-063-credential-expiry-structured-error.md) | F | Extends: structured auth errors reference the `token_env_vars` declared here |
+| [REQ-F-073](f-073-env-var-namespace-prefix.md) | F | Composes: `token_env_vars` is the first of a variable's four homes; a name here is not repeated in the command's `secret_env_vars` |

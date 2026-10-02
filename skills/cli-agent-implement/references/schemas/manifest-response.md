@@ -29,7 +29,8 @@ Two decisions shape the type:
 | `flags` | `Record<string, FlagEntry>` | no | Global options every command accepts in any position, keyed by name without `--`; only `format` may carry `media_types` (REQ-F-079) |
 | `exit_codes` | `Record<string, ExitCodeEntry>` | no | Shared exit-code table every command inherits |
 | `dependencies` | `DependencyEntry[]` | no | External runtime dependencies checked by `tool doctor` (REQ-O-031) |
-| `env_vars` | `EnvVarEntry[]` | no | Variables the tool reads that back no flag and supply no secret, such as `TOOL_DEBUG` or `TOOL_AUDIT_LOG`; each entry carries `description`. Universal names (`NO_COLOR`, `HOME`, ...) are not listed (REQ-F-073) |
+| `env_vars` | `EnvVarEntry[]` | no | Variables the tool reads that back no flag and supply no secret, such as `TOOL_DEBUG` or `TOOL_AUDIT_LOG`; each entry carries `description`. A name without the tool prefix immediately follows the entry for its setting's prefixed name, which wins. Universal names (`NO_COLOR`, `HOME`, ...) are not listed (REQ-F-073) |
+| `secret_env_vars` | string[] | no | Variables that supply a secret every command reads, such as a tool-wide API key; names only, never a value or default. A name here appears in no command's `secret_env_vars` and no flag's `env_vars` (REQ-F-073, REQ-C-016) |
 
 ### CommandEntry — core
 
@@ -69,12 +70,12 @@ Present only when the command declares them.
 | `cleanup_command` | string | Exact command that stops that child (REQ-C-010) |
 | `max_lifetime_seconds` | integer | Upper bound on the child's lifetime (REQ-C-010) |
 | `filesystem_side_effects` | `FilesystemSideEffect[]` | Paths the command may write, with category and TTL (REQ-C-011) |
-| `secret_env_vars` | string[] | Environment variables that supply secrets (REQ-C-016); a secret is never a flag value, so these names never appear in a flag's `env_vars` |
+| `secret_env_vars` | string[] | Environment variables that supply this command's secrets beyond the root `secret_env_vars` (REQ-C-016); a secret is never a flag value, so these names never appear in a flag's `env_vars` |
 | `platform` | string[] | Supported OS names; absent means all (REQ-C-018) |
 | `required_tools` | `Record<string, string>` | External binaries and minimum versions (REQ-C-018) |
 | `subprocess` | `SubprocessDeclaration` | Child binary and which flags reach its argv (REQ-C-019) |
 | `headless_supported` | boolean | Auth command works without a TTY (REQ-C-021) |
-| `token_env_vars` | string[] | Pre-acquired token variables; required when `headless_supported` is `false` (REQ-C-021) |
+| `token_env_vars` | string[] | Pre-acquired token variables; required when `headless_supported` is `false` (REQ-C-021). A name here is not repeated in this command's `secret_env_vars` (REQ-F-073) |
 | `async` | boolean | Command returns a job descriptor (REQ-C-022) |
 | `job_descriptor_schema` | object | JSON Schema of that job descriptor (REQ-C-022) |
 | `requires_editor` | boolean | Command opens `$EDITOR` unless an alternative is given (REQ-C-023) |
@@ -370,6 +371,40 @@ Every variable the tool reads has one home: `TOOL_FORMAT` backs `--format`, `TOO
 }
 ```
 Violation: only the root `format` flag carries `media_types`; a command-specific `--format` value declares its media type in the command's `output_media_types`.
+
+**Valid — a tool-wide secret and a setting with an ecosystem name**
+```json
+{
+  "schema_version": "3.13",
+  "framework_version": "2.5.0",
+  "etag": "sha256:0b93e2",
+  "env_vars": [
+    { "name": "TOOL_LEDGER", "description": "Path of the ledger file every command reads" },
+    { "name": "LEDGER_FILE", "description": "Path of the ledger file, the ecosystem's established name; TOOL_LEDGER overrides it" }
+  ],
+  "secret_env_vars": ["TOOL_API_KEY"],
+  "commands": {
+    "login": {
+      "description": "Store credentials for the price service",
+      "danger_level": "mutating",
+      "required_scopes": [],
+      "headless_supported": false,
+      "token_env_vars": ["TOOL_PRICE_TOKEN"],
+      "flags": {},
+      "exit_codes": { "0": { "name": "SUCCESS", "description": "Credentials stored", "retryable": false, "side_effects": "complete" } }
+    },
+    "sync": {
+      "description": "Sync prices into the ledger",
+      "danger_level": "mutating",
+      "required_scopes": [],
+      "secret_env_vars": ["TOOL_PRICE_TOKEN"],
+      "flags": {},
+      "exit_codes": { "0": { "name": "SUCCESS", "description": "Prices synced", "retryable": false, "side_effects": "complete" } }
+    }
+  }
+}
+```
+Every command reads `TOOL_API_KEY`, so it sits once in root `secret_env_vars`. `login` accepts `TOOL_PRICE_TOKEN` as a pre-acquired token, so it names it in `token_env_vars` and not in its own `secret_env_vars`; `sync` reads the same token as a plain secret. `LEDGER_FILE` follows `TOOL_LEDGER`, which the tool reads first.
 
 **Valid — commands whose `--output` is not a `--format` rendering**
 ```json
@@ -707,11 +742,14 @@ Violation: a root `env_vars` entry requires `description`; no flag's `descriptio
 - **Letting auto-quiet or `--verbose` gate a declared child log.** `child_log` streams whatever the verbosity; only `--quiet` silences it, so a log that appears only under `--verbose` is a framework diagnostic, not a child log
 - **Listing a borrowed name before the tool-prefixed one.** `CLOUDFALL_PROJECT` ahead of `TOOL_PROJECT` lets a variable set for another tool override the one set for this tool (REQ-F-073)
 - **Reading a variable the manifest never names.** `TOOL_DEBUG` or `TOOL_AUDIT_LOG` backs no flag, so it belongs in root `env_vars`; documenting it only in a README leaves an agent unable to see that it changes the tool's behavior
-- **Listing one variable in two places.** A name in root `env_vars` appears in no flag's `env_vars` and no `secret_env_vars`; a variable that supplies a flag's value is declared on that flag only
+- **Listing one variable in two places.** A name in root `env_vars` appears nowhere else in the manifest; a variable that supplies a flag's value is declared on that flag only; a root secret appears in no command's `secret_env_vars`; an auth command's token sits in its `token_env_vars`, not also in its `secret_env_vars`
+- **Repeating a tool-wide secret on every command.** A secret every command reads goes in root `secret_env_vars` once
+- **Listing a secret in root `env_vars`.** A root `description` invites a default or an example value; a secret goes in a `secret_env_vars`, which holds names only
+- **Listing an ecosystem name in root `env_vars` alone.** `LEDGER_FILE` without `TOOL_LEDGER` right before it lets a variable set for another tool configure this one; the prefixed name comes first and wins (REQ-F-073)
 - **Naming a format's media type only in the `--format` `description`.** "html writes text/html" is prose an agent must parse; declare it in the root `format` flag's `media_types`
 - **Leaving a tool's own format value out of `media_types`.** An agent can then assume nothing about it and must treat its output as opaque; every value outside the spec's table has an entry
 - **Mapping a spec value to another media type.** `json` is always `application/json`; a variant with another shape is a new format value with its own name
-- **Listing universal names in root `env_vars`.** `NO_COLOR`, `CI`, `HOME`, and the other REQ-F-073 exceptions are read by every conforming tool; listing them adds noise without telling the agent anything
+- **Listing universal names in root `env_vars`.** `NO_COLOR`, `CI`, `HOME`, `COLUMNS`, the proxy and CA bundle names, and the other REQ-F-073 exceptions are read by every conforming tool; listing them adds noise without telling the agent anything
 
 ---
 
@@ -771,6 +809,11 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 **Reading root `env_vars`**
 - Root `env_vars` lists the variables that change the tool's behavior without backing a flag; read each `description` before exporting one, and unset any you did not set on purpose, since a leftover `TOOL_DEBUG` or `TOOL_AUDIT_LOG` changes every call
 - Root `env_vars` absent on a `3.5` or later manifest: the tool reads no such variable. On a pre-3.5 manifest, absent means unknown, not none
+- An entry without the tool prefix, such as `LEDGER_FILE`, follows the prefixed entry for the same setting; set the prefixed one, since it wins, and unset the other if you inherited it
+
+**Supplying secrets**
+- A command's secrets are the root `secret_env_vars` plus its own `secret_env_vars`; an auth command also accepts the names in its `token_env_vars`. Export the value from your secret store; never pass it on the command line
+- Root `secret_env_vars` absent on a `3.13` or later manifest: no secret is read by every command. On a pre-3.13 manifest, absent means unknown; a tool-wide secret may appear only in a README or in each command's `secret_env_vars`
 
 **Selecting output format from `output_formats`**
 - If `output_formats` is absent, treat `json` as the only guaranteed format — do not attempt non-standard values
@@ -832,7 +875,8 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert every `type: "object"` flag carries a `schema` the parser enforces, and prefer `type: "object"` for every flag whose value the parser reads as a JSON object
 - Assert every `arguments: "passthrough"` command has `option_placement: "strict"`, empty `flags`, no `positionals`, and a `danger_level` other than `destructive`, and that `help_argv` appears only on such commands
 - Assert every flag's `env_vars` lists exactly the variables its parser reads, in the order it reads them, with the tool-prefixed name first whenever a name without the prefix is listed, and no name from `secret_env_vars`
-- Assert root `env_vars` lists every other variable the tool reads outside the universal exceptions, each with the tool prefix and a `description`, and no name that also appears in a flag's `env_vars` or a `secret_env_vars`
+- Assert root `env_vars` lists every other variable the tool reads outside the universal exceptions, each with a `description` and either the tool prefix or a declared name that immediately follows its setting's prefixed entry, and no name that also appears in a flag's `env_vars`, a `secret_env_vars`, or a `token_env_vars`
+- Assert root `secret_env_vars` lists exactly the secrets every command reads, and that none of them repeats in a command's `secret_env_vars` or a flag's `env_vars`; assert no name in an auth command's `token_env_vars` repeats in that command's `secret_env_vars`
 - Assert `stderr: "child_log"` appears on exactly the commands that stream a wrapped program's output to stderr, never on a passthrough command, and that `--quiet` leaves stderr empty for them
 - Assert the root `format` flag's `media_types` keys are all in its `enum_values`, cover every value outside the spec's media type table, and map each spec value they list to the table's media type; assert no other flag carries `media_types`
 - Assert every `output_formats` value covered by neither the spec's table nor the root `media_types` has an `output_media_types` entry, and every `output_media_types` key is a value the command accepts
@@ -871,7 +915,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 | [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) | Sources: `danger_level` per command |
 | [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) | Sources: `required_scopes` per command |
 | [REQ-F-079](../requirements/f-079-global-option-scope.md) | Sources: top-level `flags` (global options) |
-| [REQ-F-073](../requirements/f-073-env-var-namespace-prefix.md) | Sources: `FlagEntry.env_vars`, root `env_vars`, and the precedence rule for names without the tool prefix |
+| [REQ-F-073](../requirements/f-073-env-var-namespace-prefix.md) | Sources: `FlagEntry.env_vars`, root `env_vars`, root `secret_env_vars`, the four homes of a variable, and the precedence rule for names without the tool prefix |
 | [REQ-F-051](../requirements/f-051-debug-and-trace-mode-secret-redaction.md) | Sources: `TOOL_DEBUG` listed in root `env_vars` when no flag backs it |
 | [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) | Sources: `TOOL_AUDIT_LOG` and the session variable listed in root `env_vars` |
 | [REQ-O-042](../requirements/o-042-output-format-env-var-default.md) | Sources: `TOOL_FORMAT` listed in the root `format` flag's `env_vars` |

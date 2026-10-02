@@ -65,6 +65,16 @@
 
 **Why:** a tool can register its own `--format` values beside the spec's (`html` for a page a person reads), and an agent had no way to learn from the manifest that such a value is not JSON, short of parsing the flag's `description` (#36).
 
+### ManifestResponse 3.13: every environment variable has a home
+
+- Root `secret_env_vars` (optional, a string array of names, never a value or default) lists the secrets every command reads, such as a tool-wide API key. A name there appears in no command's `secret_env_vars` and no flag's `env_vars`; a command's secrets are the root list plus its own
+- REQ-F-073 names four homes in order: an auth command's `token_env_vars`, a `secret_env_vars` (root or command), a flag's `env_vars`, and root `env_vars`. When a variable fits two, the first wins: a token an auth command accepts is not repeated in that command's `secret_env_vars`, a secret never backs a flag's `env_vars`, and a flag-backed variable never sits in root `env_vars`. This replaces the "exactly one of three" wording
+- Root `env_vars` follows the `FlagEntry.env_vars` rule: an entry without the tool prefix, such as an ecosystem's `LEDGER_FILE`, is allowed only right after the entry for the same setting's prefixed name, which the tool reads first. The criterion that every root entry carries the prefix is replaced; new acceptance criteria cover the order and the root secret list
+- The universal exceptions gain `PWD`, `COLUMNS`, `ALL_PROXY`, the lowercase `http_proxy`, `https_proxy`, `no_proxy`, and `all_proxy`, `REQUESTS_CA_BUNDLE`, `SSL_CERT_FILE`, `GITHUB_ACTIONS`, and `JENKINS_URL`; the naming guide's table lists them
+- A producer that sets root `secret_env_vars` emits `schema_version` `3.13`; a pre-3.13 manifest stays valid, and on it an absent root `secret_env_vars` means unknown, not none
+
+**Why:** implementing ManifestResponse 3.5 left a tool-wide secret with no home, forbade a root setting's established unprefixed name that a flag could declare, left `token_env_vars` out of the "three homes", and made tools that read `COLUMNS` or a CA bundle variable non-conforming (#37).
+
 ## 1.10.0 — 2026-10-01
 
 ### ManifestResponse 3.2: group rules in requires
