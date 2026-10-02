@@ -29,7 +29,7 @@ Codes are sequential and grouped by category. The group boundaries are visible i
 | Code | Constant | Retryable | Side effects | Agent action |
 |------|----------|-----------|--------------|-------------|
 | 1 | `GENERAL_ERROR` | depends | unknown | Inspect `error.detail` — last resort, use a specific code whenever one exists |
-| 3 | `PARTIAL_FAILURE` | no | **partial** | Inspect state before retrying — some writes occurred |
+| 3 | `PARTIAL_FAILURE` | no | **partial** | Inspect state before retrying — some writes occurred; a command declared `idempotent: true` reruns unchanged once instead |
 
 ### Input — caller's fault; fix the input, then reissue
 
@@ -57,7 +57,7 @@ Codes are sequential and grouped by category. The group boundaries are visible i
 
 | Code | Constant | Retryable | Side effects | Agent action |
 |------|----------|-----------|--------------|-------------|
-| 10 | `TIMEOUT` | depends | partial | Inspect state before retrying; retry directly only when the command declares `side_effects: "none"` |
+| 10 | `TIMEOUT` | depends | partial | Inspect state before retrying; retry directly only when the command declares `side_effects: "none"`, or rerun once unchanged when it declares `idempotent: true` |
 | 11 | `RATE_LIMITED` | yes | none | Retry after `error.retry_after_ms` milliseconds |
 | 12 | `UNAVAILABLE` | yes | none | Service temporarily down — apply exponential back-off, retry |
 
@@ -132,7 +132,7 @@ Rules for agents consuming exit codes at runtime. Apply these when the response 
 - Code in `64–78` — POSIX sysexit; look up the POSIX meaning; treat as non-retryable unless the meaning clearly indicates a transient condition
 - Code in `79–125` — command-specific; consult that command's `exit_codes` declaration from the manifest before acting
 - Code `126` or `127` — the binary could not be executed or was not found; the command never ran; fix the environment, then reissue
-- Code in `129–159` (`128 + signal`) — the process was killed or cancelled mid-run (outer timeout, OOM, SIGINT, SIGTERM); side effects may be partial; inspect state before any retry
+- Code in `129–159` (`128 + signal`) — the process was killed or cancelled mid-run (outer timeout, OOM, SIGINT, SIGTERM); side effects may be partial; inspect state before any retry, unless the command's manifest entry declares `idempotent: true` and its declared entry for the code has `side_effects: "partial"`, which makes one unchanged rerun the recovery
 - Code outside `0–255` — treat as `GENERAL_ERROR (1)`; log for investigation
 
 **Contradictory signals**
