@@ -14,7 +14,7 @@ The framework MUST provide a built-in `tool status` command with subflags `--sho
 
 ## Acceptance Criteria
 
-- `tool status --show-side-effects --format json` returns paths, types, and sizes for all declared side effects
+- `tool status --show-side-effects --format json` returns paths, types, and sizes for all declared side effects, `output` paths included
 - `tool status --show-state-files --format json` returns paths and summaries of all global state files (e.g., current context, cached tokens)
 - The command exits `0` and produces valid JSON regardless of what state exists
 - All path values in the output are absolute

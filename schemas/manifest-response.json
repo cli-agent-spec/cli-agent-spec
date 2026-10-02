@@ -71,7 +71,7 @@
         "danger_level": {
           "type": "string",
           "enum": ["safe", "mutating", "destructive"],
-          "description": "Mutation risk level. safe: read-only; mutating: creates or modifies state; destructive: permanently deletes or irreversibly modifies state. Sourced from REQ-C-002."
+          "description": "Mutation risk level. safe: read-only, no side effects on state (writes only cache, log, temp, or output paths); mutating: creates or modifies state; destructive: permanently deletes or irreversibly modifies state. Sourced from REQ-C-002."
         },
         "required_scopes": {
           "type": "array",
@@ -484,8 +484,8 @@
         },
         "type": {
           "type": "string",
-          "enum": ["cache", "log", "temp", "credential", "config"],
-          "description": "Category of the side effect."
+          "enum": ["cache", "log", "temp", "credential", "config", "output"],
+          "description": "Category of the side effect. output is a path the command writes as its product (a report, a rendered page, collected evidence): status lists it, cleanup never removes it, and it takes neither ttl_seconds nor clearable_with. A per-call --output path is declared by output_file instead."
         },
         "ttl_seconds": {
           "type": "integer",
@@ -496,7 +496,9 @@
           "type": "string",
           "description": "Exact command that removes this path."
         }
-      }
+      },
+      "if": { "properties": { "type": { "const": "output" } }, "required": ["type"] },
+      "then": { "not": { "anyOf": [{ "required": ["ttl_seconds"] }, { "required": ["clearable_with"] }] } }
     },
     "SubprocessDeclaration": {
       "type": "object",

@@ -115,7 +115,7 @@ Present only when the command declares them.
 | Type | Fields |
 |------|--------|
 | `Example` | `description`, `command` (both required) |
-| `FilesystemSideEffect` | `path`, `type` (`cache` \| `log` \| `temp` \| `credential` \| `config`) required; `ttl_seconds`, `clearable_with` optional |
+| `FilesystemSideEffect` | `path`, `type` (`cache` \| `log` \| `temp` \| `credential` \| `config` \| `output`) required; `ttl_seconds`, `clearable_with` optional, and never on `output` (the command's product, which `cleanup` never removes) |
 | `SubprocessDeclaration` | `binary` required; `user_controlled_args`, `hardcoded_args` optional |
 | `ConditionalRule` | One of `{ if_flag, if_value, then_required }`, `{ if_flag, prohibited }`, `{ if_flag, target_flag, default }`, `{ any_of }` (at least one listed flag present), `{ one_of }` (exactly one listed flag present); `any_of` and `one_of` list at least two distinct flags |
 | `DependencyEntry` | `name`, `check_command`, `min_version` required; `version_regex`, `fix_command` optional |
@@ -493,6 +493,46 @@ Violation: `records` mode requires `record_schema`; without it an agent cannot t
 ```
 `ledger --format json ingest extract a.csv` hands `extract a.csv` to beangulp; beangulp writes stdout and chooses the exit code, and the envelope is the last line of stderr. `ledger ingest --help` runs beangulp with `extract --help`.
 
+**Valid — safe command that writes its product to a declared `output` path**
+```json
+{
+  "schema_version": "3.10",
+  "framework_version": "2.5.0",
+  "etag": "sha256:0d7e5a",
+  "commands": {
+    "dashboard.build": {
+      "description": "Render the project dashboard to tmp/dashboard",
+      "danger_level": "safe",
+      "required_scopes": [],
+      "filesystem_side_effects": [{ "path": "{project_root}/tmp/dashboard/", "type": "output" }],
+      "flags": {},
+      "exit_codes": { "0": { "name": "SUCCESS", "description": "Dashboard rendered", "retryable": false, "side_effects": "complete" } }
+    }
+  }
+}
+```
+`tool status --show-side-effects` lists `tmp/dashboard/`; `tool cleanup` leaves it in place. Writing its own product does not make the command `mutating`.
+
+**Invalid — `output` path with a TTL and a clear command**
+```json
+{
+  "schema_version": "3.10",
+  "framework_version": "2.5.0",
+  "etag": "sha256:0d7e5a",
+  "commands": {
+    "dashboard.build": {
+      "description": "Render the project dashboard",
+      "danger_level": "safe",
+      "required_scopes": [],
+      "filesystem_side_effects": [{ "path": "{project_root}/tmp/dashboard/", "type": "output", "ttl_seconds": 3600, "clearable_with": "tool cleanup" }],
+      "flags": {},
+      "exit_codes": {}
+    }
+  }
+}
+```
+Violation: an `output` path is the command's product; it does not expire and no clear command owns it. A path the framework may delete is `cache` or `temp`.
+
 **Invalid — passthrough command with interspersed options**
 ```json
 {
@@ -563,6 +603,8 @@ Violation: a root `env_vars` entry requires `description`; no flag's `descriptio
 - **Emitting pairwise `prohibited` rules next to a `one_of` group.** `one_of` already forbids combining its members; the extra rules repeat the constraint and let the two drift apart
 - **Declaring `output_file: "formatted"` on a command that returns a binary result.** The file would then hold a JSON or plain wrapper around base64, not the file the caller asked for; a binary result is `"binary"`
 - **Omitting `output_file` because the handler writes the file itself.** Absence tells the agent the command has no `--output`; declare `"handler"`
+- **Declaring a command's product as `cache`.** `tool cleanup` then deletes the report the user asked for; declare it `output`, which `cleanup` never removes
+- **Declaring an `output` side effect for the `--output` path.** The caller picks that path per call, and `output_file` already declares it; `type: "output"` is for a location the command chooses itself
 - **Leaving `output_file_base` out when `--output` does not resolve against the working directory.** Absence means `cwd`, so the agent looks for the file in the wrong place; declare `project_root` or `resource`
 - **Declaring a JSON-valued flag as `type: "string"`.** The agent then has no shape to build and no signal that the value is parsed as JSON; declare `type: "object"` with `schema`
 - **Naming a flag's environment variables only in its `description`.** "(read from `$A` or `$B` when not passed)" is prose an agent must parse; list the names in `env_vars`, in precedence order
@@ -646,6 +688,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 
 **Reading declared contracts before calling**
 - `danger_level` other than `safe` — prefer `--dry-run` first; `safe_default: true` means the command previews until `--live` is passed
+- `filesystem_side_effects` with `type: "output"` — the command writes its product there, even when it is `safe`; read the result from that path, and do not run `tool cleanup` expecting it to go. A pre-3.10 manifest cannot mark it and may declare it `cache`
 - `option_placement: "strict"` — place every option, global or local, before the first positional argument; anything after it is forwarded to the child process
 - `requires` — evaluate each rule against the flags you plan to send before calling; a violated rule produces `ARG_ERROR (2)`
 - `any_of` and `one_of` groups — send at least one flag of an `any_of` group and exactly one flag of a `one_of` group, choosing the one whose value you already hold; a declared `default` never satisfies either rule

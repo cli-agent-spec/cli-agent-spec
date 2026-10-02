@@ -29,6 +29,8 @@ The framework MUST register `--format <format>` as a standard flag on all comman
 
 `handler` covers a command whose handler owns the path (a compiler's object file, an archiver's tarball); the handler SHOULD write it through the atomic-write primitive ([REQ-F-070](f-070-atomic-write-via-rename.md)). `envelope` covers a command whose stdout carries something other than a single envelope, such as a child process's output streamed through, so the file is where the agent reads the structured result. The format-name rejection above applies whatever the value.
 
+**`--output` versus an `output` side effect.** `output_file` declares a path the caller names per call. A location the command picks itself for its product (a fixed or templated directory such as `{project_root}/tmp/dashboard/`) is declared instead as a `filesystem_side_effects` entry with `type: "output"` (REQ-C-011). The two never describe the same write: the `--output` path is not repeated as an `output` entry, though a default location used when `--output` is absent is one.
+
 **Where a relative path lands.** A relative `--output` path resolves against the working directory unless the command declares otherwise in `output_file_base`, which is present only alongside `output_file`. An absolute path is used as given, whatever the base. The values:
 
 - `cwd` (the default, also meant by absence): the working directory of the invocation
@@ -181,3 +183,4 @@ app.enable_format_flag(formats=["json", "jsonl", "tsv", "plain"])
 | [REQ-O-002](o-002-fields-selector.md) | O | Composes: `--fields` filters the `data` object within `--format json` responses |
 | [REQ-O-004](o-004-output-jsonl-stream-flag.md) | O | Specializes: `--format jsonl` is the non-buffered streaming variant |
 | [REQ-O-042](o-042-output-format-env-var-default.md) | O | Specializes: tool-scoped env var may supply the default when `--format` is omitted |
+| [REQ-C-011](c-011-commands-declare-filesystem-side-effects.md) | C | Composes: a command-chosen product path is a `type: "output"` side effect, not an `--output` path |
