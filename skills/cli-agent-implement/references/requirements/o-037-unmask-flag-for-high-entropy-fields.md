@@ -10,7 +10,7 @@
 
 ## Description
 
-The framework MUST provide `--unmask` as a global flag that disables the high-entropy masking from REQ-F-058. When `--unmask` is passed, all fields are returned with their raw values. This flag SHOULD require explicit invocation and MUST NOT be activated by any environment variable. The `--unmask` flag is intended for debugging and human inspection; agents should not pass it except when they specifically need the raw high-entropy value for a subsequent operation.
+The framework MUST provide `--unmask` as a global flag that disables the high-entropy masking from REQ-F-058. When `--unmask` is passed, all fields are returned with their raw values, including the external values of a tagged `error.context` (REQ-F-035). This flag SHOULD require explicit invocation and MUST NOT be activated by any environment variable. The `--unmask` flag is intended for debugging and human inspection; agents should not pass it except when they specifically need the raw high-entropy value for a subsequent operation.
 
 ## Acceptance Criteria
 
@@ -67,4 +67,5 @@ $ tool get-token --unmask --format json
 | Requirement | Tier | Relationship |
 |-------------|------|--------------|
 | [REQ-F-058](f-058-high-entropy-field-masking.md) | F | Provides: the masking behavior that `--unmask` disables |
+| [REQ-F-035](f-035-external-data-trust-tagging.md) | F | Composes: `--unmask` also returns the external values of a tagged `error.context` raw |
 | [REQ-C-016](c-016-secrets-accepted-only-via-env-var-or-file.md) | C | Composes: high-entropy outputs should be treated with the same care as secret inputs |

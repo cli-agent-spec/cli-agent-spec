@@ -19,7 +19,7 @@ A stream ends with exactly one terminal line. On success it is the summary line 
 **Records consumers.** A command that reads such a stream from another command declares `stdin_input: "records"` with a record type; the manifest shows it as `CommandEntry.stdin` with `mode: "records"` and `record_schema` (ManifestResponse 3.8). The framework reads the stream through line mode (REQ-F-054, per-line cap, no total cap), skips blank lines and heartbeat lines (`"heartbeat": true`, REQ-O-038), and classifies every other line in order:
 
 - The summary line ends the input. The framework reads nothing after it and hands the handler no record for it
-- An error envelope (`"ok": false`) ends the run with exit `1` and error code `UPSTREAM_FAILED`. `context` carries `line` (1-based), `upstream` (the upstream `error` object, with the consumer's own secret redaction applied), and `upstream_exit_code` (the envelope's `meta.exit_code`)
+- An error envelope (`"ok": false`) ends the run with exit `1` and error code `UPSTREAM_FAILED`. `context` carries `line` (1-based), `upstream` (the upstream `error` object, with the consumer's own secret redaction applied), and `upstream_exit_code` (the envelope's `meta.exit_code`). The upstream object is another process's output, so the context carries `_source: "external"` and `_trusted: false` and the upstream's strings are masked (REQ-F-035); `line`, `upstream_exit_code`, `upstream.code`, and `upstream.retryable` are never masked
 - Any other line is one record: a JSON object that MUST validate against the declared record type. A line that is not a JSON object, or fails validation, ends the run with exit `1` and error code `RECORD_INVALID`, with `context.line` and, when one field is at fault, `context.field`
 - End of stdin before a terminal line ends the run with exit `1` and error code `UPSTREAM_INCOMPLETE`, with `context.line` (the last line read) and `context.records` (records handed to the handler). The producer was killed or exited without finishing its stream
 
@@ -36,7 +36,7 @@ All four failures happen after the handler has started, so they exit `1`, not `2
 - The manifest exposes `streaming_default: true` for commands that declare it
 - A streaming command that fails after emitting two items emits a third and last line that is a `ResponseEnvelope` with `"ok": false`, no summary line, and exits with that envelope's `meta.exit_code`
 - A records consumer fed two items and a summary line hands the handler two records and exits `0`
-- A records consumer fed one item and an error envelope on line 2 exits `1` with `error.code: "UPSTREAM_FAILED"`, `context.line: 2`, `context.upstream.code` equal to the upstream error's code, and `context.upstream_exit_code` equal to its `meta.exit_code`
+- A records consumer fed one item and an error envelope on line 2 exits `1` with `error.code: "UPSTREAM_FAILED"`, `context.line: 2`, `context.upstream.code` equal to the upstream error's code, `context._trusted: false`, and `context.upstream_exit_code` equal to its `meta.exit_code`
 - A records consumer fed two items and then end of stdin, with no terminal line, exits `1` with `error.code: "UPSTREAM_INCOMPLETE"`, `context.line: 2`, and `context.records: 2`
 - A records consumer fed a line that is not a JSON object, or a record missing a required field, exits `1` with `error.code: "RECORD_INVALID"` and that line's number in `context.line`
 - A records consumer given `--input-file <path>` whose file has two items and no summary line hands the handler two records and exits `0`
@@ -118,6 +118,8 @@ $ tool list-deployments --stream | tool annotate --format json
     "retryable": false,
     "phase": "execution",
     "context": {
+      "_source": "external",
+      "_trusted": false,
       "line": 3,
       "upstream": { "code": "UNAVAILABLE", "message": "Deployment API returned 503", "retryable": true },
       "upstream_exit_code": 12
@@ -183,6 +185,7 @@ register command "annotate":
 | [REQ-F-054](f-054-stdin-payload-size-cap-with-input-file-fallback.md) | F | Provides: line mode and its per-line cap, through which a records consumer reads the stream |
 | [REQ-F-065](f-065-pipeline-exit-code-propagation.md) | F | Composes: REQ-F-065 covers pipelines the framework runs; `UPSTREAM_FAILED` and `UPSTREAM_INCOMPLETE` surface an upstream failure in a pipeline the caller's shell runs |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Wraps: a failed stream ends with the standard error envelope |
+| [REQ-F-035](f-035-external-data-trust-tagging.md) | F | Enforces: the `UPSTREAM_FAILED` context is tagged external and its upstream strings are masked |
 | [REQ-O-039](o-039-input-file-flag-for-stdin-commands.md) | O | Composes: `--input-file <path>` feeds a records consumer a finished file, so end of file ends the input |
 | [REQ-O-038](o-038-heartbeat-ms-flag-for-long-running-commands.md) | O | Composes: a records consumer skips the producer's heartbeat lines, which are neither records nor terminal lines |
 | [§76](../challenges/04-critical-output-and-parsing/76-high-streaming-default-incompatibility.md) | — | Provides: failure mode when `streaming_default` is undeclared |
