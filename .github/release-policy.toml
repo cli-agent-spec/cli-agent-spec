@@ -1,0 +1,61 @@
+# release-lanes reads this file on every run: https://github.com/romamo/release-lanes
+name = "cli-agent-spec"
+
+# off: do nothing; dry-run: show the release commit it would make; release: release
+mode = "dry-run"
+branch = "master"
+
+# The spec version lives in tags and the CHANGELOG only; pyproject.toml's 0.0.0 is not it
+version_files = "none"
+
+# The footers below have bundled copies under skills/; resync them after the stamp
+after_stamp = ["scripts/sync-skill-references.sh"]
+
+[changelog]
+path = "CHANGELOG.md"
+style = "dash"
+
+# CHANGELOG "Versioning": a release that changes failure modes, requirements, or schemas
+# is MINOR; prose, examples, and tooling are PATCH. MAJOR stays a person's decision.
+# fnmatch patterns, where * also matches /
+[bump]
+from = "paths"
+minor_paths = ["challenges/0*", "requirements/*", "schemas/*"]
+
+[gates]
+# An open issue with this label holds a stable release
+blocker_label = "release-blocker"
+blocker_lanes = ["stable"]
+freeze = []
+freeze_lanes = ["stable"]
+
+[publish]
+tag_message = "CLI Agent Spec {version}"
+release_title = "CLI Agent Spec {version}"
+
+# A stable release 30 minutes after a batch of merges ends; each push restarts the wait
+[lanes.stable]
+quiet_minutes = 30
+github_release = true
+dispatch = ["deploy-pages.yml"]   # the footers changed; a bot push starts no workflow
+
+# X.Y.(Z+1) from release/X.Y with chosen pull requests, by hand only
+[lanes.hotfix]
+github_release = true
+dispatch = ["deploy-pages.yml"]
+
+# The "CLI Agent Spec vX.Y" footers each release updates
+[[version_lines]]
+file = "README.md"
+pattern = 'CLI Agent Spec v\d+\.\d+(?= —)'
+replace = "CLI Agent Spec v{minor}"
+
+[[version_lines]]
+file = "comparison-matrix.md"
+pattern = 'CLI Agent Spec v\d+\.\d+(?= —)'
+replace = "CLI Agent Spec v{minor}"
+
+[[version_lines]]
+file = "requirements/index.md"
+pattern = 'CLI Agent Spec v\d+\.\d+(?= —)'
+replace = "CLI Agent Spec v{minor}"

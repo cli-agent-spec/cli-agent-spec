@@ -6,6 +6,11 @@ on:
     types: [completed]
     branches: [master]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "The release that started this deploy (the release bot passes it); the site builds from master"
+        type: string
+        required: false
 
 permissions:
   contents: read
