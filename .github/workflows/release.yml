@@ -1,6 +1,6 @@
 name: Release
 
-# release-lanes: https://github.com/romamo/release-lanes. The policy in
+# shipyard: https://github.com/romamo/shipyard. The policy in
 # .github/release-policy.toml decides what releases and when; this file only wires the
 # bot to this repository's CI.
 
@@ -34,7 +34,7 @@ permissions:
 
 jobs:
   prepare:
-    uses: romamo/release-lanes/.github/workflows/prepare.yml@v0
+    uses: romamo/shipyard/.github/workflows/prepare.yml@v0
     with:
       lane: ${{ inputs.lane != 'policy' && inputs.lane || '' }}
       dry-run: ${{ inputs.dry-run || false }}
@@ -55,7 +55,7 @@ jobs:
   land:
     needs: [prepare, ci]
     if: always() && needs.prepare.outputs.sha != ''
-    uses: romamo/release-lanes/.github/workflows/land.yml@v0
+    uses: romamo/shipyard/.github/workflows/land.yml@v0
     with:
       ci-result: ${{ needs.ci.result }}
       lane: ${{ needs.prepare.outputs.lane }}

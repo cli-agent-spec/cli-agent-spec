@@ -1,4 +1,4 @@
-# release-lanes reads this file on every run: https://github.com/romamo/release-lanes
+# shipyard reads this file on every run: https://github.com/romamo/shipyard
 name = "cli-agent-spec"
 
 # off: do nothing; dry-run: show the release commit it would make; release: release
