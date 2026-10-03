@@ -585,7 +585,7 @@
       }
     },
     "ConditionalRule": {
-      "description": "One conditional argument dependency. Exactly one of the five shapes applies.",
+      "description": "One conditional argument dependency. Exactly one of the five shapes applies. A flag is present when the caller supplies it; neither a declared default nor a boolean given as false makes it present.",
       "oneOf": [
         {
           "type": "object",
@@ -593,7 +593,7 @@
           "additionalProperties": false,
           "properties": {
             "if_flag": { "type": "string", "description": "Flag whose value triggers the rule." },
-            "if_value": { "description": "Value of if_flag that makes then_required mandatory." },
+            "if_value": { "description": "Value of if_flag that makes then_required mandatory; compared as a value, so false matches a boolean given as false." },
             "then_required": { "type": "array", "items": { "type": "string" }, "description": "Flags that become required." }
           }
         },
@@ -603,7 +603,7 @@
           "additionalProperties": false,
           "properties": {
             "if_flag": { "type": "string", "description": "Flag whose presence triggers the rule." },
-            "prohibited": { "type": "array", "items": { "type": "string" }, "description": "Flags that are forbidden when if_flag is present." }
+            "prohibited": { "type": "array", "items": { "type": "string" }, "description": "Flags that are forbidden when if_flag is present; a boolean given as false, here or as if_flag, is not present." }
           }
         },
         {
@@ -613,7 +613,7 @@
           "properties": {
             "if_flag": { "type": "string", "description": "Flag whose absence triggers the rule." },
             "target_flag": { "type": "string", "description": "Flag whose default changes." },
-            "default": { "description": "Default applied to target_flag when if_flag is absent." }
+            "default": { "description": "Default applied to target_flag when if_flag is absent; a boolean if_flag given as false counts as absent." }
           }
         },
         {
@@ -621,7 +621,7 @@
           "required": ["any_of"],
           "additionalProperties": false,
           "properties": {
-            "any_of": { "type": "array", "items": { "type": "string" }, "minItems": 2, "uniqueItems": true, "description": "Flags of which at least one must be present; a declared default does not count as present." }
+            "any_of": { "type": "array", "items": { "type": "string" }, "minItems": 2, "uniqueItems": true, "description": "Flags of which at least one must be present; neither a declared default nor a boolean given as false counts as present." }
           }
         },
         {
@@ -629,7 +629,7 @@
           "required": ["one_of"],
           "additionalProperties": false,
           "properties": {
-            "one_of": { "type": "array", "items": { "type": "string" }, "minItems": 2, "uniqueItems": true, "description": "Flags of which exactly one must be present; a declared default does not count as present." }
+            "one_of": { "type": "array", "items": { "type": "string" }, "minItems": 2, "uniqueItems": true, "description": "Flags of which exactly one must be present; neither a declared default nor a boolean given as false counts as present." }
           }
         }
       ]

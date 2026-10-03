@@ -21,6 +21,7 @@ Commands MUST declare all conditional argument requirements in their registratio
 - A command with an `any_of` rule exits 2 before any I/O when no flag of the group is present
 - A command with a `one_of` rule exits 2 before any I/O when two or more flags of the group are present
 - A command with a `one_of` rule passes Phase 1 validation when exactly one flag of the group is present
+- With `one_of: ["exact", "fuzzy"]` on two boolean flags, `--no-exact --fuzzy` passes Phase 1 validation, and `--no-exact` alone exits 2 because no flag of the group is present
 - The `ARG_ERROR` message and its error details name every flag in a violated `any_of` or `one_of` group
 
 ---
@@ -45,7 +46,7 @@ Each `ConditionalRule` has one of the following shapes:
 | `any_of` | `any_of` | At least one flag in `any_of` is present |
 | `one_of` | `one_of` | Exactly one flag in `one_of` is present |
 
-A flag is present when the caller supplies it: on the command line, or through any other explicit input channel the framework treats as supplied. A declared `default` does not make a flag present. `any_of` and `one_of` each list at least two distinct flag names. A `one_of` group already forbids combining its members, so it replaces pairwise `if_flag`/`prohibited` rules between them rather than adding to them.
+A flag is present when the caller supplies it: on the command line, or through any other explicit input channel the framework treats as supplied. A declared `default` does not make a flag present. A boolean flag is present only when its value is true: an explicit false (`--no-exact`, or false through any other explicit input channel) is the same as leaving the flag out. This definition governs every rule that tests presence or absence: `if_present`, `default_when_absent`, `any_of`, and `one_of`. An `if_value` rule compares values instead, so `if_value: false` still matches an explicit false. `any_of` and `one_of` each list at least two distinct flag names. A `one_of` group already forbids combining its members, so it replaces pairwise `if_flag`/`prohibited` rules between them rather than adding to them.
 
 ---
 
