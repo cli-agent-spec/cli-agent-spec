@@ -1,0 +1,67 @@
+name: Release
+
+# release-lanes: https://github.com/romamo/release-lanes. The policy in
+# .github/release-policy.toml decides what releases and when; this file only wires the
+# bot to this repository's CI.
+
+on:
+  push:
+    branches: [master]
+  schedule:
+    - cron: "7 * * * *" # hourly: the policy decides whether a lane's window is open
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "policy: follow the policy; a lane: release it now, skipping triggers but not gates"
+        type: choice
+        options: [policy, dev, rc, stable, hotfix]
+        default: policy
+      dry-run:
+        description: "Show the release commit, push nothing"
+        type: boolean
+        default: true
+      hotfix-prs:
+        description: "hotfix: merged pull requests to ship, such as 12,15"
+        type: string
+        default: ""
+      hotfix-from:
+        description: "hotfix: the stable tag to fix; empty takes the latest"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    uses: romamo/release-lanes/.github/workflows/prepare.yml@v0
+    with:
+      lane: ${{ inputs.lane != 'policy' && inputs.lane || '' }}
+      dry-run: ${{ inputs.dry-run || false }}
+      hotfix-prs: ${{ inputs.hotfix-prs || '' }}
+      hotfix-from: ${{ inputs.hotfix-from || '' }}
+    permissions:
+      contents: write # pushes the release commit's work branch
+      issues: read # release-blocker issues and milestones
+      pull-requests: read # a hotfix's merge commits
+
+  ci:
+    needs: prepare
+    if: needs.prepare.outputs.sha != ''
+    uses: ./.github/workflows/validate.yml
+    with:
+      ref: ${{ needs.prepare.outputs.sha }}
+
+  land:
+    needs: [prepare, ci]
+    if: always() && needs.prepare.outputs.sha != ''
+    uses: romamo/release-lanes/.github/workflows/land.yml@v0
+    with:
+      ci-result: ${{ needs.ci.result }}
+      lane: ${{ needs.prepare.outputs.lane }}
+      version: ${{ needs.prepare.outputs.version }}
+      sha: ${{ needs.prepare.outputs.sha }}
+      base: ${{ needs.prepare.outputs.base }}
+    permissions:
+      contents: write # main, release branches, tags, and releases
+      actions: write # starts the lane's dispatch workflows
