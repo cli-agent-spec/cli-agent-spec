@@ -47,6 +47,7 @@
       "tier": "C",
       "limitation": "If the tool has no `--format json` flag, the extraction rule still fails when prose interleaves inside a single JSON value — there is no reliable agent-side fix; treat the tool as unstructured and require human review of any extracted values",
       "requirements": [
+        "REQ-C-032",
         "REQ-F-003",
         "REQ-F-004",
         "REQ-F-005",
@@ -76,6 +77,7 @@
       "limitation": "If a tool routes structured data to stderr or mixes help text and JSON in the same stream with no separator, there is no reliable parse strategy — the tool requires a fix from its author before it can be safely used by agents",
       "requirements": [
         "REQ-C-031",
+        "REQ-C-032",
         "REQ-F-006",
         "REQ-F-048",
         "REQ-O-025"
@@ -279,6 +281,7 @@
       "limitation": "If the tool buffers all output and flushes nothing before timeout, the agent receives no partial result — there is no workaround for fully-buffered tools; use a shorter timeout to fail fast and avoid wasting turn budget",
       "requirements": [
         "REQ-C-012",
+        "REQ-C-032",
         "REQ-F-011",
         "REQ-F-012",
         "REQ-F-039",
@@ -1203,6 +1206,7 @@
       "tier": "A",
       "limitation": "If the tool reads from `/dev/tty` directly (bypassing `stdin`), `DEVNULL` does not prevent the block — use a short `timeout` (5–10 seconds) on every invocation as a universal guard against undeclared stdin reads",
       "requirements": [
+        "REQ-C-032",
         "REQ-O-039"
       ],
       "triage_rows": [

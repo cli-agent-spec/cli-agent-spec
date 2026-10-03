@@ -95,3 +95,4 @@ Framework wraps:
 | [REQ-C-013](c-013-error-responses-include-code-and-message.md) | C | Composes: `error` object structure is declared by REQ-C-013 |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Wraps: manifest output uses this envelope as its outer container |
 | [REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md) | C | Specializes: a passthrough command writes the envelope as the last line of stderr |
+| [REQ-C-032](c-032-protocol-server-commands-declare-stdout-protocol.md) | C | Specializes: a protocol command writes no envelope to stdout; a failure envelope is the last line of stderr |
