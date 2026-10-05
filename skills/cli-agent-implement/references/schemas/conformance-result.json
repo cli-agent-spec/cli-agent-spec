@@ -75,7 +75,7 @@
         "argv": { "type": "array", "items": { "type": "string" }, "description": "Full argv that ran, reproducible verbatim." },
         "stdin": { "type": "string", "enum": ["closed", "open"], "description": "closed: /dev/null. open: a pipe never written to or closed." },
         "exit_code": { "type": ["integer", "null"], "description": "Process exit code, or null when the run was killed." },
-        "timed_out": { "type": "boolean", "description": "True when the run exceeded timeout_seconds." },
+        "timed_out": { "type": "boolean", "description": "True when the run exceeded timeout_seconds, or a stream probe's deadline_seconds." },
         "duration_ms": { "type": "integer", "minimum": 0, "description": "Wall-clock time of the run." },
         "detail": { "type": "string", "description": "Why the run failed the check." }
       }

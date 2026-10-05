@@ -15,6 +15,8 @@ Exit codes:
 
 Probes run the real command. Point profiles at a sandbox: destructive probes are invoked without
 confirmation (expecting refusal) and with their dry-run flag (expecting a side-effect-free preview).
+Stream probes read stdout line by line until the process exits or their deadline passes, and may
+interrupt the stream with SIGINT after a set number of lines (POSIX only).
 """
 
 from __future__ import annotations
@@ -22,11 +24,14 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import queue
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -48,6 +53,7 @@ class ProbeKind(StrEnum):
     READ = "read"
     DESTRUCTIVE = "destructive"
     INVALID = "invalid"
+    STREAM = "stream"
 
 
 class Status(StrEnum):
@@ -71,6 +77,8 @@ class Probe:
     argv: tuple[str, ...]
     kind: ProbeKind
     dry_run_flag: str | None
+    deadline_seconds: float | None = None
+    sigint_after_lines: int | None = None
 
 
 def resolve_executable(name: str, base: Path) -> str:
@@ -96,6 +104,37 @@ class ArgumentOrder:
     positional: str | None
 
 
+STREAM_ONLY_FIELDS = ("deadline_seconds", "signal", "after_lines")
+
+
+def load_probe(raw: dict[str, object]) -> Probe:
+    """Build a probe, enforcing the cross-field rules the schema also states."""
+    name, kind = str(raw["name"]), ProbeKind(str(raw["kind"]))
+    if kind is ProbeKind.DESTRUCTIVE and "dry_run_flag" not in raw:
+        raise ProfileError(f"destructive probe {name!r} must declare dry_run_flag")
+    if kind is ProbeKind.STREAM:
+        if "dry_run_flag" in raw:
+            raise ProfileError(f"stream probe {name!r} must not declare dry_run_flag")
+        if ("signal" in raw) != ("after_lines" in raw):
+            raise ProfileError(f"stream probe {name!r} must declare signal and after_lines together")
+    else:
+        present = [f for f in STREAM_ONLY_FIELDS if f in raw]
+        if present:
+            raise ProfileError(f"{', '.join(present)} apply only to stream probes, not {kind.value} probe {name!r}")
+    argv = raw["argv"]
+    if not isinstance(argv, list):
+        raise ProfileError(f"probe {name!r} argv must be an array")
+    deadline = raw.get("deadline_seconds")
+    after = raw.get("after_lines")
+    dry_run_flag = raw.get("dry_run_flag")
+    return Probe(
+        name, tuple(str(a) for a in argv), kind,
+        str(dry_run_flag) if dry_run_flag is not None else None,
+        float(deadline) if isinstance(deadline, int | float) else None,
+        after if isinstance(after, int) else None,
+    )
+
+
 @dataclass(frozen=True)
 class Profile:
     tool: str
@@ -119,16 +158,10 @@ class Profile:
             details = "; ".join(f"{'/'.join(map(str, e.absolute_path)) or '<root>'}: {e.message}" for e in errors)
             raise ProfileError(f"profile does not match conformance-profile.json: {details}")
         command = (resolve_executable(raw["command"][0], path.parent), *raw["command"][1:])
-        probes = tuple(
-            Probe(p["name"], tuple(p["argv"]), ProbeKind(p["kind"]), p.get("dry_run_flag"))
-            for p in raw["probes"]
-        )
+        probes = tuple(load_probe(p) for p in raw["probes"])
         names = [p.name for p in probes]
         if len(names) != len(set(names)):
             raise ProfileError("probe names must be unique")
-        for probe in probes:
-            if probe.kind is ProbeKind.DESTRUCTIVE and probe.dry_run_flag is None:
-                raise ProfileError(f"destructive probe {probe.name!r} must declare dry_run_flag")
         manifest = tuple(raw["manifest"]) if "manifest" in raw else None
         argument_order = None
         if "argument_order" in raw:
@@ -210,6 +243,101 @@ def execute(label: str, argv: tuple[str, ...], stdin: StdinMode, timeout: float,
         )
 
 
+@dataclass(frozen=True)
+class StreamRun:
+    run: Run
+    lines: tuple[str, ...]
+    signalled_after: int | None   # stdout lines read when SIGINT was sent; None when it never was
+
+
+def kill_tree(process: subprocess.Popen[bytes]) -> None:
+    """Kill the probe and every process in its session, so no grandchild keeps the stdout pipe open."""
+    if os.name == "posix":
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass  # the whole group already exited between poll() and killpg()
+    else:
+        process.kill()
+
+
+def execute_stream(label: str, argv: tuple[str, ...], deadline: float, sigint_after: int | None) -> StreamRun:
+    """Read stdout line by line until EOF and exit, or kill the process tree when the deadline passes.
+
+    A thread reads the pipe so the deadline holds even when the command blocks without writing;
+    stderr goes to a file, so a chatty command cannot fill a pipe and stall.
+    """
+    env = dict(os.environ)
+    for tty_hint in ("FORCE_COLOR", "CLICOLOR_FORCE"):
+        env.pop(tty_hint, None)
+    with tempfile.TemporaryFile() as err:
+        started = time.monotonic()
+        process = subprocess.Popen(
+            argv, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=err, env=env, start_new_session=True,
+        )
+        stdout = process.stdout
+        if stdout is None:
+            raise RuntimeError("stream probe started without a stdout pipe")
+        lines_read: queue.Queue[bytes | None] = queue.Queue()
+
+        def pump() -> None:
+            for raw in stdout:
+                lines_read.put(raw)
+            lines_read.put(None)
+
+        reader = threading.Thread(target=pump, name=f"stream:{label}", daemon=True)
+        reader.start()
+        lines: list[str] = []
+        signalled_after: int | None = None
+        timed_out = False
+        exit_code: int | None = None
+        try:
+            while True:
+                remaining = started + deadline - time.monotonic()
+                if remaining <= 0:
+                    timed_out = True
+                    break
+                try:
+                    raw = lines_read.get(timeout=remaining)
+                except queue.Empty:
+                    timed_out = True
+                    break
+                if raw is None:
+                    break
+                lines.append(raw.decode("utf-8", errors="replace").rstrip("\n"))
+                if sigint_after is not None and signalled_after is None and len(lines) >= sigint_after:
+                    process.send_signal(signal.SIGINT)
+                    signalled_after = len(lines)
+            if not timed_out:
+                try:
+                    exit_code = process.wait(timeout=max(started + deadline - time.monotonic(), 0.0))
+                except subprocess.TimeoutExpired:
+                    timed_out = True
+        finally:
+            # On a timeout stdout may still be open in a child that outlived the probe, so kill the
+            # whole group even when the probe itself has exited; otherwise the reader never sees EOF
+            if timed_out or process.poll() is None:
+                kill_tree(process)
+                process.wait()
+            reader.join(timeout=5)
+            stdout.close()
+        duration_ms = int((time.monotonic() - started) * 1000)
+        err.seek(0)
+        run = Run(
+            label, argv, StdinMode.CLOSED, exit_code, timed_out, duration_ms,
+            "\n".join(lines), err.read().decode("utf-8", errors="replace"),
+        )
+        return StreamRun(run, tuple(lines), signalled_after)
+
+
+@dataclass(frozen=True)
+class StreamParse:
+    terminal: dict[str, object] | None
+    terminal_line: int | None
+    terminal_valid: bool   # the terminal line is a summary line or a valid error envelope with ok: false
+    problems: tuple[str, ...]
+
+
 class Validators:
     def __init__(self) -> None:
         schemas = {p.name: json.loads(p.read_text(encoding="utf-8")) for p in SCHEMAS.glob("*.json")}
@@ -239,6 +367,52 @@ def parse_envelope(run: Run, validators: Validators) -> tuple[dict[str, object] 
     if errors:
         return None, "envelope invalid: " + "; ".join(errors[:3])
     return document, None
+
+
+def parse_stream(lines: tuple[str, ...], validators: Validators) -> StreamParse:
+    """Classify stream lines by REQ-O-004: items, then exactly one terminal line.
+
+    The terminal line is the summary line ("_summary": true) or an error ResponseEnvelope, recognised
+    by an "ok" boolean beside an "error" key. Heartbeat lines (REQ-O-038) are JSON objects like items.
+    """
+    problems: list[str] = []
+    terminal: dict[str, object] | None = None
+    terminal_line: int | None = None
+    terminal_valid = False
+    for number, line in enumerate(lines, start=1):
+        if terminal_line is not None:
+            problems.append(f"line {number} follows the terminal line {terminal_line}; a stream ends with exactly one terminal line")
+            break
+        if not line.strip():
+            problems.append(f"line {number} is blank; every stream line is one JSON object")
+            continue
+        try:
+            document = json.loads(line)
+        except json.JSONDecodeError as error:
+            problems.append(f"line {number} is not JSON ({error.msg} at char {error.pos})")
+            continue
+        if not isinstance(document, dict):
+            problems.append(f"line {number} is JSON but not an object")
+            continue
+        if document.get("_summary") is True:
+            terminal, terminal_line, terminal_valid = document, number, True
+        elif isinstance(document.get("ok"), bool) and "error" in document:
+            terminal, terminal_line = document, number
+            errors = [f"{'/'.join(map(str, e.absolute_path)) or '<root>'}: {e.message}" for e in validators.envelope.iter_errors(document)]
+            if errors:
+                problems.append(f"line {number} is an error envelope that does not validate: " + "; ".join(errors[:3]))
+            elif document["ok"] is not False:
+                problems.append(f"line {number} has ok: true beside error; a stream's error line is an envelope with ok: false")
+            else:
+                terminal_valid = True
+    return StreamParse(terminal, terminal_line, terminal_valid, tuple(problems))
+
+
+def envelope_meta(document: dict[str, object]) -> dict[str, object]:
+    meta = document.get("meta")
+    if not isinstance(meta, dict):
+        raise RuntimeError("validated envelope has a non-object meta")
+    return meta
 
 
 # ---------------------------------------------------------------------------
@@ -295,6 +469,8 @@ CHECKS: tuple[CheckSpec, ...] = (
     CheckSpec("destructive_refuses_unconfirmed", "Destructive commands refuse with exit 2, before side effects, without confirmation", 2, (23, 10), ("REQ-C-005", "REQ-O-021")),
     CheckSpec("manifest_valid", "tool manifest returns a valid ManifestResponse", 3, (52, 21), ("REQ-O-041",)),
     CheckSpec("argument_order", "A global option means the same before and after the command path; conflicting repeats exit 2", 3, (69,), ("REQ-F-067", "REQ-F-079")),
+    CheckSpec("stream_contract", "Every stream line is a JSON object and the stream ends on exactly one terminal line that matches the exit code", 3, (5, 76), ("REQ-O-004",)),
+    CheckSpec("stream_sigint", "SIGINT mid-stream ends the stream on a CANCELLED error envelope and exit 130, as REQ-F-069 defines", 3, (16,), ("REQ-O-004",)),
 )
 
 
@@ -474,9 +650,70 @@ class Kit:
         if data["local option after the positional"] == data["positional without the local option"]:
             outcome.fail(after, f"{' '.join(local)} after {positional!r} had no effect: read as a positional or ignored")
 
+    def check_stream(self, probe: Probe) -> None:
+        """Run a stream probe once, interrupting it when the probe declares a signal, and check REQ-O-004's line contract."""
+        if probe.sigint_after_lines is not None and os.name != "posix":
+            return  # stream_sigint is skipped as a whole in execute_all
+        deadline = probe.deadline_seconds if probe.deadline_seconds is not None else self.profile.timeout_seconds
+        label = probe.name if probe.sigint_after_lines is None else f"{probe.name} (SIGINT after {probe.sigint_after_lines} lines)"
+        stream = execute_stream(label, self.profile.command + probe.argv, deadline, probe.sigint_after_lines)
+        run = stream.run
+        parsed = parse_stream(stream.lines, self.validators)
+
+        contract = self.outcomes["stream_contract"]
+        contract.checked += 1
+        for problem in parsed.problems[:3]:
+            contract.fail(run, problem)
+        if len(parsed.problems) > 3:
+            contract.fail(run, f"{len(parsed.problems) - 3} more stream lines break the contract")
+        if run.timed_out:
+            seen = "its terminal line" if parsed.terminal is not None else f"{len(stream.lines)} lines and no terminal line"
+            contract.fail(run, f"still running at the {deadline:g}s deadline after {seen}; killed")
+        elif parsed.terminal is None:
+            contract.fail(run, f"stdout ended after {len(stream.lines)} lines without a terminal line (\"_summary\": true or an error envelope)")
+        elif parsed.terminal.get("_summary") is True:
+            if run.exit_code != 0:
+                contract.fail(run, f"stream ended on its summary line but exited {run.exit_code}, expected 0")
+        elif parsed.terminal_valid:
+            declared = envelope_meta(parsed.terminal)["exit_code"]
+            if declared != run.exit_code:
+                contract.fail(run, f"terminal error envelope declares meta.exit_code {declared} but the process exited {run.exit_code}")
+
+        if probe.sigint_after_lines is not None:
+            self.check_sigint(probe.sigint_after_lines, stream, parsed, deadline)
+
+    def check_sigint(self, after_lines: int, stream: StreamRun, parsed: StreamParse, deadline: float) -> None:
+        outcome = self.outcomes["stream_sigint"]
+        outcome.checked += 1
+        run = stream.run
+        if stream.signalled_after is None:
+            if run.timed_out:
+                outcome.fail(run, f"only {len(stream.lines)} of {after_lines} lines before the {deadline:g}s deadline; SIGINT never sent")
+            else:
+                outcome.fail(run, f"stream ended after {len(stream.lines)} lines, before after_lines {after_lines}; SIGINT never sent, lower after_lines")
+            return
+        if run.timed_out:
+            outcome.fail(run, f"no exit within the {deadline:g}s deadline after SIGINT; killed")
+            return
+        if run.exit_code != 130:
+            outcome.fail(run, f"exited {run.exit_code} after SIGINT, expected 130")
+        terminal = parsed.terminal
+        if terminal is None:
+            outcome.fail(run, "no terminal line after SIGINT; expected an error envelope with error.code CANCELLED")
+        elif terminal.get("_summary") is True:
+            outcome.fail(run, "stream ended on its summary line after SIGINT; expected an error envelope with error.code CANCELLED")
+        else:
+            error = terminal.get("error")
+            code = error.get("code") if isinstance(error, dict) else None
+            if code != "CANCELLED":
+                outcome.fail(run, f"terminal error envelope after SIGINT has error.code {code!r}, expected 'CANCELLED'")
+
     def execute_all(self, only: frozenset[str] | None) -> list[dict[str, object]]:
         for probe in self.profile.probes:
-            self.check_probe(probe)
+            if probe.kind is ProbeKind.STREAM:
+                self.check_stream(probe)
+            else:
+                self.check_probe(probe)
         self.check_help()
         self.check_manifest()
         self.check_argument_order()
@@ -485,6 +722,15 @@ class Kit:
         if not any(p.kind is ProbeKind.DESTRUCTIVE for p in self.profile.probes):
             for check in ("dry_run_preview", "destructive_refuses_unconfirmed"):
                 self.outcomes[check].skipped_reason = "profile declares no destructive probe"
+        streams = [p for p in self.profile.probes if p.kind is ProbeKind.STREAM]
+        if not streams:
+            self.outcomes["stream_contract"].skipped_reason = "profile declares no stream probe"
+        if not any(p.sigint_after_lines is not None for p in streams):
+            self.outcomes["stream_sigint"].skipped_reason = "profile declares no stream probe with signal"
+        elif os.name != "posix":
+            self.outcomes["stream_sigint"].skipped_reason = "SIGINT delivery to a probe needs POSIX signals"
+        if os.name != "posix" and self.outcomes["stream_contract"].checked == 0 and streams:
+            self.outcomes["stream_contract"].skipped_reason = "every stream probe declares a signal, which needs POSIX signals"
         return [o.to_json() for spec_id, o in self.outcomes.items() if only is None or spec_id in only]
 
 

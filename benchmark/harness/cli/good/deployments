@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # cli-good: deployments — spec-compliant implementation (ResponseEnvelope 2.0)
 # Envelope on stdout for every outcome, meta.pagination, dry-run, typed exit codes
+# list --stream writes one item per line and a _summary line (REQ-O-004); SIGINT ends it on a CANCELLED envelope (REQ-F-069)
 
 SUBCOMMAND="${1:-}"
 shift || true
 
-LIMIT=5; CURSOR=""; DRY_RUN=0; FILTER=""; YES=0; ENV=""
+LIMIT=5; CURSOR=""; DRY_RUN=0; FILTER=""; YES=0; ENV=""; STREAM=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -15,6 +16,7 @@ while [[ $# -gt 0 ]]; do
     --filter)  FILTER="$2";  shift 2 ;;
     --dry-run) DRY_RUN=1;    shift   ;;
     --yes)     YES=1;        shift   ;;
+    --stream)  STREAM=1;     shift   ;;
     -*)
       printf '{"ok":false,"data":null,"error":{"code":"UNKNOWN_FLAG","message":"Unknown flag %s","retryable":false,"phase":"validation","fix_required":"Remove the flag; run democli manifest for accepted flags"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n' "$1"
       exit 2
@@ -47,6 +49,11 @@ ITEMS=(
 )
 CURSORS=("" "cGFnZTI=" "cGFnZTM=" "cGFnZTQ=")   # base64 of page2..page4
 
+cancelled() {
+  printf '{"ok":false,"data":null,"error":{"code":"CANCELLED","message":"Command cancelled by SIGINT","retryable":false,"phase":"execution","context":{"signal":"SIGINT"}},"warnings":[],"meta":{"exit_code":130,"duration_ms":1}}\n'
+  exit 130
+}
+
 invalid_cursor() {
   printf '{"ok":false,"data":null,"error":{"code":"INVALID_CURSOR","message":"Cursor is invalid or expired","retryable":false,"phase":"validation","fix_required":"Restart pagination without --cursor"},"warnings":[],"meta":{"exit_code":2,"duration_ms":2}}\n'
   exit 2
@@ -61,6 +68,19 @@ case "$SUBCOMMAND" in
         exit 2
         ;;
     esac
+    if [ "$STREAM" -eq 1 ]; then
+      trap cancelled INT
+      TOTAL=0
+      for row in "${ITEMS[@]}"; do
+        read -r id version env status created <<< "$row"
+        [[ -n "$ENV" && "$env" != "$ENV" ]] && continue
+        printf '%s\n' "$(item "$id" "$version" "$env" "$status" "$created")"
+        TOTAL=$((TOTAL + 1))
+        sleep 0.03
+      done
+      printf '{"_summary":true,"total":%d,"duration_ms":%d}\n' "$TOTAL" $((TOTAL * 30))
+      exit 0
+    fi
     PAGE=0
     for i in "${!CURSORS[@]}"; do [[ "${CURSORS[$i]}" == "$CURSOR" ]] && PAGE=$((i + 1)); done
     [[ $PAGE -eq 0 ]] && invalid_cursor
@@ -86,6 +106,10 @@ case "$SUBCOMMAND" in
     ;;
 
   delete)
+    if [ "$STREAM" -eq 1 ]; then
+      printf '{"ok":false,"data":null,"error":{"code":"STREAMING_NOT_SUPPORTED","message":"deployments delete does not support --stream","retryable":false,"phase":"validation","fix_required":"Remove --stream"},"warnings":[],"meta":{"exit_code":2,"duration_ms":1}}\n'
+      exit 2
+    fi
     if [ "$DRY_RUN" -eq 1 ]; then
       printf '{"ok":true,"data":{"effect":"would_delete","would_affect":{"deployments":[{"id":"deploy-021","env":"staging","age_days":45},{"id":"deploy-034","env":"staging","age_days":38},{"id":"deploy-041","env":"staging","age_days":33}],"count":3}},"error":null,"warnings":[],"meta":{"exit_code":0,"duration_ms":8,"dry_run":true}}\n'
     elif [ "$YES" -eq 1 ]; then

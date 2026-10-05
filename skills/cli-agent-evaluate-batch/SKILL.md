@@ -71,9 +71,9 @@ If the queue is empty (all §N fully evaluated and `--refresh` not set), report 
 
 ## Step 1b — Deterministic pre-pass (when the conformance kit is available)
 
-Run this step when the working directory is the CLI Agent Spec repository (`conformance/run.py` exists). The kit checks the mechanically verifiable contracts without judgment, so its verdicts replace guesswork for the failure modes it covers: §1, §2, §3, §8, §10, §11, §14, §18, §21, §23, §50, §52.
+Run this step when the working directory is the CLI Agent Spec repository (`conformance/run.py` exists). The kit checks the mechanically verifiable contracts without judgment, so its verdicts replace guesswork for the failure modes it covers: §1, §2, §3, §5, §8, §10, §11, §14, §16, §18, §21, §23, §50, §52, §76.
 
-1. Write `evaluations/<cli-name>/conformance-profile.json` from the environment profile (format: `schemas/conformance-profile.md`). Use only read-only commands as `read` probes, one bad flag as an `invalid` probe, and destructive commands only when they have a dry-run flag. Never put `--yes`, `--force`, or confirmation flags in a probe
+1. Write `evaluations/<cli-name>/conformance-profile.json` from the environment profile (format: `schemas/conformance-profile.md`). Use only read-only commands as `read` probes, one bad flag as an `invalid` probe, read-only streaming commands as `stream` probes (one with `"signal": "INT"` and `after_lines`), and destructive commands only when they have a dry-run flag. Never put `--yes`, `--force`, or confirmation flags in a probe
 2. Run the kit and save its stdout:
    ```bash
    uv run conformance/run.py evaluations/<cli-name>/conformance-profile.json > evaluations/<cli-name>/conformance.json

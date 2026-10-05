@@ -38,6 +38,17 @@
 
 **Why:** a tool can serve its commands as MCP tools, yet `CommandEntry` took no extra properties and had no field to keep a command off that server, so a manifest could say so only in the description (#55).
 
+### Conformance kit: `stream` probes check a streaming command's JSONL contract
+
+- `ConformanceProfile` adds probe kind `stream`, with optional `deadline_seconds` (defaults to `timeout_seconds`) and optional `signal: "INT"` plus `after_lines`, which require each other. The schema and `conformance/run.py` reject either field on a non-`stream` probe, and `dry_run_flag` on a `stream` probe. Existing profiles stay valid
+- A `stream` probe runs once, outside the single-envelope checks. The kit reads stdout line by line until the process exits; at the deadline it kills the probe's process group and fails the run instead of hanging
+- New check `stream_contract` (level 3, REQ-O-004, §5, §76): every line is one JSON object, the stream ends on exactly one terminal line (the `"_summary": true` line or an error `ResponseEnvelope` with `ok: false`), a summary line exits `0`, an error envelope's `meta.exit_code` matches the exit code, and the process exits before the deadline
+- New check `stream_sigint` (level 3, REQ-O-004, §16): with `signal`, the kit sends SIGINT after `after_lines` lines and requires exit `130` and a terminal error envelope with `error.code` `CANCELLED` (REQ-F-069). It is skipped on Windows
+- A profile without a `stream` probe now reports both checks as `skip`, so its `level_3` verdict is `incomplete` instead of `pass`
+- The good democli mock's `deployments list` accepts `--stream`, and `democli-good.json` adds two `stream` probes, so it still passes every check. New fixture `streamcli` with a passing and a failing profile
+
+**Why:** the kit's probes expected one envelope per command, so nothing checked that a streaming command's lines parse, that it ends on one terminal line matching its exit code, or that SIGINT cancels it with exit `130` (#60).
+
 ## 1.11.0 — 2026-10-03
 
 ### External content in `error.context` is tagged and masked

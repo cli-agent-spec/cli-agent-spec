@@ -12,7 +12,7 @@ A profile tells the conformance kit how to invoke a CLI and which invocations ar
 
 Key decisions:
 
-- **Probes declare intent.** `kind` says what a correct CLI does with the call: finish without side effects, exit `2`, or refuse until confirmed
+- **Probes declare intent.** `kind` says what a correct CLI does with the call: finish without side effects, exit `2`, refuse until confirmed, or stream JSONL lines to a terminal line
 - **Confirmation flags never appear in a probe.** Destructive probes run without confirmation and with their declared `dry_run_flag`; the kit never deletes on purpose
 - **Paths are relative to the profile.** A committed profile works from any working directory
 
@@ -36,8 +36,13 @@ Key decisions:
 |-------|------|----------|-------------|
 | `name` | string | yes | Unique label shown in evidence |
 | `argv` | string[] | yes | Arguments after the prefix |
-| `kind` | `"read"` \| `"destructive"` \| `"invalid"` | yes | Expected behavior class |
-| `dry_run_flag` | string | when destructive | Flag that turns the probe into a preview |
+| `kind` | `"read"` \| `"destructive"` \| `"invalid"` \| `"stream"` | yes | Expected behavior class |
+| `dry_run_flag` | string | when destructive | Flag that turns the probe into a preview; not allowed on a `stream` probe |
+| `deadline_seconds` | number `(0, 120]` | no | `stream` only: limit for the whole stream; defaults to `timeout_seconds` |
+| `signal` | `"INT"` | no | `stream` only: signal sent after `after_lines` lines; requires `after_lines` |
+| `after_lines` | integer `>= 1` | no | `stream` only: stdout lines read before `signal` is sent; requires `signal` |
+
+A `stream` probe runs once and skips the single-envelope checks. The kit reads its stdout line by line until the process exits, and kills the process group at the deadline (see [`conformance/README.md`](../conformance/README.md#stream-probes)).
 
 ### ArgumentOrder
 
@@ -68,7 +73,9 @@ The kit runs `command_path` with `local_args`, placing `global_flag` before the 
   "probes": [
     { "name": "list deployments", "argv": ["deployments", "list"], "kind": "read" },
     { "name": "unknown flag", "argv": ["deployments", "list", "--no-such-flag"], "kind": "invalid" },
-    { "name": "delete staging", "argv": ["deployments", "delete", "--filter", "env=staging"], "kind": "destructive", "dry_run_flag": "--dry-run" }
+    { "name": "delete staging", "argv": ["deployments", "delete", "--filter", "env=staging"], "kind": "destructive", "dry_run_flag": "--dry-run" },
+    { "name": "stream deployments", "argv": ["deployments", "list", "--stream"], "kind": "stream" },
+    { "name": "interrupt the deployment stream", "argv": ["deployments", "list", "--stream"], "kind": "stream", "signal": "INT", "after_lines": 2 }
   ]
 }
 ```
@@ -87,6 +94,12 @@ The kit runs `command_path` with `local_args`, placing `global_flag` before the 
 ```
 Violation: `dry_run_flag` is required when `kind` is `destructive`.
 
+**Invalid — signal without a line count**
+```json
+{ "name": "interrupt", "argv": ["events", "watch"], "kind": "stream", "signal": "INT" }
+```
+Violation: `signal` and `after_lines` require each other, and both apply only to `stream` probes.
+
 ---
 
 ## Common mistakes
@@ -97,12 +110,14 @@ Violation: `dry_run_flag` is required when `kind` is `destructive`.
 - **Adding `--format json` to probe argv.** The envelope check exists to prove JSON activates in a non-TTY without flags (REQ-F-003); `argument_order` is the one place a profile names the format flag
 - **Choosing `local_args` that do not change the result.** With `positional`, the kit proves the option was parsed by comparing against the positional alone; an option with no visible effect fails that comparison
 - **Choosing an `alternate_value` that renders like the default.** The overwrite check compares stdout; an alternate that prints the same bytes as `value` reads as an ignored option
+- **Setting `after_lines` beyond what the stream writes.** A stream that ends first never receives SIGINT, and `stream_sigint` fails; pick a count well inside a normal run
+- **Pointing a `stream` probe at a stream that never ends without a `signal`.** The kit waits for the terminal line and fails at the deadline; interrupt follow-mode streams with `signal`
 
 ---
 
 ## Agent interpretation
 
-- Generate a profile from `tool manifest`: `danger_level: "safe"` commands become `read` probes, `destructive` commands become `destructive` probes with the declared dry-run flag
+- Generate a profile from `tool manifest`: `danger_level: "safe"` commands become `read` probes, `destructive` commands become `destructive` probes with the declared dry-run flag, and `safe` commands with `streaming_default: true` or a `--stream` flag become `stream` probes
 - Never add a probe for a command whose `danger_level` is `mutating` unless a sandbox is confirmed
 - Keep `timeout_seconds` short (5 or less); the hang checks rely on it
 
@@ -112,10 +127,10 @@ Violation: `dry_run_flag` is required when `kind` is `destructive`.
 
 - Validate the profile against this schema before running anything; `conformance/run.py` exits `2` with `INVALID_PROFILE` otherwise
 - Commit profiles next to the CLI they describe and run the kit in that CLI's CI
-- Tests: a profile with a destructive probe and no `dry_run_flag` is rejected; duplicate probe names are rejected
+- Tests: a profile with a destructive probe and no `dry_run_flag` is rejected; duplicate probe names are rejected; `signal` without `after_lines`, or either on a non-`stream` probe, is rejected
 
 ---
 
 ## Implementation notes
 
-Probe kinds are deliberately few. A mutating kind was left out because the kit cannot undo side effects, and a conformance check that damages state is worse than no check. Commands that mutate are covered by the destructive-refusal and dry-run checks when they declare a preview flag.
+Probe kinds are deliberately few. A mutating kind was left out because the kit cannot undo side effects, and a conformance check that damages state is worse than no check. Commands that mutate are covered by the destructive-refusal and dry-run checks when they declare a preview flag. A `stream` probe is side-effect free like `read`; REQ-O-004 refuses destructive streams, so the kit never interrupts one that deletes.

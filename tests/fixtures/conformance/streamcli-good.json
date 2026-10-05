@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "tool": "streamcli (conforming streams)",
+  "command": ["./streamcli"],
+  "timeout_seconds": 3,
+  "probes": [
+    { "name": "stream to the summary line", "argv": ["good"], "kind": "stream" },
+    { "name": "interrupt the stream", "argv": ["good"], "kind": "stream", "signal": "INT", "after_lines": 2 },
+    { "name": "stream with a heartbeat", "argv": ["heartbeat"], "kind": "stream" },
+    { "name": "stream that fails midway", "argv": ["fails-midway"], "kind": "stream", "deadline_seconds": 2 }
+  ]
+}

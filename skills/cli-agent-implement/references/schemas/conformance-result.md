@@ -51,7 +51,7 @@ Key decisions:
 | `argv` | string[] | Exact argv |
 | `stdin` | `"closed"` \| `"open"` | `/dev/null` or a silent open pipe |
 | `exit_code` | integer \| null | `null` when killed |
-| `timed_out` | boolean | Exceeded the profile timeout |
+| `timed_out` | boolean | Exceeded the profile timeout, or a stream probe's `deadline_seconds` |
 | `duration_ms` | integer | Run time |
 | `detail` | string | Why the run failed |
 

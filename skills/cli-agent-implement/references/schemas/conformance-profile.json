@@ -42,7 +42,7 @@
       "type": "array",
       "minItems": 1,
       "items": { "$ref": "#/definitions/Probe" },
-      "description": "Invocations to run. Include at least one read probe; add invalid and destructive probes to enable those checks."
+      "description": "Invocations to run. Include at least one read probe; add invalid, destructive, and stream probes to enable those checks."
     }
   },
   "definitions": {
@@ -103,17 +103,54 @@
         },
         "kind": {
           "type": "string",
-          "enum": ["read", "destructive", "invalid"],
-          "description": "read: side-effect free. destructive: expected to refuse without confirmation. invalid: expected to exit 2."
+          "enum": ["read", "destructive", "invalid", "stream"],
+          "description": "read: side-effect free. destructive: expected to refuse without confirmation. invalid: expected to exit 2. stream: a side-effect-free command whose stdout is a JSONL stream (REQ-O-004)."
         },
         "dry_run_flag": {
           "type": "string",
           "pattern": "^--?[a-z][a-z0-9-]*$",
-          "description": "Flag appended to preview a destructive probe. Required when kind is destructive."
+          "description": "Flag appended to preview a destructive probe. Required when kind is destructive; not allowed when kind is stream."
+        },
+        "deadline_seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 120,
+          "description": "Stream probes only: limit for the whole stream, from start to exit. Defaults to timeout_seconds. A stream still running at the deadline is killed and fails."
+        },
+        "signal": {
+          "type": "string",
+          "enum": ["INT"],
+          "description": "Stream probes only: signal sent to the process after after_lines lines of stdout. Requires after_lines."
+        },
+        "after_lines": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Stream probes only: number of stdout lines read before the kit sends signal. Requires signal."
         }
       },
-      "if": { "properties": { "kind": { "const": "destructive" } } },
-      "then": { "required": ["dry_run_flag"] }
+      "dependencies": {
+        "signal": ["after_lines"],
+        "after_lines": ["signal"]
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "destructive" } } },
+          "then": { "required": ["dry_run_flag"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "stream" } } },
+          "then": { "not": { "required": ["dry_run_flag"] } },
+          "else": {
+            "not": {
+              "anyOf": [
+                { "required": ["deadline_seconds"] },
+                { "required": ["signal"] },
+                { "required": ["after_lines"] }
+              ]
+            }
+          }
+        }
+      ]
     }
   }
 }

@@ -44,7 +44,7 @@ A Level 1 CLI never hangs an agent, always answers in one parseable shape, and s
 ## Claiming a level
 
 1. Implement every requirement in the level and verify its acceptance criteria
-2. Run the [conformance kit](../conformance/README.md) with a profile that includes `read`, `invalid`, and `destructive` probes and, for Level 3, a `manifest` command
+2. Run the [conformance kit](../conformance/README.md) with a profile that includes `read`, `invalid`, and `destructive` probes and, for Level 3, a `manifest` command and `stream` probes (one with `signal`)
 3. Publish the kit's `ConformanceResult` next to the claim
 
 The kit verifies the mechanically checkable part of each level. A `pass` verdict is necessary, not sufficient: requirements such as locale-invariant serialization or secret redaction still need their acceptance criteria reviewed. A level verdict of `incomplete` means the profile lacked a probe kind, and the claim cannot be made until the missing checks run.
