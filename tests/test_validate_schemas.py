@@ -322,3 +322,10 @@ def test_dependency_any_version_marker_is_documented() -> None:
     assert "command -v bean-format" in requirement
     doctor = (ROOT / "requirements/o-026-tool-doctor-built-in-command.md").read_text()
     assert 'a `min_version` of `"*"` means any version' in doctor
+
+
+def test_doctor_failure_exit_code_is_consistent() -> None:
+    """REQ-O-026 names one exit code for a failed doctor check: 4 PRECONDITION (#71)"""
+    doctor = (ROOT / "requirements/o-026-tool-doctor-built-in-command.md").read_text()
+    assert "exit `1` if any check fails" not in doctor
+    assert "exit `4` (`PRECONDITION`)" in doctor

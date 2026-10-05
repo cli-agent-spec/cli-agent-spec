@@ -11,6 +11,12 @@
 
 ## Unreleased
 
+### `tool doctor` exits `4` when a check fails
+
+- REQ-O-026: the Description now says `tool doctor` exits `4` (`PRECONDITION`) with `error.code: "DOCTOR_CHECKS_FAILED"` when any check fails, as its acceptance criteria and wire format already did; it no longer says exit `1`
+
+**Why:** the Description and the acceptance criteria named different exit codes for a failed check, so an agent branching on doctor's exit code could not tell which to expect (#71).
+
 ### ResponseEnvelope 2.3: numbered stream lines
 
 - REQ-O-004: a stream MAY number its item lines with the reserved key `_seq`, `1` on the first and one more on each next line. A numbered stream numbers every item line, never a heartbeat or terminal line, puts `"_count": N` (the number of item lines) on its summary line, and ends a failure on an error envelope with `meta.items_emitted` (the last `_seq`, `0` before the first item). A line's `_seq` is never item data: an item type with its own `_seq` field does not number its stream, and a records consumer removes `_seq` before validating a record. New Description paragraph, three acceptance criteria, and numbered wire-format lines
