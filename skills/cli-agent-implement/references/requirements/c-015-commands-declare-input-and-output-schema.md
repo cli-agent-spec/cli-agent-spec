@@ -14,6 +14,8 @@ Every command MUST declare a complete input schema (all parameters: name, type, 
 
 **Structured flag values.** A flag whose value is a JSON object SHOULD declare `type: "object"` and the value's JSON Schema in `FlagEntry.schema` rather than `type: "string"` with the shape described in prose, because an agent cannot see the shape it must build otherwise. A flag declared `type: "object"` MUST carry `schema`. The caller passes the value as one argv token of JSON text, as `--raw-payload` takes its payload ([REQ-O-032](o-032-raw-payload-flag-for-mutating-commands.md)): `--filter '{"status":"open"}'`. An `array` flag whose items are objects puts the item schema in `schema`, and each item it receives is one such token. For a flag declared `type: "object"` (or an `array` flag with `schema`), the framework MUST parse and validate the value against `schema` during Phase 1 ([REQ-F-015](f-015-validate-before-execute-phase-order.md)) and exit `2` (`ARG_ERROR`) when the text is not valid JSON or does not match, before any side effect. `schema` appears only on `object` and `array` flags.
 
+**Fixed value sets.** A flag or positional that accepts only a fixed set of values lists them in `enum_values`: every value a caller may pass, and nothing else. On a `type: "enum"` entry they are strings. An entry whose values are a few integers declares `type: "integer"` and lists them as integers (`enum_values: [0, 1, 2]`), so a JSON route (a payload, an MCP call) takes the numbers and shell completion offers the same list; it never declares `type: "enum"` with numeric strings, nor moves the values into `description`. `enum_values` appears only on `enum` and `integer` entries, and the framework MUST reject during Phase 1 a value outside the list with exit `2` (`ARG_ERROR`).
+
 ## Acceptance Criteria
 
 - `tool <cmd> --schema` returns valid JSON containing `parameters` and `output_schema`
@@ -23,6 +25,7 @@ Every command MUST declare a complete input schema (all parameters: name, type, 
 - The `output_schema` is a valid JSON Schema object
 - A flag declared `type: "object"` carries a `schema`; `--filter '{"status":"open"}'` passes when the text matches that schema
 - On a flag declared `type: "object"`, `--filter 'status=open'` (not JSON) and `--filter '{"status":3}'` (does not match `schema`) both exit `2` with an `ARG_ERROR` naming the flag, before any side effect
+- A flag declared `type: "integer"` with `enum_values: [0, 1, 2]` shows the list as integers in `--schema`; `--sig-type 1` passes, and `--sig-type 3` exits `2` with an `ARG_ERROR` naming the flag, before any side effect
 
 ---
 
@@ -51,6 +54,7 @@ $ tool deploy --schema
     "target":  { "type": "enum",    "required": true,  "enum_values": ["prod", "staging", "dev"], "description": "Target environment" },
     "dry-run": { "type": "boolean", "required": false, "default": false, "description": "Validate without executing" },
     "timeout": { "type": "integer", "required": false, "default": 300,   "description": "Seconds before abort" },
+    "sig-type": { "type": "integer", "required": false, "default": 0, "enum_values": [0, 1, 2], "description": "Signature scheme: 0 EOA, 1 proxy, 2 safe" },
     "labels":  { "type": "object",  "required": false, "description": "Labels to attach as JSON text",
                  "schema": { "type": "object", "additionalProperties": { "type": "string" } } }
   },
@@ -83,6 +87,7 @@ register command "deploy":
     target:  type=enum(prod, staging, dev), required=true,  description="Target environment"
     dry-run: type=boolean, required=false, default=false,   description="Validate without executing"
     timeout: type=integer, required=false, default=300,     description="Seconds before abort"
+    sig-type: type=integer(0, 1, 2), required=false, default=0, description="Signature scheme"
     labels:  type=object,  required=false, schema={type: object, additionalProperties: {type: string}},
              description="Labels to attach as JSON text"
   output_schema:

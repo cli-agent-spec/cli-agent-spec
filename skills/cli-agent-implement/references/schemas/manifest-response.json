@@ -405,8 +405,8 @@
         },
         "enum_values": {
           "type": "array",
-          "items": { "type": "string" },
-          "description": "Exhaustive list of accepted values. Present only when type is 'enum'."
+          "items": { "type": ["string", "integer"] },
+          "description": "Exhaustive list of accepted values: every value a caller may pass, and nothing else. Strings when type is 'enum', integers when type is 'integer'. Present only when type is 'enum' or 'integer'. Sourced from REQ-C-015."
         },
         "short": {
           "type": "string",
@@ -451,6 +451,11 @@
         {
           "if": { "required": ["media_types"] },
           "then": { "required": ["enum_values"], "properties": { "type": { "const": "enum" } } }
+        },
+        {
+          "if": { "required": ["type"], "properties": { "type": { "const": "integer" } } },
+          "then": { "properties": { "enum_values": { "items": { "type": "integer" } } } },
+          "else": { "properties": { "enum_values": { "items": { "type": "string" } } } }
         }
       ]
     },
@@ -510,16 +515,25 @@
         },
         "enum_values": {
           "type": "array",
-          "items": { "type": "string" },
-          "description": "Exhaustive list of accepted values. Required when type is 'enum'."
+          "items": { "type": ["string", "integer"] },
+          "description": "Exhaustive list of accepted values: every value a caller may pass, and nothing else. Strings when type is 'enum', where it is required; integers when type is 'integer', where it is optional. Sourced from REQ-C-015."
         },
         "variadic": {
           "type": "boolean",
           "description": "True if the argument takes every remaining value. Allowed on the last entry only."
         }
       },
-      "if": { "properties": { "type": { "const": "enum" } } },
-      "then": { "required": ["enum_values"] }
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "enum" } } },
+          "then": { "required": ["enum_values"] }
+        },
+        {
+          "if": { "required": ["type"], "properties": { "type": { "const": "integer" } } },
+          "then": { "properties": { "enum_values": { "items": { "type": "integer" } } } },
+          "else": { "properties": { "enum_values": { "items": { "type": "string" } } } }
+        }
+      ]
     },
     "StdinDeclaration": {
       "type": "object",
