@@ -11,6 +11,14 @@
 
 ## Unreleased
 
+### `required_tools` declares a program needed at any version
+
+- REQ-C-018: a `required_tools` value is a minimum version or `"*"`, meaning any version; the program need only resolve on `PATH` and is never run to read a version. New acceptance criterion and a `"*"` entry in the wire format and example
+- REQ-O-026: `tool doctor` checks a `"*"` entry by `PATH` lookup only, never runs the program, and reports `required: "*"` with no `version`. New acceptance criterion and a passing `"*"` check in the wire format
+- `manifest-response.md` and the `required_tools` description in `manifest-response.json` say the same. The value type stays a string, so `ManifestResponse` stays 3.16 with a description change only
+
+**Why:** `required_tools` mapped each program to a minimum version with no way to declare one needed at any version, so a program with no `--version` flag, such as `bean-format`, could not be declared without inventing a version `doctor` could never check (#58).
+
 ## 1.11.0 — 2026-10-03
 
 ### External content in `error.context` is tagged and masked

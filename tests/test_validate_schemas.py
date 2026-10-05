@@ -230,3 +230,27 @@ def test_common_mistakes_section_is_skipped(tmp_path: Path, validators) -> None:
     stats = vs.new_stats()
     assert vs.check_example_file(path, validators, stats) == []
     assert stats["blocks"] == 0
+
+
+def test_required_tools_accepts_any_version_marker(tmp_path: Path, validators) -> None:
+    path = write_md(tmp_path, """\
+        ```json
+        {"schema_version": "3.0", "framework_version": "1", "etag": "x",
+         "commands": {"ledger.format": {"description": "Format the ledger", "danger_level": "mutating",
+           "required_scopes": [], "flags": {}, "exit_codes": {},
+           "required_tools": {"bean-format": "*", "bean-check": "2.3.0"}}}}
+        ```
+        """)
+    assert vs.check_example_file(path, validators, vs.new_stats()) == []
+
+
+def test_required_tools_any_version_marker_is_documented() -> None:
+    schema = json.loads((ROOT / "schemas/manifest-response.json").read_text())
+    description = schema["definitions"]["CommandEntry"]["properties"]["required_tools"]["description"]
+    assert "* when any version will do" in description
+    assert "PATH" in description
+    requirement = (ROOT / "requirements/c-018-commands-declare-platform-requirements.md").read_text()
+    criteria = requirement.split("## Acceptance Criteria")[1].split("---")[0]
+    assert '`"*"`' in criteria
+    doctor = (ROOT / "requirements/o-026-tool-doctor-built-in-command.md").read_text()
+    assert "MUST NOT run it" in doctor
