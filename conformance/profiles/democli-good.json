@@ -9,6 +9,8 @@
     { "name": "list deployments", "argv": ["deployments", "list"], "kind": "read" },
     { "name": "health check", "argv": ["health", "check"], "kind": "read" },
     { "name": "unknown flag", "argv": ["deployments", "list", "--no-such-flag"], "kind": "invalid" },
-    { "name": "delete staging", "argv": ["deployments", "delete", "--filter", "env=staging"], "kind": "destructive", "dry_run_flag": "--dry-run" }
+    { "name": "delete staging", "argv": ["deployments", "delete", "--filter", "env=staging"], "kind": "destructive", "dry_run_flag": "--dry-run" },
+    { "name": "stream deployments", "argv": ["deployments", "list", "--stream"], "kind": "stream" },
+    { "name": "interrupt the deployment stream", "argv": ["deployments", "list", "--stream"], "kind": "stream", "signal": "INT", "after_lines": 2 }
   ]
 }

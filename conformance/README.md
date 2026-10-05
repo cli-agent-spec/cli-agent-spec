@@ -38,7 +38,22 @@ A profile names the command prefix and the probes to run. See [`conformance-prof
 | `destructive_refuses_unconfirmed` | 2 | REQ-C-005, REQ-O-021 | §23, §10 |
 | `manifest_valid` | 3 | REQ-O-041 | §52, §21 |
 | `argument_order` | 3 | REQ-F-067, REQ-F-079 | §69 |
+| `stream_contract` | 3 | REQ-O-004 | §5, §76 |
+| `stream_sigint` | 3 | REQ-O-004 (REQ-F-069's cancellation on a stream) | §16 |
+
+## Stream probes
+
+A `stream` probe runs a command whose stdout is a JSONL stream (REQ-O-004) once, instead of the single-envelope checks. The kit reads stdout line by line until the process exits or the probe's `deadline_seconds` (default `timeout_seconds`) passes; at the deadline it kills the whole process group and fails the run, so a stream that never ends cannot hang the kit. `stream_contract` checks that:
+
+- Every line is one JSON object; blank and non-JSON lines fail. Heartbeat lines (`"heartbeat": true`, REQ-O-038) count as lines like items
+- The stream ends on exactly one terminal line: the summary line (`"_summary": true`) or an error `ResponseEnvelope` (an `ok` boolean beside an `error` key), which must validate with `ok: false`. A line after it fails
+- A summary line exits `0`; an error envelope's `meta.exit_code` equals the process exit code
+- The process exits after its terminal line, before the deadline
+
+With `signal: "INT"` and `after_lines: N`, the kit sends SIGINT to the process after reading `N` lines. `stream_sigint` then requires exit `130` and a terminal error envelope with `error.code` `CANCELLED` (REQ-F-069). A stream that ends before `N` lines fails, since the signal was never sent. Signals need POSIX; on Windows the kit skips `stream_sigint` and does not run signal probes.
+
+The stream checks are level 3 because streaming is opt-in (REQ-O-004): a profile without a `stream` probe leaves `level_3` `incomplete`, as one without a `manifest` command does.
 
 ## Fixtures
 
-The benchmark mocks double as fixtures. [`democli-good.json`](profiles/democli-good.json) passes every check; [`democli-bad.json`](profiles/democli-bad.json) fails the output and safety checks. `tests/fixtures/conformance/hangcli` covers hangs and illegal exit codes; `lastwinscli` lets a subcommand default replace a global option given before the command path and keeps the last of two conflicting values. `posixcli` stops option parsing at the first positional, so an option after it is silently ignored. `tests/test_conformance.py` asserts every outcome.
+The benchmark mocks double as fixtures. [`democli-good.json`](profiles/democli-good.json) passes every check; [`democli-bad.json`](profiles/democli-bad.json) fails the output and safety checks. `tests/fixtures/conformance/hangcli` covers hangs and illegal exit codes; `lastwinscli` lets a subcommand default replace a global option given before the command path and keeps the last of two conflicting values. `posixcli` stops option parsing at the first positional, so an option after it is silently ignored. `streamcli` writes JSONL streams: [`streamcli-good.json`](../tests/fixtures/conformance/streamcli-good.json) passes both stream checks, and [`streamcli.json`](../tests/fixtures/conformance/streamcli.json) breaks each one (no terminal line, a line after it, a prose line, a wrong exit code, a stall, and SIGINT that exits `1`, reports another code, is ignored, or hangs). `tests/test_conformance.py` asserts every outcome.

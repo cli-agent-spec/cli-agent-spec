@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "tool": "streamcli (broken streams)",
+  "command": ["./streamcli"],
+  "timeout_seconds": 3,
+  "probes": [
+    { "name": "no terminal line", "argv": ["no-terminal"], "kind": "stream" },
+    { "name": "line after the terminal line", "argv": ["after-terminal"], "kind": "stream" },
+    { "name": "prose line", "argv": ["prose"], "kind": "stream" },
+    { "name": "summary then exit 1", "argv": ["summary-exit-1"], "kind": "stream" },
+    { "name": "exit mismatch", "argv": ["exit-mismatch"], "kind": "stream" },
+    { "name": "stall", "argv": ["stall"], "kind": "stream", "deadline_seconds": 0.5 },
+    { "name": "linger after the summary", "argv": ["linger"], "kind": "stream", "deadline_seconds": 0.5 },
+    { "name": "ends before the signal", "argv": ["short"], "kind": "stream", "signal": "INT", "after_lines": 5 },
+    { "name": "SIGINT exits 1", "argv": ["int-exit-1"], "kind": "stream", "signal": "INT", "after_lines": 2 },
+    { "name": "SIGINT wrong code", "argv": ["int-wrong-code"], "kind": "stream", "signal": "INT", "after_lines": 2 },
+    { "name": "SIGINT ignored", "argv": ["int-ignored"], "kind": "stream", "signal": "INT", "after_lines": 2 },
+    { "name": "hang after SIGINT", "argv": ["int-hang"], "kind": "stream", "signal": "INT", "after_lines": 2, "deadline_seconds": 0.8 }
+  ]
+}
