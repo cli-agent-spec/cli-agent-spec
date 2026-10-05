@@ -43,12 +43,16 @@ Exit code 1 tells agent "failed" but 3/5 succeeded. Retry sends duplicates to 1,
 ```json
 {
   "ok": false,
-  "partial": true,
-  "completed_steps": ["backup", "apply_schema"],
-  "failed_step": "migrate_data",
-  "error": {"code": "DISK_FULL", "message": "..."},
-  "resume_from": "migrate_data",
-  "rollback_available": true
+  "data": {
+    "partial": true,
+    "completed_steps": ["backup", "apply_schema"],
+    "failed_step": "migrate_data",
+    "resume_from": "migrate_data",
+    "rollback_available": true
+  },
+  "error": {"code": "DISK_FULL", "message": "Disk full during data migration"},
+  "warnings": [],
+  "meta": {"exit_code": 3, "duration_ms": 4210}
 }
 ```
 
@@ -56,15 +60,20 @@ Exit code 1 tells agent "failed" but 3/5 succeeded. Retry sends duplicates to 1,
 ```json
 {
   "ok": false,
-  "partial": true,
-  "results": [
-    {"id": 1, "ok": true,  "effect": "sent"},
-    {"id": 2, "ok": true,  "effect": "sent"},
-    {"id": 3, "ok": false, "error": {"code": "INVALID_EMAIL"}},
-    {"id": 4, "ok": true,  "effect": "sent"},
-    {"id": 5, "ok": false, "error": {"code": "RATE_LIMITED"}}
-  ],
-  "summary": {"total": 5, "succeeded": 3, "failed": 2}
+  "data": {
+    "partial": true,
+    "results": [
+      {"id": 1, "ok": true,  "effect": "sent"},
+      {"id": 2, "ok": true,  "effect": "sent"},
+      {"id": 3, "ok": false, "error": {"code": "INVALID_EMAIL"}},
+      {"id": 4, "ok": true,  "effect": "sent"},
+      {"id": 5, "ok": false, "error": {"code": "RATE_LIMITED"}}
+    ],
+    "summary": {"total": 5, "succeeded": 3, "failed": 2}
+  },
+  "error": {"code": "PARTIAL_FAILURE", "message": "2 of 5 notifications failed"},
+  "warnings": [],
+  "meta": {"exit_code": 3, "duration_ms": 312}
 }
 ```
 
@@ -89,7 +98,7 @@ tool migrate-database --resume-from migrate_data
 | 2 | Structured `completed_steps` / `failed_step` in JSON output; exit code distinguishes partial failure |
 | 3 | Per-item results for batch commands; `resume_from` token; `--rollback-on-failure` flag; step manifest emitted at start |
 
-**Check:** Trigger a deliberate mid-run failure (e.g., bad step 3 of 5) — the response must contain `partial: true`, list completed steps, and identify where to resume.
+**Check:** Trigger a deliberate mid-run failure (e.g., bad step 3 of 5) — the response must contain `data.partial: true`, list completed steps, and identify where to resume.
 
 ---
 
@@ -106,10 +115,12 @@ tool migrate-database --resume-from migrate_data
 result = run(["tool", "migrate-database"])
 parsed = json.loads(result.stdout)
 
-if parsed.get("partial"):
-    completed = parsed.get("completed_steps", [])
-    resume_from = parsed.get("resume_from")
-    rollback_available = parsed.get("rollback_available", False)
+data = parsed.get("data") or {}
+
+if data.get("partial"):
+    completed = data.get("completed_steps", [])
+    resume_from = data.get("resume_from")
+    rollback_available = data.get("rollback_available", False)
 
     if rollback_available:
         # Roll back to clean state before retrying from scratch
@@ -124,7 +135,7 @@ if parsed.get("partial"):
 
 **For batch commands, collect failed IDs and retry only those:**
 ```python
-results = parsed.get("results", [])
+results = data.get("results", [])
 failed_ids = [r["id"] for r in results if not r["ok"]]
 # Retry only failed items
 run(["tool", "send-notifications", "--users", ",".join(map(str, failed_ids))])

@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -12,8 +13,11 @@ RESULT_SCHEMA = json.loads((ROOT / "schemas" / "conformance-result.json").read_t
 FIXTURES = ROOT / "tests" / "fixtures" / "conformance"
 
 
-def run_kit(profile: Path, *extra: str) -> tuple[int, dict]:
-    result = subprocess.run([sys.executable, str(KIT), str(profile), *extra], capture_output=True, text=True, timeout=120)
+def run_kit(profile: Path, *extra: str, env: dict[str, str] | None = None) -> tuple[int, dict]:
+    result = subprocess.run(
+        [sys.executable, str(KIT), str(profile), *extra],
+        capture_output=True, text=True, timeout=120, env={**os.environ, **(env or {})},
+    )
     return result.returncode, json.loads(result.stdout)
 
 
@@ -136,9 +140,13 @@ def test_check_levels_match_requirement_levels() -> None:
 POSIX_ONLY = pytest.mark.skipif(sys.platform == "win32", reason="SIGINT delivery and process groups need POSIX signals")
 
 
+# A sleep duration unique to this test run, so the leak check ignores sleeps another checkout's run left behind
+STREAMCLI_SLEEP = f"37.{os.getpid()}"
+
+
 @pytest.fixture(scope="module")
 def broken_streams() -> tuple[int, dict]:
-    return run_kit(FIXTURES / "streamcli.json", "--only", "stream_contract", "stream_sigint")
+    return run_kit(FIXTURES / "streamcli.json", "--only", "stream_contract", "stream_sigint", env={"STREAMCLI_SLEEP": STREAMCLI_SLEEP})
 
 
 def stream_failures(envelope: dict, check_id: str) -> dict[str, list[str]]:
@@ -197,6 +205,7 @@ def test_deadline_holds_when_a_child_outlives_the_cli(broken_streams) -> None:
     ("ends before the signal (SIGINT after 5 lines)", "before after_lines 5; SIGINT never sent"),
     ("SIGINT exits 1 (SIGINT after 2 lines)", "exited 1 after SIGINT, expected 130"),
     ("SIGINT wrong code (SIGINT after 2 lines)", "error.code 'INTERRUPTED', expected 'CANCELLED'"),
+    ("SIGINT without data.partial (SIGINT after 2 lines)", "has data null, expected data.partial true"),
     ("SIGINT ignored (SIGINT after 2 lines)", "stream ended on its summary line after SIGINT"),
     ("hang after SIGINT (SIGINT after 2 lines)", "no exit within the 0.8s deadline after SIGINT; killed"),
 ])
@@ -211,7 +220,7 @@ def test_killed_streams_leave_no_processes(broken_streams) -> None:
     _code, envelope = broken_streams
     assert envelope["data"]["summary"]["failed"] == 2
     processes = subprocess.run(["ps", "-axo", "command"], capture_output=True, text=True, check=True).stdout
-    assert not [line for line in processes.splitlines() if "sleep 37" in line or str(FIXTURES / "streamcli") in line]
+    assert not [line for line in processes.splitlines() if f"sleep {STREAMCLI_SLEEP}" in line or str(FIXTURES / "streamcli") in line]
 
 
 def test_broken_stream_result_matches_schema(broken_streams) -> None:

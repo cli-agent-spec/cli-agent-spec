@@ -15,6 +15,7 @@
     { "name": "ends before the signal", "argv": ["short"], "kind": "stream", "signal": "INT", "after_lines": 5 },
     { "name": "SIGINT exits 1", "argv": ["int-exit-1"], "kind": "stream", "signal": "INT", "after_lines": 2 },
     { "name": "SIGINT wrong code", "argv": ["int-wrong-code"], "kind": "stream", "signal": "INT", "after_lines": 2 },
+    { "name": "SIGINT without data.partial", "argv": ["int-no-partial"], "kind": "stream", "signal": "INT", "after_lines": 2 },
     { "name": "SIGINT ignored", "argv": ["int-ignored"], "kind": "stream", "signal": "INT", "after_lines": 2 },
     { "name": "hang after SIGINT", "argv": ["int-hang"], "kind": "stream", "signal": "INT", "after_lines": 2, "deadline_seconds": 0.8 }
   ]

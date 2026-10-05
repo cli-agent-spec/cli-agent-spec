@@ -1121,7 +1121,7 @@ This section maps the P0 requirements from the requirements catalogue to existin
 
 1. **Default timeout per command with structured timeout error** (REQ-F-011, REQ-F-012): No solution enforces a wall-clock timeout automatically. The framework must wrap every command in a timeout, emit `{"ok": false, "error": {"code": "TIMEOUT"}}` to stdout, and exit with code 7.
 
-2. **SIGTERM handler that emits partial JSON before exit** (REQ-F-013): No parser framework installs a SIGTERM handler. The framework must install one at startup, invoke cleanup hooks, emit a `{"ok": false, "partial": true, "error": {"code": "CANCELLED"}}` response, and exit with code 143.
+2. **SIGTERM handler that emits partial JSON before exit** (REQ-F-013): No parser framework installs a SIGTERM handler. The framework must install one at startup, invoke cleanup hooks, emit a `{"ok": false, "data": {"partial": true}, "error": {"code": "CANCELLED"}}` response, and exit with code 143.
 
 3. **SIGPIPE handler** (REQ-F-014): No framework suppresses Python/Node `BrokenPipeError` automatically. One-line fix; high-polish signal for agents using pipes.
 

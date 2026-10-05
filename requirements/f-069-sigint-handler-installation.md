@@ -10,7 +10,7 @@
 
 ## Description
 
-The framework MUST install a SIGINT signal handler for every command at startup. On SIGINT, the handler MUST: invoke the command's registered `cleanup()` hook, release any framework-managed locks, emit a cancellation JSON object to stdout (with `"ok": false`, `"error": {"code": "CANCELLED", "signal": "SIGINT"}`), flush stdout, and exit with code `130` (128 + SIGINT). The handler MUST be re-entrant safe — a second SIGINT during cleanup exits immediately without a double-write.
+The framework MUST install a SIGINT signal handler for every command at startup. On SIGINT, the handler MUST: invoke the command's registered `cleanup()` hook, release any framework-managed locks, emit a cancellation JSON object to stdout (with `"ok": false`, `"data": {"partial": true}`, `"error": {"code": "CANCELLED", "context": {"signal": "SIGINT"}}`), flush stdout, and exit with code `130` (128 + SIGINT). The handler MUST be re-entrant safe — a second SIGINT during cleanup exits immediately without a double-write.
 
 Agents that enforce time budgets by sending SIGINT (Ctrl+C equivalent) rely on exit code `130` to distinguish "I cancelled this" from "this failed" (exit `1`). An uncaught SIGINT that produces exit `1` causes the agent to retry the cancelled operation, compounding side effects.
 
@@ -64,7 +64,7 @@ Cancellation response emitted to stdout on SIGINT:
 $ tool deploy --env prod &
 [1] 12345
 $ kill -INT 12345
-→ stdout: {"ok":false,"partial":true,"data":null,"error":{"code":"CANCELLED","signal":"SIGINT"},...}
+→ stdout: {"ok":false,"data":{"partial":true},"error":{"code":"CANCELLED","context":{"signal":"SIGINT"}},...}
 → exit code: 130
 ```
 

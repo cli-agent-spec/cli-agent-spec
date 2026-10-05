@@ -1,4 +1,5 @@
 import json
+import re
 import subprocess
 import sys
 import textwrap
@@ -254,3 +255,43 @@ def test_required_tools_any_version_marker_is_documented() -> None:
     assert '`"*"`' in criteria
     doctor = (ROOT / "requirements/o-026-tool-doctor-built-in-command.md").read_text()
     assert "MUST NOT run it" in doctor
+
+
+PARTIAL_EXAMPLES = {
+    "challenges/02-critical-execution-and-reliability/11-critical-timeouts.md": 1,
+    "challenges/02-critical-execution-and-reliability/13-critical-partial-failure.md": 2,
+}
+
+
+@pytest.mark.parametrize(("name", "envelopes"), PARTIAL_EXAMPLES.items())
+def test_partial_failure_examples_validate_as_envelopes(validators, name: str, envelopes: int) -> None:
+    stats = vs.new_stats()
+    assert vs.check_example_file(ROOT / name, validators, stats) == []
+    assert stats["validated"] == envelopes
+
+
+INLINE_TOP_LEVEL_PARTIAL = re.compile(r'\{"ok":(true|false),"partial":')
+SKIPPED_TREES = {"evaluations", ".claude", ".venv", "node_modules", "tmp"}
+
+
+def test_no_envelope_example_puts_partial_at_the_top_level() -> None:
+    """A partial result is flagged at data.partial; the envelope admits no top-level partial (#68)"""
+    offenders = []
+    for path in sorted(ROOT.glob("*/**/*.md")):
+        relative = path.relative_to(ROOT)
+        if relative.parts[0] in SKIPPED_TREES:
+            continue
+        if INLINE_TOP_LEVEL_PARTIAL.search(re.sub(r"\s", "", path.read_text())):
+            offenders.append(f"{relative}: inline envelope with a top-level partial")
+        for block in vs.fenced_blocks(path):
+            if block.lang not in ("json", "jsonl"):
+                continue
+            try:
+                documents = vs.parse_block(block)
+            except json.JSONDecodeError:
+                continue  # an annotated sketch; the inline check above covers its text
+            offenders.extend(
+                f"{relative}:{block.line}" for doc in documents
+                if isinstance(doc, dict) and isinstance(doc.get("ok"), bool) and "partial" in doc
+            )
+    assert offenders == []

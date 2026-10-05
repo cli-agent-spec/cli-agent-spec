@@ -62,10 +62,14 @@ def handle_sigterm(signum, frame):
     # Emit partial result to stdout before exit
     result = {
         "ok": False,
-        "partial": True,
+        "data": {
+            "partial": True,
+            "completed_steps": get_completed_steps(),
+            "resume_from": get_current_step()
+        },
         "error": {"code": "CANCELLED", "message": "Process received SIGTERM"},
-        "completed_steps": get_completed_steps(),
-        "resume_from": get_current_step()
+        "warnings": [],
+        "meta": {"exit_code": 143, "duration_ms": elapsed_ms()}
     }
     sys.stdout.write(json.dumps(result) + "\n")
     sys.stdout.flush()

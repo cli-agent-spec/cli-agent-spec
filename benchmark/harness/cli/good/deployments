@@ -50,7 +50,7 @@ ITEMS=(
 CURSORS=("" "cGFnZTI=" "cGFnZTM=" "cGFnZTQ=")   # base64 of page2..page4
 
 cancelled() {
-  printf '{"ok":false,"data":null,"error":{"code":"CANCELLED","message":"Command cancelled by SIGINT","retryable":false,"phase":"execution","context":{"signal":"SIGINT"}},"warnings":[],"meta":{"exit_code":130,"duration_ms":1}}\n'
+  printf '{"ok":false,"data":{"partial":true},"error":{"code":"CANCELLED","message":"Command cancelled by SIGINT","retryable":false,"phase":"execution","context":{"signal":"SIGINT"}},"warnings":[],"meta":{"exit_code":130,"duration_ms":1}}\n'
   exit 130
 }
 
