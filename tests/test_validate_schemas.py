@@ -314,6 +314,8 @@ def test_dependency_any_version_marker_is_documented() -> None:
     description = schema["definitions"]["DependencyEntry"]["properties"]["min_version"]["description"]
     assert "* when any version will do" in description
     assert "check_command" in description
+    check = schema["definitions"]["DependencyEntry"]["properties"]["check_command"]["description"]
+    assert "verifies the dependency is present" in check
     requirement = (ROOT / "requirements/o-031-dependency-version-matrix-declaration.md").read_text()
     criteria = requirement.split("## Acceptance Criteria")[1].split("---")[0]
     assert 'min_version: "*"' in criteria
