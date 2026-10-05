@@ -163,7 +163,7 @@ def test_conforming_streams_pass_stream_checks() -> None:
     assert code == 0, envelope
     assert statuses(envelope) == {"stream_contract": "pass", "stream_sigint": "pass"}
     runs = {c["id"]: c["runs_checked"] for c in envelope["data"]["checks"]}
-    assert runs == {"stream_contract": 4, "stream_sigint": 1}
+    assert runs == {"stream_contract": 6, "stream_sigint": 1}
     assert list(Draft7Validator(RESULT_SCHEMA).iter_errors(envelope["data"])) == []
 
 
@@ -175,6 +175,14 @@ def test_conforming_streams_pass_stream_checks() -> None:
     ("exit mismatch", "declares meta.exit_code 12 but the process exited 1"),
     ("stall", "0.5s deadline after 1 lines and no terminal line; killed"),
     ("linger after the summary", "0.5s deadline after its terminal line; killed"),
+    ("seq gap", "line 3 has _seq 4, expected 3"),
+    ("seq from 0", "line 1 has _seq 0, expected 1"),
+    ("seq missing on one line", "line 2 carries no _seq"),
+    ("seq on a heartbeat", "line 2 is a heartbeat line with _seq"),
+    ("wrong _count", "summary line 3 has _count 3, expected 2"),
+    ("no _count", "summary line 3 has no _count"),
+    ("wrong items_emitted", "has meta.items_emitted 3, expected the last _seq 2"),
+    ("seq after an unnumbered line", "line 2 carries _seq but the first item line does not"),
 ])
 def test_broken_stream_fails_stream_contract(broken_streams, probe: str, expected: str) -> None:
     code, envelope = broken_streams

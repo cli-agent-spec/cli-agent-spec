@@ -251,6 +251,11 @@
           "additionalProperties": { "type": "integer", "minimum": 0 },
           "description": "Number of events per effect value of a mutating streaming command (REQ-O-004) on its buffered answer; the summary line carries the same field. Absent on any other response."
         },
+        "items_emitted": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Last _seq value the stream emitted before this error envelope ended it, 0 when it emitted no item line (REQ-O-004). Present only on the terminal error envelope of a stream whose item lines carry _seq."
+        },
         "audit_log_path": {
           "type": "string",
           "minLength": 1,

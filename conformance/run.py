@@ -373,9 +373,11 @@ def parse_stream(lines: tuple[str, ...], validators: Validators) -> StreamParse:
     """Classify stream lines by REQ-O-004: items, then exactly one terminal line.
 
     The terminal line is the summary line ("_summary": true) or an error ResponseEnvelope, recognised
-    by an "ok" boolean beside an "error" key. Heartbeat lines (REQ-O-038) are JSON objects like items.
+    by an "ok" boolean beside an "error" key. Heartbeat lines (REQ-O-038) are JSON objects like items,
+    but are not items. When the first item line carries _seq, check_numbering checks the numbering.
     """
     problems: list[str] = []
+    items: list[tuple[int, dict[str, object]]] = []
     terminal: dict[str, object] | None = None
     terminal_line: int | None = None
     terminal_valid = False
@@ -405,7 +407,61 @@ def parse_stream(lines: tuple[str, ...], validators: Validators) -> StreamParse:
                 problems.append(f"line {number} has ok: true beside error; a stream's error line is an envelope with ok: false")
             else:
                 terminal_valid = True
+        elif document.get("heartbeat") is True:
+            if "_seq" in document:
+                problems.append(f"line {number} is a heartbeat line with _seq; only item lines carry _seq")
+        else:
+            items.append((number, document))
+    problems.extend(check_numbering(items, terminal if terminal_valid else None, terminal_line))
     return StreamParse(terminal, terminal_line, terminal_valid, tuple(problems))
+
+
+def check_numbering(items: list[tuple[int, dict[str, object]]], terminal: dict[str, object] | None, terminal_line: int | None) -> list[str]:
+    """Check REQ-O-004's optional _seq numbering: every item line numbered 1, 2, ..., _count on the summary
+    line, meta.items_emitted on an error terminal envelope. A stream whose first item line has no _seq is
+    unnumbered, and then no line may carry _seq."""
+    problems: list[str] = []
+    numbered = bool(items) and "_seq" in items[0][1]
+    if terminal is not None and "_seq" in terminal:
+        problems.append(f"terminal line {terminal_line} carries _seq; only item lines carry _seq")
+    if not numbered:
+        problems.extend(
+            f"line {number} carries _seq but the first item line does not; a numbered stream numbers every item line"
+            for number, item in items if "_seq" in item
+        )
+        return problems
+    expected = 1
+    last_seq: object = None
+    for number, item in items:
+        if "_seq" not in item:
+            problems.append(f"line {number} carries no _seq; a numbered stream numbers every item line")
+            expected += 1
+            continue
+        seq = item["_seq"]
+        last_seq = seq
+        if type(seq) is not int:
+            problems.append(f"line {number} has _seq {json.dumps(seq)}, expected the integer {expected}")
+            expected += 1
+        elif seq != expected:
+            problems.append(f"line {number} has _seq {seq}, expected {expected}")
+            expected = seq + 1
+        else:
+            expected += 1
+    if terminal is None:
+        return problems
+    if terminal.get("_summary") is True:
+        count = terminal.get("_count")
+        if count is None:
+            problems.append(f"summary line {terminal_line} has no _count; a numbered stream counts its {len(items)} item lines there")
+        elif type(count) is not int or count != len(items):
+            problems.append(f"summary line {terminal_line} has _count {json.dumps(count)}, expected {len(items)} (the number of item lines)")
+    else:
+        emitted = envelope_meta(terminal).get("items_emitted")
+        if emitted is None:
+            problems.append(f"terminal error envelope on line {terminal_line} has no meta.items_emitted; a numbered stream reports its last _seq {json.dumps(last_seq)} there")
+        elif emitted != last_seq or type(emitted) is not int:
+            problems.append(f"terminal error envelope on line {terminal_line} has meta.items_emitted {json.dumps(emitted)}, expected the last _seq {json.dumps(last_seq)}")
+    return problems
 
 
 def envelope_meta(document: dict[str, object]) -> dict[str, object]:

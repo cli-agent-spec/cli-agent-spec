@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # cli-good: deployments — spec-compliant implementation (ResponseEnvelope 2.0)
 # Envelope on stdout for every outcome, meta.pagination, dry-run, typed exit codes
-# list --stream writes one item per line and a _summary line (REQ-O-004); SIGINT ends it on a CANCELLED envelope (REQ-F-069)
+# list --stream writes one item per line numbered by _seq and a _summary line with _count (REQ-O-004);
+# SIGINT ends it on a CANCELLED envelope (REQ-F-069) whose meta.items_emitted is the last _seq written
 
 SUBCOMMAND="${1:-}"
 shift || true
@@ -49,8 +50,10 @@ ITEMS=(
 )
 CURSORS=("" "cGFnZTI=" "cGFnZTM=" "cGFnZTQ=")   # base64 of page2..page4
 
+TOTAL=0   # item lines written so far by list --stream: the last _seq
+
 cancelled() {
-  printf '{"ok":false,"data":{"partial":true},"error":{"code":"CANCELLED","message":"Command cancelled by SIGINT","retryable":false,"phase":"execution","context":{"signal":"SIGINT"}},"warnings":[],"meta":{"exit_code":130,"duration_ms":1}}\n'
+  printf '{"ok":false,"data":{"partial":true},"error":{"code":"CANCELLED","message":"Command cancelled by SIGINT","retryable":false,"phase":"execution","context":{"signal":"SIGINT"}},"warnings":[],"meta":{"exit_code":130,"duration_ms":1,"items_emitted":%d}}\n' "$TOTAL"
   exit 130
 }
 
@@ -70,15 +73,15 @@ case "$SUBCOMMAND" in
     esac
     if [ "$STREAM" -eq 1 ]; then
       trap cancelled INT
-      TOTAL=0
       for row in "${ITEMS[@]}"; do
         read -r id version env status created <<< "$row"
         [[ -n "$ENV" && "$env" != "$ENV" ]] && continue
-        printf '%s\n' "$(item "$id" "$version" "$env" "$status" "$created")"
+        line="$(item "$id" "$version" "$env" "$status" "$created")"
+        printf '%s,"_seq":%d}\n' "${line%\}}" $((TOTAL + 1))
         TOTAL=$((TOTAL + 1))
         sleep 0.03
       done
-      printf '{"_summary":true,"total":%d,"duration_ms":%d}\n' "$TOTAL" $((TOTAL * 30))
+      printf '{"_summary":true,"total":%d,"_count":%d,"duration_ms":%d}\n' "$TOTAL" "$TOTAL" $((TOTAL * 30))
       exit 0
     fi
     PAGE=0

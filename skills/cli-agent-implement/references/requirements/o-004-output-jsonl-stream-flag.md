@@ -16,6 +16,8 @@ Commands that stream by default (see §76) MUST additionally declare `streaming_
 
 A stream ends with exactly one terminal line. On success it is the summary line (`"_summary": true`). When the command fails after its first line, the terminal line is instead the error `ResponseEnvelope` (`"ok": false`, REQ-F-004), and the process exits with that envelope's `meta.exit_code`. A line holding `"_summary": true` or an `"ok"` boolean beside an `"error"` key is therefore never an item, and neither is a heartbeat line (`"heartbeat": true`, REQ-O-038).
 
+**Numbered streams.** A stream MAY number its item lines with the reserved key `_seq` so an agent can detect a dropped line. A stream that uses it puts `_seq` on every item line: `1` on the first and one more on each next line. Heartbeat lines and the terminal line carry no `_seq`. Its summary line carries `"_count": N`, where N is the number of item lines, and an error terminal envelope carries `meta.items_emitted`: the last `_seq` emitted, `0` when the stream failed before its first item line. An agent that reads a last `_seq` lower than `_count` or `meta.items_emitted` missed lines. `_seq` is reserved like `_summary`: a line's `_seq` is framework metadata, never part of the item's data, so a command whose item type has its own `_seq` field MUST NOT number its stream. A records consumer removes `_seq` from a line before it validates and hands over the record. Numbering is optional: a stream without `_seq` keeps its meaning, and an agent reads its lines as before.
+
 **Mutating streams.** A streaming command declares `danger_level` `safe` or `mutating` (REQ-C-002). The framework MUST refuse to register a streaming command with `danger_level: "destructive"`: a stream cannot ask confirmation for each action it takes (REQ-O-021). A stream with `danger_level: "mutating"` reports what it did event by event, not once per run:
 
 - Every item line carries its own top-level `effect` (REQ-C-003): what that event did. The framework validates each event's `effect` as it validates a single response's
@@ -40,6 +42,9 @@ All four failures happen after the handler has started, so they exit `1`, not `2
 - `--stream` causes output to begin appearing before the command completes
 - Each line of streaming output is a valid, self-contained JSON object
 - On success, the final line of streaming output is a summary object containing `pagination` metadata
+- A numbered stream of three items puts `"_seq": 1`, `2`, and `3` on its item lines, none on a heartbeat line, and `"_count": 3` on its summary line
+- A numbered stream that fails after two items ends on an error envelope with `meta.items_emitted: 2`; one that fails before its first item has `meta.items_emitted: 0`
+- A records consumer fed a numbered stream hands the handler records without `_seq`
 - A command that does not declare `supports_streaming: true` emits a warning when `--stream` is passed
 - A command that declares `streaming_default: true` emits JSONL without any flags
 - Passing `--no-stream` to a streaming-default command returns a valid `ResponseEnvelope`
@@ -65,7 +70,7 @@ All four failures happen after the handler has started, so they exit `1`, not `2
 
 **Types:** [`manifest-response.md`](../schemas/manifest-response.md) (`CommandEntry.streaming_default`) · [`response-envelope.md`](../schemas/response-envelope.md) (`ResponseMeta` field names on the summary line)
 
-Each streamed line is a self-contained JSON object using the command's declared item type. The final summary line reuses `ResponseMeta` field names, including `effects` and `dry_run` on a mutating stream (ResponseEnvelope 2.2); a failed stream ends with a `ResponseEnvelope` instead. A records consumer declares `CommandEntry.stdin` with `mode: "records"` and `record_schema` in [`manifest-response.json`](../schemas/manifest-response.json); its errors are `ErrorDetail` objects in [`response-envelope.json`](../schemas/response-envelope.json).
+Each streamed line is a self-contained JSON object using the command's declared item type. The final summary line reuses `ResponseMeta` field names, including `effects` and `dry_run` on a mutating stream (ResponseEnvelope 2.2); a failed numbered stream's error envelope carries `meta.items_emitted` (ResponseEnvelope 2.3); a failed stream ends with a `ResponseEnvelope` instead. A records consumer declares `CommandEntry.stdin` with `mode: "records"` and `record_schema` in [`manifest-response.json`](../schemas/manifest-response.json); its errors are `ErrorDetail` objects in [`response-envelope.json`](../schemas/response-envelope.json).
 
 ---
 
@@ -80,6 +85,16 @@ $ tool list-deployments --stream
 {"id": "d2", "status": "running", "target": "staging"}
 {"id": "d3", "status": "failed", "target": "dev"}
 {"_summary": true, "total": 3, "duration_ms": 280}
+```
+
+The same stream, numbered:
+
+```jsonl
+{"id": "d1", "status": "complete", "target": "prod", "_seq": 1}
+{"id": "d2", "status": "running", "target": "staging", "_seq": 2}
+{"status": "running", "heartbeat": true, "elapsed_ms": 10012}
+{"id": "d3", "status": "failed", "target": "dev", "_seq": 3}
+{"_summary": true, "total": 3, "_count": 3, "duration_ms": 280}
 ```
 
 With an unsupported command:
@@ -116,6 +131,14 @@ A stream that fails mid-way ends on the error envelope, not a summary line:
 {"id": "d1", "status": "complete", "target": "prod"}
 {"id": "d2", "status": "running", "target": "staging"}
 {"ok": false, "data": null, "error": {"code": "UNAVAILABLE", "message": "Deployment API returned 503", "retryable": true}, "warnings": [], "meta": {"exit_code": 12, "duration_ms": 1840}}
+```
+
+Numbered, the same failure tells the agent where the stream stopped:
+
+```jsonl
+{"id": "d1", "status": "complete", "target": "prod", "_seq": 1}
+{"id": "d2", "status": "running", "target": "staging", "_seq": 2}
+{"ok": false, "data": null, "error": {"code": "UNAVAILABLE", "message": "Deployment API returned 503", "retryable": true}, "warnings": [], "meta": {"exit_code": 12, "duration_ms": 1840, "items_emitted": 2}}
 ```
 
 A mutating stream puts an `effect` on each event and counts them on the summary line:
@@ -197,6 +220,7 @@ app = Framework("tool")
 
 register command "list-deployments":
   supports_streaming: true
+  # numbers its items with _seq and counts them in _count on the summary line (optional)
   # items emitted via framework stream() call as they arrive
 
 # tool list-deployments --stream  →  JSONL lines as items arrive
@@ -230,6 +254,6 @@ register command "annotate":
 | [REQ-C-007](c-007-mutating-commands-accept-idempotency-key.md) | C | Specializes: a streaming mutating command takes no `--idempotency-key` |
 | [REQ-O-048](o-048-destructive-commands-default-dry-run.md) | O | Consumes: the `dry_run` field a dry-run stream puts on its summary line |
 | [REQ-O-030](o-030-opt-in-audit-log.md) | O | Composes: a stream is one audit entry with its per-effect counts |
-| [REQ-O-038](o-038-heartbeat-ms-flag-for-long-running-commands.md) | O | Composes: a records consumer skips the producer's heartbeat lines, which are neither records nor terminal lines |
+| [REQ-O-038](o-038-heartbeat-ms-flag-for-long-running-commands.md) | O | Composes: a records consumer skips the producer's heartbeat lines, which are neither records nor terminal lines and carry no `_seq` |
 | [§76](../challenges/04-critical-output-and-parsing/76-high-streaming-default-incompatibility.md) | — | Provides: failure mode when `streaming_default` is undeclared |
 | [Guide: Streaming vs Envelope](../guides/streaming-vs-envelope.md) | — | Provides: decision criteria for choosing streaming-default vs envelope-default |
