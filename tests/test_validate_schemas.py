@@ -295,3 +295,30 @@ def test_no_envelope_example_puts_partial_at_the_top_level() -> None:
                 if isinstance(doc, dict) and isinstance(doc.get("ok"), bool) and "partial" in doc
             )
     assert offenders == []
+
+
+def test_dependency_min_version_accepts_any_version_marker(tmp_path: Path, validators) -> None:
+    path = write_md(tmp_path, """\
+        ```json
+        {"schema_version": "3.0", "framework_version": "1", "etag": "x", "commands": {},
+         "dependencies": [
+           {"name": "bean-format", "check_command": "command -v bean-format", "min_version": "*"},
+           {"name": "terraform", "check_command": "terraform version", "min_version": "1.5.0"}]}
+        ```
+        """)
+    assert vs.check_example_file(path, validators, vs.new_stats()) == []
+
+
+def test_dependency_any_version_marker_is_documented() -> None:
+    schema = json.loads((ROOT / "schemas/manifest-response.json").read_text())
+    description = schema["definitions"]["DependencyEntry"]["properties"]["min_version"]["description"]
+    assert "* when any version will do" in description
+    assert "check_command" in description
+    check = schema["definitions"]["DependencyEntry"]["properties"]["check_command"]["description"]
+    assert "verifies the dependency is present" in check
+    requirement = (ROOT / "requirements/o-031-dependency-version-matrix-declaration.md").read_text()
+    criteria = requirement.split("## Acceptance Criteria")[1].split("---")[0]
+    assert 'min_version: "*"' in criteria
+    assert "command -v bean-format" in requirement
+    doctor = (ROOT / "requirements/o-026-tool-doctor-built-in-command.md").read_text()
+    assert 'a `min_version` of `"*"` means any version' in doctor

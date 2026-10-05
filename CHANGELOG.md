@@ -20,6 +20,14 @@
 
 **Why:** REQ-F-013's and REQ-F-069's prose and examples put `partial` at the top level and the signal on `ErrorDetail`, which the envelope schema rejects, while their own wire formats used `data.partial` and `error.context.signal`, so an implementer had two answers and only one of them validated (#68).
 
+### A declared dependency is needed at any version
+
+- REQ-O-031: a `DependencyEntry.min_version` value is a minimum version or `"*"`, meaning any version, presence only. `tool doctor` runs the dependency's `check_command` and passes when it exits `0`, skipping `version_regex` and the version comparison; a dependency with no `--version` flag uses a presence command such as `command -v bean-format`. New acceptance criterion, and a `"*"` dependency in the wire format and example
+- REQ-O-026: the `required_tools` `"*"` rule and the declared dependency rule read as one: `"*"` is a presence check, by `PATH` lookup for a `required_tools` entry and by `check_command` for a dependency, reported as `min_version: "*"` with no `found_version` in `data.dependencies`. New acceptance criterion
+- `manifest-response.md` and the `min_version` description in `manifest-response.json` say the same. The field stays a required string, so `ManifestResponse` stays 3.18 with a description change only
+
+**Why:** `min_version` was a required "minimum supported version" with no way to declare a dependency needed at any version, so a program with no `--version` flag could not be declared without inventing a version `doctor` could never check; `required_tools` gained `"*"` for the same reason in #58 (#63).
+
 ### `required_tools` declares a program needed at any version
 
 - REQ-C-018: a `required_tools` value is a minimum version or `"*"`, meaning any version; the program need only resolve on `PATH` and is never run to read a version. New acceptance criterion and a `"*"` entry in the wire format and example

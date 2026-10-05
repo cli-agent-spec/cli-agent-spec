@@ -703,7 +703,7 @@
         },
         "check_command": {
           "type": "string",
-          "description": "Exact command that prints the installed version."
+          "description": "Exact command that verifies the dependency is present; when min_version is a version, its output carries the installed version for version_regex."
         },
         "version_regex": {
           "type": "string",
@@ -711,7 +711,7 @@
         },
         "min_version": {
           "type": "string",
-          "description": "Minimum supported version."
+          "description": "Minimum supported version, or * when any version will do: doctor runs check_command and passes when it exits 0, with no version_regex or version comparison. Sourced from REQ-O-031."
         },
         "fix_command": {
           "type": "string",
