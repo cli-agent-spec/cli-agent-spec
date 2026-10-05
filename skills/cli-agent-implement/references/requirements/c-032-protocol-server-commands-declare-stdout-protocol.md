@@ -31,6 +31,8 @@ Some commands run a long-lived protocol server over stdio: `tool mcp serve` spea
 - `async: true` (REQ-C-022) or `spawns_background_process: true`, `cleanup_command`, and `max_lifetime_seconds` (REQ-C-010): the server runs in the foreground until the client ends the session
 - `confirm_flag` or `safe_default: true` (REQ-O-048): there is no single action to preview or confirm
 
+**Commands kept off the tool's MCP server.** A tool that serves its commands as MCP tools, such as through an `mcp-stdio` protocol command, builds the tool list from its manifest. Some commands must never be a tool: an approval a person gives, a project-creating `init`, a watch loop that never returns. Such a command MUST declare `mcp: false` at registration. The field is present only when `false`; absent means the tool's MCP server may offer the command as a tool, and the manifest schema rejects `mcp: true`. A server built from the manifest never lists a command marked `mcp: false`, and a call naming it is refused inside the protocol as an unknown tool. An agent runs such a command through the CLI, or hands it to a person. `mcp` is independent of `stdout`: it applies to any command, and it says nothing about MCP servers other than the tool's own.
+
 **Exemptions, for protocol commands only:**
 
 - REQ-F-004 and REQ-F-006: stdout carries the protocol; the only envelope is the failure envelope on the last line of stderr
@@ -60,12 +62,15 @@ Some commands run a long-lived protocol server over stdio: `tool mcp serve` spea
 - A server that stays idle past the default timeout after serving begins is not terminated by the framework
 - A protocol command does not accept `--idempotency-key`, `--dry-run`, `--output`, or `--confirm-destructive`
 - A command without `stdout` behaves exactly as before under REQ-F-004, REQ-F-006, REQ-F-011, and REQ-C-007
+- `tool manifest` shows `mcp: false` on every command the tool's MCP server leaves out, and no `mcp` field on any other command
+- The tool's MCP server lists no command marked `mcp: false` in its tool list, and a call naming one is answered with a protocol error, not run
+- A manifest with `mcp: true` on any command fails validation against the manifest schema
 
 ## Schema
 
 **Types:**
 
-- [`manifest-response.md`](../schemas/manifest-response.md): `stdout` (`"protocol"`, absent means stdout carries envelopes) and `protocol` (lowercase kebab-case name, documented values `mcp-stdio`, `lsp`, `dap`) on `CommandEntry`. Each requires the other, and a protocol entry carries none of the fields that do not combine with it
+- [`manifest-response.md`](../schemas/manifest-response.md): `stdout` (`"protocol"`, absent means stdout carries envelopes) and `protocol` (lowercase kebab-case name, documented values `mcp-stdio`, `lsp`, `dap`) on `CommandEntry`. Each requires the other, and a protocol entry carries none of the fields that do not combine with it. `mcp` (`false` only; absent means the tool's MCP server may offer the command) on any `CommandEntry`
 - [`response-envelope.md`](../schemas/response-envelope.md): the failure envelope on the last line of stderr, unchanged in shape
 
 ## Wire Format
@@ -109,6 +114,28 @@ $ tool --format json mcp serve --read-only=maybe
 
 The process exits `2`. Started correctly, the same command writes only MCP messages to stdout and exits `0` when its client closes stdin.
 
+A command kept off the MCP server. `tool mcp serve` never lists `release.approve` as a tool:
+
+```json
+{
+  "schema_version": "3.17",
+  "framework_version": "2.1.0",
+  "etag": "sha256:91c3e7",
+  "commands": {
+    "release.approve": {
+      "description": "Record a person's approval of a pending release",
+      "danger_level": "mutating",
+      "required_scopes": ["releases:approve"],
+      "mcp": false,
+      "flags": {},
+      "exit_codes": {
+        "0": { "name": "SUCCESS", "description": "The approval is recorded", "retryable": false, "side_effects": "complete" }
+      }
+    }
+  }
+}
+```
+
 ## Example
 
 ```
@@ -124,6 +151,13 @@ register command "mcp.serve":
 # stdout: "protocol", protocol: "mcp-stdio" → register it as an MCP server, never parse its stdout as an envelope
 # Exit 2 before any MCP message arrives → read the last stderr line; the server never started
 # Exit 143 after the agent sent SIGTERM → expected end of the session
+
+register command "release.approve":
+  mcp: false                          # a person approves; never an MCP tool
+  danger_level: mutating
+
+# mcp.serve builds its tool list from the manifest and leaves out release.approve
+# An agent that needs the approval asks a person to run `tool release approve <id>`
 ```
 
 ## Related
@@ -142,4 +176,5 @@ register command "mcp.serve":
 | [REQ-C-004](c-004-destructive-commands-must-support-dry-run.md) | C | Specializes: a destructive protocol command offers no `--dry-run` |
 | [REQ-C-007](c-007-mutating-commands-accept-idempotency-key.md) | C | Specializes: a protocol command does not accept `--idempotency-key` |
 | [REQ-C-010](c-010-background-process-commands-declare-metadata.md) | C | Composes: a protocol server runs in the foreground and is not a background process |
-| [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Exposes: `stdout` and `protocol` appear in the manifest |
+| [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Exposes: `stdout`, `protocol`, and `mcp` appear in the manifest |
+| [REQ-O-035](o-035-tool-mcp-validate-built-in-command.md) | O | Composes: a command marked `mcp: false` is never reported as missing from the MCP schema |

@@ -19,6 +19,16 @@
 
 **Why:** `required_tools` mapped each program to a minimum version with no way to declare one needed at any version, so a program with no `--version` flag, such as `bean-format`, could not be declared without inventing a version `doctor` could never check (#58).
 
+### ManifestResponse 3.17: commands kept off the MCP server
+
+- REQ-C-032: a command the tool's own MCP server must never offer as a tool (an approval a person gives, a project-creating `init`, a watch loop that never returns) declares `CommandEntry.mcp: false`. The field is present only when `false`; absent means the tool's MCP server may offer the command, and the schema rejects `mcp: true`
+- A server built from the manifest never lists a command marked `mcp: false`, and a call naming one is refused inside the protocol; an agent runs such a command through the CLI or hands it to a person
+- REQ-O-035: `tool mcp-validate` never reports a command marked `mcp: false` as `missing_from_mcp`
+- `manifest-response.md` gains the field row, a valid and an invalid example, the agent interpretation, and a generated assertion; `tests/test_manifest_schema.py` pins the schema behaviour
+- A producer that sets `mcp` emits `schema_version` `3.17`; a pre-3.17 manifest stays valid, and on it an absent `mcp` cannot mark a command kept off the server
+
+**Why:** a tool can serve its commands as MCP tools, yet `CommandEntry` took no extra properties and had no field to keep a command off that server, so a manifest could say so only in the description (#55).
+
 ## 1.11.0 — 2026-10-03
 
 ### External content in `error.context` is tagged and masked
