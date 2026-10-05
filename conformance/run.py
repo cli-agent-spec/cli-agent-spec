@@ -470,7 +470,7 @@ CHECKS: tuple[CheckSpec, ...] = (
     CheckSpec("manifest_valid", "tool manifest returns a valid ManifestResponse", 3, (52, 21), ("REQ-O-041",)),
     CheckSpec("argument_order", "A global option means the same before and after the command path; conflicting repeats exit 2", 3, (69,), ("REQ-F-067", "REQ-F-079")),
     CheckSpec("stream_contract", "Every stream line is a JSON object and the stream ends on exactly one terminal line that matches the exit code", 3, (5, 76), ("REQ-O-004",)),
-    CheckSpec("stream_sigint", "SIGINT mid-stream ends the stream on a CANCELLED error envelope and exit 130, as REQ-F-069 defines", 3, (16,), ("REQ-O-004",)),
+    CheckSpec("stream_sigint", "SIGINT mid-stream ends the stream on a CANCELLED error envelope with data.partial true and exit 130, as REQ-F-069 defines", 3, (16,), ("REQ-O-004",)),
 )
 
 
@@ -707,6 +707,9 @@ class Kit:
             code = error.get("code") if isinstance(error, dict) else None
             if code != "CANCELLED":
                 outcome.fail(run, f"terminal error envelope after SIGINT has error.code {code!r}, expected 'CANCELLED'")
+            data = terminal.get("data")
+            if not (isinstance(data, dict) and data.get("partial") is True):
+                outcome.fail(run, f"terminal error envelope after SIGINT has data {json.dumps(data)}, expected data.partial true")
 
     def execute_all(self, only: frozenset[str] | None) -> list[dict[str, object]]:
         for probe in self.profile.probes:

@@ -10,7 +10,7 @@
 
 ## Description
 
-The framework MUST install a SIGTERM signal handler for every command at startup. On SIGTERM, the handler MUST: invoke the command's registered `cleanup()` hook, release any framework-managed locks, emit a partial-result JSON object to stdout (with `"ok": false`, `"partial": true`, `"error": {"code": "CANCELLED"}`), flush stdout, and exit with code `143` (128 + SIGTERM). The handler MUST be re-entrant safe (a second SIGTERM during cleanup MUST not cause a double-write).
+The framework MUST install a SIGTERM signal handler for every command at startup. On SIGTERM, the handler MUST: invoke the command's registered `cleanup()` hook, release any framework-managed locks, emit a partial-result JSON object to stdout (with `"ok": false`, `"data": {"partial": true}`, `"error": {"code": "CANCELLED"}`), flush stdout, and exit with code `143` (128 + SIGTERM). The handler MUST be re-entrant safe (a second SIGTERM during cleanup MUST not cause a double-write).
 
 ## Acceptance Criteria
 
@@ -62,7 +62,7 @@ Framework-Automatic: no command author action needed. The framework installs a S
 $ tool deploy --env prod &
 [1] 12345
 $ kill -TERM 12345
-→ stdout: {"ok":false,"partial":true,"data":null,"error":{"code":"CANCELLED","message":"Command cancelled by SIGTERM"},...}
+→ stdout: {"ok":false,"data":{"partial":true},"error":{"code":"CANCELLED","message":"Command cancelled by SIGTERM"},...}
 → exit code: 143
 ```
 

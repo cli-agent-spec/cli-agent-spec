@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 # Test-only fixture: JSONL streams (REQ-O-004) that pass or break the stream_contract and stream_sigint checks
 # Long streams write 20 item lines, one every 30 ms, so a SIGINT after line 2 lands mid-stream
+# STREAMCLI_SLEEP sets how long the stall, linger, orphan, and int-hang cases sleep, so a test can find its own leftover sleeps
 
+LONG_SLEEP="${STREAMCLI_SLEEP:-37}"
+PARTIAL='{"partial":true}'
+
+# cancel CODE EXIT [DATA]: DATA defaults to {"partial":true} (REQ-F-069)
 cancel() {
-  printf '{"ok":false,"data":null,"error":{"code":"%s","message":"Command cancelled by SIGINT","retryable":false,"phase":"execution","context":{"signal":"SIGINT"}},"warnings":[],"meta":{"exit_code":%d,"duration_ms":1}}\n' "$1" "$2"
+  printf '{"ok":false,"data":%s,"error":{"code":"%s","message":"Command cancelled by SIGINT","retryable":false,"phase":"execution","context":{"signal":"SIGINT"}},"warnings":[],"meta":{"exit_code":%d,"duration_ms":1}}\n' "${3:-$PARTIAL}" "$1" "$2"
   exit "$2"
 }
 
@@ -25,14 +30,15 @@ case "${1:-}" in
   prose)           items 1; echo "Fetched 1 of 2 events"; items 1; summary 2 ;;
   summary-exit-1)  items 2; summary 2; exit 1 ;;
   exit-mismatch)   items 1; printf '{"ok":false,"data":null,"error":{"code":"UNAVAILABLE","message":"API returned 503"},"warnings":[],"meta":{"exit_code":12,"duration_ms":90}}\n'; exit 1 ;;
-  stall)           items 1; sleep 37; summary 1 ;;
+  stall)           items 1; sleep "$LONG_SLEEP"; summary 1 ;;
   short)           items 1; summary 1 ;;
-  linger)          items 1; summary 1; sleep 37 ;;
-  orphan)          items 1; summary 1; sleep 37 & exit 0 ;;
+  linger)          items 1; summary 1; sleep "$LONG_SLEEP" ;;
+  orphan)          items 1; summary 1; sleep "$LONG_SLEEP" & exit 0 ;;
   int-exit-1)      trap 'cancel CANCELLED 1' INT; items 20; summary 20 ;;
   int-wrong-code)  trap 'cancel INTERRUPTED 130' INT; items 20; summary 20 ;;
-  int-ignored)     trap '' INT; items 20; summary 20 ;;
-  int-hang)        trap '' INT; items 3; sleep 37 ;;
+  int-no-partial)  trap 'cancel CANCELLED 130 null' INT; items 20; summary 20 ;;
+  int-ignored)   trap '' INT; items 20; summary 20 ;;
+  int-hang)        trap '' INT; items 3; sleep "$LONG_SLEEP" ;;
   --help)          echo "usage: streamcli <good|heartbeat|fails-midway|no-terminal|...>" >&2 ;;
   *)               exit 2 ;;
 esac

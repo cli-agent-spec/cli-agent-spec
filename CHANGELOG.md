@@ -11,6 +11,15 @@
 
 ## Unreleased
 
+### A cancelled or partial run flags `data.partial` and names its signal in `error.context`
+
+- REQ-F-013 and REQ-F-069: the Description and Example now put the partial flag at `data.partial: true` and REQ-F-069's signal name at `error.context.signal`, as both wire formats already did. A top-level `partial` or `error.signal` fails `ResponseEnvelope`, which admits no extra properties at either level
+- §11, §13, and §16 examples move `partial` and the other partial-result fields (`completed_steps`, `resume_from`, `resume_token`, `results`, `summary`) into `data` and become complete envelopes; §13's agent workaround reads them from `data`. `comparison-matrix.md`'s REQ-F-013 sentence says the same
+- Conformance kit: `stream_sigint` also requires the terminal `CANCELLED` envelope to carry `data.partial: true`. The good democli mock's `--stream` cancellation now emits it, and `streamcli` gains a failing `int-no-partial` case. The process-leak test looks only for sleeps from its own run, so concurrent runs in other checkouts no longer fail it
+- No contract changes; generated reports under `evaluations/` are records of past runs and stay as they were
+
+**Why:** REQ-F-013's and REQ-F-069's prose and examples put `partial` at the top level and the signal on `ErrorDetail`, which the envelope schema rejects, while their own wire formats used `data.partial` and `error.context.signal`, so an implementer had two answers and only one of them validated (#68).
+
 ### `required_tools` declares a program needed at any version
 
 - REQ-C-018: a `required_tools` value is a minimum version or `"*"`, meaning any version; the program need only resolve on `PATH` and is never run to read a version. New acceptance criterion and a `"*"` entry in the wire format and example

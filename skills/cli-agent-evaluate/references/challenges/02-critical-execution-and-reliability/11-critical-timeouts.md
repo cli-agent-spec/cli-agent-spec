@@ -64,12 +64,14 @@ $ tool long-operation --format json
 ```json
 {
   "ok": false,
-  "partial": true,
-  "data": {"processed": 42, "total": 100},
+  "data": {"partial": true, "processed": 42, "total": 100, "resume_token": "abc123"},
   "error": {"code": "TIMEOUT", "message": "Operation timed out after 30s"},
-  "resume_token": "abc123"   // allows resuming if supported
+  "warnings": [],
+  "meta": {"exit_code": 10, "duration_ms": 30004}
 }
 ```
+
+`data.resume_token` allows resuming when the command supports it.
 
 **For framework design:**
 - Every command has a default timeout; `--timeout 0` means no timeout (must be explicit)
