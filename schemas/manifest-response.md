@@ -65,6 +65,7 @@ Present only when the command declares them.
 | `help_argv` | string[] | Passthrough only: the argv forwarded in place of a lone `--help` or `-h` after the command path; absent means the token is forwarded unchanged (REQ-C-031) |
 | `stdout` | `"protocol"` | `protocol`: the command serves the protocol named in `protocol` over stdio; stdout is the protocol channel from the first byte and never carries an envelope. A failure before serving begins goes to stderr (in JSON mode, an envelope on its last line) with a declared exit code; exit `0` is a clean shutdown such as stdin end-of-file. Absent means stdout carries envelopes. Excludes `arguments: "passthrough"`, `stderr`, `stdin`, `interactive: true`, `streaming_default: true`, `output_file`, `output_schema`, `output_formats`, `output_media_types`, `async: true`, the REQ-C-010 fields, `confirm_flag`, and `safe_default: true` (REQ-C-032) |
 | `protocol` | string | Lowercase kebab-case name of the protocol served: `mcp-stdio`, `lsp`, `dap`, or another protocol's name in the same form. Present exactly when `stdout` is `"protocol"` (REQ-C-032) |
+| `mcp` | `false` | `false`: the tool's own MCP server never offers the command as a tool (an approval a person gives, a project-creating `init`, a watch loop that never returns); an agent runs it through the CLI or hands it to a person. Present only when `false`; `true` is rejected, and absent means the tool's MCP server may offer the command as a tool (REQ-C-032) |
 | `stderr` | `"child_log"` | `child_log`: stderr carries a wrapped program's output as plain text, line by line, whatever `--format` and verbosity say; `--quiet` silences it, and stdout carries only the envelope. Absent means stderr carries the framework's own diagnostics only. Never on a passthrough command (REQ-F-038) |
 | `interactive` | boolean | Command may prompt in a TTY; `--yes` and `--non-interactive` exist (REQ-C-005) |
 | `has_network_io` | boolean | Command performs network or long blocking I/O; `--timeout` exists (REQ-C-012) |
@@ -747,6 +748,51 @@ An agent registers `tool mcp serve` as an MCP server and never parses its stdout
 ```
 Violation: `streaming_default: true` promises JSONL events on stdout, while `stdout: "protocol"` gives stdout to LSP messages. A protocol command has no result to stream, format, or write to an `--output` file.
 
+**Valid — commands kept off the MCP server**
+```json
+{
+  "schema_version": "3.17",
+  "framework_version": "2.1.0",
+  "etag": "sha256:91c3e7",
+  "commands": {
+    "release.approve": {
+      "description": "Record a person's approval of a pending release",
+      "danger_level": "mutating",
+      "required_scopes": ["releases:approve"],
+      "mcp": false,
+      "flags": {},
+      "positionals": [{ "name": "release", "type": "string", "required": true, "description": "Release ID to approve" }],
+      "exit_codes": {
+        "0": { "name": "SUCCESS", "description": "The approval is recorded", "retryable": false, "side_effects": "complete" }
+      }
+    },
+    "release.list": {
+      "description": "List pending releases",
+      "danger_level": "safe",
+      "required_scopes": [],
+      "flags": {},
+      "exit_codes": {
+        "0": { "name": "SUCCESS", "description": "The releases are listed", "retryable": false, "side_effects": "none" }
+      }
+    }
+  }
+}
+```
+The tool's MCP server offers `release.list` as a tool and never lists `release.approve`. An agent that needs an approval hands `tool release approve <id>` to a person rather than calling it from an MCP session.
+
+**Invalid — `mcp: true`**
+```json
+{
+  "schema_version": "3.17",
+  "framework_version": "2.1.0",
+  "etag": "sha256:91c3e7",
+  "commands": {
+    "release.list": { "description": "List pending releases", "danger_level": "safe", "required_scopes": [], "mcp": true, "flags": {}, "exit_codes": {} }
+  }
+}
+```
+Violation: `mcp` is present only when `false`. A command the MCP server may offer omits the field, so two producers never spell the default two ways.
+
 **Valid — idempotent command whose partial failure is rerun**
 ```json
 {
@@ -844,6 +890,8 @@ Violation: a root `env_vars` entry requires `description`; no flag's `descriptio
 - **Declaring `help_argv` on a declared command.** The framework answers `--help` itself there; `help_argv` exists only where a lone `--help` would otherwise reach the delegated tool
 - **Saying only in `description` that a command is an MCP or language server.** An agent that calls it as an ordinary command parses MCP messages as an envelope or waits for an exit that comes only when stdin closes; declare `stdout: "protocol"` and `protocol`
 - **Writing a startup error to stdout on a protocol command.** The client reads stdout as protocol messages from the first byte; a failure before serving begins goes to stderr, and stdout stays empty
+- **Saying only in `description` that a command is not an MCP tool.** "(not an MCP tool)" is prose a server generator and an agent must parse; declare `mcp: false`
+- **Emitting `mcp: true`.** The schema rejects it; a command the MCP server may offer omits `mcp`
 - **Saying only in `description` that a command streams a wrapped program's log.** An agent cannot match prose before the call; declare `stderr: "child_log"` so it knows stderr will be busy and carries no failure signal
 - **Letting auto-quiet or `--verbose` gate a declared child log.** `child_log` streams whatever the verbosity; only `--quiet` silences it, so a log that appears only under `--verbose` is a framework diagnostic, not a child log
 - **Listing a borrowed name before the tool-prefixed one.** `CLOUDFALL_PROJECT` ahead of `TOOL_PROJECT` lets a variable set for another tool override the one set for this tool (REQ-F-073)
@@ -961,6 +1009,11 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Stderr while serving holds the framework's plain-text diagnostics; never read it as protocol messages
 - An absent `stdout` means stdout carries envelopes, including on a pre-3.16 manifest; such a manifest cannot mark a protocol command, so treat a command whose `description` says it serves MCP, LSP, or another protocol over stdio as one
 
+**Commands kept off the MCP server (`mcp: false`)**
+- `mcp: false`: the tool's own MCP server never offers the command as a tool. Run it through the CLI, or hand it to a person when it needs one (an approval, a project-creating `init`); never expect to find it among the server's tools
+- When building an MCP tool list from the manifest, leave out every entry with `mcp: false`
+- An absent `mcp` means the tool's MCP server may offer the command as a tool, including on a pre-3.17 manifest; such a manifest cannot mark a command kept off the server, so read its `description` for a note such as "not an MCP tool"
+
 **Reading stderr from `stderr`**
 - `stderr: "child_log"`: expect a wrapped program's log on stderr, as plain text, whatever `--format` and verbosity say. Discard it or keep only its tail for a person; pass `--quiet` to silence it when no one will read it
 - Never treat stderr text from such a command as a failure signal, even when it contains words like `ERROR` or `failed`; the exit code and the envelope on stdout stay authoritative
@@ -997,6 +1050,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert root `env_vars` lists every other variable the tool reads outside the universal exceptions, each with a `description` and either the tool prefix or a declared name that immediately follows its setting's prefixed entry, and no name that also appears in a flag's `env_vars`, a `secret_env_vars`, or a `token_env_vars`
 - Assert root `secret_env_vars` lists exactly the secrets every command reads, and that none of them repeats in a command's `secret_env_vars` or a flag's `env_vars`; assert no name in an auth command's `token_env_vars` repeats in that command's `secret_env_vars`
 - Assert `stdout: "protocol"` and `protocol` appear together on exactly the commands that serve a protocol over stdio, that such a command writes nothing to stdout before serving begins, ends stderr with the envelope on any non-zero exit in JSON mode, exits `0` when stdin closes, and declares none of the fields REQ-C-032 excludes
+- Assert `mcp: false` appears on exactly the commands the tool's MCP server leaves out, that the server's tool list holds every other command it serves and none marked `mcp: false`, and that no entry carries `mcp: true`
 - Assert `stderr: "child_log"` appears on exactly the commands that stream a wrapped program's output to stderr, never on a passthrough command, and that `--quiet` leaves stderr empty for them
 - Assert the root `format` flag's `media_types` keys are all in its `enum_values`, cover every value outside the spec's media type table, and map each spec value they list to the table's media type; assert no other flag carries `media_types`
 - Assert every `output_formats` value covered by neither the spec's table nor the root `media_types` has an `output_media_types` entry, and every `output_media_types` key is a value the command accepts
@@ -1044,7 +1098,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 | [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) | Sources: `streaming_default`, and the `records` mode a stream consumer reads in with its `record_schema` |
 | [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) | Sources: `requires` conditional rules |
 | [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) | Sources: `arguments` and `help_argv` per command |
-| [REQ-C-032](../requirements/c-032-protocol-server-commands-declare-stdout-protocol.md) | Sources: `stdout` and `protocol` per command |
+| [REQ-C-032](../requirements/c-032-protocol-server-commands-declare-stdout-protocol.md) | Sources: `stdout`, `protocol`, and `mcp` per command |
 | [REQ-F-038](../requirements/f-038-verbosity-auto-quiet-in-non-tty-context.md) | Sources: `stderr` per command, the child log that auto-quiet leaves alone |
 | [REQ-O-048](../requirements/o-048-destructive-commands-default-dry-run.md) | Sources: `safe_default` and `confirm_flag` per command |
 | [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) | Sources: top-level `dependencies` |

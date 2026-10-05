@@ -181,6 +181,11 @@
           "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
           "description": "Name of the protocol the command serves on stdin and stdout, in lowercase kebab-case: mcp-stdio (Model Context Protocol over stdio), lsp (Language Server Protocol), dap (Debug Adapter Protocol), or another protocol's name in the same form. Present exactly when stdout is protocol. Sourced from REQ-C-032."
         },
+        "mcp": {
+          "type": "boolean",
+          "const": false,
+          "description": "false: the tool's own MCP server never offers the command as a tool, such as an approval a person gives, a project-creating init, or a watch loop that never returns; an agent runs it through the CLI or hands it to a person. Present only when false; absent means the tool's MCP server may offer the command as a tool. Sourced from REQ-C-032."
+        },
         "option_placement": {
           "type": "string",
           "enum": ["any", "strict"],
