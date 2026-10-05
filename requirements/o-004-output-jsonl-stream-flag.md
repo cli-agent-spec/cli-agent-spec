@@ -220,7 +220,7 @@ app = Framework("tool")
 
 register command "list-deployments":
   supports_streaming: true
-  stream_seq: true   # optional: _seq on each item line, _count on the summary line
+  # numbers its items with _seq and counts them in _count on the summary line (optional)
   # items emitted via framework stream() call as they arrive
 
 # tool list-deployments --stream  →  JSONL lines as items arrive
