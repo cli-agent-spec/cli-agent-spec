@@ -9,6 +9,8 @@
 - A contract `MAJOR` increment always ships in a spec `MINOR` release with a migration section in this file
 - `meta.schema_version` inside a response is neither: it versions one command's output shape (REQ-F-022)
 
+## Unreleased
+
 ## 1.12.0 — 2026-10-05
 
 ### `tool doctor` exits `4` when a check fails
