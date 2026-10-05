@@ -87,6 +87,16 @@ $ tool list-events --no-stream
 
 A preamble line lets an agent detect JSONL immediately and switch parsers before consuming data.
 
+**Number the item lines (optional enhancement):**
+
+```jsonl
+{"id": "e1", "type": "deploy", "ts": 1700000001, "_seq": 1}
+{"id": "e2", "type": "rollback", "ts": 1700000042, "_seq": 2}
+{"_summary": true, "total": 2, "_count": 2, "duration_ms": 18}
+```
+
+A stream that numbers its item lines with `_seq` and puts `_count` on its summary line lets an agent detect a truncated read: a last `_seq` lower than `_count` means lines were lost (REQ-O-004).
+
 ### Evaluation
 
 | Score | Condition |

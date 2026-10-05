@@ -64,6 +64,12 @@ This decouples liveness signaling from output format. Heartbeat lines are safe t
 
 ---
 
+## Numbering Stream Lines
+
+An agent that reads a stream through a pipe, a log, or a runtime that may drop lines cannot tell a short stream from a damaged one. A command can number its item lines with `_seq` (`1` on the first, one more on each next line) and put `"_count": N` on its summary line; an error terminal envelope then carries `meta.items_emitted`, the last `_seq` emitted. Heartbeat lines and the terminal line carry no `_seq`. The agent compares the last `_seq` it read with `_count` or `meta.items_emitted`, and a gap between two lines it read shows exactly where a line went missing. Numbering is optional and additive: a consumer that ignores `_seq` reads the stream as before, so turn it on for any stream whose items an agent counts or resumes from (REQ-O-004).
+
+---
+
 ## Streams That Change State
 
 A command that applies one change per input item (a bulk import, a sync) can stream its events so the agent sees each one as it lands. It declares `danger_level: "mutating"`; a destructive command cannot stream, because a stream cannot stop for confirmation before each action. Each event carries its own `effect`, the summary line counts the events per effect, and `--dry-run`, when offered, turns every event into a `would_*` preview. The command takes no `--idempotency-key`: a retry after a failure starts from the events already received, not from a replayed result (REQ-O-004).

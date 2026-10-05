@@ -11,6 +11,15 @@
 
 ## Unreleased
 
+### ResponseEnvelope 2.3: numbered stream lines
+
+- REQ-O-004: a stream MAY number its item lines with the reserved key `_seq`, `1` on the first and one more on each next line. A numbered stream numbers every item line, never a heartbeat or terminal line, puts `"_count": N` (the number of item lines) on its summary line, and ends a failure on an error envelope with `meta.items_emitted` (the last `_seq`, `0` before the first item). A line's `_seq` is never item data: an item type with its own `_seq` field does not number its stream, and a records consumer removes `_seq` before validating a record. New Description paragraph, three acceptance criteria, and numbered wire-format lines
+- `ResponseMeta.items_emitted` (optional, non-negative integer) makes `ResponseEnvelope` 2.3; `response-envelope.md` gains the field row, a numbered-stream failure example, and the agent interpretation. Earlier instances stay valid, and a stream without `_seq` keeps its meaning
+- §76 gains numbered lines as an optional enhancement against silent truncation; the streaming guide gains a "Numbering Stream Lines" section
+- Conformance kit: `stream_contract` checks a stream whose first item line carries `_seq`: `_seq` on every item line counting up from `1`, none on heartbeat or terminal lines, `_count` equal to the number of item lines, and `meta.items_emitted` equal to the last `_seq` on an error terminal envelope; a later `_seq` in an unnumbered stream fails. The good democli mock numbers its `deployments list --stream` lines, including `meta.items_emitted` on its SIGINT envelope, and `streamcli` gains a passing numbered stream and failure, plus eight failing cases
+
+**Why:** a REQ-O-004 stream gave an agent no way to tell a complete short stream from one that lost lines in a pipe, a log, or a truncating runtime, nor which item a failed stream stopped after (#67).
+
 ### A cancelled or partial run flags `data.partial` and names its signal in `error.context`
 
 - REQ-F-013 and REQ-F-069: the Description and Example now put the partial flag at `data.partial: true` and REQ-F-069's signal name at `error.context.signal`, as both wire formats already did. A top-level `partial` or `error.signal` fails `ResponseEnvelope`, which admits no extra properties at either level

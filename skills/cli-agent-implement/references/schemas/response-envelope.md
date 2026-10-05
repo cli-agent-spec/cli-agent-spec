@@ -104,6 +104,7 @@ Present in `error.redirect` when exit code is `REDIRECTED (13)`.
 | `truncated` | boolean | no | The framework byte cap cut the output (REQ-F-052). Narrow the query or paginate |
 | `pagination` | `Pagination` | list commands | Present on every list response, including complete result sets (REQ-F-018) |
 | `effects` | object | mutating streams | Events per effect value (`{"created": 2, "noop": 1}`) on the buffered answer of a mutating streaming command; its summary line carries the same field (REQ-O-004) |
+| `items_emitted` | integer `≥ 0` | numbered streams | On the terminal error envelope of a stream whose item lines carry `_seq`: the last `_seq` emitted, `0` when no item line was (REQ-O-004) |
 | `audit_log_path` | string | while the audit log is enabled | Absolute path of the active audit log file (REQ-O-030) |
 | `_cmd` | string | exec only | Dispatched command path echoed from the request (REQ-O-050) |
 | `_line` | integer | exec only | 1-based input line this response answers (REQ-O-050) |
@@ -237,6 +238,18 @@ Present in `error.redirect` when exit code is `REDIRECTED (13)`.
 }
 ```
 
+**A numbered stream that fails after two items**
+```json
+{
+  "ok": false,
+  "data": null,
+  "error": { "code": "UNAVAILABLE", "message": "Deployment API returned 503", "retryable": true },
+  "warnings": [],
+  "meta": { "exit_code": 12, "duration_ms": 1840, "items_emitted": 2 }
+}
+```
+The terminal line of a REQ-O-004 stream whose item lines carry `_seq`: the item lines before it carried `"_seq": 1` and `"_seq": 2`.
+
 **DELEGATED_EXIT — a passthrough command's tool exited non-zero**
 ```json
 {
@@ -337,6 +350,7 @@ Rules for agents parsing `ResponseEnvelope` at runtime, including handling malfo
 - `meta.truncated: true` — the byte cap cut `data`; narrow the query before drawing conclusions
 - `meta.pagination.has_more: true` — more pages exist; pass `meta.pagination.next_cursor` as `--cursor` before concluding a list is complete
 - `meta.not_modified: true` — `data` is intentionally `null`; use the previously cached response; this is not an error
+- `meta.items_emitted` on a stream's terminal error envelope — the stream stopped after the item line with that `_seq`. Compare it with the last `_seq` you read: a higher value means you missed item lines. On a retry, expect the items up to it again unless the command can resume
 
 **Retrying**
 - `error.retryable: true` without `error.retry_after_ms` — apply a 1s default back-off before retrying
