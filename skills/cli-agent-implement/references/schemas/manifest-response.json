@@ -711,7 +711,7 @@
         },
         "min_version": {
           "type": "string",
-          "description": "Minimum supported version."
+          "description": "Minimum supported version, or * when any version will do: doctor runs check_command and passes when it exits 0, with no version_regex or version comparison. Sourced from REQ-O-031."
         },
         "fix_command": {
           "type": "string",
