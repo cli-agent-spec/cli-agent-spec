@@ -75,7 +75,7 @@ Present only when the command declares them.
 | `filesystem_side_effects` | `FilesystemSideEffect[]` | Paths the command may write, with category and TTL (REQ-C-011) |
 | `secret_env_vars` | string[] | Environment variables that supply this command's secrets beyond the root `secret_env_vars` (REQ-C-016); a secret is never a flag value, so these names never appear in a flag's `env_vars` |
 | `platform` | string[] | Supported OS names; absent means all (REQ-C-018) |
-| `required_tools` | `Record<string, string>` | External binaries and minimum versions (REQ-C-018) |
+| `required_tools` | `Record<string, string>` | External binaries and minimum versions; `"*"` means any version, presence on `PATH` only (REQ-C-018) |
 | `subprocess` | `SubprocessDeclaration` | Child binary and which flags reach its argv (REQ-C-019) |
 | `headless_supported` | boolean | Auth command works without a TTY (REQ-C-021) |
 | `token_env_vars` | string[] | Pre-acquired token variables; required when `headless_supported` is `false` (REQ-C-021). A name here is not repeated in this command's `secret_env_vars` (REQ-F-073) |

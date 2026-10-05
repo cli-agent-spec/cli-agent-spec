@@ -231,7 +231,7 @@
         "required_tools": {
           "type": "object",
           "additionalProperties": { "type": "string" },
-          "description": "External binaries the command invokes, mapped to the minimum version each needs. Sourced from REQ-C-018."
+          "description": "External binaries the command invokes, mapped to the minimum version each needs, or to * when any version will do: the binary need only resolve on PATH and is never run to read a version. Sourced from REQ-C-018."
         },
         "subprocess": {
           "$ref": "#/definitions/SubprocessDeclaration",
