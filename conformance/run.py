@@ -314,7 +314,9 @@ def execute_stream(label: str, argv: tuple[str, ...], deadline: float, sigint_af
                 except subprocess.TimeoutExpired:
                     timed_out = True
         finally:
-            if process.poll() is None:
+            # On a timeout stdout may still be open in a child that outlived the probe, so kill the
+            # whole group even when the probe itself has exited; otherwise the reader never sees EOF
+            if timed_out or process.poll() is None:
                 kill_tree(process)
                 process.wait()
             reader.join(timeout=5)

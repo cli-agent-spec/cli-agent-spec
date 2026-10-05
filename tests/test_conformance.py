@@ -184,6 +184,15 @@ def test_killed_stream_reports_timeout_evidence(broken_streams) -> None:
 
 
 @POSIX_ONLY
+def test_deadline_holds_when_a_child_outlives_the_cli(broken_streams) -> None:
+    _code, envelope = broken_streams
+    [check] = [c for c in envelope["data"]["checks"] if c["id"] == "stream_contract"]
+    [orphan] = [f for f in check["failures"] if f["probe"] == "child keeps stdout open"]
+    assert orphan["timed_out"] is True
+    assert orphan["duration_ms"] < 3000, orphan
+
+
+@POSIX_ONLY
 @pytest.mark.parametrize(("probe", "expected"), [
     ("ends before the signal (SIGINT after 5 lines)", "before after_lines 5; SIGINT never sent"),
     ("SIGINT exits 1 (SIGINT after 2 lines)", "exited 1 after SIGINT, expected 130"),

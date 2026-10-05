@@ -28,6 +28,7 @@ case "${1:-}" in
   stall)           items 1; sleep 37; summary 1 ;;
   short)           items 1; summary 1 ;;
   linger)          items 1; summary 1; sleep 37 ;;
+  orphan)          items 1; summary 1; sleep 37 & exit 0 ;;
   int-exit-1)      trap 'cancel CANCELLED 1' INT; items 20; summary 20 ;;
   int-wrong-code)  trap 'cancel INTERRUPTED 130' INT; items 20; summary 20 ;;
   int-ignored)     trap '' INT; items 20; summary 20 ;;
