@@ -19,6 +19,15 @@
 
 **Why:** `required_tools` mapped each program to a minimum version with no way to declare one needed at any version, so a program with no `--version` flag, such as `bean-format`, could not be declared without inventing a version `doctor` could never check (#58).
 
+### ManifestResponse 3.18: integer `enum_values`
+
+- REQ-C-015: a flag or positional whose valid values are a few integers declares `type: "integer"` and lists them in `enum_values` as integers (`[0, 1, 2]`), with the same membership rule as a `type: "enum"` entry: every value a caller may pass, and nothing else. A value outside the list exits `2` with `ARG_ERROR` before any side effect
+- `FlagEntry.enum_values` and `PositionalEntry.enum_values` are string arrays on `type: "enum"` entries, as before, and integer arrays on `type: "integer"` entries. The schema rejects a string list on an integer entry and an integer list on an enum entry; the `media_types` rule still requires `type: "enum"`
+- REQ-C-015's wire format and example gain an integer flag with `enum_values`, and a new acceptance criterion; `manifest-response.md` gains the field rows, a valid and an invalid example, common mistakes, the agent interpretation (agents and shell completion read the integers as data), and a generated assertion; `tests/test_manifest_schema.py` pins the schema behaviour
+- A producer that lists integer `enum_values` emits `schema_version` `3.18`; every 3.17 manifest stays valid, and on a pre-3.18 manifest an integer entry's allowed values can appear only in its `description`
+
+**Why:** an integer flag such as `--sig-type 0|1|2` either lost its values to the description, where agents and shell completion cannot read them, or listed them as strings on a `type: "enum"` entry while the JSON routes take numbers (#59).
+
 ### ManifestResponse 3.17: commands kept off the MCP server
 
 - REQ-C-032: a command the tool's own MCP server must never offer as a tool (an approval a person gives, a project-creating `init`, a watch loop that never returns) declares `CommandEntry.mcp: false`. The field is present only when `false`; absent means the tool's MCP server may offer the command, and the schema rejects `mcp: true`

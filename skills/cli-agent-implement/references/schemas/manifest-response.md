@@ -100,7 +100,7 @@ Present only when the command declares them.
 | `required` | boolean | yes | Flag must be present |
 | `description` | string | yes | What the flag controls, including range or format |
 | `default` | any | no | Omit (do not set `null`) when no default exists |
-| `enum_values` | string[] | no | Only when `type` is `"enum"` |
+| `enum_values` | string[] \| integer[] | no | Every value a caller may pass, and nothing else: strings when `type` is `"enum"`, integers when `type` is `"integer"`; only on those two types (REQ-C-015) |
 | `short` | string (1 char) | no | Single-character shorthand |
 | `pattern` | string | no | Anchored regex the value must match; exclusive with `pattern_type` (REQ-C-020) |
 | `pattern_type` | `"alphanumeric_id"` \| `"uuid"` \| `"semver"` \| `"filepath"` \| `"url"` | no | Built-in validation preset (REQ-C-020) |
@@ -116,7 +116,7 @@ Present only when the command declares them.
 | `type` | `"string"` \| `"integer"` \| `"number"` \| `"enum"` | yes | Value type |
 | `required` | boolean | yes | Must be given; an optional positional never precedes a required one |
 | `description` | string | yes | What the argument selects, including range or format |
-| `enum_values` | string[] | when `type` is `"enum"` | Exhaustive list of accepted values |
+| `enum_values` | string[] \| integer[] | when `type` is `"enum"` | Every value a caller may pass, and nothing else: strings when `type` is `"enum"`, integers (optional) when `type` is `"integer"`; only on those two types (REQ-C-015) |
 | `variadic` | boolean | no | Takes every remaining value; last entry only |
 
 ### Supporting types
@@ -793,6 +793,40 @@ The tool's MCP server offers `release.list` as a tool and never lists `release.a
 ```
 Violation: `mcp` is present only when `false`. A command the MCP server may offer omits the field, so two producers never spell the default two ways.
 
+**Valid — integer flag with a fixed set of values**
+```json
+{
+  "schema_version": "3.18",
+  "framework_version": "2.2.0",
+  "etag": "sha256:4a07d2",
+  "commands": {
+    "order.sign": {
+      "description": "Sign a pending order",
+      "danger_level": "mutating",
+      "required_scopes": [],
+      "flags": {
+        "sig-type": { "type": "integer", "required": false, "default": 0, "enum_values": [0, 1, 2], "description": "Signature scheme: 0 EOA, 1 proxy, 2 safe" }
+      },
+      "exit_codes": {}
+    }
+  }
+}
+```
+`--sig-type` takes `0`, `1`, or `2` on the command line, and a JSON route such as a payload or an MCP call takes the numbers. Shell completion offers the three values, and `--sig-type 3` exits `2`.
+
+**Invalid — integer flag listing its values as strings**
+```json
+{
+  "schema_version": "3.18",
+  "framework_version": "2.2.0",
+  "etag": "sha256:4a07d2",
+  "commands": {
+    "order.sign": { "description": "Sign a pending order", "danger_level": "mutating", "required_scopes": [], "flags": { "sig-type": { "type": "integer", "required": false, "enum_values": ["0", "1", "2"], "description": "Signature scheme" } }, "exit_codes": {} }
+  }
+}
+```
+Violation: on a `type: "integer"` entry, `enum_values` holds integers. Strings belong to a `type: "enum"` entry, and an integer list on one of those is rejected the same way.
+
 **Valid — idempotent command whose partial failure is rerun**
 ```json
 {
@@ -880,6 +914,8 @@ Violation: a root `env_vars` entry requires `description`; no flag's `descriptio
 - **Declaring an `output` side effect for the `--output` path.** The caller picks that path per call, and `output_file` already declares it; `type: "output"` is for a location the command chooses itself
 - **Leaving `output_file_base` out when `--output` does not resolve against the working directory.** Absence means `cwd`, so the agent looks for the file in the wrong place; declare `project_root` or `resource`
 - **Declaring a JSON-valued flag as `type: "string"`.** The agent then has no shape to build and no signal that the value is parsed as JSON; declare `type: "object"` with `schema`
+- **Declaring an integer choice as `type: "enum"` with `["0", "1", "2"]`.** A JSON route then sees strings where the command takes numbers; declare `type: "integer"` with `enum_values: [0, 1, 2]`
+- **Moving an integer flag's allowed values into its `description`.** Agents and shell completion cannot read prose as data; list them in `enum_values`
 - **Naming a flag's environment variables only in its `description`.** "(read from `$A` or `$B` when not passed)" is prose an agent must parse; list the names in `env_vars`, in precedence order
 - **Listing a secret in `env_vars`.** A token or password is not a flag value (REQ-C-016); declare its variable in `secret_env_vars`
 - **Declaring `stdin: {mode: "buffered"}` on a command that consumes a record stream.** The 64 KiB total cap then rejects any real pipeline; a command that handles one line at a time declares `lines` or `records`
@@ -949,6 +985,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Pass each option once; a scalar option repeated with a different value produces `ARG_ERROR (2)`
 - `required: true` flags must always be present; absence will produce `ARG_ERROR (2)`
 - `type: "enum"` — only values in `enum_values` are accepted; sending any other value produces `ARG_ERROR (2)`
+- `type: "integer"` with `enum_values`: the list is data, not prose; pass one of its integers (as a number on a JSON route, as its decimal text on argv), and any other value produces `ARG_ERROR (2)`. Shell completion offers the same list. An integer entry without `enum_values` takes any integer its `description` allows, including on a pre-3.18 manifest, where the allowed values can appear only in the `description`
 - `type: "object"`: pass one argv token of compact JSON text that validates against `schema` (`--filter '{"status":"open"}'`); text that is not a JSON object, or does not match, produces `ARG_ERROR (2)`. An `array` flag with `schema` takes each item as such a token
 - `default` absent — the flag is optional but has no fallback; omitting it changes behavior; include explicitly if the outcome matters
 - `short` present — both `--flag-name value` and `-f value` are valid; prefer long form for clarity in agent-constructed calls
@@ -1043,6 +1080,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert `output_file` is present on exactly the commands that register `--output <path>`, and is `"binary"` exactly when the command's result is a binary value, `"handler"` exactly when the handler writes the file, and `"envelope"` exactly when the framework writes the final envelope to it
 - Assert `output_file_base` appears only with `output_file`, and that a relative `--output` path lands under the declared base from a working directory other than that base
 - Assert every `type: "object"` flag carries a `schema` the parser enforces, and prefer `type: "object"` for every flag whose value the parser reads as a JSON object
+- Assert `enum_values` lists exactly the values the parser accepts, as strings on `type: "enum"` entries and as integers on `type: "integer"` entries, and that it appears on no other type; declare an integer choice as `type: "integer"` with integer `enum_values`, not as `type: "enum"` with numeric strings
 - Assert every `arguments: "passthrough"` command has `option_placement: "strict"`, empty `flags`, no `positionals`, and a `danger_level` other than `destructive`, and that `help_argv` appears only on such commands
 - Assert every `confirm_flag` names a boolean flag in the command's `flags` or the root `flags`, appears only on `mutating` or `destructive` commands without `safe_default: true` or `arguments: "passthrough"`, and that a call without it previews with `meta.dry_run: true` while `--dry-run` plus the flag still previews
 - Assert `idempotent: true` only on commands whose tests show that a rerun after each declared partial exit leaves the state a clean run leaves; accept it on a `safe` command without warning
