@@ -1,6 +1,6 @@
 name: Release
 
-# shipmill: https://github.com/romamo/shipmill. The policy in
+# shipmill: https://github.com/shipmill/shipmill. The policy in
 # .github/shipmill.toml decides what releases and when; this file only wires the
 # bot to this repository's CI.
 
@@ -34,7 +34,7 @@ permissions:
 
 jobs:
   prepare:
-    uses: romamo/shipmill/.github/workflows/prepare.yml@v0
+    uses: shipmill/shipmill/.github/workflows/prepare.yml@v0
     with:
       lane: ${{ inputs.lane != 'policy' && inputs.lane || '' }}
       dry-run: ${{ inputs.dry-run || false }}
@@ -55,7 +55,7 @@ jobs:
   land:
     needs: [prepare, ci]
     if: always() && needs.prepare.outputs.sha != ''
-    uses: romamo/shipmill/.github/workflows/land.yml@v0
+    uses: shipmill/shipmill/.github/workflows/land.yml@v0
     with:
       ci-result: ${{ needs.ci.result }}
       lane: ${{ needs.prepare.outputs.lane }}
