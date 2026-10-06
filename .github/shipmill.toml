@@ -59,3 +59,12 @@ replace = "CLI Agent Spec v{minor}"
 file = "requirements/index.md"
 pattern = 'CLI Agent Spec v\d+\.\d+(?= —)'
 replace = "CLI Agent Spec v{minor}"
+
+[agents]
+prompt = "/github-issue-triage {repo} triage the new issues; merge when green"
+prs = true            # open pull requests count as work
+retry_hours = 24      # unchanged findings start a new session after this
+notify = true         # a desktop notification when a session waits on you
+remind_hours = 4      # repeat it while the session still waits
+max_wait_minutes = 15 # stop a session that waited this long; 0: never
+app_id = 5209412      # sessions write as shipmill-romamo[bot] (shipmill spec 004)
