@@ -2,7 +2,7 @@
 name = "cli-agent-spec"
 
 # off: do nothing; dry-run: show the release commit it would make; release: release
-mode = "dry-run"
+mode = "release"
 branch = "master"
 
 # The spec version lives in tags and the CHANGELOG only; pyproject.toml's 0.0.0 is not it
