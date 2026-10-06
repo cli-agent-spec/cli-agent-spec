@@ -11,6 +11,8 @@
 
 ## Unreleased
 
+## 1.13.0 — 2026-10-06
+
 ### ExitCodeEntry 1.1: `error_codes` names the `error.code` values under each exit
 
 - `ExitCodeEntry` gains optional `error_codes`: a unique array of the `error.code` values the command emits under that exit, each matching `^[A-Z][A-Z0-9_]+$`, the pattern `ResponseEnvelope` puts on `error.code`. Absent means the command does not declare them, never "none"; an empty array means the exit carries no `error.code`
