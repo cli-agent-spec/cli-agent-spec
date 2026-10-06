@@ -91,3 +91,30 @@ def test_media_types_still_require_an_enum_flag(manifest_validator) -> None:
     instance = manifest()
     instance["flags"] = {"format": root_format}
     assert errors(manifest_validator, instance) != []
+
+
+def exit_entry(**fields: Any) -> dict[str, Any]:
+    entry = {"name": "CONFLICT", "description": "The resource already exists", "retryable": False, "side_effects": "none"}
+    entry.update(fields)
+    return manifest(exit_codes={"6": entry})
+
+
+def test_error_codes_absent_is_valid(manifest_validator) -> None:
+    assert errors(manifest_validator, exit_entry()) == []
+
+
+@pytest.mark.parametrize("value", [["ALREADY_EXISTS"], ["ALREADY_EXISTS", "VERSION_TAKEN"], []])
+def test_error_codes_accepts_envelope_codes(manifest_validator, value: list[str]) -> None:
+    assert errors(manifest_validator, exit_entry(error_codes=value)) == []
+
+
+@pytest.mark.parametrize(
+    "value",
+    [["already_exists"], ["A"], ["1_CODE"], ["ALREADY-EXISTS"], ["ALREADY_EXISTS", "ALREADY_EXISTS"], "ALREADY_EXISTS", [6]],
+)
+def test_error_codes_rejects_values_the_envelope_cannot_carry(manifest_validator, value: object) -> None:
+    assert errors(manifest_validator, exit_entry(error_codes=value)) != []
+
+
+def test_error_codes_keep_the_retryable_invariant(manifest_validator) -> None:
+    assert errors(manifest_validator, exit_entry(error_codes=["BUSY"], retryable=True, side_effects="partial")) != []

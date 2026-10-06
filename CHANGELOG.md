@@ -11,6 +11,16 @@
 
 ## Unreleased
 
+### ExitCodeEntry 1.1: `error_codes` names the `error.code` values under each exit
+
+- `ExitCodeEntry` gains optional `error_codes`: a unique array of the `error.code` values the command emits under that exit, each matching `^[A-Z][A-Z0-9_]+$`, the pattern `ResponseEnvelope` puts on `error.code`. Absent means the command does not declare them, never "none"; an empty array means the exit carries no `error.code`
+- REQ-C-001: each entry SHOULD list its `error.code` values in `error_codes`. New acceptance criterion (a response under a declared list carries a listed code, or none for `[]`), and the `CONFLICT (6)` entry in the wire format and example lists `ALREADY_DEPLOYED`
+- REQ-C-028: the `CONFLICT (6)` entry SHOULD list `ALREADY_EXISTS` in `error_codes`. New acceptance criterion and an `exit_codes` table in the wire format
+- `exit-code-entry.md` gains the field row, a valid and an invalid example, common mistakes, the agent interpretation (branch on the received `error.code`; the list says in advance which values to plan for), and generated assertions; `manifest-response.md` gains a `3.19` example and the agent interpretation; `tests/test_manifest_schema.py` pins the schema behaviour
+- `ManifestResponse` becomes 3.19, since its `exit_codes` maps carry `ExitCodeEntry`. A producer that lists `error_codes` emits `schema_version` `3.19`; earlier manifests stay valid, and on them an exit's `error.code` values can appear only in its `description`
+
+**Why:** an `ExitCodeEntry` named the exit code (`6` `CONFLICT`) but not the `error.code` an agent branches on, and its closed schema left a REQ-C-028 command no way to publish `ALREADY_EXISTS` in its manifest (#78).
+
 ## 1.12.0 — 2026-10-05
 
 ### `tool doctor` exits `4` when a check fails

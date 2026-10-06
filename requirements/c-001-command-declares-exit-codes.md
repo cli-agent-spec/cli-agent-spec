@@ -12,6 +12,8 @@
 
 Every command MUST declare a complete, exhaustive map of all exit codes it may emit, as part of its registration metadata. The framework MUST refuse to register a command that lacks this declaration. The exit code map MUST use the framework's named constants (REQ-F-001). The declared exit codes MUST be exposed in the command's `--schema` output. A passthrough command ([REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md)) declares only the codes the framework emits for it; the delegated tool's own codes pass through as `DELEGATED_EXIT` undeclared.
 
+Each entry SHOULD list in `error_codes` the `error.code` values ([REQ-C-013](c-013-error-responses-include-code-and-message.md)) the command emits under that exit code, so an agent can plan a branch for each before the first call. An absent `error_codes` means the command does not declare them; an empty array means the exit carries no `error.code`.
+
 ## Acceptance Criteria
 
 - Attempting to register a command without an `exit_codes` declaration raises a framework error
@@ -19,6 +21,7 @@ Every command MUST declare a complete, exhaustive map of all exit codes it may e
 - Attempting to register an entry with `retryable: true` and `side_effects` not equal to `"none"` raises a framework error
 - The `--schema` output for every command includes an `exit_codes` object keyed by code string, each value conforming to `ExitCodeEntry`
 - A command that emits an exit code not in its declared map triggers a framework warning in development mode
+- When an entry declares `error_codes`, every response the command emits under that exit code carries an `error.code` from the list, or none when the list is empty; in development mode a code outside the list triggers a framework warning
 
 ---
 
@@ -56,7 +59,7 @@ Requirement-specific constraints on top of the base `ExitCodeEntry` schema:
     "0":  { "name": "SUCCESS",   "description": "Deployment completed",       "retryable": false, "side_effects": "complete" },
     "2":  { "name": "ARG_ERROR", "description": "Invalid target environment", "retryable": false, "side_effects": "none"     },
     "5":  { "name": "NOT_FOUND", "description": "Target cluster not found",   "retryable": false, "side_effects": "none"     },
-    "6":  { "name": "CONFLICT",  "description": "Version already deployed",   "retryable": false, "side_effects": "none"     },
+    "6":  { "name": "CONFLICT",  "description": "Version already deployed",   "retryable": false, "side_effects": "none", "error_codes": ["ALREADY_DEPLOYED"] },
     "10": { "name": "TIMEOUT",   "description": "Deployment timed out — partial writes may have occurred", "retryable": false, "side_effects": "partial"  }
   }
 }
@@ -74,7 +77,7 @@ register command "deploy":
     SUCCESS  (0): description: "Deployment completed",                              retryable: false, side_effects: complete
     ARG_ERROR(2): description: "Invalid target environment",                        retryable: false, side_effects: none
     NOT_FOUND(5): description: "Target cluster not found",                          retryable: false, side_effects: none
-    CONFLICT (6): description: "Version already deployed",                          retryable: false, side_effects: none
+    CONFLICT (6): description: "Version already deployed",                          retryable: false, side_effects: none, error_codes: [ALREADY_DEPLOYED]
     TIMEOUT (10): description: "Deployment timed out — partial writes may have occurred", retryable: false, side_effects: partial
 
 register command "no-success":

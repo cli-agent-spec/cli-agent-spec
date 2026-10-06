@@ -25,6 +25,16 @@
       "type": "string",
       "enum": ["none", "partial", "complete"],
       "description": "Extent of externally visible work committed before this exit. 'none' = nothing was written; 'partial' = some writes occurred; 'complete' = all intended writes occurred"
+    },
+    "error_codes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]+$",
+        "description": "One error.code value the command emits in its response envelope under this exit code"
+      },
+      "uniqueItems": true,
+      "description": "The error.code values the command emits under this exit code, so an agent learns them before the first call. Absent means the command does not declare them, not that there are none; an empty array means this exit carries no error.code"
     }
   },
   "if": {
