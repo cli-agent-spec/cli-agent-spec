@@ -2,13 +2,13 @@
 
 **File:** [`exit-code-entry.json`](exit-code-entry.json)
 
-> **Used by:** [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md)
+> **Used by:** [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-028](../requirements/c-028-already-exists-response-pattern.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md)
 
 ---
 
 ## Purpose
 
-`ExitCodeEntry` is the per-code declaration a command makes at registration time. It is the contract an agent reads — before calling the command — to pre-plan retry and rollback strategies without waiting for a failure to occur. The map key identifies which code; each entry answers: what is the human-readable name, what happened to system state, and may the identical call be re-run unchanged?
+`ExitCodeEntry` is the per-code declaration a command makes at registration time. It is the contract an agent reads — before calling the command — to pre-plan retry and rollback strategies without waiting for a failure to occur. The map key identifies which code; each entry answers: what is the human-readable name, what happened to system state, may the identical call be re-run unchanged, and which `error.code` values can the response carry?
 
 ---
 
@@ -22,6 +22,7 @@ The integer exit code is the **map key**, not a field inside the entry. Each ent
 | `description` | string ≤ 120 | yes | Present-tense, agent-readable. What state is the system in? |
 | `retryable` | boolean | yes | May the identical unchanged re-run succeed? `true` implies no side effects occurred |
 | `side_effects` | `"none"` \| `"partial"` \| `"complete"` | yes | How much work was committed before this exit |
+| `error_codes` | string[] (unique, each `^[A-Z][A-Z0-9_]+$`) | no | The `error.code` values the command emits under this exit, e.g. `["ALREADY_EXISTS"]` under `CONFLICT (6)`. Absent: not declared. `[]`: the exit carries no `error.code` |
 
 † Required for command-specific codes (`79–125`); optional for framework codes (`0–13`) where the framework derives it from the `ExitCode` enum.
 
@@ -53,6 +54,18 @@ In all examples, the integer code is the surrounding map key; entries do not con
 { "name": "TIMEOUT", "description": "Config read timed out — no writes were attempted", "retryable": true, "side_effects": "none" }
 ```
 
+**Valid — conflict exit that names its `error.code` (map key `"6"`)**
+```json
+{ "name": "CONFLICT", "description": "A resource with this name already exists; data holds it", "retryable": false, "side_effects": "none", "error_codes": ["ALREADY_EXISTS"] }
+```
+An agent learns from the manifest that exit `6` carries `error.code: "ALREADY_EXISTS"` and plans its create-or-get branch ([REQ-C-028](../requirements/c-028-already-exists-response-pattern.md)) before the first call.
+
+**Invalid — lowercase `error.code` value**
+```json
+{ "name": "CONFLICT", "description": "A resource with this name already exists", "retryable": false, "side_effects": "none", "error_codes": ["already_exists"] }
+```
+Violation: each value must match `^[A-Z][A-Z0-9_]+$`, the pattern `ResponseEnvelope` puts on `error.code`, so a listed value is always one the envelope can carry.
+
 **Invalid — invariant violation**
 ```json
 { "name": "TIMEOUT", "description": "Deployment timed out", "retryable": true, "side_effects": "partial" }
@@ -75,6 +88,8 @@ Violation: `retryable` and `side_effects` are required.
 - **Setting `retryable: true` on validation errors.** Safe is not the same as useful: the identical call fails deterministically until the input changes. Declare `retryable: false`; the envelope carries `fix_required` for the correction
 - **Using `side_effects: "complete"` on failure codes.** `"complete"` means the intended operation finished — it is only appropriate for `SUCCESS (0)`
 - **Declaring only the happy path.** Every code the command may emit must have an entry. An undeclared code emitted at runtime is a contract violation
+- **Listing an `error.code` the command never emits under that exit.** `error_codes` is a promise about this exit only. A code emitted under a different exit belongs in that exit's entry, and a code the command never emits misleads the agent's branch planning
+- **Writing `error_codes` in another case than the envelope.** `"already_exists"` fails the pattern; list the exact `error.code` string the envelope carries
 - **Omitting `name` for command-specific codes (`79–125`).** For framework codes `0–13`, the framework can derive the constant name from the `ExitCode` enum. For command-specific codes, there is no enum — omitting `name` leaves agents with no readable label for the code
 
 ---
@@ -89,6 +104,12 @@ Rules for agents reading `ExitCodeEntry` values from a command's `--schema` outp
 - If an entry has `retryable: false` and `side_effects: "partial"`, and the command's manifest entry declares `idempotent: true` — rerun the identical command once without inspecting state; it converges on the state a clean run leaves. A second failure with the same `error.code` is deterministic: stop and escalate
 - The convergent rerun never applies to `ARG_ERROR (2)`, to an exit with `side_effects: "none"`, or to an error carrying `fix_required` or `fix_command`; those follow `retryable` and the fix fields. Without `idempotent: true`, inspect state before any rerun
 - If no entry exists for the received exit code — the command violated its contract; treat as `GENERAL_ERROR` behavior
+
+**Using `error_codes`**
+- Branch on the received `error.code`, never on the list. `error_codes` tells the agent in advance which values it may meet under this exit, so it can plan a branch for each (e.g. `ALREADY_EXISTS` under `CONFLICT (6)`: read the existing resource from `data`)
+- `error_codes` absent: the command does not declare them, including on any entry written before `ExitCodeEntry` 1.1. It never means "no `error.code`"; read `error.code` from the envelope as usual
+- `error_codes: []`: this exit carries no `error.code`
+- A received `error.code` missing from a declared list: the command broke its declaration; act on the received `error.code` and log a schema warning
 
 **Contradiction in received data**
 - `retryable: true` with `side_effects: "partial"` or `"complete"` — schema invariant violated by the command; do not retry without inspecting state
@@ -112,6 +133,7 @@ Rules for agents reading `ExitCodeEntry` values from a command's `--schema` outp
 - At registration: assert `retryable == true` implies `side_effects == "none"` — this is a hard invariant, not a soft warning
 - At registration: assert the exit codes map is non-empty and includes key `"0"` (SUCCESS)
 - In dev/test mode: intercept every process exit and assert the emitted code has a matching `ExitCodeEntry` in the command's declared set
+- In dev/test mode: when the entry declares `error_codes`, assert the envelope's `error.code` is one of them (or absent when the list is empty)
 
 **Tests to generate**
 - A test that registering a command without `exit_codes` raises a framework error
@@ -122,7 +144,8 @@ Rules for agents reading `ExitCodeEntry` values from a command's `--schema` outp
 - Do not generate `ExitCodeEntry` with `description: "Error"` or `description: "Failed"` — descriptions must be specific enough for an agent to act on
 - Do not generate a mutable `exit_codes` map that commands can add entries to after registration
 - Do not skip the `SUCCESS` entry — it is required even if the success path is obvious
-- Do not add properties beyond `name`, `description`, `retryable`, `side_effects` — the schema uses `additionalProperties: false` and will reject unknown fields
+- Do not add properties beyond `name`, `description`, `retryable`, `side_effects`, `error_codes` — the schema uses `additionalProperties: false` and will reject unknown fields
+- Do not maintain `error_codes` by hand apart from the code that raises the errors; derive the list from the same declaration the command raises from, so the two cannot drift
 - Do not omit `name` for command-specific codes (`79–125`) — there is no enum to derive it from; the framework cannot fill it in
 
 ---
@@ -131,3 +154,4 @@ Rules for agents reading `ExitCodeEntry` values from a command's `--schema` outp
 
 - `description` should answer: "Why did I exit here and what should the agent know about system state?" Avoid generic messages like "An error occurred."
 - The full set of `ExitCodeEntry` objects for a command must cover every code that command may emit. Warn in development mode if an undeclared code is observed at runtime
+- `error_codes` is optional; emit it when the command knows its `error.code` values for that exit. Omit it rather than emit a partial list, since an agent reads a present list as complete

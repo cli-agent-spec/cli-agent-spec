@@ -827,6 +827,31 @@ Violation: `mcp` is present only when `false`. A command the MCP server may offe
 ```
 Violation: on a `type: "integer"` entry, `enum_values` holds integers. Strings belong to a `type: "enum"` entry, and an integer list on one of those is rejected the same way.
 
+**Valid — exit codes that name their `error.code` values**
+```json
+{
+  "schema_version": "3.19",
+  "framework_version": "2.3.0",
+  "etag": "sha256:0c6e5b",
+  "commands": {
+    "resource.create": {
+      "description": "Create a named resource",
+      "danger_level": "mutating",
+      "required_scopes": ["resources:write"],
+      "flags": {
+        "name": { "type": "string", "required": true, "description": "Name of the resource to create" }
+      },
+      "exit_codes": {
+        "0": { "name": "SUCCESS", "description": "The resource is created", "retryable": false, "side_effects": "complete", "error_codes": [] },
+        "2": { "name": "ARG_ERROR", "description": "The resource name is invalid", "retryable": false, "side_effects": "none", "error_codes": ["INVALID_NAME"] },
+        "6": { "name": "CONFLICT", "description": "A resource with this name already exists; data holds it", "retryable": false, "side_effects": "none", "error_codes": ["ALREADY_EXISTS"] }
+      }
+    }
+  }
+}
+```
+Before the first call, an agent reads that exit `6` carries `error.code: "ALREADY_EXISTS"` and plans to take the existing resource from `data` (REQ-C-028). The empty list on `0` says the success exit carries no `error.code`.
+
 **Valid — idempotent command whose partial failure is rerun**
 ```json
 {
@@ -1020,6 +1045,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - `idempotent: true` — a non-retryable exit whose entry declares `side_effects: "partial"` (such as `PARTIAL_FAILURE (3)`, a `TIMEOUT (10)` that may have written, or `130`/`143` after a signal) is recovered by rerunning the identical command once, without inspecting state. A second failure with the same `error.code` is deterministic: stop and escalate
 - The rerun rule never covers `ARG_ERROR (2)` or any error carrying `fix_required` or `fix_command`: the identical call fails until the input changes, so apply the fix first. Exits with `side_effects: "none"` follow `retryable` as usual
 - An absent `idempotent` means `false`, including on a pre-3.15 manifest: verify what was committed before rerunning a mutating command
+- `error_codes` on an entry lists the `error.code` values that exit carries; plan a branch for each, then branch on the received `error.code`. An absent `error_codes` means not declared, never "none", including on a pre-3.19 manifest, where an entry cannot carry the field; `[]` means the exit carries no `error.code`
 
 **Reading declared contracts before calling**
 - `danger_level` other than `safe` — prefer `--dry-run` first; `safe_default: true` means the command previews until `--live` is passed

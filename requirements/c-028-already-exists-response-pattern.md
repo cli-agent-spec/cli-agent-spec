@@ -10,7 +10,7 @@
 
 ## Description
 
-Commands that create resources MUST handle the "resource already exists" case by returning a structured `ALREADY_EXISTS` response — not a generic error. The response MUST include the existing resource in the `data` field (identical to what a `get` command would return), set `"ok": false`, exit `6` (`CONFLICT`) with `error.code: "ALREADY_EXISTS"`, and set `"retryable": false`.
+Commands that create resources MUST handle the "resource already exists" case by returning a structured `ALREADY_EXISTS` response — not a generic error. The response MUST include the existing resource in the `data` field (identical to what a `get` command would return), set `"ok": false`, exit `6` (`CONFLICT`) with `error.code: "ALREADY_EXISTS"`, and set `"retryable": false`. The command's `CONFLICT (6)` entry SHOULD list `ALREADY_EXISTS` in its `error_codes`, so an agent reading the manifest knows before the first call that exit `6` means the resource already exists.
 
 This pattern allows agents that retry failed creates to recover gracefully: they receive the existing resource and can proceed as if the create succeeded. Without this pattern, agents must make a separate `get` call after every create failure to determine whether the failure was a conflict or a genuine error.
 
@@ -23,16 +23,28 @@ The inverse — delete on a non-existent resource — MUST exit `0` with `{"ok":
 - Agent can use `data` from the second call directly without a follow-up `get`
 - Delete of non-existent resource exits `0` with structured `not_found` confirmation
 - `CONFLICT (6)` is declared in the command's exit code table with a description naming the already-exists case
+- The `CONFLICT (6)` entry lists `"ALREADY_EXISTS"` in `error_codes`, together with any other `error.code` the command emits under exit `6`
 
 ---
 
 ## Schema
 
-[`exit-code-entry.md`](../schemas/exit-code-entry.md) — commands declare `CONFLICT (6)` for the already-exists case · [`response-envelope.md`](../schemas/response-envelope.md) — `data` carries the existing resource as a declared failure payload
+[`exit-code-entry.md`](../schemas/exit-code-entry.md) — commands declare `CONFLICT (6)` for the already-exists case, with `ALREADY_EXISTS` in `error_codes` · [`response-envelope.md`](../schemas/response-envelope.md) — `data` carries the existing resource as a declared failure payload
 
 ---
 
 ## Wire Format
+
+`tool resource create --schema` → `.exit_codes`:
+
+```json
+{
+  "exit_codes": {
+    "0": { "name": "SUCCESS",  "description": "The resource is created", "retryable": false, "side_effects": "complete" },
+    "6": { "name": "CONFLICT", "description": "A resource with this name already exists; data holds it", "retryable": false, "side_effects": "none", "error_codes": ["ALREADY_EXISTS"] }
+  }
+}
+```
 
 Create called on existing resource:
 
