@@ -1,0 +1,14 @@
+{
+  "extraKnownMarketplaces": {
+    "shipmill": {
+      "source": {
+        "source": "github",
+        "repo": "shipmill/shipmill"
+      },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": {
+    "shipmill@shipmill": true
+  }
+}
