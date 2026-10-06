@@ -21,7 +21,7 @@ Each entry SHOULD list in `error_codes` the `error.code` values ([REQ-C-013](c-0
 - Attempting to register an entry with `retryable: true` and `side_effects` not equal to `"none"` raises a framework error
 - The `--schema` output for every command includes an `exit_codes` object keyed by code string, each value conforming to `ExitCodeEntry`
 - A command that emits an exit code not in its declared map triggers a framework warning in development mode
-- When an entry declares `error_codes`, every response the command emits under that exit code carries an `error.code` from the list, or none when the list is empty; in development mode a code outside the list triggers a framework warning
+- When an entry declares `error_codes`, every response the command emits under that exit code carries an `error.code` from the list, or none when the list is empty
 
 ---
 
