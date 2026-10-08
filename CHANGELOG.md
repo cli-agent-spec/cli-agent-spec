@@ -30,6 +30,18 @@
 
 **Why:** the spec's only answer to "this is taking long" was a wall-clock timeout that kills the work. It cannot tell a long run from a hung one, it discards the progress made, and for input-dependent read-only work its retryable `TIMEOUT` sent the agent into the same timeout again (#82, #83). Merging REQ-O-012 and REQ-O-038 into one heartbeat and an `expected_duration` manifest hint, both decided in #83, are left to follow-up changes.
 
+## 1.14.0 — 2026-10-08
+
+### A read-only `TIMEOUT` is not retryable by default
+
+- REQ-C-014: the `TIMEOUT` acceptance criterion no longer says `side_effects: "none"` makes a timeout `retryable: true`. A `TIMEOUT` error's `retryable` equals the command's declared `TIMEOUT` entry; `side_effects: "partial"` forces `false`, and `side_effects: "none"` permits `true` without implying it
+- REQ-C-014: new acceptance criterion: a command whose run length depends on its input declares `TIMEOUT` with `retryable: false, side_effects: "none"`, and its error carries `error.fix_required` naming a larger `--timeout`. The wire format and example gain that case beside the retryable timeout
+- REQ-F-011: a command whose run length depends on its input declares a per-command default timeout sized for its expected inputs; no new mechanism
+- §19: the retry taxonomy no longer lists `TIMEOUT` as `retryable: true`, and the exit code alignment says `side_effects: "none"` is necessary for a retryable timeout, not sufficient
+- `exit-code-entry.md` and `exit-code.md` gain the input-dependent read-only timeout as a valid `retryable: false, side_effects: "none"` example and name declaring it retryable as a common mistake; the `TIMEOUT (10)` agent action in `exit-code.md` follows the entry's `retryable` and `fix_required`. No JSON schema changes
+
+**Why:** REQ-C-014 defines `retryable` as "the identical invocation, unchanged, may succeed", yet its criterion made every side-effect-free timeout retryable, though a read-only command whose run length depends on its input times out again on the identical re-run (#82).
+
 ## 1.13.0 — 2026-10-06
 
 ### ExitCodeEntry 1.1: `error_codes` names the `error.code` values under each exit

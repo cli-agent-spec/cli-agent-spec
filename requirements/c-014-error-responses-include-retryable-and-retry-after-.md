@@ -17,7 +17,8 @@ Every error response MUST include `error.retryable` (boolean): `true` only when 
 - Every error response includes `error.retryable` as a boolean
 - A `RATE_LIMITED` error includes `error.retry_after_ms > 0`
 - A `VALIDATION_ERROR` error has `error.retryable: false` and `error.fix_required` present
-- A `TIMEOUT` error from a command whose `TIMEOUT` entry declares `side_effects: "none"` has `retryable: true`; when the entry declares `side_effects: "partial"`, `retryable` MUST be `false`
+- A `TIMEOUT` error's `retryable` equals the `retryable` of the command's declared `TIMEOUT` entry; when the entry declares `side_effects: "partial"`, `retryable` MUST be `false`. `side_effects: "none"` permits `retryable: true` but does not imply it
+- A command whose run length depends on its input declares `TIMEOUT` with `retryable: false, side_effects: "none"`, and its `TIMEOUT` error carries `error.fix_required` naming a larger `--timeout`
 - The framework error registry maps all standard error codes to default `retryable` values
 
 ---
@@ -58,7 +59,7 @@ $ tool deploy --target prod
 }
 ```
 
-Timeout error from a command that declared `TIMEOUT` with `side_effects: "none"` (retryable, no delay):
+Timeout error from a command that declared `TIMEOUT` with `retryable: true, side_effects: "none"` (a transient stall the identical re-run can clear; retryable, no delay):
 
 ```json
 {
@@ -73,6 +74,24 @@ Timeout error from a command that declared `TIMEOUT` with `side_effects: "none"`
   },
   "warnings": [],
   "meta": { "exit_code": 10, "duration_ms": 30001 }
+}
+```
+
+Timeout error from a read-only command whose run length depends on its input, declared `TIMEOUT` with `retryable: false, side_effects: "none"` (the identical re-run times out again; raise `--timeout`, then reissue):
+
+```json
+{
+  "ok": false,
+  "data": null,
+  "error": {
+    "code": "TIMEOUT",
+    "message": "Scan of 48213 files exceeded the 30 s timeout",
+    "retryable": false,
+    "fix_required": "Reissue with a larger --timeout, such as --timeout 300s",
+    "phase": "execution"
+  },
+  "warnings": [],
+  "meta": { "exit_code": 10, "duration_ms": 30004, "timeout_ms": 30000 }
 }
 ```
 
@@ -109,6 +128,10 @@ register command "deploy":
     RATE_LIMITED(11): retryable: true, side_effects: none,
                       retry_after_ms: 30000, retry_strategy: exponential_backoff
     ARG_ERROR(2): retryable: false, side_effects: none
+
+register command "scan":       # read-only; run length grows with the input
+  exit_codes:
+    TIMEOUT (10): retryable: false, side_effects: none   # same input, same timeout
 ```
 
 ---

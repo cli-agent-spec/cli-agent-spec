@@ -57,7 +57,7 @@ Codes are sequential and grouped by category. The group boundaries are visible i
 
 | Code | Constant | Retryable | Side effects | Agent action |
 |------|----------|-----------|--------------|-------------|
-| 10 | `TIMEOUT` | depends | partial | Inspect state before retrying; retry directly only when the command declares `side_effects: "none"`, or rerun once unchanged when it declares `idempotent: true` |
+| 10 | `TIMEOUT` | depends | partial | Inspect state before retrying; retry directly only when the command's `TIMEOUT` entry declares `retryable: true` (which requires `side_effects: "none"`), reissue with a larger `--timeout` when `error.fix_required` names one, or rerun once unchanged when it declares `idempotent: true` |
 | 11 | `RATE_LIMITED` | yes | none | Retry after `error.retry_after_ms` milliseconds |
 | 12 | `UNAVAILABLE` | yes | none | Service temporarily down — apply exponential back-off, retry |
 
@@ -90,6 +90,17 @@ Codes are sequential and grouped by category. The group boundaries are visible i
 0
 3
 11
+```
+
+**Valid — `TIMEOUT` from a read-only command whose run length depends on its input**
+
+```json
+10
+```
+The command declares the code as `retryable: false` with `side_effects: "none"`: nothing was written, but the identical re-run times out again, so the error carries `fix_required` naming a larger `--timeout`:
+
+```json
+{ "name": "TIMEOUT", "description": "Scan exceeded --timeout; the same input needs a larger --timeout", "retryable": false, "side_effects": "none" }
 ```
 
 **Schema-valid but wrong by convention**
@@ -127,7 +138,9 @@ Violation: `128 + SIGINT` is shell-reserved. A command must not choose it; only 
 
 - **Emitting `TIMEOUT (10)` for work that goes on.** A command that hands its work to the background or saves it at a checkpoint when the caller's budget runs out has not timed out: it exits `INCOMPLETE (14)` with `data.continue_command`. `TIMEOUT` means the work stopped and its progress since the last checkpoint is gone
 
-- **Treating all `TIMEOUT (10)` exits as non-retryable.** For operations that time out before any write, declare `retryable: true, side_effects: "none"` in `ExitCodeEntry`. Declare `retryable: false` when partial writes may have occurred, even on a command declared `idempotent`: the `ExitCodeEntry` invariant requires it when `side_effects` is `"partial"`
+- **Treating all `TIMEOUT (10)` exits as non-retryable.** For operations that time out before any write on a transient stall the identical re-run can clear, declare `retryable: true, side_effects: "none"` in `ExitCodeEntry`. Declare `retryable: false` when partial writes may have occurred, even on a command declared `idempotent`: the `ExitCodeEntry` invariant requires it when `side_effects` is `"partial"`
+
+- **Declaring every read-only `TIMEOUT (10)` retryable.** `side_effects: "none"` permits `retryable: true` but does not imply it. A read-only command whose run length depends on its input (a scan of a large tree, a query over a large range) times out again on the identical re-run: declare `retryable: false, side_effects: "none"`, and the error carries `fix_required` naming a larger `--timeout`
 
 ---
 

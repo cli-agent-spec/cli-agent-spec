@@ -1206,4 +1206,4 @@ This section maps the P0 requirements from the requirements catalogue to existin
 
 ---
 
-*CLI Agent Spec v1.13 — 75 currently mapped failure modes, 12 solutions evaluated. Updated 2026-10-01.*
+*CLI Agent Spec v1.14 — 75 currently mapped failure modes, 12 solutions evaluated. Updated 2026-10-01.*

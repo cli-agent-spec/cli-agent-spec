@@ -54,6 +54,12 @@ In all examples, the integer code is the surrounding map key; entries do not con
 { "name": "TIMEOUT", "description": "Config read timed out — no writes were attempted", "retryable": true, "side_effects": "none" }
 ```
 
+**Valid — read-only timeout declared as non-retryable because run length depends on the input (map key `"10"`)**
+```json
+{ "name": "TIMEOUT", "description": "Scan exceeded --timeout; the same input needs a larger --timeout", "retryable": false, "side_effects": "none" }
+```
+The identical re-run times out again, so `retryable` stays `false` though nothing was written; the error carries `error.fix_required` naming a larger `--timeout` ([REQ-C-014](../requirements/c-014-error-responses-include-retryable-and-retry-after-.md)).
+
 **Valid — conflict exit that names its `error.code` (map key `"6"`)**
 ```json
 { "name": "CONFLICT", "description": "A resource with this name already exists; data holds it", "retryable": false, "side_effects": "none", "error_codes": ["ALREADY_EXISTS"] }
@@ -86,6 +92,7 @@ Violation: `retryable` and `side_effects` are required.
 - **Using vague descriptions like `"Error"` or `"Failed"`.** The description must state the condition specifically so an agent can act without reading message text
 - **Setting `retryable: true` when side effects may have occurred.** The invariant is a hard guarantee. If any write could have occurred, `side_effects` must be `"partial"` and `retryable` must be `false`, even when rerunning is safe; declare that on the command as `idempotent: true` ([`manifest-response.md`](manifest-response.md))
 - **Setting `retryable: true` on validation errors.** Safe is not the same as useful: the identical call fails deterministically until the input changes. Declare `retryable: false`; the envelope carries `fix_required` for the correction
+- **Declaring `TIMEOUT` retryable because the command is read-only.** `side_effects: "none"` permits `retryable: true` but does not imply it. When run length depends on the input, the identical re-run times out again: declare `retryable: false, side_effects: "none"`, and the error carries `fix_required` naming a larger `--timeout`
 - **Using `side_effects: "complete"` on failure codes.** `"complete"` means the intended operation finished — it is only appropriate for `SUCCESS (0)`
 - **Declaring only the happy path.** Every code the command may emit must have an entry. An undeclared code emitted at runtime is a contract violation
 - **Listing an `error.code` the command never emits under that exit.** `error_codes` is a promise about this exit only. A code emitted under a different exit belongs in that exit's entry, and a code the command never emits misleads the agent's branch planning
