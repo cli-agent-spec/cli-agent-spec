@@ -10,7 +10,7 @@
 
 ## Description
 
-The framework MUST apply a default wall-clock timeout to every command execution. The default value MUST be configurable at the framework level and overridable per command. A command that exceeds its timeout MUST be terminated by the framework, not left to run indefinitely. The timeout MUST be enforced even if the command itself does not implement any timeout logic.
+The framework MUST apply a default wall-clock timeout to every command execution. The default value MUST be configurable at the framework level and overridable per command. A command whose run length depends on its input declares a per-command default sized for its expected inputs, since a timeout on it is not cleared by re-running the identical invocation (REQ-C-014). A command that exceeds its timeout MUST be terminated by the framework, not left to run indefinitely. The timeout MUST be enforced even if the command itself does not implement any timeout logic.
 
 ## Acceptance Criteria
 
