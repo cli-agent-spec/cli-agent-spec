@@ -76,7 +76,10 @@ exit 11
 ```
 retryable: false → VALIDATION_ERROR, NOT_FOUND, PERMISSION_DENIED, CONFLICT
                    (fix-then-retry cases carry fix_required with the correction)
-retryable: true  → TIMEOUT, SERVICE_UNAVAILABLE, RATE_LIMITED, NETWORK_ERROR
+retryable: true  → SERVICE_UNAVAILABLE, RATE_LIMITED, NETWORK_ERROR
+TIMEOUT          → as the command's TIMEOUT entry declares: false when it
+                   declares side_effects: "partial"; false with fix_required
+                   (a larger --timeout) when run length depends on the input
 INTERNAL_ERROR   → retryable: false by default; a command may declare it true
                    when the failure is known to be transient
 ```
@@ -85,8 +88,9 @@ INTERNAL_ERROR   → retryable: false by default; a command may declare it true
 ```
 Exit 11 (RATE_LIMITED)      → retryable, wait error.retry_after_ms
 Exit 12 (UNAVAILABLE)       → retryable, exponential back-off
-Exit 10 (TIMEOUT)           → retryable only when the command declares
-                              side_effects: "none" for TIMEOUT
+Exit 10 (TIMEOUT)           → retryable only when the command's TIMEOUT
+                              entry declares retryable: true, which requires
+                              side_effects: "none" but does not follow from it
 Exit 7 (PERMISSION_DENIED)  → never retryable without auth change
 Exit 2 (ARG_ERROR)          → never retryable without arg change
 ```
@@ -159,7 +163,8 @@ def run_with_retry(cmd: list[str], max_attempts: int = 3) -> dict:
 **Map exit codes to retry decisions when `retryable` field is absent:**
 ```python
 # Exit codes that are retryable per the spec's standard table
-# (10 = TIMEOUT is only safe when the command declares side_effects: "none")
+# (10 = TIMEOUT is only safe when the command's TIMEOUT entry declares
+#  retryable: true; side_effects: "none" alone is not enough)
 RETRYABLE_EXIT_CODES = {10, 11, 12}  # TIMEOUT, RATE_LIMITED, UNAVAILABLE
 # Exit codes that are never retryable without changing something first
 PERMANENT_EXIT_CODES = {2, 3, 5, 6, 7}  # ARG_ERROR, PARTIAL_FAILURE, NOT_FOUND, CONFLICT, PERMISSION_DENIED
