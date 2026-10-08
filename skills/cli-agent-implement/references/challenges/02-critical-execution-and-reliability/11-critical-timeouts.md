@@ -77,7 +77,7 @@ $ tool long-operation --format json
 
 **For framework design:**
 - Every command has a default timeout; `--timeout 0` means no timeout (must be explicit)
-- Timeout exits with a specific code (e.g., `7`) and always emits JSON error
+- Timeout exits with `TIMEOUT (10)` and always emits JSON error
 - Provide `--heartbeat-interval` to control stderr progress frequency
 - Track and report wall time in every JSON response's `meta.duration_ms`
 
