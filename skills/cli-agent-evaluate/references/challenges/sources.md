@@ -142,6 +142,7 @@ Discovered by reviewing two external agent-native CLI projects.
 | [§69](01-critical-ecosystem-runtime-agent-specific/69-high-argument-order-ambiguity.md) | Argument Order Ambiguity | FP | Derived from parser mode differences across argparse/Click/Cobra/Commander.js |
 | [§70](01-critical-ecosystem-runtime-agent-specific/70-high-single-argument-arity.md) | Single-Argument Arity Forcing Agent Loop Overhead | FP | Derived from observed agent error: `ws delete` passed multiple paths, argparse rejected extras; UNIX convention (rm/cp/mv accept nargs=+) creates universal agent expectation |
 | [§78](01-critical-ecosystem-runtime-agent-specific/78-high-output-flag-meaning-collision.md) | Output Flag Meaning Collision | FP | Derived from the split meaning of `--output`/`-o`: a format in aws/kubectl/az/helm, a destination path in gcc/curl/sort/pandoc |
+| [§79](02-critical-execution-and-reliability/79-critical-work-outlives-budget.md) | Work Outlives the Caller's Budget | FP | Derived from the agent's fixed per-call budget meeting run lengths that depend on input; observed in a read-only analysis command whose retryable `TIMEOUT` repeated on every identical rerun (cli-agent-spec#82, #83) |
 
 ---
 

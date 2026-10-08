@@ -2,7 +2,7 @@
 
 **File:** [`exit-code.json`](exit-code.json)
 
-> **Used by:** [REQ-F-001](../requirements/f-001-standard-exit-code-table.md) · [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-013](../requirements/c-013-error-responses-include-code-and-message.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md)
+> **Used by:** [REQ-F-001](../requirements/f-001-standard-exit-code-table.md) · [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-013](../requirements/c-013-error-responses-include-code-and-message.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-F-082](../requirements/f-082-incomplete-work-response.md)
 
 ---
 
@@ -67,10 +67,16 @@ Codes are sequential and grouped by category. The group boundaries are visible i
 |------|----------|-----------|--------------|-------------|
 | 13 | `REDIRECTED` | after fix* | none | Use `error.redirect.command` verbatim; if `error.redirect.permanent` is true, memorize — never call the old form again |
 
+### Continuation — work not finished, not lost
+
+| Code | Constant | Retryable | Side effects | Agent action |
+|------|----------|-----------|--------------|-------------|
+| 14 | `INCOMPLETE` | per entry | none or partial | Run `data.continue_command` verbatim; stop and run `data.cancel_command` when `data.progress.done` stops growing across continuations (REQ-F-082) |
+
 \* *after fix*: the identical invocation fails until the caller corrects the stated condition, then reissues. Declared as `retryable: false` in `ExitCodeEntry`; the envelope carries `fix_required` (or `error.redirect`) with the correction.
 
 **Reserved ranges:**
-- `14–63` framework extensions
+- `15–63` framework extensions
 - `64–78` POSIX sysexits compatibility (optional mapping)
 - `79–125` command-specific (declare per REQ-C-001)
 - `126–255` shell-reserved: commands MUST NOT emit these; framework signal handlers alone emit `128 + N` (`130` on SIGINT per REQ-F-069, `143` on SIGTERM per REQ-F-013), declared in every command's `exit_codes` with `retryable: false` and `side_effects: "partial"`
@@ -91,14 +97,14 @@ Codes are sequential and grouped by category. The group boundaries are visible i
 ```json
 1
 ```
-Violation: `GENERAL_ERROR` is a last resort. If the condition matches any specific code (3–13), use that code instead.
+Violation: `GENERAL_ERROR` is a last resort. If the condition matches any specific code (3–14), use that code instead.
 
 **Invalid — framework extension range**
 
 ```json
-14
+15
 ```
-Violation: code `14` is in the framework extensions range (`14–63`), reserved for future use. Commands must not emit it.
+Violation: code `15` is in the framework extensions range (`15–63`), reserved for future use. Commands must not emit it.
 
 **Invalid — shell-reserved range**
 
@@ -119,6 +125,8 @@ Violation: `128 + SIGINT` is shell-reserved. A command must not choose it; only 
 
 - **Confusing `PERMISSION_DENIED (7)` and `AUTH_REQUIRED (8)`.** `PERMISSION_DENIED` means the credentials are valid but insufficient — retrying with the same credentials will never succeed. `AUTH_REQUIRED` means the credentials themselves are the problem
 
+- **Emitting `TIMEOUT (10)` for work that goes on.** A command that hands its work to the background or saves it at a checkpoint when the caller's budget runs out has not timed out: it exits `INCOMPLETE (14)` with `data.continue_command`. `TIMEOUT` means the work stopped and its progress since the last checkpoint is gone
+
 - **Treating all `TIMEOUT (10)` exits as non-retryable.** For operations that time out before any write, declare `retryable: true, side_effects: "none"` in `ExitCodeEntry`. Declare `retryable: false` when partial writes may have occurred, even on a command declared `idempotent`: the `ExitCodeEntry` invariant requires it when `side_effects` is `"partial"`
 
 ---
@@ -128,7 +136,7 @@ Violation: `128 + SIGINT` is shell-reserved. A command must not choose it; only 
 Rules for agents consuming exit codes at runtime. Apply these when the response is ambiguous, contradictory, or outside the known table.
 
 **Unknown code received**
-- Code in `14–63` — framework extension; treat as `GENERAL_ERROR (1)` behavior: inspect `error.detail`, do not assume retryability
+- Code in `15–63` — framework extension; treat as `GENERAL_ERROR (1)` behavior: inspect `error.detail`, do not assume retryability
 - Code in `64–78` — POSIX sysexit; look up the POSIX meaning; treat as non-retryable unless the meaning clearly indicates a transient condition
 - Code in `79–125` — command-specific; consult that command's `exit_codes` declaration from the manifest before acting
 - Code `126` or `127` — the binary could not be executed or was not found; the command never ran; fix the environment, then reissue
@@ -146,6 +154,7 @@ Rules for agents consuming exit codes at runtime. Apply these when the response 
 - Codes marked *after fix* — apply the fix stated in `error.fix_required` (or `error.redirect`), reissue once; if no fix is stated, treat as terminal
 - `RATE_LIMITED (11)` without `error.retry_after_ms` — default to 60 seconds before retrying
 - `UNAVAILABLE (12)` — use exponential back-off starting at 1s, cap at 5 minutes
+- `INCOMPLETE (14)` — not a retry: run `data.continue_command`, which is either a wait on the running job or the original invocation resuming from its checkpoint. Compare `data.progress.done` between continuations; when it has not grown over three of them, run `data.cancel_command` and escalate
 
 **Side effects under uncertainty**
 - Code is `GENERAL_ERROR (1)` (side effects unknown) — treat as `side_effects: "partial"`; inspect state before retrying
@@ -188,4 +197,5 @@ Rules for agents consuming exit codes at runtime. Apply these when the response 
 - The hard invariants that commands may not relax: `ARG_ERROR (2)` is always `side_effects: none`; `PARTIAL_FAILURE (3)` is always `retryable: false`; `SUCCESS (0)` is the only code with `side_effects: complete`
 - `ARG_ERROR (2)` requires a hard phase boundary between validation and execution. No side effect may begin before this code can be emitted
 - `AUTH_REQUIRED (8)` intentionally does not distinguish expired from invalid at the exit code level. The distinction is in `error.code` in the JSON payload — a more controlled channel. See [`response-envelope.json`](response-envelope.json) `ErrorDetail.code` values: `TOKEN_EXPIRED`, `TOKEN_INVALID`, `TOKEN_MISSING`
+- `INCOMPLETE (14)` requires `data.continue_command` and `data.progress` in the response (REQ-F-082). Its `retryable` follows the command's declared entry: `true` with `side_effects: "none"` for read-only work, whose identical re-run continues; `false` with `side_effects: "partial"` for mutating work, which the agent continues through `continue_command` rather than retries
 - `REDIRECTED (13)` requires the `error.redirect` field in the response. See [`response-envelope.json`](response-envelope.json) `Redirect` definition

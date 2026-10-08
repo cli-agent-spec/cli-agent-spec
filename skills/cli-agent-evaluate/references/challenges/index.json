@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "active_count": 75,
+  "active_count": 76,
   "failure_modes": [
     {
       "id": 1,
@@ -282,6 +282,7 @@
       "requirements": [
         "REQ-C-012",
         "REQ-C-032",
+        "REQ-C-034",
         "REQ-F-011",
         "REQ-F-012",
         "REQ-F-039",
@@ -338,6 +339,7 @@
       "requirements": [
         "REQ-C-008",
         "REQ-C-009",
+        "REQ-C-035",
         "REQ-O-010",
         "REQ-O-011"
       ],
@@ -415,6 +417,7 @@
       "limitation": "If the tool installs no SIGTERM handler, it dies instantly with no output — the agent receives exit 143 with empty stdout and cannot determine what state was left behind; assume the operation is in an unknown partial state and verify before retrying",
       "requirements": [
         "REQ-C-017",
+        "REQ-C-035",
         "REQ-F-013",
         "REQ-F-014",
         "REQ-F-069"
@@ -1183,6 +1186,7 @@
       "limitation": "If the tool provides no `status_command` or `terminal` field, the agent must guess whether exit 0 means \"status query succeeded\" or \"job completed\" — use the presence of a `result` field in the response as a proxy for completion, but this is fragile and tool-specific",
       "requirements": [
         "REQ-C-022",
+        "REQ-F-081",
         "REQ-O-038"
       ],
       "triage_rows": [],
@@ -1884,6 +1888,38 @@
       ],
       "problem": "Agents learn what `--output` means from two traditions that disagree. Cloud CLIs read it as a representation: `aws --output json`, `kubectl -o json`, `az -o table`, `helm -o yaml`. Build and transfer tools read it as a destination path: `gcc -o main`, `curl -o page.html`, `sort -o sorted.txt`, `pandoc -o doc.pdf`. An agent that wants JSON reaches for `--output json` or `-o json` by habit, whatever the tool in front of it does with that flag.\n\nWhen the tool's `--output` takes a path, the call succeeds:\n\n```bash\n$ tool export --output json\n$ echo $?\n0\n$ ls\njson\n```\n\nThe result went into a file named `json` in the working directory. Stdout is empty, or carries a one-line human summary (`Exported 42 records`). Nothing on stdout or stderr says the flag was read as a path. The agent sees exit `0`, finds no data to parse, and typically retries with other flags or reports that the command returned nothing. Each retry may write or overwrite another stray file.\n\nThe mirror case is louder but still costly: a tool whose `--output` selects a format, called with `--output report.json` by an agent that wanted a file, fails with an \"invalid choice\" error, and the agent has to rediscover which flag writes files.\n\n`--format` has its own silent case. Some tools accept a template in `--format` as well as named formats, and read any value that is not a known name as literal template text. `docker` reads any value other than `json` or `table` as a Go template, so the typo `docker version --format jsn` exits `0` and prints `jsn`. The agent gets well-formed but meaningless lines instead of an error.\n\nShort aliases make it worse. `-o` has the same split, and a tool may bind `-o` to a path while its long `--output` does not exist, so even `--help` inspection keyed on the long name misses it.",
       "workaround": "**Signature:** `exit 0` with empty or non-JSON stdout after passing `--output <format>` or `-o <format>`; a file named after the format value (`json`, `yaml`, `table`) appears in the working directory; or `exit 0` after `--format <value>` with stdout repeating that literal value on every line\n\n**Tier:** B (one observable check, then one command)\n\n**Check the flag's type in `--help` before using it; if a stray file appeared, remove it and rerun with `--format`:**\n\n```python\nimport os\nimport re\nimport subprocess\n\nFORMAT_NAMES = {\"json\", \"jsonl\", \"yaml\", \"yml\", \"table\", \"text\", \"plain\", \"tsv\", \"csv\", \"id\"}\n\ndef output_takes_path(help_text: str) -> bool:\n    \"\"\"True when --output/-o is documented with a path-like metavar or wording.\"\"\"\n    for line in help_text.splitlines():\n        if re.search(r\"(^|\\s)(-o|--output)\\b\", line):\n            return bool(re.search(r\"FILE|PATH|DIR|<file>|<path>|write .* to|destination\", line, re.I))\n    return False\n\ndef run_for_json(cmd: list[str]) -> subprocess.CompletedProcess:\n    help_text = subprocess.run([*cmd, \"--help\"], capture_output=True, text=True).stdout\n    flag = [\"--format\", \"json\"] if \"--format\" in help_text or output_takes_path(help_text) else [\"--output\", \"json\"]\n    before = set(os.listdir(\".\"))\n    result = subprocess.run([*cmd, *flag], capture_output=True, text=True)\n    stray = {name for name in set(os.listdir(\".\")) - before if name.lower() in FORMAT_NAMES}\n    for name in stray:\n        os.remove(name)\n    if stray and flag[0] == \"--output\":\n        result = subprocess.run([*cmd, \"--format\", \"json\"], capture_output=True, text=True)\n    return result\n```\n\nIf every stdout line equals the `--format` value you passed, the tool read it as a template: rerun with `--json` if listed, or with a template the tool documents (`--format '{{json .}}'` for `docker`), and parse that.\n\nWhen `--help` shows neither `--format` nor a path hint, prefer `--json` if it is listed, then `--format json`, and only then `--output json`; after any call with `--output`, compare the working directory listing against the one taken before the call.\n\n**Limitation:** A tool that writes the file somewhere other than the working directory, or under a name that is not the bare format value, leaves no stray file to detect; and `--help` wording is free text, so the path check is a heuristic that one failed call may be needed to confirm"
+    },
+    {
+      "id": 79,
+      "title": "Work Outlives the Caller's Budget",
+      "path": "challenges/02-critical-execution-and-reliability/79-critical-work-outlives-budget.md",
+      "part": "02-critical-execution-and-reliability",
+      "status": "active",
+      "severity": "critical",
+      "frequency": "Common",
+      "detectability": "Hard",
+      "token_spend": "High",
+      "time": "Critical",
+      "context": "Medium",
+      "signature": "a call killed by the harness's timeout (`exit 124`, `137`, or `143`) with little or no stdout, or `exit 10` with `\"code\": \"TIMEOUT\"` again on the identical rerun at about the same `duration_ms`",
+      "tier": "C",
+      "limitation": "The work is not checkpointed, so a kill or a lost session still discards it and the next run starts over; a tool that reports no progress gives no way to tell a slow run from a hung one, and a harness that kills orphaned processes at the end of a call or session defeats the background run",
+      "requirements": [
+        "REQ-C-033",
+        "REQ-C-034",
+        "REQ-C-035",
+        "REQ-F-080",
+        "REQ-F-081",
+        "REQ-F-082"
+      ],
+      "triage_rows": [
+        1,
+        3,
+        14
+      ],
+      "problem": "How long a command runs often depends on what it is given: the size of a file, the load of a remote service, the shape of the data. The caller cannot know it in advance, and the command cannot know the caller's limit. An agent's harness gives every tool call a fixed per-call budget, and a command that has not finished within it is killed. Nothing tells the agent, before or during the call, that this run needs longer.\n\n**The work is killed, and the time is lost:**\n```bash\n$ tool analyze big.csv\n# ... no output for 120 s ...\n# the harness kills the call: exit 143, empty stdout\n# 120 s of computation discarded; the agent knows nothing about how far it got\n```\n\n**The tool's own timeout tells the agent to retry into the same wall:**\n```json\n{\n  \"ok\": false,\n  \"data\": null,\n  \"error\": { \"code\": \"TIMEOUT\", \"message\": \"Command exceeded timeout of 60000ms\", \"retryable\": true },\n  \"warnings\": [],\n  \"meta\": { \"exit_code\": 10, \"duration_ms\": 60004, \"timeout_ms\": 60000 }\n}\n```\nA read-only command declares its timeout retryable because it wrote nothing. But its run length depends on its input, so the identical re-run times out again, at the same point, every time.\n\n**Raising the limit only moves the wall:**\n```bash\n$ tool analyze big.csv --timeout 0\n# the tool no longer stops itself, so the harness's own budget kills it instead\n```\n\n**Liveness signals do not reach a blocked caller.** Heartbeats and progress lines on stderr help a caller that reads the stream as it arrives. A harness that runs the command in the foreground sees its output only after exit, so a working command and a hung one look the same until the call is killed. The one moment the agent reliably reads is the process exit, and it comes too late.\n\nPieces of a fix exist elsewhere and do not cover this: an async command ([§49](../01-critical-ecosystem-runtime-agent-specific/49-high-async-job-polling.md)) returns a job at once, but only when its author knew in advance that it is always slow; `--resume-from` ([§13](13-critical-partial-failure.md)) needs a step name and an explicit flag; a SIGTERM handler ([§16](16-high-signal-handling.md)) saves state only when the signal arrives, and SIGKILL never does.",
+      "workaround": "**Signature:** a call killed by the harness's timeout (`exit 124`, `137`, or `143`) with little or no stdout, or `exit 10` with `\"code\": \"TIMEOUT\"` again on the identical rerun at about the same `duration_ms`\n\n**Tier:** C (stateful logic; weak models apply the fallback below)\n**Fallback:** rerun once in the background with output to a file, then read the file in bounded checks; if it fails again, escalate with the command, exit code, stdout, and stderr\n\n**Run the command outside the call's budget and poll it:**\n\n```python\nimport json, os, subprocess, time\n\ndef run_long(cmd: list[str], log_dir: str, check_every_s: int = 20, max_checks: int = 30) -> dict:\n    out_path = os.path.join(log_dir, \"out.json\")\n    err_path = os.path.join(log_dir, \"err.log\")\n    with open(out_path, \"w\") as out, open(err_path, \"w\") as err:\n        proc = subprocess.Popen(\n            cmd + [\"--timeout\", \"0\"],          # only when the tool has the flag\n            stdin=subprocess.DEVNULL, stdout=out, stderr=err,\n            start_new_session=True,           # survives the call that started it\n        )\n    for _ in range(max_checks):               # in a harness, each check is its own short tool call\n        if proc.poll() is not None:\n            return json.loads(open(out_path).read().strip().splitlines()[-1])\n        time.sleep(check_every_s)             # stderr growth between checks is the only liveness hint\n    os.killpg(proc.pid, 15)\n    return {\"ok\": False, \"error\": {\"code\": \"TIMEOUT\", \"message\": f\"no result after {max_checks} checks\"}}\n```\n\n**Limitation:** The work is not checkpointed, so a kill or a lost session still discards it and the next run starts over; a tool that reports no progress gives no way to tell a slow run from a hung one, and a harness that kills orphaned processes at the end of a call or session defeats the background run",
+      "fallback": "rerun once in the background with output to a file, then read the file in bounded checks; if it fails again, escalate with the command, exit code, stdout, and stderr"
     }
   ]
 }

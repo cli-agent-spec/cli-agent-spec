@@ -260,6 +260,35 @@
           "additionalProperties": true,
           "description": "JSON Schema for the job descriptor returned in data by an async command. Sourced from REQ-C-022."
         },
+        "interruption": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["detach", "resume"],
+          "properties": {
+            "detach": {
+              "type": "boolean",
+              "description": "True when the work continues in a background job after the sync call budget runs out, and the call returns INCOMPLETE (14) with state running. Sourced from REQ-F-081."
+            },
+            "resume": {
+              "type": "boolean",
+              "description": "True when the command saves checkpoints, so the identical invocation continues the work after an interruption instead of starting over. Sourced from REQ-C-035."
+            },
+            "idle_timeout_ms": {
+              "type": "integer",
+              "minimum": 1000,
+              "description": "How long a background job may go without progress before it ends as stalled; absent means the framework default. Sourced from REQ-F-081."
+            },
+            "max_lifetime_ms": {
+              "type": "integer",
+              "minimum": 1000,
+              "description": "Upper bound on the whole work, across continuations, when the caller passes no --timeout; absent means the framework default. Sourced from REQ-F-081."
+            }
+          },
+          "not": {
+            "properties": { "detach": { "const": false }, "resume": { "const": false } }
+          },
+          "description": "How the command's work survives the caller's sync call budget: handed to the background (detach), saved at checkpoints (resume), or both. Absent means neither, and the wall-clock timeout of REQ-F-011 applies. Sourced from REQ-C-033."
+        },
         "requires_editor": {
           "type": "boolean",
           "description": "True when the command opens $EDITOR or $VISUAL unless an alternative flag is supplied. Sourced from REQ-C-023."
@@ -361,6 +390,7 @@
                 { "required": ["spawns_background_process"], "properties": { "spawns_background_process": { "const": true } } },
                 { "required": ["cleanup_command"] },
                 { "required": ["max_lifetime_seconds"] },
+                { "required": ["interruption"] },
                 { "required": ["confirm_flag"] },
                 { "required": ["safe_default"], "properties": { "safe_default": { "const": true } } }
               ]
@@ -370,6 +400,16 @@
         {
           "if": { "required": ["protocol"] },
           "then": { "required": ["stdout"] }
+        },
+        {
+          "if": { "required": ["interruption"] },
+          "then": {
+            "properties": {
+              "exit_codes": { "required": ["14"] },
+              "async": { "const": false },
+              "streaming_default": { "const": false }
+            }
+          }
         },
         {
           "if": { "required": ["confirm_flag"] },

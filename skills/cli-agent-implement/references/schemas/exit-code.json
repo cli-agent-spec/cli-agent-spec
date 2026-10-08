@@ -4,7 +4,7 @@
   "title": "ExitCode",
   "description": "Reserved integer codes for all framework-managed exit conditions. Commands MUST reference named constants; literal integers are not permitted",
   "type": "integer",
-  "enum": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+  "enum": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
   "x-enum-varnames": [
     "SUCCESS",
     "GENERAL_ERROR",
@@ -19,7 +19,8 @@
     "TIMEOUT",
     "RATE_LIMITED",
     "UNAVAILABLE",
-    "REDIRECTED"
+    "REDIRECTED",
+    "INCOMPLETE"
   ],
   "x-enum-descriptions": [
     "Operation completed as intended.",
@@ -35,7 +36,8 @@
     "The operation exceeded its time limit. External state may be partially modified. Inspect state before retrying unless the command declares side_effects: none.",
     "An upstream rate limit was hit. No side effects occurred. Retry after error.retry_after_ms milliseconds.",
     "The service is temporarily unavailable. No side effects occurred. Retry with exponential back-off.",
-    "The command or flag does not exist at this path. Read error.redirect for the replacement. If error.redirect.permanent is true, memorize and never call the old form again."
+    "The command or flag does not exist at this path. Read error.redirect for the replacement. If error.redirect.permanent is true, memorize and never call the old form again.",
+    "The work is not finished and is not lost: it runs on in the background or is saved at a checkpoint. Run data.continue_command verbatim."
   ],
   "x-groups": {
     "success":        [0],
@@ -44,11 +46,12 @@
     "resource":       [5, 6],
     "auth":           [7, 8, 9],
     "infrastructure": [10, 11, 12],
-    "routing":        [13]
+    "routing":        [13],
+    "continuation":   [14]
   },
   "x-code-ranges": {
-    "0-13":    "framework-reserved (this schema)",
-    "14-63":   "framework extensions — reserved for future use",
+    "0-14":    "framework-reserved (this schema)",
+    "15-63":   "framework extensions — reserved for future use",
     "64-78":   "POSIX sysexits compatibility (optional mapping)",
     "79-125":  "command-specific — must be declared per REQ-C-001",
     "126-255": "shell-reserved — commands MUST NOT emit these; only framework signal handlers emit 128 + signal number (130 SIGINT per REQ-F-069, 143 SIGTERM per REQ-F-013)"

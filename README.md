@@ -2,7 +2,7 @@
 
 **Your CLI tool works perfectly for humans. For AI agents, it silently hangs, corrupts data, leaks secrets, and exhausts context windows — and you would never know.**
 
-This is a specification for building CLI tools that AI agents can call reliably: **75 documented failure modes**, **160 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
+This is a specification for building CLI tools that AI agents can call reliably: **76 documented failure modes**, **166 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
 
 > **No existing CLI framework covers more than 59% of the currently mapped failure modes.**
 
@@ -38,14 +38,14 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 ## What this spec defines
 
-**75 failure modes** — each documented with severity, frequency, detectability, token cost, time cost, and context cost from the agent's perspective. Grouped into 7 parts: ecosystem/runtime, execution, security, output, environment, errors, and observability.
+**76 failure modes** — each documented with severity, frequency, detectability, token cost, time cost, and context cost from the agent's perspective. Grouped into 7 parts: ecosystem/runtime, execution, security, output, environment, errors, and observability.
 
-**160 requirements** across 3 tiers:
+**166 requirements** across 3 tiers:
 
 | Tier | Count | Who implements it |
 |------|-------|------------------|
-| **F** — Framework-Automatic | 78 | The framework enforces it; command authors get it for free |
-| **C** — Command Contract | 32 | Command authors declare it at registration |
+| **F** — Framework-Automatic | 81 | The framework enforces it; command authors get it for free |
+| **C** — Command Contract | 35 | Command authors declare it at registration |
 | **O** — Opt-In | 50 | Applications enable it explicitly |
 
 **6 canonical JSON schemas** — machine-readable type definitions for `ExitCode`, `ExitCodeEntry`, `ResponseEnvelope`, `ManifestResponse`, `DispatchRequest`, and `AuditLogEntry`. Generate typed structs for your language directly from the schemas. Every JSON example in the spec prose is validated against them in CI.
@@ -56,7 +56,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 ## The three contracts that matter most
 
-**Exit codes** — 14 named codes (0–13) with machine-readable guarantees per code: `retryable: true/false`, `side_effects: "none" | "partial" | "complete"`. An agent receiving exit 11 (`RATE_LIMITED`) knows nothing was written and the call is safe to retry after back-off. Receiving exit 3 (`PARTIAL_FAILURE`) knows some writes happened and it must inspect state before retrying. Receiving exit 6 (`CONFLICT`) knows the resource already exists and a retry cannot succeed. See [`exit-code.json`](schemas/exit-code.json).
+**Exit codes** — 15 named codes (0–14) with machine-readable guarantees per code: `retryable: true/false`, `side_effects: "none" | "partial" | "complete"`. An agent receiving exit 11 (`RATE_LIMITED`) knows nothing was written and the call is safe to retry after back-off. Receiving exit 3 (`PARTIAL_FAILURE`) knows some writes happened and it must inspect state before retrying. Receiving exit 6 (`CONFLICT`) knows the resource already exists and a retry cannot succeed. See [`exit-code.json`](schemas/exit-code.json).
 
 **Response envelope** — every command wraps its output in `{ ok, data, error, warnings, meta }`. The same keys are always present, and `meta.exit_code` repeats the process exit code so an agent holding only stdout can still classify the outcome. Errors and warnings carry stable codes; agents never parse free text to determine success or failure. See [`response-envelope.json`](schemas/response-envelope.json).
 
@@ -68,8 +68,8 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 | Path | Contents |
 |------|----------|
-| [`challenges/`](challenges/index.md) | 75 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround; [`index.json`](challenges/index.json) carries the same taxonomy as data |
-| [`requirements/`](requirements/index.md) | 160 requirements with acceptance criteria, wire format, and examples, grouped into three [conformance levels](requirements/levels.md) |
+| [`challenges/`](challenges/index.md) | 76 failure modes, each with problem, impact, solutions, 0–3 evaluation rubric, and agent workaround; [`index.json`](challenges/index.json) carries the same taxonomy as data |
+| [`requirements/`](requirements/index.md) | 166 requirements with acceptance criteria, wire format, and examples, grouped into three [conformance levels](requirements/levels.md) |
 | [`conformance/`](conformance/README.md) | Deterministic conformance kit: probes a CLI and reports pass or fail per check and per level |
 | [`schemas/`](schemas/index.md) | JSON Schema draft-07 definitions for all 5 types |
 | [`guides/`](guides/index.md) | Design guides: positive conventions that cannot be expressed as enforceable requirements |
@@ -85,7 +85,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 The field is converging on **Agent Experience (AX)** as the term for "how well is a system designed to be consumed by an AI agent" — the machine-facing analog of Developer Experience (DX) or User Experience (UX). It applies across APIs, databases, SDKs, web services, and CLIs.
 
-This spec is AX research applied to the CLI layer. CLIs are the most underserved slice of the problem: they are the primary interface through which agents interact with infrastructure, but they were designed for human terminal sessions. The gap between CLI defaults and agent requirements is where the 75 failure modes live.
+This spec is AX research applied to the CLI layer. CLIs are the most underserved slice of the problem: they are the primary interface through which agents interact with infrastructure, but they were designed for human terminal sessions. The gap between CLI defaults and agent requirements is where the 76 failure modes live.
 
 **What distinguishes this project from other AX work:**
 
@@ -149,4 +149,4 @@ Before contributing, read [`AGENTS.md`](AGENTS.md) for conventions: file format,
 
 ---
 
-*CLI Agent Spec v1.13 — 75 failure modes · 160 requirements · 6 canonical schemas · 12 frameworks evaluated*
+*CLI Agent Spec v1.13 — 76 failure modes · 166 requirements · 6 canonical schemas · 12 frameworks evaluated*

@@ -118,3 +118,52 @@ def test_error_codes_rejects_values_the_envelope_cannot_carry(manifest_validator
 
 def test_error_codes_keep_the_retryable_invariant(manifest_validator) -> None:
     assert errors(manifest_validator, exit_entry(error_codes=["BUSY"], retryable=True, side_effects="partial")) != []
+
+
+INCOMPLETE_ENTRY = {"name": "INCOMPLETE", "description": "The work continues; run data.continue_command", "retryable": True, "side_effects": "none"}
+
+
+def interruptible(interruption: object, **fields: Any) -> dict[str, Any]:
+    return manifest(interruption=interruption, exit_codes={"14": INCOMPLETE_ENTRY}, **fields)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        {"detach": True, "resume": True},
+        {"detach": True, "resume": False},
+        {"detach": False, "resume": True, "idle_timeout_ms": 300000, "max_lifetime_ms": 3600000},
+    ],
+)
+def test_interruption_accepts_detach_or_resume(manifest_validator, value: dict[str, object]) -> None:
+    assert errors(manifest_validator, interruptible(value)) == []
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        {"detach": False, "resume": False},
+        {"detach": True},
+        {"detach": True, "resume": True, "idle_timeout_ms": 0},
+        {"detach": True, "resume": True, "budget_ms": 30000},
+        True,
+    ],
+)
+def test_interruption_rejects_empty_or_malformed_declarations(manifest_validator, value: object) -> None:
+    assert errors(manifest_validator, interruptible(value)) != []
+
+
+def test_interruption_requires_incomplete_exit_code(manifest_validator) -> None:
+    assert errors(manifest_validator, manifest(interruption={"detach": True, "resume": False})) != []
+
+
+@pytest.mark.parametrize(
+    "fields",
+    [
+        {"async": True},
+        {"streaming_default": True},
+        {"stdout": "protocol", "protocol": "mcp-stdio"},
+    ],
+)
+def test_interruption_excludes_async_streaming_and_protocol_commands(manifest_validator, fields: dict[str, object]) -> None:
+    assert errors(manifest_validator, interruptible({"detach": True, "resume": True}, **fields)) != []

@@ -12,6 +12,8 @@
 
 The framework MUST apply a default wall-clock timeout to every command execution. The default value MUST be configurable at the framework level and overridable per command. A command that exceeds its timeout MUST be terminated by the framework, not left to run indefinitely. The timeout MUST be enforced even if the command itself does not implement any timeout logic.
 
+A command that declares `interruption` ([REQ-C-033](c-033-commands-declare-interruption.md)) is still bounded, but a run that outlasts one call is not killed: the sync call budget ([REQ-F-080](f-080-sync-call-budget.md)) bounds each call, and the wall-clock limit bounds the whole work across its continuations. Without an explicit `--timeout`, that limit is the command's `interruption.max_lifetime_ms`, and a background job that stops making progress ends after `interruption.idle_timeout_ms` ([REQ-F-081](f-081-detached-job-runtime.md)). A long read-only command therefore raises no default of its own to survive a large input, and never needs `--timeout 0`.
+
 ## Acceptance Criteria
 
 - A command that sleeps indefinitely exits within `default_timeout + 5s` without manual intervention
@@ -76,3 +78,5 @@ meta.timeout_ms = 30000    # all other commands
 | [REQ-F-001](f-001-standard-exit-code-table.md) | F | Provides: `TIMEOUT (10)` is the exit code emitted when the limit is exceeded |
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: commands that can time out must declare `TIMEOUT (10)` in their exit code map |
 | [REQ-C-032](c-032-protocol-server-commands-declare-stdout-protocol.md) | C | Specializes: a protocol command's timeout stops when serving begins |
+| [REQ-F-080](f-080-sync-call-budget.md) | F | Composes: the budget bounds one call; this limit bounds the whole work |
+| [REQ-F-081](f-081-detached-job-runtime.md) | F | Specializes: an interruptible command's limit is its job lifetime, with an idle limit beside it |

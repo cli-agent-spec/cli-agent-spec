@@ -58,9 +58,9 @@ Compound failure: agent must guess the polling interval, doesn't know the maximu
 **Status command uses distinct exit codes:**
 ```
 exit 0  = job complete (terminal, success)
-exit 3  = job still running (non-terminal, poll again)
+exit 14 = job still running (INCOMPLETE: non-terminal, poll again)
 exit 4  = job failed (terminal, failure)
-exit 7  = job timed out (terminal)
+exit 10 = job timed out (TIMEOUT: terminal)
 exit 5  = job ID not found / expired
 ```
 
@@ -69,6 +69,8 @@ exit 5  = job ID not found / expired
 { "status": "running", "terminal": false, "progress_pct": 60 }
 { "status": "complete", "terminal": true, "result": {...} }
 ```
+
+A command that is not always slow, only sometimes (its run length depends on its input), should not be declared async: Pattern A is fixed for it by a bounded call that hands off to a job only when the call budget runs out ([§79](../02-critical-execution-and-reliability/79-critical-work-outlives-budget.md)).
 
 **For framework design:**
 - Provide a first-class `AsyncJob` return type; framework automatically generates `job status <id>` and `job cancel <id>` subcommands
@@ -81,10 +83,10 @@ exit 5  = job ID not found / expired
 |-------|-----------|
 | 0 | Async commands either block synchronously or return a job ID with no status protocol; exit codes from status commands undocumented |
 | 1 | `--async` flag returns a job ID; status command exists but exit code is always 0 regardless of job state |
-| 2 | Async response includes `job_id`, `status_command`, `poll_interval_ms`; status command uses distinct exit codes (0=done, 3=running, 4=failed) |
+| 2 | Async response includes `job_id`, `status_command`, `poll_interval_ms`; status command uses distinct exit codes (0=done, 14=running, 4=failed) |
 | 3 | Full job descriptor with `cancel_command`, `timeout_ms`, `terminal` field; `job status` and `job cancel` framework-generated; `status` field uses machine-readable enum |
 
-**Check:** Start an async job and immediately call the status command — verify exit code is 3 (not 0) while running, and exit code changes to 0 when complete.
+**Check:** Start an async job and immediately call the status command — verify exit code is 14 (not 0) while running, and exit code changes to 0 when complete.
 
 ---
 

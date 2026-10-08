@@ -46,7 +46,7 @@ SCHEMAS = ROOT / "schemas"
 RESULT_SCHEMA_VERSION = "1.0"
 
 ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
-ALLOWED_EXIT_CODES = frozenset(range(0, 14)) | frozenset(range(79, 126)) | {130, 143}
+ALLOWED_EXIT_CODES = frozenset(range(0, 15)) | frozenset(range(79, 126)) | {130, 143}
 
 
 class ProbeKind(StrEnum):
@@ -557,7 +557,7 @@ class Kit:
         if run.exit_code is None:
             raise RuntimeError("envelope_checks requires a completed run")
         if run.exit_code not in ALLOWED_EXIT_CODES:
-            exit_outcome.fail(run, f"exit code {run.exit_code} is outside 0–13, 79–125, and signal codes 130/143")
+            exit_outcome.fail(run, f"exit code {run.exit_code} is outside 0–14, 79–125, and signal codes 130/143")
         elif envelope is not None:
             meta = envelope["meta"]
             if not isinstance(meta, dict):

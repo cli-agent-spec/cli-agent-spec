@@ -73,6 +73,8 @@ $ tool long-operation --format json
 
 `data.resume_token` allows resuming when the command supports it.
 
+**When the run length depends on the input**, a timeout cannot be right for every call: too short kills working runs, too long outlasts the caller. Such work bounds each call instead and keeps its progress across calls ([§79](79-critical-work-outlives-budget.md)).
+
 **For framework design:**
 - Every command has a default timeout; `--timeout 0` means no timeout (must be explicit)
 - Timeout exits with a specific code (e.g., `7`) and always emits JSON error

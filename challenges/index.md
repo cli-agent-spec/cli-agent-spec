@@ -1,6 +1,6 @@
 # CLI Agent Spec — Full Index
 
-> All 75 failure modes across 7 parts. Each failure mode linked to its source file.
+> All 76 failure modes across 7 parts. Each failure mode linked to its source file.
 >
 > Failed call and don't know which §N applies? Start at [triage.md](triage.md) — a first-match decision table from observable signals (exit code, streams, timing) to failure modes.
 
@@ -71,7 +71,7 @@
 
 > Execution flow, blocking behavior, atomicity, and reliability under agent orchestration.
 
-**9 failure modes** &nbsp;|&nbsp; 🔴 4 critical · 🟠 4 high · 🟡 1 medium
+**10 failure modes** &nbsp;|&nbsp; 🔴 5 critical · 🟠 4 high · 🟡 1 medium
 
 | # | Title | Severity | Frequency | Detectability | Token Spend | Time | Context |
 |---|-------|----------|-----------|---------------|-------------|------|---------|
@@ -79,6 +79,7 @@
 | [§11](02-critical-execution-and-reliability/11-critical-timeouts.md) | Timeouts & Hanging Processes | 🔴 Critical | Common | Hard | High | Critical | Low |
 | [§12](02-critical-execution-and-reliability/12-critical-idempotency.md) | Idempotency & Safe Retries | 🔴 Critical | Common | Hard | High | High | Medium |
 | [§13](02-critical-execution-and-reliability/13-critical-partial-failure.md) | Partial Failure & Atomicity | 🔴 Critical | Common | Hard | High | High | Medium |
+| [§79](02-critical-execution-and-reliability/79-critical-work-outlives-budget.md) | Work Outlives the Caller's Budget | 🔴 Critical | Common | Hard | High | Critical | Medium |
 | [§14](02-critical-execution-and-reliability/14-high-arg-validation.md) | Argument Validation Before Side Effects | 🟠 High | Common | Medium | Medium | Medium | Low |
 | [§15](02-critical-execution-and-reliability/15-high-race-conditions.md) | Race Conditions & Concurrency | 🟠 High | Situational | Hard | Medium | Medium | Low |
 | [§16](02-critical-execution-and-reliability/16-high-signal-handling.md) | Signal Handling & Graceful Cancellation | 🟠 High | Situational | Hard | Medium | Medium | Low |
@@ -170,4 +171,4 @@
 
 ---
 
-*75 active failure modes across 7 parts. CLI Agent Spec v1.6 — 2026-06-11.*
+*76 active failure modes across 7 parts. CLI Agent Spec v1.6 — 2026-06-11.*

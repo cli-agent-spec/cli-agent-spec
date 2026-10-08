@@ -2,7 +2,7 @@
 
 > Execution flow, blocking behavior, atomicity, and reliability under agent orchestration.
 
-**Failure modes:** 9 active &nbsp;|&nbsp; 🔴 4 critical · 🟠 4 high · 🟡 1 medium
+**Failure modes:** 10 active &nbsp;|&nbsp; 🔴 5 critical · 🟠 4 high · 🟡 1 medium
 
 ---
 
@@ -12,6 +12,7 @@
 | [11-critical-timeouts.md](11-critical-timeouts.md) | 🔴 Critical | Agents have finite time budgets per tool call |
 | [12-critical-idempotency.md](12-critical-idempotency.md) | 🔴 Critical | Agents retry on failure |
 | [13-critical-partial-failure.md](13-critical-partial-failure.md) | 🔴 Critical | Multi-step commands can fail mid-execution, leaving the system in an unknown intermediate state |
+| [79-critical-work-outlives-budget.md](79-critical-work-outlives-budget.md) | 🔴 Critical | A command's run length depends on its input, and a call that outlasts the caller's budget is killed with its work |
 | [14-high-arg-validation.md](14-high-arg-validation.md) | 🟠 High | Many CLI tools begin executing — creating files, sending requests, modifying state — before validating all their argu... |
 | [15-high-race-conditions.md](15-high-race-conditions.md) | 🟠 High | Agents may invoke multiple tool calls in parallel |
 | [16-high-signal-handling.md](16-high-signal-handling.md) | 🟠 High | Agents enforce time budgets by killing processes (SIGTERM, then SIGKILL) |
@@ -26,6 +27,7 @@
 | [§11](11-critical-timeouts.md) | 🔴 Critical | Common | Hard | High | Critical | Low |
 | [§12](12-critical-idempotency.md) | 🔴 Critical | Common | Hard | High | High | Medium |
 | [§13](13-critical-partial-failure.md) | 🔴 Critical | Common | Hard | High | High | Medium |
+| [§79](79-critical-work-outlives-budget.md) | 🔴 Critical | Common | Hard | High | Critical | Medium |
 | [§14](14-high-arg-validation.md) | 🟠 High | Common | Medium | Medium | Medium | Low |
 | [§15](15-high-race-conditions.md) | 🟠 High | Situational | Hard | Medium | Medium | Low |
 | [§16](16-high-signal-handling.md) | 🟠 High | Situational | Hard | Medium | Medium | Low |

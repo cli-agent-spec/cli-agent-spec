@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CLI Agent Spec</title>
-  <meta name="description" content="75 documented failure modes when AI agents call CLI tools. 160 requirements to eliminate them.">
+  <meta name="description" content="76 documented failure modes when AI agents call CLI tools. 166 requirements to eliminate them.">
   <meta property="og:title" content="CLI Agent Spec">
   <meta property="og:description" content="Your CLI works for humans. For AI agents, it silently hangs, leaks secrets, and exhausts context windows. We catalogued 74 ways this happens.">
   <meta property="og:type" content="website">
@@ -448,7 +448,7 @@ $ tool list users --format json
 <section id="spec" style="background: var(--bg2);">
   <div class="container">
     <div class="section-label">The Specification</div>
-    <h2 class="section-title">Three layers. 160 requirements.</h2>
+    <h2 class="section-title">Three layers. 166 requirements.</h2>
     <p class="section-sub">Structured so framework authors, command authors, and application builders each know exactly what they own.</p>
 
     <div class="tiers">
@@ -479,7 +479,7 @@ $ tool list users --format json
           <div class="contract-icon blue">🔢</div>
           <div>
             <h3>Exit Code Table</h3>
-            <p>14 named codes (0–13) with machine-readable guarantees per code: <code>retryable: true/false</code>, <code>side_effects: "none" | "partial" | "complete"</code>. An agent receiving exit 11 (<code>CONFLICT</code>) knows it's safe to retry. Receiving exit 6 (<code>PARTIAL_FAILURE</code>) knows to inspect state first.</p>
+            <p>15 named codes (0–14) with machine-readable guarantees per code: <code>retryable: true/false</code>, <code>side_effects: "none" | "partial" | "complete"</code>. An agent receiving exit 11 (<code>CONFLICT</code>) knows it's safe to retry. Receiving exit 6 (<code>PARTIAL_FAILURE</code>) knows to inspect state first.</p>
           </div>
         </div>
         <div class="contract-card">
@@ -573,7 +573,7 @@ $ tool list users --format json
       <a class="path-card" href="https://github.com/cli-agent-spec/cli-agent-spec/blob/master/challenges/index.md" style="color:inherit">
         <div class="path-icon">🔍</div>
         <h3>Understand the problem</h3>
-        <p>Browse 75 failure modes by severity. Each one documents the exact impact on agents: token cost, time cost, detectability.</p>
+        <p>Browse 76 failure modes by severity. Each one documents the exact impact on agents: token cost, time cost, detectability.</p>
         <div class="path-meta">challenges/index.md →</div>
       </a>
       <a class="path-card" href="https://github.com/cli-agent-spec/cli-agent-spec/blob/master/IMPLEMENTING.md" style="color:inherit">
@@ -585,7 +585,7 @@ $ tool list users --format json
       <a class="path-card" href="https://github.com/cli-agent-spec/cli-agent-spec/blob/master/challenges/checklist.md" style="color:inherit">
         <div class="path-icon">✅</div>
         <h3>Evaluate your CLI</h3>
-        <p>Self-assessment checklist derived from the 75 failure modes. Score your tool before and after implementing the spec.</p>
+        <p>Self-assessment checklist derived from the 76 failure modes. Score your tool before and after implementing the spec.</p>
         <div class="path-meta">challenges/checklist.md →</div>
       </a>
     </div>
@@ -597,7 +597,7 @@ $ tool list users --format json
 <footer>
   <p>
     CLI Agent Spec v1.6 &nbsp;·&nbsp;
-    75 failure modes · 160 requirements · 5 schemas &nbsp;·&nbsp;
+    76 failure modes · 166 requirements · 5 schemas &nbsp;·&nbsp;
     <a href="https://github.com/cli-agent-spec/cli-agent-spec">GitHub</a> &nbsp;·&nbsp;
     <a href="https://github.com/cli-agent-spec/cli-agent-spec/blob/master/AGENTS.md">Contributing</a>
   </p>
