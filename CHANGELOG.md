@@ -11,6 +11,8 @@
 
 ## Unreleased
 
+## 1.14.0 — 2026-10-08
+
 ### A read-only `TIMEOUT` is not retryable by default
 
 - REQ-C-014: the `TIMEOUT` acceptance criterion no longer says `side_effects: "none"` makes a timeout `retryable: true`. A `TIMEOUT` error's `retryable` equals the command's declared `TIMEOUT` entry; `side_effects: "partial"` forces `false`, and `side_effects: "none"` permits `true` without implying it
