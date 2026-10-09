@@ -199,6 +199,16 @@
           "minimum": 0,
           "description": "Wall-clock time in milliseconds from command entry to final byte of output."
         },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Wall-clock limit in force for this execution, 0 when the caller passed --timeout 0 (REQ-F-011)."
+        },
+        "budget_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Sync call budget in force for this invocation of a command that declares interruption, 0 when the caller passed --budget 0 (REQ-F-080). Absent when no budget applies."
+        },
         "request_id": {
           "type": "string",
           "description": "Opaque identifier for correlating logs, traces, and audit entries."

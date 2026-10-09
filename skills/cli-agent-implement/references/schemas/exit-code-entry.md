@@ -18,13 +18,13 @@ The integer exit code is the **map key**, not a field inside the entry. Each ent
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `name` | string | no† | Named constant for this code (e.g. `"ARG_ERROR"`). For framework codes `0–13`: derived from `ExitCode` enum if omitted. For command-specific codes `79–125`: must be provided — there is no enum to derive from |
+| `name` | string | no† | Named constant for this code (e.g. `"ARG_ERROR"`). For framework codes `0–14`: derived from `ExitCode` enum if omitted. For command-specific codes `79–125`: must be provided — there is no enum to derive from |
 | `description` | string ≤ 120 | yes | Present-tense, agent-readable. What state is the system in? |
 | `retryable` | boolean | yes | May the identical unchanged re-run succeed? `true` implies no side effects occurred |
 | `side_effects` | `"none"` \| `"partial"` \| `"complete"` | yes | How much work was committed before this exit |
 | `error_codes` | string[] (unique, each `^[A-Z][A-Z0-9_]+$`) | no | The `error.code` values the command emits under this exit, e.g. `["ALREADY_EXISTS"]` under `CONFLICT (6)`. Absent: not declared. `[]`: the exit carries no `error.code` |
 
-† Required for command-specific codes (`79–125`); optional for framework codes (`0–13`) where the framework derives it from the `ExitCode` enum.
+† Required for command-specific codes (`79–125`); optional for framework codes (`0–14`) where the framework derives it from the `ExitCode` enum.
 
 **Invariant (enforced by `if/then` in the schema):** `retryable: true` implies `side_effects: "none"`. Validate at registration, not at runtime.
 
@@ -97,7 +97,7 @@ Violation: `retryable` and `side_effects` are required.
 - **Declaring only the happy path.** Every code the command may emit must have an entry. An undeclared code emitted at runtime is a contract violation
 - **Listing an `error.code` the command never emits under that exit.** `error_codes` is a promise about this exit only. A code emitted under a different exit belongs in that exit's entry, and a code the command never emits misleads the agent's branch planning
 - **Writing `error_codes` in another case than the envelope.** `"already_exists"` fails the pattern; list the exact `error.code` string the envelope carries
-- **Omitting `name` for command-specific codes (`79–125`).** For framework codes `0–13`, the framework can derive the constant name from the `ExitCode` enum. For command-specific codes, there is no enum — omitting `name` leaves agents with no readable label for the code
+- **Omitting `name` for command-specific codes (`79–125`).** For framework codes `0–14`, the framework can derive the constant name from the `ExitCode` enum. For command-specific codes, there is no enum — omitting `name` leaves agents with no readable label for the code
 
 ---
 
@@ -121,7 +121,7 @@ Rules for agents reading `ExitCodeEntry` values from a command's `--schema` outp
 **Contradiction in received data**
 - `retryable: true` with `side_effects: "partial"` or `"complete"` — schema invariant violated by the command; do not retry without inspecting state
 - `description` is absent or empty — fall back to the exit code's default description from [`exit-code.md`](exit-code.md)
-- `name` is absent — for codes `0–13`, look up the constant name in [`exit-code.json`](exit-code.json) `x-enum-varnames` by index; for codes `79–125`, use the numeric code as a fallback label and log a schema warning
+- `name` is absent — for codes `0–14`, look up the constant name in [`exit-code.json`](exit-code.json) `x-enum-varnames` by index; for codes `79–125`, use the numeric code as a fallback label and log a schema warning
 
 **Before invoking a command**
 - Fetch the command's `exit_codes` map from the manifest once and cache it for the session

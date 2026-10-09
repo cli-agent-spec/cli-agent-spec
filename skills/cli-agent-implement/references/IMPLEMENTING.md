@@ -333,3 +333,53 @@ Implement as needed. P0 opt-ins first, then P1, P2, P3.
 | 3 | F-013/014/015/034/044/045/051/052/054/062/065 | Safety and signals |
 | 4 | C P0s (11 reqs) → C P1s | Command registration |
 | 5 | O P0s → O P1s → O P2/P3 | Opt-in features |
+
+---
+
+## Long-running commands
+
+A command whose run length depends on its input cannot pick one timeout that is right for every call ([§79](challenges/02-critical-execution-and-reliability/79-critical-work-outlives-budget.md)). Six requirements replace the timeout's kill with a bounded call that keeps its work:
+
+| Requirement | Title | Notes |
+|-------------|-------|-------|
+| [REQ-C-033](requirements/c-033-commands-declare-interruption.md) | Commands Declare Interruption | `interruption: {detach, resume}`; opt-in per command |
+| [REQ-C-034](requirements/c-034-long-running-commands-report-progress.md) | Long-Running Commands Report Progress | `ctx.progress()`; feeds the response and the idle watchdog |
+| [REQ-F-082](requirements/f-082-incomplete-work-response.md) | Incomplete-Work Response | Exit `14`, `continue_command`; build first |
+| [REQ-F-080](requirements/f-080-sync-call-budget.md) | Sync Call Budget | `--budget`, `AGENT_CALL_BUDGET_MS`, default `30000` ms |
+| [REQ-C-035](requirements/c-035-resumable-commands-checkpoint-at-safe-points.md) | Resumable Commands Checkpoint at Safe Points | `ctx.restore()`, `ctx.checkpoint()`; needs no process model |
+| [REQ-F-081](requirements/f-081-detached-job-runtime.md) | Detached Job Runtime | Worker process, job directory, `job wait` |
+
+**Order.** Build the response (F-082) and the budget (F-080) with `resume` first: a resume-only command runs in-process, stops at its next checkpoint when the budget runs out, and needs no background process. Add `detach` (F-081) second; it is the larger piece.
+
+**Detaching without hanging the caller.** The caller waits for end-of-file on stdout and stderr, not only for the process to exit, so a background job that inherits those descriptors hangs the caller after the front process has exited. Spawn the worker from the start rather than forking at the deadline: after `fork()` only the calling thread survives, locks held by other threads stay held, and Windows has no `fork()`. The front process starts the worker in its own session with its own descriptors and waits for it up to the budget:
+
+```python
+import subprocess
+import sys
+
+from tool.jobs import Budget, Job  # the framework's own job directory and budget types
+
+
+def run_detachable(argv: list[str], job: Job, budget: Budget) -> int:
+    worker = subprocess.Popen(
+        [sys.executable, "-m", "tool", "--job-worker", str(job.id), *argv],
+        stdin=job.stdin_file(),                  # stdin spooled into the job directory beforehand
+        stdout=job.log_file(),
+        stderr=subprocess.STDOUT,                # the caller's pipes are not inherited
+        start_new_session=True,                  # setsid: no SIGHUP, outside the caller's process group
+    )
+    try:
+        worker.wait(timeout=budget.seconds)
+    except subprocess.TimeoutExpired:
+        sys.stdout.write(job.incomplete_response(state="running").to_json() + "\n")
+        return 14                                # INCOMPLETE; the worker runs on
+    result = job.result()
+    sys.stdout.write(result.to_json() + "\n")
+    return result.exit_code
+```
+
+On Windows, pass `creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP` in place of `start_new_session`. The worker writes its status, progress, and final response into the job directory by rename (REQ-F-070), so `job wait` in another process reads a whole file or the previous one, never half of one.
+
+**A dead worker.** `job wait` checks the worker's PID (`kill(pid, 0)` on POSIX) whenever the status file is not terminal; a missing process with no terminal status is `JOB_LOST`, reported with the tail of the job log, never a wait that lasts until the caller's own budget runs out.
+
+**Costs.** Spawning a worker costs a process start on every call of a `detach` command (50–200 ms for an interpreted runtime), which is why detaching is a declaration and not a default. A command with a cheap estimate of its work can skip the in-call wait and hand off at once.

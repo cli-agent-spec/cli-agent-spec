@@ -10,14 +10,12 @@
 
 ## Description
 
-The framework MUST disable OS-level stdout buffering when stdout is not a TTY. In Python this means calling `sys.stdout.reconfigure(line_buffering=True)` and setting `PYTHONUNBUFFERED=1` before any output. In Node.js this means calling `process.stdout.cork()` / `uncork()` appropriately or using unbuffered streams. This MUST be performed in the framework's bootstrap, before any command code runs. For long-running commands (>5s), the framework MUST additionally emit a JSON heartbeat object to stdout every configurable interval (default: 10000ms) via the `--heartbeat-ms` flag (REQ-O-038).
+The framework MUST disable OS-level stdout buffering when stdout is not a TTY. In Python this means calling `sys.stdout.reconfigure(line_buffering=True)` and setting `PYTHONUNBUFFERED=1` before any output. In Node.js this means calling `process.stdout.cork()` / `uncork()` appropriately or using unbuffered streams. This MUST be performed in the framework's bootstrap, before any command code runs. Heartbeats are not part of this requirement: they are opt-in ([REQ-O-012](o-012-heartbeat-interval-flag.md), [REQ-O-038](o-038-heartbeat-ms-flag-for-long-running-commands.md)), and unbuffering is what lets them, like every other line, reach the caller as written.
 
 ## Acceptance Criteria
 
 - A command that emits one log line per second is received by the agent one line at a time, not in a single flush after the process exits
 - `PYTHONUNBUFFERED=1` is set in the process environment before the first `output()` call
-- A 30-second command with heartbeats enabled emits at least 2 heartbeat JSON objects to stdout before completing
-- Heartbeat objects are valid JSON matching `{"status": "running", "heartbeat": true, "elapsed_ms": N}`
 
 ---
 
@@ -31,7 +29,7 @@ No dedicated schema type — this requirement governs OS-level buffering behavio
 
 No wire-format fields — this requirement governs framework behavior only. The effect is observable: output bytes reach the caller immediately as emitted rather than in a single post-exit flush.
 
-Heartbeat lines (emitted via REQ-O-038) are JSON objects on stdout when enabled:
+When a caller opts into heartbeats (REQ-O-038), unbuffered stdout is what delivers each line as it is written:
 
 ```json
 {"status": "running", "heartbeat": true, "elapsed_ms": 10012}

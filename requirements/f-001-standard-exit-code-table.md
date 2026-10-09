@@ -10,7 +10,7 @@
 
 ## Description
 
-The framework MUST define and enforce a fixed, documented exit code table. Commands MUST NOT exit with any code outside this table for a standard condition. The table MUST include: `0` (success), `1` (general error — last resort), `2` (argument/validation error — zero side effects guaranteed), `3` (operation started but failed mid-way, partial side effects), `4` (precondition not met), `5` (not found), `6` (conflict / already exists), `7` (permission denied — valid credentials, wrong access level), `8` (auth required — credentials missing or invalid), `9` (payment required), `10` (timeout — partial side effects possible), `11` (rate limited — retry after back-off), `12` (service unavailable), `13` (command redirected — use replacement verbatim). The framework MUST provide named constants for every code; commands MUST reference these constants, never literal integers. A passthrough command ([REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md)) is the one exemption: it exits with the delegated tool's own code, reported as `DELEGATED_EXIT` when non-zero, and the table's meanings do not apply to that code.
+The framework MUST define and enforce a fixed, documented exit code table. Commands MUST NOT exit with any code outside this table for a standard condition. The table MUST include: `0` (success), `1` (general error — last resort), `2` (argument/validation error — zero side effects guaranteed), `3` (operation started but failed mid-way, partial side effects), `4` (precondition not met), `5` (not found), `6` (conflict / already exists), `7` (permission denied — valid credentials, wrong access level), `8` (auth required — credentials missing or invalid), `9` (payment required), `10` (timeout — partial side effects possible), `11` (rate limited — retry after back-off), `12` (service unavailable), `13` (command redirected — use replacement verbatim), `14` (work incomplete but not lost — run `data.continue_command`, REQ-F-082). The framework MUST provide named constants for every code; commands MUST reference these constants, never literal integers. A passthrough command ([REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md)) is the one exemption: it exits with the delegated tool's own code, reported as `DELEGATED_EXIT` when non-zero, and the table's meanings do not apply to that code.
 
 ## Acceptance Criteria
 
@@ -42,12 +42,13 @@ The framework MUST define and enforce a fixed, documented exit code table. Comma
 | 11 | `RATE_LIMITED` | yes | none |
 | 12 | `UNAVAILABLE` | yes | none |
 | 13 | `REDIRECTED` | after fix* | none |
+| 14 | `INCOMPLETE` | per entry | none or partial |
 
 \* *after fix*: the identical invocation fails until the caller corrects the stated condition, then reissues. Declared as `retryable: false` in `ExitCodeEntry`; the envelope carries `fix_required` (or `error.redirect`) with the correction.
 
 Table values `depends` and `unknown` are prose classifications with no `ExitCodeEntry` representation. Declare them conservatively: `retryable: false`, and `side_effects: "partial"` where the table says `unknown`.
 
-Reserved ranges: `14–63` framework extensions · `64–78` POSIX sysexits compatibility (optional mapping) · `79–125` command-specific (declare via REQ-C-001) · `126–255` shell-reserved: commands MUST NOT emit these; only framework signal handlers emit `128 + N` (REQ-F-013, REQ-F-069).
+Reserved ranges: `15–63` framework extensions · `64–78` POSIX sysexits compatibility (optional mapping) · `79–125` command-specific (declare via REQ-C-001) · `126–255` shell-reserved: commands MUST NOT emit these; only framework signal handlers emit `128 + N` (REQ-F-013, REQ-F-069).
 
 ---
 
@@ -65,7 +66,8 @@ Reserved ranges: `14–63` framework extensions · `64–78` POSIX sysexits comp
     "10": { "name": "TIMEOUT",     "description": "Operation exceeded its configured time limit",     "retryable": false, "side_effects": "partial"  },
     "11": { "name": "RATE_LIMITED","description": "Server-side rate limit reached",                  "retryable": true,  "side_effects": "none"     },
     "12": { "name": "UNAVAILABLE", "description": "Service temporarily unavailable",                 "retryable": true,  "side_effects": "none"     },
-    "13": { "name": "REDIRECTED",  "description": "Command was renamed; use error.redirect.command", "retryable": false, "side_effects": "none"     }
+    "13": { "name": "REDIRECTED",  "description": "Command was renamed; use error.redirect.command", "retryable": false, "side_effects": "none"     },
+    "14": { "name": "INCOMPLETE",  "description": "Work continues; run data.continue_command",       "retryable": true,  "side_effects": "none"     }
   }
 }
 ```
@@ -97,3 +99,4 @@ raise CommandError(5, "User not found")
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Composes: envelope `ok` is derived from whether exit code is `SUCCESS` |
 | [REQ-O-041](o-041-tool-manifest-built-in-command.md) | O | Exposes: manifest includes the exit code table per command |
 | [REQ-C-031](c-031-passthrough-commands-delegate-to-another-parser.md) | C | Specializes: a passthrough command exits with the delegated tool's own code |
+| [REQ-F-082](f-082-incomplete-work-response.md) | F | Specializes: defines the response behind `INCOMPLETE (14)` |

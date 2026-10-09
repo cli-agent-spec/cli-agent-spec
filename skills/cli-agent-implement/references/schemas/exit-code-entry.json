@@ -9,7 +9,7 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "The named constant for this exit code (e.g. 'SUCCESS', 'ARG_ERROR'). For framework codes 0-13, derived from ExitCode enum if omitted. For command-specific codes 79-125, must be provided by the command author"
+      "description": "The named constant for this exit code (e.g. 'SUCCESS', 'ARG_ERROR'). For framework codes 0-14, derived from ExitCode enum if omitted. For command-specific codes 79-125, must be provided by the command author"
     },
     "description": {
       "type": "string",

@@ -1,6 +1,6 @@
 # Agent-Compatible CLI Checklist
 
-> A condensed implementation checklist derived from the CLI Agent Spec's 75 documented failure modes.
+> A condensed implementation checklist derived from the CLI Agent Spec's 76 documented failure modes.
 > Use this to audit an existing CLI tool or verify a new one before agent deployment.
 
 ---
@@ -37,6 +37,9 @@ INTERACTIVITY
 
 RELIABILITY
   □ Built-in --timeout flag on all network/long-running commands
+  □ Commands with input-dependent run length declare interruption: a call returns within the budget (AGENT_CALL_BUDGET_MS)
+  □ Unfinished work exits 14 (INCOMPLETE) with progress and continue_command, never TIMEOUT
+  □ The identical rerun attaches to the running job or resumes from the last checkpoint
   □ --idempotency-key on all mutating commands
   □ --dry-run on all destructive/mutating commands
   □ Structured partial failure with completed_steps and resume_from

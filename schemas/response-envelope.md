@@ -2,7 +2,7 @@
 
 **File:** [`response-envelope.json`](response-envelope.json)
 
-> **Used by:** [REQ-F-004](../requirements/f-004-consistent-json-response-envelope.md) · [REQ-F-018](../requirements/f-018-pagination-metadata-on-list-commands.md) · [REQ-F-023](../requirements/f-023-tool-version-in-every-response.md) · [REQ-F-024](../requirements/f-024-request-id-and-trace-id-in-every-response.md) · [REQ-C-009](../requirements/c-009-multi-step-commands-report-completed-failed-skippe.md) · [REQ-C-013](../requirements/c-013-error-responses-include-code-and-message.md) · [REQ-C-014](../requirements/c-014-error-responses-include-retryable-and-retry-after-.md) · [REQ-C-028](../requirements/c-028-already-exists-response-pattern.md) · [REQ-C-030](../requirements/c-030-error-responses-include-fix-command.md) · [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-050](../requirements/o-050-tool-exec-built-in-command.md) · all commands in JSON output mode
+> **Used by:** [REQ-F-004](../requirements/f-004-consistent-json-response-envelope.md) · [REQ-F-018](../requirements/f-018-pagination-metadata-on-list-commands.md) · [REQ-F-023](../requirements/f-023-tool-version-in-every-response.md) · [REQ-F-024](../requirements/f-024-request-id-and-trace-id-in-every-response.md) · [REQ-C-009](../requirements/c-009-multi-step-commands-report-completed-failed-skippe.md) · [REQ-C-013](../requirements/c-013-error-responses-include-code-and-message.md) · [REQ-C-014](../requirements/c-014-error-responses-include-retryable-and-retry-after-.md) · [REQ-C-028](../requirements/c-028-already-exists-response-pattern.md) · [REQ-C-030](../requirements/c-030-error-responses-include-fix-command.md) · [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-050](../requirements/o-050-tool-exec-built-in-command.md) · [REQ-F-080](../requirements/f-080-sync-call-budget.md) · [REQ-F-082](../requirements/f-082-incomplete-work-response.md) · all commands in JSON output mode
 
 ---
 
@@ -93,6 +93,8 @@ Present in `error.redirect` when exit code is `REDIRECTED (13)`.
 |-------|------|----------|-------------|
 | `exit_code` | integer `0–255` | yes | Process exit code of this invocation, identical to the code the process returns |
 | `duration_ms` | integer | yes | Wall-clock ms from entry to last byte |
+| `timeout_ms` | integer `≥ 0` | no | Wall-clock limit in force for this execution; `0` after `--timeout 0` (REQ-F-011) |
+| `budget_ms` | integer `≥ 0` | commands declaring `interruption` | Sync call budget in force for this invocation; `0` after `--budget 0`. Absent when no budget applies (REQ-F-080) |
 | `request_id` | string | no | Correlation ID for logs and traces |
 | `trace_id` | string | when `TOOL_TRACE_ID` is set | Trace ID propagated verbatim from `TOOL_TRACE_ID` (REQ-F-024) |
 | `command` | string | no | Name of the invoked command (REQ-F-024) |
@@ -205,6 +207,29 @@ Present in `error.redirect` when exit code is `REDIRECTED (13)`.
   },
   "warnings": [],
   "meta": { "exit_code": 11, "duration_ms": 6 }
+}
+```
+
+---
+
+**Work handed to the background when the call budget ran out**
+```json
+{
+  "ok": false,
+  "data": {
+    "state": "running",
+    "job_id": "analyze-7f3a",
+    "progress": { "done": 120000000, "total": 980000000, "unit": "bytes" },
+    "continue_command": "tool job wait analyze-7f3a",
+    "cancel_command": "tool job cancel analyze-7f3a"
+  },
+  "error": {
+    "code": "INCOMPLETE",
+    "message": "Call budget of 30000ms reached at 12%; the work continues in the background",
+    "retryable": true
+  },
+  "warnings": [],
+  "meta": { "exit_code": 14, "duration_ms": 30004, "budget_ms": 30000 }
 }
 ```
 
@@ -350,6 +375,7 @@ Rules for agents parsing `ResponseEnvelope` at runtime, including handling malfo
 - `meta.truncated: true` — the byte cap cut `data`; narrow the query before drawing conclusions
 - `meta.pagination.has_more: true` — more pages exist; pass `meta.pagination.next_cursor` as `--cursor` before concluding a list is complete
 - `meta.not_modified: true` — `data` is intentionally `null`; use the previously cached response; this is not an error
+- `error.code: "INCOMPLETE"` (exit `14`) — `data` describes unfinished work, not a result: run `data.continue_command` verbatim; when `data.progress.done` has not grown over three continuations, run `data.cancel_command` (REQ-F-082)
 - `meta.items_emitted` on a stream's terminal error envelope — the stream stopped after the item line with that `_seq`. Compare it with the last `_seq` you read: a higher value means you missed item lines. On a retry, expect the items up to it again unless the command can resume
 
 **Retrying**

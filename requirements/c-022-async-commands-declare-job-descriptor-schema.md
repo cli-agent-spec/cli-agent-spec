@@ -16,7 +16,7 @@ Any command that initiates an asynchronous operation (one that does not complete
 
 - An async command's `--schema` output includes `async: true` and the job descriptor schema
 - The job descriptor returned at invocation time includes all required fields
-- `tool job status <id>` exits 0 for complete, 3 for still-running, 4 for failed, 5 for not-found
+- `tool job status <id>` exits 0 for complete, 14 (`INCOMPLETE`, with the response of REQ-F-082) for still-running, 4 for failed, 5 for not-found
 - Attempting to register an async command without a job descriptor schema raises a framework error
 
 ---
@@ -130,3 +130,5 @@ register command "build":
 | [REQ-C-015](c-015-commands-declare-input-and-output-schema.md) | C | Composes: `async` flag and `job_descriptor_schema` are part of the `--schema` output |
 | [REQ-C-001](c-001-command-declares-exit-codes.md) | C | Composes: exit codes for `job status` subcommand are declared alongside the async command |
 | [REQ-F-004](f-004-consistent-json-response-envelope.md) | F | Wraps: job descriptor is returned as `ResponseEnvelope.data` |
+| [REQ-F-081](f-081-detached-job-runtime.md) | F | Composes: the same `job` subcommands serve jobs started when a call budget runs out |
+| [REQ-F-082](f-082-incomplete-work-response.md) | F | Consumes: `job status` answers a running job with the incomplete-work response |

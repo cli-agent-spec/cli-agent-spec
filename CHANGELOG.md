@@ -11,6 +11,25 @@
 
 ## Unreleased
 
+### §79 Work Outlives the Caller's Budget: bounded calls that keep their work
+
+- New failure mode §79 (Part II, Critical): a command whose run length depends on its input meets an agent's fixed per-call budget, and the call is killed with its work; a read-only `TIMEOUT` marked retryable repeats on every identical rerun. The rule: a synchronous call is bounded, and work is never lost to a budget
+- REQ-F-080 Sync Call Budget (P1): a command declaring `interruption` returns within the budget in non-interactive mode, with its result or `INCOMPLETE (14)`. The budget resolves from `--budget`, then `AGENT_CALL_BUDGET_MS` (set by the harness, no tool prefix), then `30000` ms; `--budget 0` turns it off. `meta.budget_ms` records it
+- REQ-F-081 Detached Job Runtime (P1): a `detach` command's work continues in a background job when the budget runs out. Observable guarantees: the caller's descriptors are closed, the job runs in its own session, its state lives in a per-user job directory, the identical invocation attaches to a running job, a dead worker is reported as `JOB_LOST`, a job without progress for `idle_timeout_ms` ends as `TIMEOUT` with `error.code: "STALLED"`
+- REQ-F-082 Incomplete-Work Response (P1): exit `14` with `error.code: "INCOMPLETE"` and `data.state` (`running` or `paused`), `job_id`, `progress`, `continue_command`, and `cancel_command`; `retryable` and `side_effects` come from the command's declared `INCOMPLETE` entry. A writing command's paused `continue_command` carries `--idempotency-key`
+- REQ-C-033 Commands Declare Interruption (P1): `interruption: {detach, resume, idle_timeout_ms?, max_lifetime_ms?}` with at least one of `detach` and `resume` true, an `INCOMPLETE (14)` exit entry, and no `async`, streaming, or `stdout: "protocol"`; `resume` on a writing command needs `--idempotency-key`. A command that declares nothing keeps today's behavior
+- REQ-C-034 Long-Running Commands Report Progress (P1): `ctx.progress(done, total?, unit?)` at least every 10 s; `done` never decreases. Progress, not a timer, tells working from hung
+- REQ-C-035 Resumable Commands Checkpoint at Safe Points (P2): `ctx.restore(fingerprint)` and `ctx.checkpoint(state)` at least every 10 s, written by rename, keyed like jobs so the identical invocation resumes; stop requests take effect only at a checkpoint; a changed input discards the checkpoint with a `CHECKPOINT_DISCARDED` warning
+- ExitCode 1.1: `14` `INCOMPLETE` joins the framework-reserved codes (`0–14`) in a new `continuation` group; framework extensions are now `15–63`. REQ-F-001's table, `exit-code.md`, `exit-code-entry.md`, and the conformance kit's allowed codes follow
+- ResponseEnvelope 2.4: `ResponseMeta` gains optional `budget_ms`, and `timeout_ms`, which REQ-F-011 already required but the schema did not list; an incomplete-work example and the agent interpretation of `INCOMPLETE`
+- ManifestResponse 3.20: `CommandEntry.interruption`; the schema requires an `exit_codes` entry for `"14"` beside it and excludes `async: true`, `streaming_default: true`, and `stdout`. A producer that declares `interruption` emits `schema_version` `3.20`; earlier manifests stay valid. `tests/test_manifest_schema.py` pins the behaviour
+- REQ-F-011: a command declaring `interruption` is bounded per call by the budget and over its whole work by `--timeout` or `interruption.max_lifetime_ms`, with an idle limit for background jobs; it never needs `--timeout 0` to survive a large input
+- REQ-F-053: the sentence mandating heartbeats moves out; heartbeats stay opt-in (REQ-O-012, REQ-O-038), and a Foundation requirement no longer requires an opt-in one
+- REQ-C-022 and §49: `job status` exits `14` for a running job, not `3`, which REQ-F-001 assigns to `PARTIAL_FAILURE`; §49's table also gives a timed-out job `10`, not `7` (`PERMISSION_DENIED`), and so does §11's framework-design list
+- §11 and §49 point input-dependent work at §79; `triage.md` routes `INCOMPLETE` in row 1 and adds §79 to rows 3 and 14; the checklist gains three reliability items; `IMPLEMENTING.md` gains a long-running commands section with a reference detach pattern
+
+**Why:** the spec's only answer to "this is taking long" was a wall-clock timeout that kills the work. It cannot tell a long run from a hung one, it discards the progress made, and for input-dependent read-only work its retryable `TIMEOUT` sent the agent into the same timeout again (#82, #83). Merging REQ-O-012 and REQ-O-038 into one heartbeat and an `expected_duration` manifest hint, both decided in #83, are left to follow-up changes.
+
 ## 1.14.0 — 2026-10-08
 
 ### A read-only `TIMEOUT` is not retryable by default
