@@ -68,3 +68,4 @@ notify = true         # a desktop notification when a session waits on you
 remind_hours = 4      # repeat it while the session still waits
 max_wait_minutes = 15 # stop a session that waited this long; 0: never
 app_id = 5209412      # sessions write as shipmill-romamo[bot] (shipmill spec 004)
+plugin_update = true
