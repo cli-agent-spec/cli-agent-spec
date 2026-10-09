@@ -250,4 +250,4 @@ Pre-flight prevents. The wrapper fixes inline. The classifier names what went wr
 
 ---
 
-*FixLayer · built on the [CLI Agent Spec](README.md) (76 failure modes · 166 requirements)*
+*FixLayer · built on the [CLI Agent Spec](README.md) (76 failure modes · 167 requirements)*

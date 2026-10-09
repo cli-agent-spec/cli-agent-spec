@@ -167,3 +167,25 @@ def test_interruption_requires_incomplete_exit_code(manifest_validator) -> None:
 )
 def test_interruption_excludes_async_streaming_and_protocol_commands(manifest_validator, fields: dict[str, object]) -> None:
     assert errors(manifest_validator, interruptible({"detach": True, "resume": True}, **fields)) != []
+
+
+def test_requires_person_with_interactive_and_mcp_false_is_valid(manifest_validator) -> None:
+    assert errors(manifest_validator, manifest(requires_person=True, interactive=True, mcp=False)) == []
+
+
+@pytest.mark.parametrize("value", [False, "true", 1, None])
+def test_requires_person_other_values_are_rejected(manifest_validator, value: object) -> None:
+    assert errors(manifest_validator, manifest(requires_person=value, interactive=True, mcp=False)) != []
+
+
+@pytest.mark.parametrize(
+    "fields",
+    [
+        {"interactive": True},
+        {"mcp": False},
+        {"interactive": False, "mcp": False},
+        {},
+    ],
+)
+def test_requires_person_needs_interactive_and_mcp_false(manifest_validator, fields: dict[str, object]) -> None:
+    assert errors(manifest_validator, manifest(requires_person=True, **fields)) != []
