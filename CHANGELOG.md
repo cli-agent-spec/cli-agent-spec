@@ -11,6 +11,16 @@
 
 ## Unreleased
 
+### A confirmation only a person gives: `requires_person`
+
+- REQ-C-036 Person-Only Commands Declare `requires_person` (P1): a command whose confirmation only a person may give, such as approving a change an agent proposed, declares `requires_person: true` with `interactive: true` and `mcp: false`. It asks the person to type back an expected string, only when stdin and stdout are terminals and `--non-interactive` is absent, and no flag answers it, `--yes` included. Off a terminal it exits `4` with `error.code: "PERSON_REQUIRED"`, `retryable: false`, and a suggestion that names no flag; a wrong answer exits `4` with `ATTESTATION_MISMATCH`; neither runs anything. The requirement states its non-goal: a speed bump and an honest record, not a security boundary, since an agent running as the same OS user can fake a terminal
+- REQ-C-005: its first criterion gains the one exception, a command with `requires_person: true` ignores `--yes` for its attestation
+- ManifestResponse 3.21: `CommandEntry.requires_person` (`true` only, absent otherwise); the schema requires `interactive: true` and `mcp: false` beside it. A producer that declares it emits `schema_version` `3.21`; earlier manifests stay valid. `manifest-response.md` gains a valid and an invalid example, common mistakes, and the agent interpretation; `tests/test_manifest_schema.py` pins the behaviour
+- `response-envelope.md` gains the agent interpretation of `PERSON_REQUIRED` and `ATTESTATION_MISMATCH`: hand the command to a person and never retry it
+- §10 and §23 point person-only confirmations at REQ-C-036 in their solutions, §10's agent workaround says to hand a `PERSON_REQUIRED` command to a person, and `triage.md` row 1 routes `PERSON_REQUIRED`. No new failure mode
+
+**Why:** REQ-C-005 made `--yes` answer every confirmation, so a conformant CLI could not have a step only a person takes; an agent approved its own proposal with `decisions approve <id> --yes` (#86).
+
 ## 1.15.0 — 2026-10-09
 
 ### §79 Work Outlives the Caller's Budget: bounded calls that keep their work

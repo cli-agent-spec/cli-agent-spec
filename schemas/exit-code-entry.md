@@ -2,7 +2,7 @@
 
 **File:** [`exit-code-entry.json`](exit-code-entry.json)
 
-> **Used by:** [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-028](../requirements/c-028-already-exists-response-pattern.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md)
+> **Used by:** [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-028](../requirements/c-028-already-exists-response-pattern.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-C-036](../requirements/c-036-person-only-commands-declare-requires-person.md)
 
 ---
 

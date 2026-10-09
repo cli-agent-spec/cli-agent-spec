@@ -86,6 +86,7 @@ $ tool delete-account --user 42 --dry-run
 - Commands declare `danger_level` in their schema
 - Framework enforces `--dry-run` availability for all `destructive` commands
 - `--yes` / `--confirm-destructive` flags auto-supplied by agent harness
+- A step a person must take, not the agent (approving a change the agent proposed), declares `requires_person: true` ([REQ-C-036](../../requirements/c-036-person-only-commands-declare-requires-person.md)): no flag the harness supplies answers it, and the tool's MCP server never offers it
 - Generate audit log entries for all `mutating` and `destructive` operations
 
 ### Evaluation

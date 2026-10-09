@@ -196,6 +196,11 @@
           "type": "boolean",
           "description": "True if the command may prompt for input in a TTY context; --yes and --non-interactive are then registered. Sourced from REQ-C-005."
         },
+        "requires_person": {
+          "type": "boolean",
+          "const": true,
+          "description": "true: a person, not the calling agent, confirms the command by typing back an expected string at a terminal; no flag answers the prompt, --yes included. Off a terminal or under --non-interactive the command exits 4 with error.code PERSON_REQUIRED, and a wrong answer exits 4 with ATTESTATION_MISMATCH; neither runs anything. Requires interactive true and mcp false. Present only when true. Sourced from REQ-C-036."
+        },
         "has_network_io": {
           "type": "boolean",
           "description": "True if the command makes outbound network connections or long blocking I/O calls; --timeout is then registered. Sourced from REQ-C-012."
@@ -400,6 +405,13 @@
         {
           "if": { "required": ["protocol"] },
           "then": { "required": ["stdout"] }
+        },
+        {
+          "if": { "required": ["requires_person"] },
+          "then": {
+            "required": ["interactive", "mcp"],
+            "properties": { "interactive": { "const": true }, "mcp": { "const": false } }
+          }
         },
         {
           "if": { "required": ["interruption"] },

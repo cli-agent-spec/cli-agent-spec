@@ -10,7 +10,7 @@ If you are helping someone **implement** this specification in their own project
 
 This project defines the **CLI Agent Spec** specification: a catalogue of failure modes, requirements, shared schemas, and a comparison matrix for building CLI tools that work reliably under AI agent orchestration.
 
-Current corpus: 76 failure modes, 166 requirements.
+Current corpus: 76 failure modes, 167 requirements.
 
 ---
 
@@ -31,7 +31,7 @@ challenges/                 ← 76 failure modes grouped into 7 parts
   05-high-environment-and-state/
   06-high-errors-and-discoverability/
   07-medium-observability/
-requirements/               ← 166 requirements across 3 tiers
+requirements/               ← 167 requirements across 3 tiers
   index.md                  ← master index of all requirements
   f-NNN-<slug>.md           ← REQ-F: Framework-Automatic
   c-NNN-<slug>.md           ← REQ-C: Command Contract

@@ -2,7 +2,7 @@
 
 **File:** [`manifest-response.json`](manifest-response.json)
 
-> **Used by:** [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-013](../requirements/o-013-schema-output-schema-flag.md) · [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) · [REQ-C-005](../requirements/c-005-interactive-commands-must-support-yes-non-interact.md) · [REQ-C-008](../requirements/c-008-multi-step-commands-emit-step-manifest.md) · [REQ-C-010](../requirements/c-010-background-process-commands-declare-metadata.md) · [REQ-C-011](../requirements/c-011-commands-declare-filesystem-side-effects.md) · [REQ-C-012](../requirements/c-012-commands-with-network-i-o-support-timeout.md) · [REQ-C-015](../requirements/c-015-commands-declare-input-and-output-schema.md) · [REQ-C-016](../requirements/c-016-secrets-accepted-only-via-env-var-or-file.md) · [REQ-C-018](../requirements/c-018-commands-declare-platform-requirements.md) · [REQ-C-019](../requirements/c-019-subprocess-invoking-commands-declare-argument-sche.md) · [REQ-C-020](../requirements/c-020-resource-id-fields-declare-validation-pattern.md) · [REQ-C-021](../requirements/c-021-auth-commands-declare-headless-mode-support.md) · [REQ-C-022](../requirements/c-022-async-commands-declare-job-descriptor-schema.md) · [REQ-C-023](../requirements/c-023-editor-requiring-commands-declare-non-interactive-.md) · [REQ-C-024](../requirements/c-024-gui-launching-commands-declare-headless-behavior.md) · [REQ-C-025](../requirements/c-025-config-writing-commands-declare-write-scope.md) · [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) · [REQ-C-027](../requirements/c-027-commands-declare-option-placement.md) · [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) · [REQ-F-051](../requirements/f-051-debug-and-trace-mode-secret-redaction.md) · [REQ-F-073](../requirements/f-073-env-var-namespace-prefix.md) · [REQ-F-079](../requirements/f-079-global-option-scope.md) · [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) · [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) · [REQ-O-042](../requirements/o-042-output-format-env-var-default.md) · [REQ-O-048](../requirements/o-048-destructive-commands-default-dry-run.md) · [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md) · [REQ-F-054](../requirements/f-054-stdin-payload-size-cap-with-input-file-fallback.md) · [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) · [REQ-C-032](../requirements/c-032-protocol-server-commands-declare-stdout-protocol.md) · [REQ-F-038](../requirements/f-038-verbosity-auto-quiet-in-non-tty-context.md) · [REQ-O-001](../requirements/o-001-output-format-flag.md) · [REQ-C-033](../requirements/c-033-commands-declare-interruption.md) · [REQ-F-081](../requirements/f-081-detached-job-runtime.md)
+> **Used by:** [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-013](../requirements/o-013-schema-output-schema-flag.md) · [REQ-C-001](../requirements/c-001-command-declares-exit-codes.md) · [REQ-C-002](../requirements/c-002-command-declares-danger-level.md) · [REQ-C-005](../requirements/c-005-interactive-commands-must-support-yes-non-interact.md) · [REQ-C-008](../requirements/c-008-multi-step-commands-emit-step-manifest.md) · [REQ-C-010](../requirements/c-010-background-process-commands-declare-metadata.md) · [REQ-C-011](../requirements/c-011-commands-declare-filesystem-side-effects.md) · [REQ-C-012](../requirements/c-012-commands-with-network-i-o-support-timeout.md) · [REQ-C-015](../requirements/c-015-commands-declare-input-and-output-schema.md) · [REQ-C-016](../requirements/c-016-secrets-accepted-only-via-env-var-or-file.md) · [REQ-C-018](../requirements/c-018-commands-declare-platform-requirements.md) · [REQ-C-019](../requirements/c-019-subprocess-invoking-commands-declare-argument-sche.md) · [REQ-C-020](../requirements/c-020-resource-id-fields-declare-validation-pattern.md) · [REQ-C-021](../requirements/c-021-auth-commands-declare-headless-mode-support.md) · [REQ-C-022](../requirements/c-022-async-commands-declare-job-descriptor-schema.md) · [REQ-C-023](../requirements/c-023-editor-requiring-commands-declare-non-interactive-.md) · [REQ-C-024](../requirements/c-024-gui-launching-commands-declare-headless-behavior.md) · [REQ-C-025](../requirements/c-025-config-writing-commands-declare-write-scope.md) · [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) · [REQ-C-027](../requirements/c-027-commands-declare-option-placement.md) · [REQ-C-029](../requirements/c-029-command-declares-required-scopes.md) · [REQ-F-051](../requirements/f-051-debug-and-trace-mode-secret-redaction.md) · [REQ-F-073](../requirements/f-073-env-var-namespace-prefix.md) · [REQ-F-079](../requirements/f-079-global-option-scope.md) · [REQ-O-004](../requirements/o-004-output-jsonl-stream-flag.md) · [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) · [REQ-O-042](../requirements/o-042-output-format-env-var-default.md) · [REQ-O-048](../requirements/o-048-destructive-commands-default-dry-run.md) · [REQ-O-049](../requirements/o-049-llm-token-budget-flags.md) · [REQ-F-054](../requirements/f-054-stdin-payload-size-cap-with-input-file-fallback.md) · [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) · [REQ-C-032](../requirements/c-032-protocol-server-commands-declare-stdout-protocol.md) · [REQ-F-038](../requirements/f-038-verbosity-auto-quiet-in-non-tty-context.md) · [REQ-O-001](../requirements/o-001-output-format-flag.md) · [REQ-C-033](../requirements/c-033-commands-declare-interruption.md) · [REQ-F-081](../requirements/f-081-detached-job-runtime.md) · [REQ-C-036](../requirements/c-036-person-only-commands-declare-requires-person.md)
 > Returned as the `data` field of a [`ResponseEnvelope`](response-envelope.md).
 
 ---
@@ -68,6 +68,7 @@ Present only when the command declares them.
 | `mcp` | `false` | `false`: the tool's own MCP server never offers the command as a tool (an approval a person gives, a project-creating `init`, a watch loop that never returns); an agent runs it through the CLI or hands it to a person. Present only when `false`; `true` is rejected, and absent means the tool's MCP server may offer the command as a tool (REQ-C-032) |
 | `stderr` | `"child_log"` | `child_log`: stderr carries a wrapped program's output as plain text, line by line, whatever `--format` and verbosity say; `--quiet` silences it, and stdout carries only the envelope. Absent means stderr carries the framework's own diagnostics only. Never on a passthrough command (REQ-F-038) |
 | `interactive` | boolean | Command may prompt in a TTY; `--yes` and `--non-interactive` exist (REQ-C-005) |
+| `requires_person` | `true` | A person, not the calling agent, confirms the command by typing back an expected string at a terminal; no flag answers the prompt, `--yes` included. Off a terminal or under `--non-interactive` it exits `4` with `PERSON_REQUIRED`; a wrong answer exits `4` with `ATTESTATION_MISMATCH`. Requires `interactive: true` and `mcp: false`; present only when `true` (REQ-C-036) |
 | `has_network_io` | boolean | Command performs network or long blocking I/O; `--timeout` exists (REQ-C-012) |
 | `steps` | string[] | Ordered step names of a multi-step command (REQ-C-008) |
 | `spawns_background_process` | boolean | Command starts a child that outlives it (REQ-C-010) |
@@ -794,6 +795,45 @@ The tool's MCP server offers `release.list` as a tool and never lists `release.a
 ```
 Violation: `mcp` is present only when `false`. A command the MCP server may offer omits the field, so two producers never spell the default two ways.
 
+**Valid — a command only a person confirms**
+```json
+{
+  "schema_version": "3.21",
+  "framework_version": "2.5.0",
+  "etag": "sha256:3e8a51",
+  "commands": {
+    "decisions.approve": {
+      "description": "Record a person's approval of a decision an agent proposed",
+      "danger_level": "mutating",
+      "required_scopes": ["decisions:approve"],
+      "interactive": true,
+      "mcp": false,
+      "requires_person": true,
+      "flags": {},
+      "positionals": [{ "name": "id", "type": "string", "required": true, "description": "ID of the decision to approve" }],
+      "exit_codes": {
+        "0": { "name": "SUCCESS", "description": "The approval is recorded", "retryable": false, "side_effects": "complete" },
+        "4": { "name": "PRECONDITION", "description": "No person confirmed the approval at a terminal; nothing is recorded", "retryable": false, "side_effects": "none", "error_codes": ["PERSON_REQUIRED", "ATTESTATION_MISMATCH"] }
+      }
+    }
+  }
+}
+```
+Before the first call, an agent reads that `--yes` does not confirm `decisions.approve` and that the tool's MCP server never offers it. It hands `tool decisions approve <id>` to a person instead of calling it.
+
+**Invalid — person-only command an MCP server may offer**
+```json
+{
+  "schema_version": "3.21",
+  "framework_version": "2.5.0",
+  "etag": "sha256:3e8a51",
+  "commands": {
+    "decisions.approve": { "description": "Record a person's approval of a decision", "danger_level": "mutating", "required_scopes": [], "interactive": true, "requires_person": true, "flags": {}, "exit_codes": {} }
+  }
+}
+```
+Violation: `requires_person: true` requires `mcp: false`. An MCP call has no terminal and no person behind it, so a server that offered the command could only ever fail it.
+
 **Valid — integer flag with a fixed set of values**
 ```json
 {
@@ -978,6 +1018,8 @@ Violation: a root `env_vars` entry requires `description`; no flag's `descriptio
 - **Writing a startup error to stdout on a protocol command.** The client reads stdout as protocol messages from the first byte; a failure before serving begins goes to stderr, and stdout stays empty
 - **Saying only in `description` that a command is not an MCP tool.** "(not an MCP tool)" is prose a server generator and an agent must parse; declare `mcp: false`
 - **Emitting `mcp: true`.** The schema rejects it; a command the MCP server may offer omits `mcp`
+- **Letting `--yes` answer a person-only confirmation.** An agent passes `--yes` as readily as any flag, so it approves its own proposal; declare `requires_person: true`, which no flag answers (REQ-C-036)
+- **Declaring `requires_person: true` without `interactive: true` and `mcp: false`.** The schema rejects it: the attestation is a prompt, and an MCP call has no person behind it
 - **Saying only in `description` that a command streams a wrapped program's log.** An agent cannot match prose before the call; declare `stderr: "child_log"` so it knows stderr will be busy and carries no failure signal
 - **Letting auto-quiet or `--verbose` gate a declared child log.** `child_log` streams whatever the verbosity; only `--quiet` silences it, so a log that appears only under `--verbose` is a framework diagnostic, not a child log
 - **Listing a borrowed name before the tool-prefixed one.** `CLOUDFALL_PROJECT` ahead of `TOOL_PROJECT` lets a variable set for another tool override the one set for this tool (REQ-F-073)
@@ -1098,6 +1140,12 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Stderr while serving holds the framework's plain-text diagnostics; never read it as protocol messages
 - An absent `stdout` means stdout carries envelopes, including on a pre-3.16 manifest; such a manifest cannot mark a protocol command, so treat a command whose `description` says it serves MCP, LSP, or another protocol over stdio as one
 
+**Commands only a person confirms (`requires_person: true`)**
+- `requires_person: true`: a person must type the confirmation at a terminal. Hand the command to a person with its exact arguments; never add `--yes` or another flag to get past it
+- Exit `4` with `error.code: "PERSON_REQUIRED"`: the command ran off a terminal and did nothing. Do not retry it, with or without flags, and do not start it under a pseudo-terminal; hand it to a person
+- Exit `4` with `error.code: "ATTESTATION_MISMATCH"`: the person typed the wrong confirmation and nothing ran; leave the retry to them
+- An absent `requires_person` means an agent may confirm the command, including on a pre-3.21 manifest, which cannot mark a person-only command; read its `description`, and treat `mcp: false` with `interactive: true` as a hint that a person may be needed
+
 **Commands kept off the MCP server (`mcp: false`)**
 - `mcp: false`: the tool's own MCP server never offers the command as a tool. Run it through the CLI, or hand it to a person when it needs one (an approval, a project-creating `init`); never expect to find it among the server's tools
 - When building an MCP tool list from the manifest, leave out every entry with `mcp: false`
@@ -1141,6 +1189,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 - Assert root `secret_env_vars` lists exactly the secrets every command reads, and that none of them repeats in a command's `secret_env_vars` or a flag's `env_vars`; assert no name in an auth command's `token_env_vars` repeats in that command's `secret_env_vars`
 - Assert `stdout: "protocol"` and `protocol` appear together on exactly the commands that serve a protocol over stdio, that such a command writes nothing to stdout before serving begins, ends stderr with the envelope on any non-zero exit in JSON mode, exits `0` when stdin closes, and declares none of the fields REQ-C-032 excludes
 - Assert `mcp: false` appears on exactly the commands the tool's MCP server leaves out, that the server's tool list holds every other command it serves and none marked `mcp: false`, and that no entry carries `mcp: true`
+- Assert `requires_person: true` appears on exactly the commands that ask for an attestation, always with `interactive: true` and `mcp: false`, and that each one exits `4` with `PERSON_REQUIRED` under `--yes` with stdin from `/dev/null`
 - Assert `stderr: "child_log"` appears on exactly the commands that stream a wrapped program's output to stderr, never on a passthrough command, and that `--quiet` leaves stderr empty for them
 - Assert the root `format` flag's `media_types` keys are all in its `enum_values`, cover every value outside the spec's media type table, and map each spec value they list to the table's media type; assert no other flag carries `media_types`
 - Assert every `output_formats` value covered by neither the spec's table nor the root `media_types` has an `output_media_types` entry, and every `output_media_types` key is a value the command accepts
@@ -1189,6 +1238,7 @@ Rules for agents consuming `ManifestResponse` to plan and execute command calls.
 | [REQ-C-026](../requirements/c-026-commands-declare-conditional-argument-dependencies.md) | Sources: `requires` conditional rules |
 | [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) | Sources: `arguments` and `help_argv` per command |
 | [REQ-C-032](../requirements/c-032-protocol-server-commands-declare-stdout-protocol.md) | Sources: `stdout`, `protocol`, and `mcp` per command |
+| [REQ-C-036](../requirements/c-036-person-only-commands-declare-requires-person.md) | Sources: `requires_person` per command |
 | [REQ-F-038](../requirements/f-038-verbosity-auto-quiet-in-non-tty-context.md) | Sources: `stderr` per command, the child log that auto-quiet leaves alone |
 | [REQ-O-048](../requirements/o-048-destructive-commands-default-dry-run.md) | Sources: `safe_default` and `confirm_flag` per command |
 | [REQ-O-031](../requirements/o-031-dependency-version-matrix-declaration.md) | Sources: top-level `dependencies` |

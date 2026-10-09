@@ -10,11 +10,11 @@
 
 ## Description
 
-Any command that would prompt the user for confirmation or input in interactive mode MUST accept `--yes` (auto-confirm all prompts) and `--non-interactive` (fail immediately with exit code 4 if any prompt would be shown). The framework MUST register these flags automatically for any command that declares it uses interactive prompts. Command authors MUST declare prompt usage in registration metadata.
+Any command that would prompt the user for confirmation or input in interactive mode MUST accept `--yes` (auto-confirm all prompts) and `--non-interactive` (fail immediately with exit code 4 if any prompt would be shown). The framework MUST register these flags automatically for any command that declares it uses interactive prompts. Command authors MUST declare prompt usage in registration metadata. A command declaring `requires_person: true` ([REQ-C-036](c-036-person-only-commands-declare-requires-person.md)) is the one exception: its attestation exists so that a person, not the calling agent, confirms the command, and `--yes` does not answer it.
 
 ## Acceptance Criteria
 
-- A command that prompts for confirmation in interactive mode accepts `--yes` and proceeds without prompting
+- A command that prompts for confirmation in interactive mode accepts `--yes` and proceeds without prompting, except that a command with `requires_person: true` ignores `--yes` for its attestation and exits `4` with `PERSON_REQUIRED` off a terminal ([REQ-C-036](c-036-person-only-commands-declare-requires-person.md))
 - With `--non-interactive`, a command that would prompt exits with exit code 4 and a JSON error
 - The `--yes` flag is idempotent: passing it to a command that never prompts has no effect, except on a command whose `confirm_flag` is `yes` (REQ-O-048), where it confirms execution and the command runs instead of previewing
 - The `--schema` output for interactive commands includes `interactive: true`
@@ -97,3 +97,4 @@ register command "delete-account":
 | [REQ-C-004](c-004-destructive-commands-must-support-dry-run.md) | C | Composes: `--dry-run` is the preview step before the `--yes`-confirmed live run |
 | [REQ-O-021](o-021-confirm-destructive-flag.md) | O | Extends: `--confirm-destructive` is a stronger opt-in variant for destructive confirmation |
 | [REQ-O-048](o-048-destructive-commands-default-dry-run.md) | O | Composes: a command whose `confirm_flag` is `yes` previews without `--yes` instead of prompting |
+| [REQ-C-036](c-036-person-only-commands-declare-requires-person.md) | C | Specializes: a person-only attestation is the one prompt `--yes` does not answer |

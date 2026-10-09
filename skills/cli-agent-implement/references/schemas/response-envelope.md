@@ -2,7 +2,7 @@
 
 **File:** [`response-envelope.json`](response-envelope.json)
 
-> **Used by:** [REQ-F-004](../requirements/f-004-consistent-json-response-envelope.md) · [REQ-F-018](../requirements/f-018-pagination-metadata-on-list-commands.md) · [REQ-F-023](../requirements/f-023-tool-version-in-every-response.md) · [REQ-F-024](../requirements/f-024-request-id-and-trace-id-in-every-response.md) · [REQ-C-009](../requirements/c-009-multi-step-commands-report-completed-failed-skippe.md) · [REQ-C-013](../requirements/c-013-error-responses-include-code-and-message.md) · [REQ-C-014](../requirements/c-014-error-responses-include-retryable-and-retry-after-.md) · [REQ-C-028](../requirements/c-028-already-exists-response-pattern.md) · [REQ-C-030](../requirements/c-030-error-responses-include-fix-command.md) · [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-050](../requirements/o-050-tool-exec-built-in-command.md) · [REQ-F-080](../requirements/f-080-sync-call-budget.md) · [REQ-F-082](../requirements/f-082-incomplete-work-response.md) · all commands in JSON output mode
+> **Used by:** [REQ-F-004](../requirements/f-004-consistent-json-response-envelope.md) · [REQ-F-018](../requirements/f-018-pagination-metadata-on-list-commands.md) · [REQ-F-023](../requirements/f-023-tool-version-in-every-response.md) · [REQ-F-024](../requirements/f-024-request-id-and-trace-id-in-every-response.md) · [REQ-C-009](../requirements/c-009-multi-step-commands-report-completed-failed-skippe.md) · [REQ-C-013](../requirements/c-013-error-responses-include-code-and-message.md) · [REQ-C-014](../requirements/c-014-error-responses-include-retryable-and-retry-after-.md) · [REQ-C-028](../requirements/c-028-already-exists-response-pattern.md) · [REQ-C-030](../requirements/c-030-error-responses-include-fix-command.md) · [REQ-C-031](../requirements/c-031-passthrough-commands-delegate-to-another-parser.md) · [REQ-O-030](../requirements/o-030-opt-in-audit-log.md) · [REQ-O-041](../requirements/o-041-tool-manifest-built-in-command.md) · [REQ-O-050](../requirements/o-050-tool-exec-built-in-command.md) · [REQ-F-080](../requirements/f-080-sync-call-budget.md) · [REQ-F-082](../requirements/f-082-incomplete-work-response.md) · [REQ-C-036](../requirements/c-036-person-only-commands-declare-requires-person.md) · all commands in JSON output mode
 
 ---
 
@@ -384,6 +384,10 @@ Rules for agents parsing `ResponseEnvelope` at runtime, including handling malfo
 - `error.fix_command` present — run it verbatim (it is declared safe: read-only or idempotent), then reissue the original call once; if either step fails, stop and escalate
 - `error.retryable` absent — fall back to the exit code's retryability from [`exit-code.md`](exit-code.md)
 - Never retry more than 3 times on the same error code without a state change
+
+**Person-only commands**
+- `error.code: "PERSON_REQUIRED"` (exit `4`) — the command needs a person to confirm it at a terminal (REQ-C-036) and did nothing. Never retry it, with `--yes` or any other flag; hand the exact command to a person
+- `error.code: "ATTESTATION_MISMATCH"` (exit `4`) — a person typed the wrong confirmation and nothing ran; the retry is theirs, not the agent's
 
 **Auth flow**
 - `error.code: "TOKEN_EXPIRED"` — refresh token, replace credential, retry the original call once; if the retry also returns `TOKEN_EXPIRED`, escalate to `TOKEN_INVALID` handling

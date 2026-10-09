@@ -78,6 +78,7 @@ exit 4   # precondition not met
 - Auto-detect `sys.stdin.isatty()` and set `--non-interactive` implicitly
 - Never use pagers; respect `NO_COLOR`, `TERM=dumb`, `CI` env vars
 - Any command with a confirmation prompt MUST have a `--yes`/`--force` flag
+- The one exception is a confirmation only a person may give, such as approving a change an agent proposed: declare `requires_person: true` ([REQ-C-036](../../requirements/c-036-person-only-commands-declare-requires-person.md)), which no flag answers and which fails fast with exit `4` and `PERSON_REQUIRED` off a terminal instead of hanging
 - Document which commands are interactive in help text
 - Set `PAGER=cat` and `GIT_PAGER=cat` in agent execution environments
 
@@ -206,5 +207,7 @@ tool --help | grep -E '\-\-(yes|non-interactive|no-input|defaults|force)'
 # Then call with all applicable flags
 tool deploy --yes --non-interactive
 ```
+
+**A person-only command is not a hang to work around:** exit `4` with `error.code: "PERSON_REQUIRED"`, or `requires_person: true` in the manifest, means a person must confirm the command at a terminal ([REQ-C-036](../../requirements/c-036-person-only-commands-declare-requires-person.md)). Hand the exact command to a person and never retry it, with `--yes` or any other flag.
 
 **Limitation:** `stdin=DEVNULL` suppresses prompts that read from `sys.stdin`, but tools that open `/dev/tty` directly will still block — this is a CLI bug with no agent-side fix; report it and use the timeout as a circuit breaker
