@@ -14,6 +14,7 @@ after_stamp = ["scripts/sync-skill-references.sh"]
 [changelog]
 path = "CHANGELOG.md"
 style = "dash"
+fragments = "changelog.d"
 
 # CHANGELOG "Versioning": a release that changes failure modes, requirements, or schemas
 # is MINOR; prose, examples, and tooling are PATCH. MAJOR stays a person's decision.
