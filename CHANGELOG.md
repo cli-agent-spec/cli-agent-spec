@@ -11,6 +11,8 @@
 
 ## Unreleased
 
+## 1.16.0 — 2026-10-09
+
 ### A confirmation only a person gives: `requires_person`
 
 - REQ-C-036 Person-Only Commands Declare `requires_person` (P1): a command whose confirmation only a person may give, such as approving a change an agent proposed, declares `requires_person: true` with `interactive: true` and `mcp: false`. It asks the person to type back an expected string, only when stdin and stdout are terminals and `--non-interactive` is absent, and no flag answers it, `--yes` included. Off a terminal it exits `4` with `error.code: "PERSON_REQUIRED"`, `retryable: false`, and a suggestion that names no flag; a wrong answer exits `4` with `ATTESTATION_MISMATCH`; neither runs anything. The requirement states its non-goal: a speed bump and an honest record, not a security boundary, since an agent running as the same OS user can fake a terminal
