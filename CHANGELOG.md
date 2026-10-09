@@ -11,6 +11,8 @@
 
 ## Unreleased
 
+## 1.15.0 — 2026-10-09
+
 ### §79 Work Outlives the Caller's Budget: bounded calls that keep their work
 
 - New failure mode §79 (Part II, Critical): a command whose run length depends on its input meets an agent's fixed per-call budget, and the call is killed with its work; a read-only `TIMEOUT` marked retryable repeats on every identical rerun. The rule: a synchronous call is bounded, and work is never lost to a budget

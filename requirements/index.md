@@ -203,4 +203,4 @@
 
 ---
 
-*CLI Agent Spec v1.14 — 166 requirements (81 REQ-F + 35 REQ-C + 50 REQ-O). Updated 2026-10-08.*
+*CLI Agent Spec v1.15 — 166 requirements (81 REQ-F + 35 REQ-C + 50 REQ-O). Updated 2026-10-08.*
