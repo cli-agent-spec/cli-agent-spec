@@ -73,3 +73,4 @@ app_id = 5209412      # sessions write as shipmill-romamo[bot] (shipmill spec 00
 triage = "act"
 fix = "act"
 land = "act"
+upgrade = "act"                   # shipmill config migrations land without a question
