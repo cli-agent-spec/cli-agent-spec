@@ -4,7 +4,7 @@ Generated: 2026-07-05 | CLI version: 2.30.1 | Findings: 22 failure modes | Scope
 
 ## Invoke As
 
-`/Users/roman/.hermes/node/bin/neon`
+`~/.hermes/node/bin/neon`
 
 ## Always Include
 

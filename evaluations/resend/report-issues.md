@@ -16,7 +16,7 @@ These were witnessed directly when running checks against this CLI.
 **Discovered during:** §24 evaluation — 2026-07-06
 **Symptom:** `whoami -q` returned `"authenticated": true` for a synthetic `--api-key`.
 **Impact:** Agents may treat key presence as server-validated authentication and proceed with later commands that fail.
-**Trigger:** `/Users/roman/.hermes/node/bin/resend --api-key re_CANARY_SECRET_12345678901234567890 whoami -q`
+**Trigger:** `~/.hermes/node/bin/resend --api-key re_CANARY_SECRET_12345678901234567890 whoami -q`
 
 ---
 
@@ -25,7 +25,7 @@ These were witnessed directly when running checks against this CLI.
 **Discovered during:** §64 evaluation — 2026-07-06
 **Symptom:** Help and code show browser-opening behavior with no JSON URL fallback.
 **Impact:** Headless agents may trigger GUI behavior or stall around browser launches instead of receiving a URL.
-**Trigger:** `/Users/roman/.hermes/node/bin/resend open --help`
+**Trigger:** `~/.hermes/node/bin/resend open --help`
 
 ---
 
@@ -61,7 +61,7 @@ These were witnessed directly when running checks against this CLI.
 **Discovered during:** §1 evaluation — 2026-07-06
 **Symptom:** Validation, auth, unknown-command, invalid API key, and confirmation-required failures all exited 1.
 **Impact:** Agents cannot decide retry/fix/stop behavior from exit status alone.
-**Trigger:** `/Users/roman/.hermes/node/bin/resend emails send -q`
+**Trigger:** `~/.hermes/node/bin/resend emails send -q`
 
 ---
 

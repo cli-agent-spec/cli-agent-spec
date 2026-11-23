@@ -19,19 +19,19 @@
 
 ### 1. Documentation Quality - 2/3
 
-The official Neon CLI documentation and installed package README document the canonical `neon` invocation, global `--output json|yaml|table`, `--api-key`/`NEON_API_KEY` authentication, `--context-file`, and agent-oriented `neon link --agent`. Spot checks against `/Users/roman/.hermes/node/bin/neon --help` and `neon link --help` confirmed those flags are present. No `AGENTS.md` or `CODING_AGENTS.md` was available in the audit workspace or installed package, which prevents a full score under this rubric.
+The official Neon CLI documentation and installed package README document the canonical `neon` invocation, global `--output json|yaml|table`, `--api-key`/`NEON_API_KEY` authentication, `--context-file`, and agent-oriented `neon link --agent`. Spot checks against `~/.hermes/node/bin/neon --help` and `neon link --help` confirmed those flags are present. No `AGENTS.md` or `CODING_AGENTS.md` was available in the audit workspace or installed package, which prevents a full score under this rubric.
 
 ### 2. Self-Description - 1/3
 
-Tried `/Users/roman/.hermes/node/bin/neon --schema`, `/Users/roman/.hermes/node/bin/neon manifest`, and `/Users/roman/.hermes/node/bin/neon --manifest`. `manifest` exits non-zero as an unknown command. `--schema` and `--manifest` return ordinary help text with exit code 0 rather than a machine-readable `ManifestResponse`. The help output is structured and includes commands, flag names, types, choices, defaults, and aliases.
+Tried `~/.hermes/node/bin/neon --schema`, `~/.hermes/node/bin/neon manifest`, and `~/.hermes/node/bin/neon --manifest`. `manifest` exits non-zero as an unknown command. `--schema` and `--manifest` return ordinary help text with exit code 0 rather than a machine-readable `ManifestResponse`. The help output is structured and includes commands, flag names, types, choices, defaults, and aliases.
 
 ### 3. Pre-built Integrations - 1/3
 
-No MCP config/server, OpenAPI spec file, Claude skill, LangChain/LlamaIndex wrapper, or complete workflow artifact was found in the installed package at `/Users/roman/.hermes/node/lib/node_modules/neon` within the scan depth. The package does include co-versioned agent-mode implementations for selected commands (`link`, `bootstrap`, `init`), but they do not cover the full CLI command surface.
+No MCP config/server, OpenAPI spec file, Claude skill, LangChain/LlamaIndex wrapper, or complete workflow artifact was found in the installed package at `~/.hermes/node/lib/node_modules/neon` within the scan depth. The package does include co-versioned agent-mode implementations for selected commands (`link`, `bootstrap`, `init`), but they do not cover the full CLI command surface.
 
 ### 4. Setup Reproducibility - 2/3
 
-Install command documented by official docs and README: `npm i -g neon`. The installed `package.json` declares `node >=20.19.0`, package dependencies, and binary entries for `neon` and `neonctl`. `/Users/roman/.hermes/node/bin/neon --version` returned `2.30.1`. A second `npm install -g neon --no-fund --no-audit` completed successfully.
+Install command documented by official docs and README: `npm i -g neon`. The installed `package.json` declares `node >=20.19.0`, package dependencies, and binary entries for `neon` and `neonctl`. `~/.hermes/node/bin/neon --version` returned `2.30.1`. A second `npm install -g neon --no-fund --no-audit` completed successfully.
 
 ### 5. Workflow Coverage - 2/3
 

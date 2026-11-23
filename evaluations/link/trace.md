@@ -41,7 +41,7 @@ Additional probes: `payment-methods list` without auth, `auth logout --dry-run`,
 [
   {
     "authenticated": false,
-    "credentials_path": "/Users/roman/Documents/Link-cli/source/tmp/link-auth.json"
+    "credentials_path": "/path/to/workdir/source/tmp/link-auth.json"
   }
 ]
 ```
@@ -350,7 +350,7 @@ No hang or browser launch occurred, but `auth_methods` was absent and the code w
 ```json
 {
   "code": "UNKNOWN",
-  "message": "EPERM: operation not permitted, mkdir '/Users/roman/Library/Preferences/link-nodejs'"
+  "message": "EPERM: operation not permitted, mkdir '~/Library/Preferences/link-nodejs'"
 }
 ```
 

@@ -181,7 +181,7 @@ Error: failed reaching server: connection error: desc = "transport: Error while 
 ## §25 — Prompt Injection via Output
 **Date:** 2026-07-07
 **CLI version:** temporal version 1.7.2 (Server 1.31.1, UI 2.49.1)
-**Check command:** `/opt/homebrew/bin/temporal --env-file /Users/roman/Documents/Codex/2026-07-07/cli-agent-audit-users-roman-pycharmprojects/tmp/temporal-audit/temporal.yaml --config-file /Users/roman/Documents/Codex/2026-07-07/cli-agent-audit-users-roman-pycharmprojects/tmp/temporal-audit/temporal.toml --output json env list`
+**Check command:** `/opt/homebrew/bin/temporal --env-file /path/to/workdir/tmp/temporal-audit/temporal.yaml --config-file /path/to/workdir/tmp/temporal-audit/temporal.toml --output json env list`
 **Exit code:** 0
 **Score:** 0/3
 
@@ -368,7 +368,7 @@ Error: required flag(s) "name" not set
 ## §53 — Credential Expiry Mid-Session
 **Date:** 2026-07-07
 **CLI version:** temporal version 1.7.2 (Server 1.31.1, UI 2.49.1)
-**Check command:** `/opt/homebrew/bin/temporal --output json --address 127.0.0.1:1 --tls-cert-path /Users/roman/Documents/Codex/2026-07-07/cli-agent-audit-users-roman-pycharmprojects/tmp/temporal-audit/missing.crt workflow list`
+**Check command:** `/opt/homebrew/bin/temporal --output json --address 127.0.0.1:1 --tls-cert-path /path/to/workdir/tmp/temporal-audit/missing.crt workflow list`
 **Exit code:** 1
 **Score:** ?/3
 

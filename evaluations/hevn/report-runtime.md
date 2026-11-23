@@ -8,7 +8,7 @@
 Use:
 
 ```bash
-/Users/roman/Documents/HEVN\ CLI/.audit-venv311/bin/hevn <command> --json
+/path/to/workdir/.audit-venv311/bin/hevn <command> --json
 ```
 
 Set an isolated config path for unattended runs:

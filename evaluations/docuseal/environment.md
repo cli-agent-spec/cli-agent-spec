@@ -14,7 +14,7 @@
 ## Binary
 - Entry point: `node bin/run.js`
 - Version: `1.0.3`
-- Resolved path: `/Users/roman/PycharmProjects/Experiments/docuseal-cli/bin/run.js`
+- Resolved path: `/path/to/workdir/bin/run.js`
 - Note: after clone, `bin/run.js` required `dist/index.js`, which was missing until `npm run build` was run.
 
 ## Non-Interactive Flags

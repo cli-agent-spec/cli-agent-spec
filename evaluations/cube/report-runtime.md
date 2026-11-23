@@ -4,7 +4,7 @@ Generated: 2026-08-06 | CLI version: 1.7.16 | Findings: 22 failure modes | Scope
 
 ## Invoke As
 
-`/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube`
+`/path/to/workdir/work/bin/cube`
 
 ## Always Include
 

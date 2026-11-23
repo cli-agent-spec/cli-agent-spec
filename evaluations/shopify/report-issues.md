@@ -50,7 +50,7 @@ These were witnessed directly when running checks against this CLI.
 ### §10 candidate — undeclared writes to user preferences
 
 **Discovered during:** §10 evaluation — 2026-05-28
-**Symptom:** Several commands attempted writes under `/Users/roman/Library/Preferences/...`, causing sandbox `EPERM` stack traces.
+**Symptom:** Several commands attempted writes under `~/Library/Preferences/...`, causing sandbox `EPERM` stack traces.
 **Impact:** Restricted agent environments can fail before command-specific validation or structured errors are reached.
 **Trigger:** theme command probes under the workspace sandbox
 
