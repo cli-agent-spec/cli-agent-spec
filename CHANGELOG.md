@@ -11,6 +11,12 @@
 
 ## Unreleased
 
+## 1.16.2 — 2026-11-24
+
+### Changed
+
+- Evaluation records no longer show local machine paths
+
 ## 1.16.1 — 2026-10-30
 
 ### Product direction: `docs/product.md` (#94)
