@@ -58,7 +58,7 @@ Release notes for 4.1.0
 
 **stderr** (first 20 lines):
 ```
-EPERM: operation not permitted, mkdir '/Users/roman/Library/Preferences/shopify-cli-theme-conf-nodejs'
+EPERM: operation not permitted, mkdir '~/Library/Preferences/shopify-cli-theme-conf-nodejs'
 ```
 
 ## §43 — Tool Output Result Size Unboundedness
@@ -208,7 +208,7 @@ Release notes for 4.1.0
 
 **stderr** (first 20 lines):
 ```
-EPERM: operation not permitted, mkdir '/Users/roman/Library/Preferences/shopify-cli-theme-conf-nodejs'
+EPERM: operation not permitted, mkdir '~/Library/Preferences/shopify-cli-theme-conf-nodejs'
 ```
 
 ## §71 — Non-Interactive Installation Absence
@@ -332,7 +332,7 @@ Verbose output did not echo the fake credential, but --password is accepted as a
 
 **stderr** (first 20 lines):
 ```
-EPERM: operation not permitted, mkdir '/Users/roman/Library/Preferences/shopify-cli-theme-conf-nodejs'
+EPERM: operation not permitted, mkdir '~/Library/Preferences/shopify-cli-theme-conf-nodejs'
 ```
 
 ## §25 — Prompt Injection via Output
@@ -404,5 +404,5 @@ shopify commands --json returns valid JSON command metadata, but theme commands 
 
 **stderr** (first 20 lines):
 ```
-EPERM: operation not permitted, mkdir '/Users/roman/Library/Preferences/shopify-cli-theme-conf-nodejs'
+EPERM: operation not permitted, mkdir '~/Library/Preferences/shopify-cli-theme-conf-nodejs'
 ```

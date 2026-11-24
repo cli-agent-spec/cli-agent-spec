@@ -14,10 +14,10 @@
 - Package manager declared by package: pnpm@11.8.0
 
 ## Binary
-- Entry point: `/Users/roman/.hermes/node/bin/resend`
+- Entry point: `~/.hermes/node/bin/resend`
 - Version: `resend-cli v2.8.1`
-- Resolved path: `/Users/roman/.hermes/node/bin/resend` -> `../lib/node_modules/resend-cli/dist/cli.cjs`
-- PATH note: `npm install -g resend-cli` installed the binary, but `/Users/roman/.hermes/node/bin` was not on PATH in this shell. Use the absolute entry point above for checks.
+- Resolved path: `~/.hermes/node/bin/resend` -> `../lib/node_modules/resend-cli/dist/cli.cjs`
+- PATH note: `npm install -g resend-cli` installed the binary, but `~/.hermes/node/bin` was not on PATH in this shell. Use the absolute entry point above for checks.
 
 ## Non-Interactive Flags
 - `--api-key <key>`: override API key for a single invocation; avoids stored credential lookup.
@@ -47,6 +47,6 @@
 - User-provided docs URL: https://resend.com/docs/cli
 - npm package metadata: `npm view resend-cli version bin description --json`
 - Install command: `npm install -g resend-cli --no-fund --no-audit`
-- Binary checks: `/Users/roman/.hermes/node/bin/resend --version`, `/Users/roman/.hermes/node/bin/resend --help`, `/Users/roman/.hermes/node/bin/resend login --help`
-- Command schema: `/Users/roman/.hermes/node/bin/resend commands`
-- Installed package files: `/Users/roman/.hermes/node/lib/node_modules/resend-cli/package.json`, `README.md`, `skills/resend-cli/SKILL.md`, `skills/resend-cli/references/workflows.md`
+- Binary checks: `~/.hermes/node/bin/resend --version`, `~/.hermes/node/bin/resend --help`, `~/.hermes/node/bin/resend login --help`
+- Command schema: `~/.hermes/node/bin/resend commands`
+- Installed package files: `~/.hermes/node/lib/node_modules/resend-cli/package.json`, `README.md`, `skills/resend-cli/SKILL.md`, `skills/resend-cli/references/workflows.md`

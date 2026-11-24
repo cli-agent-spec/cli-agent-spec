@@ -9,7 +9,7 @@
 Use the absolute binary from the environment profile:
 
 ```bash
-/Users/roman/.hermes/node/bin/neon
+~/.hermes/node/bin/neon
 ```
 
 Recommended wrapper defaults:

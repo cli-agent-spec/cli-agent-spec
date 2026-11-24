@@ -17,5 +17,5 @@ Theme commands accept `--password=<value>` even though that places credentials i
 Discovered during §24 evaluation on 2026-05-28.
 
 ### §30 candidate — undeclared writes to user preferences
-Several commands attempted to write under `/Users/roman/Library/Preferences/...`, causing sandbox `EPERM` failures and stack traces before command-specific validation could run.
+Several commands attempted to write under `~/Library/Preferences/...`, causing sandbox `EPERM` failures and stack traces before command-specific validation could run.
 Discovered during §10 and §2 evaluation on 2026-05-28.

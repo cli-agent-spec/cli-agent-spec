@@ -2,7 +2,7 @@
 
 **Generated:** 2026-05-22  
 **CLI:** `langfuse` from `langfuse-cli` 0.0.10  
-**Install used:** project-local npm install in `/Users/roman/Documents/Languse`
+**Install used:** project-local npm install in `/path/to/workdir`
 
 ## Summary
 

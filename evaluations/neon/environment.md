@@ -13,11 +13,11 @@
 - Package: neon 2.30.1
 
 ## Binary
-- Entry point: `/Users/roman/.hermes/node/bin/neon`
+- Entry point: `~/.hermes/node/bin/neon`
 - Version: 2.30.1
-- Resolved path: `/Users/roman/.hermes/node/bin/neon`
+- Resolved path: `~/.hermes/node/bin/neon`
 - Symlink target: `../lib/node_modules/neon/dist/cli.js`
-- Alias: `/Users/roman/.hermes/node/bin/neonctl`
+- Alias: `~/.hermes/node/bin/neonctl`
 
 ## Non-Interactive Flags
 - `--api-key <key>`: authenticate without browser login; defaults from `NEON_API_KEY`.
@@ -38,7 +38,7 @@
 
 ## Config
 - `NEON_API_KEY`: API key used for non-interactive authentication.
-- Default config directory: `/Users/roman/.config/neonctl`.
+- Default config directory: `~/.config/neonctl`.
 - Default context file: nearest `.neon` file discovered upward from the current directory.
 
 ## Timeout Method
@@ -46,7 +46,7 @@
 
 ## Source
 - Official Neon CLI docs: https://neon.com/docs/cli
-- Installed package README: `/Users/roman/.hermes/node/lib/node_modules/neon/README.md`
-- Installed package manifest: `/Users/roman/.hermes/node/lib/node_modules/neon/package.json`
-- Commands run: `/Users/roman/.hermes/node/bin/neon --version`, `/Users/roman/.hermes/node/bin/neon --help`, `/Users/roman/.hermes/node/bin/neon link --help`, `/Users/roman/.hermes/node/bin/neon projects --help`, `/Users/roman/.hermes/node/bin/neon auth --help`
+- Installed package README: `~/.hermes/node/lib/node_modules/neon/README.md`
+- Installed package manifest: `~/.hermes/node/lib/node_modules/neon/package.json`
+- Commands run: `~/.hermes/node/bin/neon --version`, `~/.hermes/node/bin/neon --help`, `~/.hermes/node/bin/neon link --help`, `~/.hermes/node/bin/neon projects --help`, `~/.hermes/node/bin/neon auth --help`
 - No `AGENTS.md`, `CODING_AGENTS.md`, `README.md`, or package manifest exists in the generated audit workspace.

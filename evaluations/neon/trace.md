@@ -3,7 +3,7 @@
 ## §34 - Shell Injection via Agent-Constructed Commands
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `/Users/roman/.hermes/node/bin/neon projects create --name acme%2Fwidgets --output ../../etc/test --no-color --no-analytics`
+**Check command:** `~/.hermes/node/bin/neon projects create --name acme%2Fwidgets --output ../../etc/test --no-color --no-analytics`
 **Exit code:** 1
 **Score:** 1/3
 
@@ -20,7 +20,7 @@ ERROR: Invalid values:
 ## §37 - REPL / Interactive Mode Accidental Triggering
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `/Users/roman/.hermes/node/bin/neon psql --output json --config-dir tmp/neon-empty-config --context-file tmp/missing-neon-context --no-color --no-analytics` with stdin closed and 3s timeout
+**Check command:** `~/.hermes/node/bin/neon psql --output json --config-dir tmp/neon-empty-config --context-file tmp/missing-neon-context --no-color --no-analytics` with stdin closed and 3s timeout
 **Exit code:** 124
 **Score:** 0/3
 
@@ -37,7 +37,7 @@ INFO: Auth Url: https://oauth2.neon.tech/oauth2/auth?...response_type=code
 ## §42 - Debug / Trace Mode Secret Leakage
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `/Users/roman/.hermes/node/bin/neon projects list --output json --api-key SECRET_CANARY_NEON_AUDIT_12345 --config-dir tmp/neon-empty-config --context-file tmp/missing-neon-context --no-color --no-analytics`
+**Check command:** `~/.hermes/node/bin/neon projects list --output json --api-key SECRET_CANARY_NEON_AUDIT_12345 --config-dir tmp/neon-empty-config --context-file tmp/missing-neon-context --no-color --no-analytics`
 **Exit code:** 1
 **Score:** 1/3
 
@@ -54,7 +54,7 @@ INFO: Authentication failed, deleting credentials...
 ## §43 - Tool Output Result Size Unboundedness
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `rg -n "meta\\.truncated|total_bytes|max-output|max-length" /Users/roman/.hermes/node/lib/node_modules/neon/README.md /Users/roman/.hermes/node/lib/node_modules/neon/dist`
+**Check command:** `rg -n "meta\\.truncated|total_bytes|max-output|max-length" ~/.hermes/node/lib/node_modules/neon/README.md ~/.hermes/node/lib/node_modules/neon/dist`
 **Exit code:** 1
 **Score:** 0/3
 
@@ -69,7 +69,7 @@ INFO: Authentication failed, deleting credentials...
 ## §45 - Headless Authentication / OAuth Browser Flow Blocking
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `/Users/roman/.hermes/node/bin/neon projects list --output json --config-dir tmp/neon-empty-config --context-file tmp/missing-neon-context --no-color --no-analytics` with stdin closed and 3s timeout
+**Check command:** `~/.hermes/node/bin/neon projects list --output json --config-dir tmp/neon-empty-config --context-file tmp/missing-neon-context --no-color --no-analytics` with stdin closed and 3s timeout
 **Exit code:** 124
 **Score:** 0/3
 
@@ -86,7 +86,7 @@ INFO: Auth Url: https://oauth2.neon.tech/oauth2/auth?...response_type=code
 ## §50 - Stdin Consumption Deadlock
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `/Users/roman/.hermes/node/bin/neon api /projects --data - --output json --api-key SECRET_CANARY_NEON_AUDIT_12345 --no-color --no-analytics`
+**Check command:** `~/.hermes/node/bin/neon api /projects --data - --output json --api-key SECRET_CANARY_NEON_AUDIT_12345 --no-color --no-analytics`
 **Exit code:** 1
 **Score:** 1/3
 
@@ -134,7 +134,7 @@ Indeterminate: exact long-running streaming behavior was not exercised.
 ## §61 - Bidirectional Pipe Payload Deadlock
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `/Users/roman/.hermes/node/bin/neon api /projects --data - --output json --api-key SECRET_CANARY_NEON_AUDIT_12345 --no-color --no-analytics` with 70KB stdin
+**Check command:** `~/.hermes/node/bin/neon api /projects --data - --output json --api-key SECRET_CANARY_NEON_AUDIT_12345 --no-color --no-analytics` with 70KB stdin
 **Exit code:** 1
 **Score:** 1/3
 
@@ -167,7 +167,7 @@ Indeterminate: exercising the editor path requires a live psql session.
 ## §64 - Headless Display and GUI Launch Blocking
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `/Users/roman/.hermes/node/bin/neon auth --config-dir tmp/neon-auth-config --no-color --no-analytics` with DISPLAY empty, stdin closed, and 3s timeout
+**Check command:** `~/.hermes/node/bin/neon auth --config-dir tmp/neon-auth-config --no-color --no-analytics` with DISPLAY empty, stdin closed, and 3s timeout
 **Exit code:** 124
 **Score:** 0/3
 
@@ -184,7 +184,7 @@ INFO: Auth Url: https://oauth2.neon.tech/oauth2/auth?...response_type=code
 ## §71 - Non-Interactive Installation Absence
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `npm install -g neon --no-fund --no-audit` followed by `/Users/roman/.hermes/node/bin/neon --version`
+**Check command:** `npm install -g neon --no-fund --no-audit` followed by `~/.hermes/node/bin/neon --version`
 **Exit code:** 0
 **Score:** 2/3
 
@@ -201,7 +201,7 @@ changed 123 packages in 2s
 ## §10 - Interactivity & TTY Requirements
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `/Users/roman/.hermes/node/bin/neon link --no-checks --org-id org-abc123 --project-id polished-snowflake-12345678 --no-env-pull --context-file tmp/neon-link-context --no-color --no-analytics` with stdin closed and 3s timeout
+**Check command:** `~/.hermes/node/bin/neon link --no-checks --org-id org-abc123 --project-id polished-snowflake-12345678 --no-env-pull --context-file tmp/neon-link-context --no-color --no-analytics` with stdin closed and 3s timeout
 **Exit code:** 124
 **Score:** 0/3
 
@@ -234,7 +234,7 @@ No user-facing --timeout flag was found. No-credential auth probes exceeded the 
 ## §12 - Idempotency & Safe Retries
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `rg -n "idempotency|idempotency-key|effect" /Users/roman/.hermes/node/lib/node_modules/neon/README.md /Users/roman/.hermes/node/lib/node_modules/neon/dist`
+**Check command:** `rg -n "idempotency|idempotency-key|effect" ~/.hermes/node/lib/node_modules/neon/README.md ~/.hermes/node/lib/node_modules/neon/dist`
 **Exit code:** 1
 **Score:** 0/3
 
@@ -249,7 +249,7 @@ No user-facing --timeout flag was found. No-credential auth probes exceeded the 
 ## §13 - Partial Failure & Atomicity
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `rg -n "partial|completed_steps|failed_step|resume|rollback" /Users/roman/.hermes/node/lib/node_modules/neon/README.md /Users/roman/.hermes/node/lib/node_modules/neon/dist`
+**Check command:** `rg -n "partial|completed_steps|failed_step|resume|rollback" ~/.hermes/node/lib/node_modules/neon/README.md ~/.hermes/node/lib/node_modules/neon/dist`
 **Exit code:** 0
 **Score:** 0/3
 
@@ -265,7 +265,7 @@ Several incidental source references to partial parsing/results were found, but 
 ## §23 - Side Effects & Destructive Operations
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `/Users/roman/.hermes/node/bin/neon projects delete --help`
+**Check command:** `~/.hermes/node/bin/neon projects delete --help`
 **Exit code:** 0
 **Score:** 0/3
 
@@ -284,7 +284,7 @@ Options include --context-file only.
 ## §24 - Authentication & Secret Handling
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `/Users/roman/.hermes/node/bin/neon projects list --output json --api-key SECRET_CANARY_NEON_AUDIT_12345 --config-dir tmp/neon-empty-config --context-file tmp/missing-neon-context --no-color --no-analytics`
+**Check command:** `~/.hermes/node/bin/neon projects list --output json --api-key SECRET_CANARY_NEON_AUDIT_12345 --config-dir tmp/neon-empty-config --context-file tmp/missing-neon-context --no-color --no-analytics`
 **Exit code:** 1
 **Score:** 1/3
 
@@ -317,7 +317,7 @@ No `trusted: false`, external-data envelope, or prompt-injection protection mark
 ## §74 - Credential Scope Declaration Absence
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `/Users/roman/.hermes/node/bin/neon --schema`, `/Users/roman/.hermes/node/bin/neon manifest`, and static scan for `required_scopes`
+**Check command:** `~/.hermes/node/bin/neon --schema`, `~/.hermes/node/bin/neon manifest`, and static scan for `required_scopes`
 **Exit code:** 1
 **Score:** 0/3
 
@@ -352,7 +352,7 @@ No JSON error body or documented semantic exit code table was observed.
 ## §2 - Output Format & Parseability
 **Date:** 2026-07-05
 **CLI version:** 2.30.1
-**Check command:** `/Users/roman/.hermes/node/bin/neon projects get --output json --no-color --no-analytics`
+**Check command:** `~/.hermes/node/bin/neon projects get --output json --no-color --no-analytics`
 **Exit code:** 1
 **Score:** 1/3
 

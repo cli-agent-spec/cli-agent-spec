@@ -14,7 +14,7 @@
 ## Binary
 - Entry point: `./node_modules/.bin/firecrawl`
 - Version: 1.18.1
-- Resolved path: `/Users/roman/Documents/Firecrawl CLI/node_modules/firecrawl-cli/dist/index.js`
+- Resolved path: `/path/to/workdir/node_modules/firecrawl-cli/dist/index.js`
 
 ## Non-Interactive Flags
 - `--api-key <key>`: provides an API key without invoking login.

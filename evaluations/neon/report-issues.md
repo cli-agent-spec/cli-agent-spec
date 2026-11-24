@@ -12,35 +12,35 @@
 **Discovered during:** §45 evaluation - 2026-07-05
 **Symptom:** `neon projects list --output json` with an empty temporary config and stdin closed launched browser OAuth and did not exit before the 3 second probe timeout.
 **Impact:** An agent blocks waiting for an out-of-band browser login and receives no parseable auth-required response.
-**Trigger:** `/Users/roman/.hermes/node/bin/neon projects list --output json --config-dir tmp/neon-empty-config --context-file tmp/missing-neon-context --no-color --no-analytics`
+**Trigger:** `~/.hermes/node/bin/neon projects list --output json --config-dir tmp/neon-empty-config --context-file tmp/missing-neon-context --no-color --no-analytics`
 
 ### §64 - headless auth has no JSON URL fallback
 
 **Discovered during:** §64 evaluation - 2026-07-05
 **Symptom:** `neon auth` with `DISPLAY=` and stdin closed still launched browser OAuth and timed out.
 **Impact:** Headless environments cannot recover programmatically; the URL is buried in stderr prose.
-**Trigger:** `/Users/roman/.hermes/node/bin/neon auth --config-dir tmp/neon-auth-config --no-color --no-analytics`
+**Trigger:** `~/.hermes/node/bin/neon auth --config-dir tmp/neon-auth-config --no-color --no-analytics`
 
 ### §10 - documented offline link path still triggers login
 
 **Discovered during:** §10 evaluation - 2026-07-05
 **Symptom:** `neon link --no-checks --org-id org-abc123 --project-id polished-snowflake-12345678 --no-env-pull --context-file tmp/neon-link-context` launched browser OAuth and timed out.
 **Impact:** Agents cannot rely on the documented offline write path for CI or reproducible setup.
-**Trigger:** `/Users/roman/.hermes/node/bin/neon link --no-checks --org-id org-abc123 --project-id polished-snowflake-12345678 --no-env-pull --context-file tmp/neon-link-context --no-color --no-analytics`
+**Trigger:** `~/.hermes/node/bin/neon link --no-checks --org-id org-abc123 --project-id polished-snowflake-12345678 --no-env-pull --context-file tmp/neon-link-context --no-color --no-analytics`
 
 ### §50 - documented stdin sentinel is parsed as a command
 
 **Discovered during:** §50 evaluation - 2026-07-05
 **Symptom:** `neon api /projects --data - --output json --api-key SECRET_CANARY_NEON_AUDIT_12345` exited with `ERROR: Unknown command: -`.
 **Impact:** Agents following help text for stdin input hit an argument parser failure instead of a structured stdin contract.
-**Trigger:** `/Users/roman/.hermes/node/bin/neon api /projects --data - --output json --api-key SECRET_CANARY_NEON_AUDIT_12345 --no-color --no-analytics`
+**Trigger:** `~/.hermes/node/bin/neon api /projects --data - --output json --api-key SECRET_CANARY_NEON_AUDIT_12345 --no-color --no-analytics`
 
 ### §2 - JSON output mode does not apply to error paths
 
 **Discovered during:** §2 evaluation - 2026-07-05
 **Symptom:** Commands run with `--output json` for missing arguments, invalid credentials, and validation errors emitted prose stderr and empty stdout.
 **Impact:** Agent parsers must branch into brittle stderr parsing for common failures.
-**Trigger:** `/Users/roman/.hermes/node/bin/neon projects get --output json --no-color --no-analytics`
+**Trigger:** `~/.hermes/node/bin/neon projects get --output json --no-color --no-analytics`
 
 ### §1 - distinct failures collapse to exit code 1
 

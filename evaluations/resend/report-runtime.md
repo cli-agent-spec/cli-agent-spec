@@ -4,7 +4,7 @@ Generated: 2026-07-06 | CLI version: resend-cli v2.8.1 | Findings: 22 failure mo
 
 ## Invoke As
 
-`/Users/roman/.hermes/node/bin/resend`
+`~/.hermes/node/bin/resend`
 
 ## Always Include
 

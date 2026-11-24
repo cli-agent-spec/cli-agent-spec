@@ -9,7 +9,7 @@
 These constraints must hold on every call to resend, regardless of language or framework:
 
 ```
-binary:  /Users/roman/.hermes/node/bin/resend
+binary:  ~/.hermes/node/bin/resend
 stdin:   closed (DEVNULL / equivalent)
 timeout: external subprocess timeout; use <30s for short checks and explicit budgets for long-running listeners
 env:     RESEND_API_KEY  # §24, §45 — authenticate without leaking secrets in argv

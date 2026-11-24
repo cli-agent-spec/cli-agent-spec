@@ -4,7 +4,7 @@
 
 ## OS
 - Platform: darwin
-- Version: macOS host; evaluated from `/Users/roman/Documents/HEVN CLI`
+- Version: macOS host; evaluated from `/path/to/workdir`
 
 ## Runtime
 - Language: Python
@@ -12,9 +12,9 @@
 - Toolchain: local venv created from uv-managed CPython 3.11.12
 
 ## Binary
-- Entry point used during audit: `/Users/roman/Documents/HEVN CLI/.audit-venv311/bin/hevn`
+- Entry point used during audit: `/path/to/workdir/.audit-venv311/bin/hevn`
 - Version: `hevn-cli 0.1.0` from package metadata
-- Resolved path during audit: `/Users/roman/Documents/HEVN CLI/.audit-venv311/bin/hevn`
+- Resolved path during audit: `/path/to/workdir/.audit-venv311/bin/hevn`
 - Version command: `hevn --version` exits 2 with `No such option: --version`
 - Note: the transient audit virtualenv was removed after report validation; reinstall with Python 3.11+ to reproduce live checks.
 

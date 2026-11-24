@@ -1,7 +1,7 @@
 # resend — Issues
 
 ### §24 candidate — `whoami` reports fake flag API key as authenticated
-`/Users/roman/.hermes/node/bin/resend --api-key re_CANARY_SECRET_12345678901234567890 whoami -q` exited 0 and returned `"authenticated": true` with `"source": "flag"` even though the key was synthetic. This can mislead agents into treating credential presence as credential validity.
+`~/.hermes/node/bin/resend --api-key re_CANARY_SECRET_12345678901234567890 whoami -q` exited 0 and returned `"authenticated": true` with `"source": "flag"` even though the key was synthetic. This can mislead agents into treating credential presence as credential validity.
 Discovered during §24 evaluation on 2026-07-06.
 
 ### §64 candidate — `open`/`docs` still launch the OS browser in quiet or JSON mode

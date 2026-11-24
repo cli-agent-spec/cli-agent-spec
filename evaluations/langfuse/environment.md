@@ -14,7 +14,7 @@
 ## Binary
 - Entry point: `./node_modules/.bin/langfuse`
 - Version: `langfuse-cli` 0.0.10
-- Resolved path: `/Users/roman/Documents/Languse/node_modules/.bin/langfuse`
+- Resolved path: `/path/to/workdir/node_modules/.bin/langfuse`
 
 ## Non-Interactive Flags
 - `--curl`: previews the curl command without executing API calls.
@@ -39,6 +39,6 @@
 ## Source
 - Langfuse docs page: `https://langfuse.com/docs/api-and-data-platform/features/cli`
 - GitHub README: `https://github.com/langfuse/langfuse-cli`
-- Local package manifest: `/Users/roman/Documents/Languse/node_modules/langfuse-cli/package.json`
-- Local package README: `/Users/roman/Documents/Languse/node_modules/langfuse-cli/README.md`
+- Local package manifest: `/path/to/workdir/node_modules/langfuse-cli/package.json`
+- Local package README: `/path/to/workdir/node_modules/langfuse-cli/README.md`
 - CLI help output from `./node_modules/.bin/langfuse --help` and `./node_modules/.bin/langfuse api --help`

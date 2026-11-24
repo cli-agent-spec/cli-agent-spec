@@ -14,7 +14,7 @@
 ## Binary
 - Entry point: `./target/debug/omd`
 - Version: `omd 0.1.1`
-- Resolved path: `/Users/roman/Documents/Opemetadata-cli/openmetadata-cli/target/debug/omd`
+- Resolved path: `/path/to/workdir/openmetadata-cli/target/debug/omd`
 
 ## Non-Interactive Flags
 - `--token <TOKEN>`: supplies JWT token directly and bypasses stored credentials

@@ -12,9 +12,9 @@
 - Toolchain: Prebuilt release binary; local `rustc 1.91.1` is present but not required
 
 ## Binary
-- Entry point: `/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube`
+- Entry point: `/path/to/workdir/work/bin/cube`
 - Version: Cube CLI 1.7.16
-- Resolved path: `/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube`
+- Resolved path: `/path/to/workdir/work/bin/cube`
 
 ## Non-Interactive Flags
 - `--token <TOKEN>` / `CUBE_API_KEY`: authenticate with an API key, JWT, or OAuth access token without launching the browser device flow

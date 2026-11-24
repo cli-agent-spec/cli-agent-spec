@@ -9,7 +9,7 @@
 These constraints must hold on every call to cube, regardless of language or framework:
 
 ```text
-binary:  /Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube
+binary:  /path/to/workdir/work/bin/cube
 stdin:   closed (DEVNULL / equivalent)
 timeout: 30s (enforced by the caller)
 env:     CI=true CUBE_NO_UPDATE_CHECK=1 CUBE_NO_TELEMETRY=1
@@ -62,7 +62,7 @@ result = subprocess.run(
 
 ```bash
 # Discover available flags first
-/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube --help | grep -E '\-\-(yes|non-interactive|no-input|defaults|force)'
+/path/to/workdir/work/bin/cube --help | grep -E '\-\-(yes|non-interactive|no-input|defaults|force)'
 
 # Then call with all applicable flags
 tool deploy --yes --non-interactive
@@ -122,7 +122,7 @@ def idempotency_key(operation: str, inputs: dict) -> str:
 
 key = idempotency_key("create-order", {"amount": 100, "user": "alice"})
 
-result = run(["/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube", "create-order", "--amount", "100", "--idempotency-key", key])
+result = run(["/path/to/workdir/work/bin/cube", "create-order", "--amount", "100", "--idempotency-key", key])
 parsed = json.loads(result.stdout)
 
 if parsed.get("effect") == "noop":
@@ -163,7 +163,7 @@ result = run([*cmd, "--confirm-destructive"])
 
 **Check `danger_level` in the tool manifest before calling:**
 ```python
-manifest = json.loads(run(["/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube", "manifest"]).stdout)
+manifest = json.loads(run(["/path/to/workdir/work/bin/cube", "manifest"]).stdout)
 cmd_info = next(c for c in manifest["commands"] if c["name"] == "delete-account")
 if cmd_info.get("danger_level") == "destructive":
     # Require explicit human approval or policy check before proceeding
@@ -220,7 +220,7 @@ MAX_OUTPUT_TOKENS = 8000   # conservative context budget
 MAX_OUTPUT_BYTES = MAX_OUTPUT_TOKENS * 4  # ~4 bytes/token
 
 result = subprocess.run(
-    ["/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube", "get-record", "--id", record_id,
+    ["/path/to/workdir/work/bin/cube", "get-record", "--id", record_id,
      "--max-output", str(MAX_OUTPUT_BYTES),
      "--output", "json"],
     capture_output=True, text=True,
@@ -246,7 +246,7 @@ if parsed.get("meta", {}).get("truncated"):
 **Request only needed fields to reduce output size:**
 ```python
 result = subprocess.run(
-    ["/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube", "get-record", "--id", record_id,
+    ["/path/to/workdir/work/bin/cube", "get-record", "--id", record_id,
      "--fields", "id,name,status",   # only what the agent needs
      "--output", "json"],
     capture_output=True, text=True,
@@ -340,7 +340,7 @@ env = {
 }
 
 # Check schema for GUI operations before calling
-schema = load_schema("/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube")  # from §52 workaround
+schema = load_schema("/path/to/workdir/work/bin/cube")  # from §52 workaround
 cmd_schema = find_command(schema, "deploy")
 if cmd_schema and "browser_open" in cmd_schema.get("gui_operations", []):
     headless_behavior = cmd_schema.get("headless_behavior")
@@ -350,7 +350,7 @@ if cmd_schema and "browser_open" in cmd_schema.get("gui_operations", []):
         print("WARNING: Command may launch browser in headless env — proceed with caution")
 
 result = subprocess.run(
-    ["/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube", "deploy", "--env", "prod", "--output", "json"],
+    ["/path/to/workdir/work/bin/cube", "deploy", "--env", "prod", "--output", "json"],
     # Note: never pass --open-browser in agent context
     capture_output=True, text=True,
     stdin=subprocess.DEVNULL,
@@ -507,7 +507,7 @@ data = parsed.get("data") or parsed.get("result") or parsed
 **Parse structured partial failure output to determine safe retry scope:**
 
 ```python
-result = run(["/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube", "migrate-database"])
+result = run(["/path/to/workdir/work/bin/cube", "migrate-database"])
 parsed = json.loads(result.stdout)
 
 if parsed.get("partial"):
@@ -517,10 +517,10 @@ if parsed.get("partial"):
 
     if rollback_available:
         # Roll back to clean state before retrying from scratch
-        run(["/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube", "migrate-database", "--rollback"])
+        run(["/path/to/workdir/work/bin/cube", "migrate-database", "--rollback"])
     elif resume_from:
         # Resume from the failed step only
-        run(["/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube", "migrate-database", f"--resume-from={resume_from}"])
+        run(["/path/to/workdir/work/bin/cube", "migrate-database", f"--resume-from={resume_from}"])
     else:
         # No structured resume info — do not retry; requires manual investigation
         raise RuntimeError(f"Partial failure at unknown step. Completed: {completed}")
@@ -531,7 +531,7 @@ if parsed.get("partial"):
 results = parsed.get("results", [])
 failed_ids = [r["id"] for r in results if not r["ok"]]
 # Retry only failed items
-run(["/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube", "send-notifications", "--users", ",".join(map(str, failed_ids))])
+run(["/path/to/workdir/work/bin/cube", "send-notifications", "--users", ",".join(map(str, failed_ids))])
 ```
 
 **Limitation:** If the tool emits only a text error with no structured step information, the agent cannot determine what succeeded — do not retry the full operation without verifying current state first, as re-running completed steps may cause duplicate side effects
@@ -554,7 +554,7 @@ env = {
 }
 
 result = subprocess.run(
-    ["/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube", "deploy"],               # no --token flag
+    ["/path/to/workdir/work/bin/cube", "deploy"],               # no --token flag
     env=env,
     capture_output=True,
     text=True,
@@ -613,7 +613,7 @@ def validate_cli_value(name: str, value: str) -> str:
 
 # Always use list form — never shell=True
 result = subprocess.run(
-    ["/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube", "create", "--name", validate_cli_value("name", name)],
+    ["/path/to/workdir/work/bin/cube", "create", "--name", validate_cli_value("name", name)],
     capture_output=True, text=True,
     # never: shell=True
 )
@@ -637,11 +637,11 @@ import subprocess, os, re
 env = {
     **os.environ,
     "CUBE_API_KEY": secret_token,   # env var injection (safe)
-    # NEVER: ["/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube", "--token", secret_token]  ← appears in ps aux
+    # NEVER: ["/path/to/workdir/work/bin/cube", "--token", secret_token]  ← appears in ps aux
 }
 
 result = subprocess.run(
-    ["/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube", "deploy"],   # no secret flag
+    ["/path/to/workdir/work/bin/cube", "deploy"],   # no secret flag
     capture_output=True, text=True,
     env=env,
 )
@@ -699,14 +699,14 @@ def ensure_authenticated(tool: str) -> bool:
                 env_var = method["name"]
                 if os.environ.get(env_var):
                     # Env var is already set — likely an expired credential
-                    print(f"Credential expired. Re-set {env_var} or run: {error.get('reauth_command', '/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube login')}")
+                    print(f"Credential expired. Re-set {env_var} or run: {error.get('reauth_command', '/path/to/workdir/work/bin/cube login')}")
                 else:
                     print(f"Missing credential: set {env_var} to authenticate")
         return False
 
     return True
 
-if not ensure_authenticated("/Users/roman/Documents/Codex/2026-08-06/cli-agent-evaluate-batch-users-roman/work/bin/cube"):
+if not ensure_authenticated("/path/to/workdir/work/bin/cube"):
     raise RuntimeError("Authentication required — cannot proceed headlessly")
 ```
 
