@@ -5,6 +5,7 @@ import sys
 import textwrap
 from pathlib import Path
 
+import pytest
 import spec_corpus as corpus
 import validate_links as vl
 
@@ -76,6 +77,12 @@ def test_matrix_count_claims_cover_prose_outside_the_matrix() -> None:
         ("README.md", 71),
         ("skills/cli-agent-implement/references/AGENTS.md", 71),
     ]
+
+
+def test_matrix_row_count_fails_fast_without_part_1_rows() -> None:
+    renamed = "## Part 1: Failure Mode Matrix\n\n| # | Failure mode |\n| 1 | x |\n"
+    with pytest.raises(SystemExit, match="no failure mode rows"):
+        vl.matrix_row_count(renamed)
 
 
 def test_well_formed_failure_mode_passes() -> None:

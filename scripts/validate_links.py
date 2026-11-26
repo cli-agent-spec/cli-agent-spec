@@ -296,7 +296,7 @@ def corpus_counts() -> dict[str, int]:
         "requirements": len(requirements),
         "schemas": len(schema_pairs()),
         "canonical_schemas": len(canonical_schema_names()),
-        "matrix_rows": matrix_row_count(),
+        "matrix_rows": matrix_row_count((ROOT / MATRIX_PATH).read_text(encoding="utf-8")),
     }
     for tier in Tier:
         counts[f"tier_{tier.value}"] = per_tier[tier]
@@ -481,10 +481,12 @@ _RATINGS = ("✓", "~", "✗")
 _SCORE_ROW = re.compile(r"^\|(?: \d+ \|)? ([\w-]+) \| (\d+) \| (\d+) \| (\d+) \| \*\*(\d+\.\d)%\*\* \|$", re.M)
 
 
-def matrix_row_count() -> int:
+def matrix_row_count(text: str) -> int:
     """Rows of the Part 1 table in comparison-matrix.md, one per rated failure mode."""
-    body = section_body((ROOT / MATRIX_PATH).read_text(encoding="utf-8"), _MATRIX_PART_1)
-    return len(re.findall(r"(?m)^\| \d+ \|", body))
+    rows = len(re.findall(r"(?m)^\| \d+ \|", section_body(text, _MATRIX_PART_1)))
+    if not rows:
+        raise SystemExit(f"{MATRIX_PATH} has no failure mode rows under {_MATRIX_PART_1!r}")
+    return rows
 
 
 def _cells(line: str) -> list[str]:
