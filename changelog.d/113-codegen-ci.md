@@ -1,0 +1,3 @@
+### CI runs the code generators `schemas/codegen-guide.md` names (#113)
+
+A `codegen` job in the Validate workflow installs each generator at a pinned version (`datamodel-code-generator`, `json-schema-to-typescript`, `cargo-typify`, `go-jsonschema`, `jsonschema2pojo`), runs it on the six canonical schemas, and compiles the output, so a schema change that breaks code generation fails the build. `scripts/codegen.py` holds the commands and `tests/test_codegen.py` fails when the guide prints different ones. The guide's commands are fixed where they did not run: directory input parsed the `.md` companions, `go-jsonschema` has no `--output-name`, and `jsonschema2pojo` has no `--include-additional-properties`. No schema changes.

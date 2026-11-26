@@ -50,3 +50,55 @@ jobs:
 
       - name: Schemas compile under ajv (the command the docs publish)
         run: npx --yes ajv-cli@5 compile -s "schemas/*.json" --spec=draft7 --strict=false
+
+  # The generators schemas/codegen-guide.md names, run with the guide's own commands
+  # (scripts/codegen.py holds them; tests/test_codegen.py keeps the guide in step)
+  codegen:
+    name: codegen (${{ matrix.lang }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lang: [python, typescript, rust, go, java]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }} # empty outside workflow_call: the event's commit
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.14"
+
+      - name: Put ~/.local/bin on PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - if: matrix.lang == 'typescript'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - if: matrix.lang == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache: false
+
+      - if: matrix.lang == 'rust'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/cargo-typify
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+          key: codegen-rust-${{ runner.os }}-${{ hashFiles('scripts/codegen.py') }}
+
+      - name: Install the pinned generator
+        run: uv run scripts/codegen.py install ${{ matrix.lang }}
+
+      - name: Generate bindings for the canonical schemas
+        run: uv run scripts/codegen.py generate ${{ matrix.lang }} --out tmp/codegen/${{ matrix.lang }}
+
+      - name: Compile the generated bindings
+        run: uv run scripts/codegen.py compile ${{ matrix.lang }} --out tmp/codegen/${{ matrix.lang }}
