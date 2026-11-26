@@ -188,14 +188,11 @@ cargo install cargo-typify@0.10.2 --locked
 cargo typify --version
 ```
 
-**Generate:**
+**Generate** (the three schemas `cargo-typify` supports today; see Known failure below):
 
 ```bash
 mkdir -p src/types
 cargo typify schemas/exit-code.json --output src/types/exit_code.rs
-cargo typify schemas/exit-code-entry.json --output src/types/exit_code_entry.rs
-cargo typify schemas/response-envelope.json --output src/types/response_envelope.rs
-cargo typify schemas/manifest-response.json --output src/types/manifest_response.rs
 cargo typify schemas/dispatch-request.json --output src/types/dispatch_request.rs
 cargo typify schemas/audit-log-entry.json --output src/types/audit_log_entry.rs
 ```
@@ -214,7 +211,7 @@ serde_json = "1"
 
 **Note:** `typify` does not support directory input — process files individually. The `x-enum-varnames` extension is used to name enum variants.
 
-**Known failure:** `cargo-typify` 0.10.2 panics with `not implemented: if/then/else schemas are not supported` on `exit-code-entry`, `response-envelope`, and `manifest-response`, which use `if`/`then` for their invariants. It generates the other three schemas.
+**Known failure:** `cargo-typify` 0.10.2 panics with `not implemented: if/then/else schemas are not supported` on `exit-code-entry`, `response-envelope`, and `manifest-response`, which use `if`/`then` for their invariants. `scripts/codegen.py` keeps these three on the Rust skip list: CI generates and compiles the other three, still runs `typify` on the skipped ones without requiring success, and fails if any schema off the list fails.
 
 ---
 
@@ -376,6 +373,6 @@ function validateExitCodeEntry(e: ExitCodeEntry): void {
 | Any | `ajv-cli` | `npm install -g ajv-cli@5` | `ajv validate -s schemas/... -d output.json --spec=draft7 --strict=false` |
 | Python | `datamodel-code-generator` | `uv tool install datamodel-code-generator==0.102.0` | `datamodel-codegen --input schemas/<name>.json --input-file-type jsonschema --output src/models/<name>.py` |
 | TypeScript | `json-schema-to-typescript` | `npm install -g json-schema-to-typescript@16.0.0` | `json2ts --input schemas/<name>.json --output src/types/<name>.ts` |
-| Rust | `cargo-typify` | `cargo install cargo-typify@0.10.2 --locked` | `cargo typify schemas/<name>.json --output src/types/<name>.rs` |
+| Rust | `cargo-typify` | `cargo install cargo-typify@0.10.2 --locked` | `cargo typify schemas/<name>.json --output src/types/<name>.rs` (three schemas; see Known failure) |
 | Go | `go-jsonschema` | `go install github.com/atombender/go-jsonschema@v0.24.1` | `go-jsonschema --package framework --output types.go schemas/<name>.json ...` |
 | Java | `jsonschema2pojo` | `brew install jsonschema2pojo` | `jsonschema2pojo --source schemas/<name>.json ... --target src/main/java/` |

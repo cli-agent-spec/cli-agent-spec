@@ -37,6 +37,33 @@ def test_guide_prints_the_commands_ci_runs(lang: str) -> None:
     assert missing == [], f"schemas/codegen-guide.md lacks the {lang} commands CI runs"
 
 
+@pytest.mark.parametrize("lang", sorted(codegen.GENERATORS))
+def test_skip_list_is_canonical_explained_and_in_the_guide(lang: str) -> None:
+    gen = codegen.GENERATORS[lang]
+    canonical = codegen.canonical_schemas()
+    guide = GUIDE.read_text(encoding="utf-8")
+    for stem, reason in gen.skip.items():
+        assert stem in canonical
+        assert reason
+        assert f"`{stem}`" in guide, f"the guide does not name {stem}, which {lang} skips"
+        if "if/then/else" in reason:
+            schema = (ROOT / "schemas" / f"{stem}.json").read_text(encoding="utf-8")
+            assert '"if"' in schema, f"{stem} no longer uses if/then; drop it from the {lang} skip list"
+    skipped_commands = {command for _, command in gen.skipped(gen.guide_out, canonical)}
+    assert skipped_commands.isdisjoint(_guide_lines()), "the guide prints a command for a skipped schema"
+    assert len(gen.targets(canonical)) == len(canonical) - len(gen.skip)
+
+
+def test_rust_skips_exactly_the_if_then_schemas() -> None:
+    assert sorted(codegen.GENERATORS["rust"].skip) == ["exit-code-entry", "manifest-response", "response-envelope"]
+
+
+def test_skip_list_naming_a_non_canonical_schema_fails() -> None:
+    gen = codegen.Generator("rust", "src/types", (), {"no-such-schema": "reason"})
+    with pytest.raises(codegen.CodegenError, match="no-such-schema"):
+        gen.targets(codegen.canonical_schemas())
+
+
 def test_ci_matrix_covers_every_generator() -> None:
     match = re.search(r"^\s*lang: \[([a-z, ]+)\]\s*$", WORKFLOW.read_text(encoding="utf-8"), re.M)
     assert match is not None, "validate.yml has no codegen lang matrix"

@@ -6,7 +6,10 @@ this script, so a schema change that breaks a generator, or its output's compile
 fails the build.
 
 The canonical schemas are the rows of the "Canonical types" table in schemas/index.md;
-tooling schemas are not part of the CLI contract and are not generated.
+tooling schemas are not part of the CLI contract and are not generated. A generator's
+skip list names the canonical schemas its pinned version cannot handle, with the reason:
+generate leaves them out of the required set and only probes them, so a skipped schema
+never fails the job, while any other schema that fails does.
 
 Usage:
   uv run scripts/codegen.py install  LANG               install the pinned generator
@@ -27,7 +30,7 @@ import re
 import shutil
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from spec_corpus import ROOT
@@ -72,10 +75,24 @@ class Generator:
     lang: str
     guide_out: str
     install: tuple[str, ...]
+    # Canonical schemas the pinned generator cannot handle, each with the reason
+    skip: dict[str, str] = field(default_factory=dict)
+
+    def targets(self, schemas: list[str]) -> list[str]:
+        """Return the schemas to generate: every canonical schema not on the skip list."""
+        unknown = sorted(set(self.skip) - set(schemas))
+        if unknown:
+            raise CodegenError(f"{self.lang}: skip list names non-canonical schemas: {', '.join(unknown)}")
+        return [s for s in schemas if s not in self.skip]
 
     def generate(self, out: str, schemas: list[str]) -> list[str]:
-        """Return the shell commands that write the bindings for schemas into out."""
-        return [f"mkdir -p {out}", *self._generate(out, schemas)]
+        """Return the shell commands that write the bindings for the target schemas into out."""
+        return [f"mkdir -p {out}", *self._generate(out, self.targets(schemas))]
+
+    def skipped(self, out: str, schemas: list[str]) -> list[tuple[str, str]]:
+        """Return (schema, command) for each skipped schema, to probe whether it still fails."""
+        self.targets(schemas)
+        return [(s, *self._generate(out, [s])) for s in schemas if s in self.skip]
 
     def _generate(self, out: str, schemas: list[str]) -> list[str]:
         if self.lang == "python":
@@ -106,6 +123,7 @@ class Generator:
 
     def outputs(self, out: Path, schemas: list[str]) -> list[Path]:
         """Return the files generate must have written, non-empty."""
+        schemas = self.targets(schemas)
         if self.lang == "python":
             return [out / f"{_module(s)}.py" for s in schemas]
         if self.lang == "typescript":
@@ -139,6 +157,10 @@ GENERATORS: dict[str, Generator] = {
             "rust",
             "src/types",
             (f"cargo install cargo-typify@{CARGO_TYPIFY} --locked",),
+            {
+                stem: f"cargo-typify {CARGO_TYPIFY} panics on if/then/else, which {stem} uses"
+                for stem in ("exit-code-entry", "response-envelope", "manifest-response")
+            },
         ),
         Generator(
             "go",
@@ -194,6 +216,17 @@ def generate(gen: Generator, out: Path) -> None:
         if not path.is_file() or path.stat().st_size == 0:
             raise CodegenError(f"{gen.lang}: generator wrote no output to {path}")
         print(f"ok {path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}")
+    # A skipped schema is probed, never required: it passes whether or not it generates
+    probe = out.parent / f"{out.name}-skipped"
+    for stem, command in gen.skipped(_shell_path(probe), schemas):
+        print(f"skip {stem}: {gen.skip[stem]}", flush=True)
+        probe.mkdir(parents=True, exist_ok=True)
+        try:
+            _run(command)
+        except CodegenError as exc:
+            print(f"skip {stem}: still fails as expected ({exc})", flush=True)
+        else:
+            print(f"skip {stem}: now generates; remove it from the {gen.lang} skip list", flush=True)
 
 
 def _shell_path(out: Path) -> str:
