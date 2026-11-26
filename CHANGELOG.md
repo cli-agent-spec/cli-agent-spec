@@ -11,6 +11,16 @@
 
 ## Unreleased
 
+## 1.17.1 — 2026-11-26
+
+### Fixed
+
+- `scripts/validate_links.py` no longer passes when an active failure mode maps to no requirement: a new `mapping` check reads the mapping from the `requirements/index.md` rows, as `challenges/index.json` does, and reports each such failure mode as `UNMAPPED`; merged stubs stay exempt (#115)
+
+### Fixed
+
+- `CLAUDE.md`, `README.md`, `AGENTS.md`, and the `cli-agent-implement` skill's copy of `AGENTS.md` name the comparison matrix's current count of 76 failure modes instead of 75 or 71, and `scripts/validate_links.py` checks each of those lines against the number of rows in the matrix (#125)
+
 ## 1.17.0 — 2026-11-26
 
 ### Added
