@@ -1,6 +1,6 @@
 # CLI Framework Comparison Matrix
 
-This document compares twelve CLI-related solutions against the 75 agent-compatibility failure modes catalogued in *CLI Agent Spec: Complete Failure Mode Reference* (v1.7). Each cell records how well a solution addresses that failure mode — natively, partially, or not at all. Use this matrix to quickly identify which solutions cover which failure modes, where universal gaps exist, and what a new framework must build from scratch.
+This document compares twelve CLI-related solutions against the 76 agent-compatibility failure modes catalogued in *CLI Agent Spec: Complete Failure Mode Reference* (every active failure mode in [`challenges/index.md`](challenges/index.md)). Each cell records how well a solution addresses that failure mode — natively, partially, or not at all. Use this matrix to quickly identify which solutions cover which failure modes, where universal gaps exist, and what a new framework must build from scratch.
 
 How to read: Part 1 is the primary reference table. Parts 2–7 derive analysis from it. The ratings come directly from the per-solution research files; where a research file provided explicit rationale, that rationale is summarised in Part 3.
 
@@ -54,7 +54,7 @@ How to read: Part 1 is the primary reference table. Parts 2–7 derive analysis 
 
 ## Part 1: Failure Mode Coverage Matrix
 
-Rows are the 75 currently mapped failure modes (severity and frequency for priority context). Columns are the twelve solutions. Failure modes §36, §39, and §48 were merged into §10, §3, and §2 respectively and are omitted.
+Rows are the 76 currently mapped failure modes (severity and frequency for priority context). Columns are the twelve solutions. Failure modes §36, §39, and §48 were merged into §10, §3, and §2 respectively and are omitted.
 
 | # | Failure mode | Sev | Freq | argparse | typer | click | python-fire | pydantic | openapi | cobra | clap | commander-js | mcp | agentyper | jpoehnelt-scale |
 |---|-----------|-----|------|----------|-------|-------|-------------|----------|---------|-------|------|--------------|-----|-----------|-----------------|
@@ -77,6 +77,7 @@ Rows are the 75 currently mapped failure modes (severity and frequency for prior
 | 15 | Race Conditions & Concurrency | High | Sit. | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ~ | ✗ | ✗ |
 | 16 | Signal Handling & Graceful Cancellation | High | Sit. | ✗ | ~ | ~ | ✗ | ✗ | ✗ | ~ | ~ | ✗ | ~ | ✗ | ✗ |
 | 17 | Child Process Leakage | Med | Sit. | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| 79 | Work Outlives the Caller's Budget | Crit | Common | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ~ | ✗ | ✗ |
 | **Part III: Errors & Discoverability** |
 | 18 | Error Message Quality | High | V.Common | ~ | ~ | ~ | ✗ | ✓ | ~ | ~ | ✓ | ~ | ✓ | ✓ | ~ |
 | 19 | Retry Hints in Error Responses | High | V.Common | ✗ | ✗ | ✗ | ✗ | ~ | ~ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
@@ -155,51 +156,58 @@ Rows are the 75 currently mapped failure modes (severity and frequency for prior
 - §76 (Streaming-Default JSONL): MCP ✓ — a tool call returns one JSON-RPC result; progress travels as separate notifications, never as bare JSONL on the result channel. OpenAPI ~ — a response can declare an NDJSON content type, but nothing requires a buffered alternative. Parser frameworks leave the default format and any `streaming_default` declaration to the author.
 - §77 (No Batch Dispatch): Click ~ (`chain=True` groups run several subcommands in one process) and python-fire ~ (method chaining in one invocation), but neither reads a JSONL plan from stdin or reports per-line results. MCP ~ — one server process serves every call in a session, removing per-call startup, but the protocol has no batch request since JSON-RPC batching was dropped.
 - §78 (Output Flag Meaning Collision): MCP ✓ — typed JSON parameters have no `--output`/`-o` to misread. agentyper ~ — injects `--format` for representation, but path-typed flags accept `json` unguarded. Parser path types (`click.Path`, `PathBuf`, argparse `type=Path`) accept a bare format name, and the Cobra ecosystem's `-o json` convention reinforces the collision.
+- §79 (Work Outlives the Caller's Budget): MCP ~ — `notifications/progress` carries monotonic progress and can reset the client's timeout clock, and `notifications/cancelled` ends a call cleanly, but the call blocks until its result and the protocol neither bounds it nor hands the work off. Every other solution ✗: the research files find no timeout mechanism in argparse, typer, click, python-fire, pydantic, agentyper, or the jpoehnelt rubric, and no per-operation timeout hint in OpenAPI; cobra (`context.WithTimeout`), clap (`tokio::time::timeout`), and commander-js (`Promise.race`) only let an author add a timeout, which is score 1 of §79's evaluation and loses the work all the same.
 
 ---
 
 ## Part 2: Coverage Scores
 
-Coverage % = (✓ + 0.5 × ~) / 75 × 100, rounded to one decimal place.
+Coverage % = (✓ + 0.5 × ~) / 76 × 100, rounded to one decimal place.
 
 | Solution | ✓ Native | ~ Partial | ✗ Missing | Coverage % |
 |----------|----------|-----------|-----------|------------|
-| mcp | 28 | 30 | 17 | **57.3%** |
-| openapi | 17 | 29 | 29 | **42.0%** |
-| pydantic | 18 | 25 | 32 | **40.7%** |
-| clap | 13 | 33 | 29 | **39.3%** |
-| cobra | 11 | 36 | 28 | **38.7%** |
-| agentyper | 10 | 25 | 40 | **30.0%** |
-| jpoehnelt-scale | 12 | 21 | 42 | **30.0%** |
-| argparse | 9 | 18 | 48 | **24.0%** |
-| click | 2 | 32 | 41 | **24.0%** |
-| commander-js | 1 | 30 | 44 | **21.3%** |
-| typer | 3 | 23 | 49 | **19.3%** |
-| python-fire | 1 | 9 | 65 | **7.3%** |
+| mcp | 28 | 31 | 17 | **57.2%** |
+| openapi | 17 | 29 | 30 | **41.4%** |
+| pydantic | 18 | 25 | 33 | **40.1%** |
+| clap | 13 | 33 | 30 | **38.8%** |
+| cobra | 11 | 36 | 29 | **38.2%** |
+| agentyper | 10 | 25 | 41 | **29.6%** |
+| jpoehnelt-scale | 12 | 21 | 43 | **29.6%** |
+| argparse | 9 | 18 | 49 | **23.7%** |
+| click | 2 | 32 | 42 | **23.7%** |
+| commander-js | 1 | 30 | 45 | **21.1%** |
+| typer | 3 | 23 | 50 | **19.1%** |
+| python-fire | 1 | 9 | 66 | **7.2%** |
 
 **Sorted by Coverage % descending:**
 
 | Rank | Solution | ✓ | ~ | ✗ | Coverage % |
 |------|----------|---|---|---|------------|
-| 1 | mcp | 28 | 30 | 17 | **57.3%** |
-| 2 | openapi | 17 | 29 | 29 | **42.0%** |
-| 3 | pydantic | 18 | 25 | 32 | **40.7%** |
-| 4 | clap | 13 | 33 | 29 | **39.3%** |
-| 5 | cobra | 11 | 36 | 28 | **38.7%** |
-| 6 | agentyper | 10 | 25 | 40 | **30.0%** |
-| 6 | jpoehnelt-scale | 12 | 21 | 42 | **30.0%** |
-| 8 | argparse | 9 | 18 | 48 | **24.0%** |
-| 8 | click | 2 | 32 | 41 | **24.0%** |
-| 10 | commander-js | 1 | 30 | 44 | **21.3%** |
-| 11 | typer | 3 | 23 | 49 | **19.3%** |
-| 12 | python-fire | 1 | 9 | 65 | **7.3%** |
+| 1 | mcp | 28 | 31 | 17 | **57.2%** |
+| 2 | openapi | 17 | 29 | 30 | **41.4%** |
+| 3 | pydantic | 18 | 25 | 33 | **40.1%** |
+| 4 | clap | 13 | 33 | 30 | **38.8%** |
+| 5 | cobra | 11 | 36 | 29 | **38.2%** |
+| 6 | agentyper | 10 | 25 | 41 | **29.6%** |
+| 6 | jpoehnelt-scale | 12 | 21 | 43 | **29.6%** |
+| 8 | argparse | 9 | 18 | 49 | **23.7%** |
+| 8 | click | 2 | 32 | 42 | **23.7%** |
+| 10 | commander-js | 1 | 30 | 45 | **21.1%** |
+| 11 | typer | 3 | 23 | 50 | **19.1%** |
+| 12 | python-fire | 1 | 9 | 66 | **7.2%** |
 
-**Key observations (§75–78 update, current scores):**
+**Key observations (§79 update, current scores):**
+- **The ranking is unchanged.** §79 is ✗ for every solution except MCP (~), so each score falls by the larger denominator alone; `scripts/validate_links.py` now recomputes both tables from the Part 1 cells and fails when a row or a score drifts
+- **MCP stays #1 at 57.2%** — `notifications/progress` reports monotonic progress and can reset the client's timeout clock, but the call still blocks until the result, and nothing hands the work off or checkpoints it
+- **§79 joins the universally missing list**: no solution bounds a call by the caller's budget, continues the work in the background, or resumes the identical invocation from a checkpoint
+- No solution exceeds 58% coverage across 76 currently mapped failure modes
+
+**Key observations (§75–78 update):**
 - **Scores are now computed from the Part 1 cells.** The previous table had drifted from the matrix (it credited MCP with 28 ✓ / 27 ~ when its column held 26 / 28, and ranked pydantic above openapi); both tables above are regenerated from the rows
 - **MCP stays #1 at 57.3%** — earns ✓ for §76 (one JSON-RPC result per call, never bare JSONL) and §78 (typed parameters have no `--output` to misread), ~ for §75 and §77
 - **Every parser framework loses ground**: §75, §76, and §78 are ✗ for all of them, and only click (`chain=True`) and python-fire (method chaining) earn ~ for §77
 - **§75 and §77 join the universally missing list**: no solution previews destructive commands by default, and none dispatches a heterogeneous JSONL plan in one process
-- No solution exceeds 58% coverage across 75 currently mapped failure modes
+- No solution exceeded 58% coverage across the 75 failure modes mapped at that update
 
 **Key observations (v1.7 update — §69–74):**
 - **OpenAPI rises to #3** (was tied #4) — earns the only ✓ for §74 (Credential Scope Declaration) via native `securitySchemes` + per-operation `security` declarations.
@@ -895,6 +903,15 @@ Coverage % = (✓ + 0.5 × ~) / 75 × 100, rounded to one decimal place.
 
 ---
 
+### §79. Work Outlives the Caller's Budget
+
+- **Best covered by:** None achieves ✓
+- **Partially covered by:** mcp (`notifications/progress` reports monotonic progress and can reset the client's timeout clock)
+- **Gap in all solutions:** Yes. Parser frameworks at most let the author wrap a handler in a timeout (`context.WithTimeout`, `tokio::time::timeout`, `Promise.race`), which ends the call but discards the work; none returns `INCOMPLETE` within a call budget, hands the work to a background job, or resumes the identical invocation from a checkpoint
+- **Key insight:** Bound every non-interactive call by a budget (REQ-F-080), continue detachable work in a background job (REQ-F-081), checkpoint chunked work so a rerun resumes (REQ-C-035), and answer with exit `14` and a `continue_command` (REQ-F-082)
+
+---
+
 ## Part 4: Gap Analysis
 
 ### Universally Missing (✗ in all solutions)
@@ -927,6 +944,7 @@ These failure modes have no solution with a ✓ rating.
 | 67 | Agent-Generated Input Syntax Rejection | High | No framework accepts JSON5 for structured input flags |
 | 75 | Safe-Default Execution Mode Absent | Critical | No framework routes a declared high-stakes command through its dry-run path unless `--live` is passed |
 | 77 | No Batch Command Dispatch | High | No framework reads a JSONL plan from stdin and dispatches each line in-process with per-line results |
+| 79 | Work Outlives the Caller's Budget | Critical | No framework bounds a call by the caller's budget, hands the work to a background job, or resumes it from a checkpoint |
 
 ### Partially Covered Everywhere (~ in most solutions, no ✓)
 
@@ -1019,7 +1037,7 @@ The Go and Rust frameworks (cobra, clap) outperform their Python and JavaScript 
 - Timeouts (recommended but not enforced)
 - Tool schema versioning and drift detection
 
-**Unique position:** MCP scores highest (57.3%) because it solves the hardest problems structurally. Its remaining gaps are in operational reliability (retries, timeouts, concurrency) and completeness (working directory, composition, schema versioning).
+**Unique position:** MCP scores highest (57.2%) because it solves the hardest problems structurally. Its remaining gaps are in operational reliability (retries, timeouts, concurrency) and completeness (working directory, composition, schema versioning).
 
 ---
 
@@ -1033,12 +1051,12 @@ The Go and Rust frameworks (cobra, clap) outperform their Python and JavaScript 
 - Debug mode secret redaction; update suppression in non-TTY
 
 **What it's blind to:**
-- 37 of 65 failure modes at the ✓ level
+- 66 of 76 failure modes at the ✓ level
 - All operational reliability concerns (timeouts, signals, idempotency, partial failure)
 - All concurrency, credential expiry, and input syntax concerns
 - Observability, pagination, config precedence
 
-**Unique position:** agentyper is the only Python framework explicitly designed for agent ergonomics, yet at v0.1.4 scores 30.0%. It is the right philosophical foundation but needs the execution-reliability, security, and environment layers.
+**Unique position:** agentyper is the only Python framework explicitly designed for agent ergonomics, yet at v0.1.4 scores 29.6%. It is the right philosophical foundation but needs the execution-reliability, security, and environment layers.
 
 ---
 
@@ -1206,4 +1224,4 @@ This section maps the P0 requirements from the requirements catalogue to existin
 
 ---
 
-*CLI Agent Spec v1.16 — 75 currently mapped failure modes, 12 solutions evaluated. Updated 2026-10-01.*
+*CLI Agent Spec v1.16 — 76 currently mapped failure modes, 12 solutions evaluated. Updated 2026-11-26.*

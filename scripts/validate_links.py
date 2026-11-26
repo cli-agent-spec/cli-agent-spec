@@ -9,6 +9,7 @@ Checks, each reported separately:
   counts       prose counters match the corpus on disk
   snippets     every embedded extract_envelope copy matches the canonical block in triage.md
   levels       requirements/levels.md, priorities, and the index Level column agree
+  matrix       comparison-matrix.md has one row per active failure mode and scores computed from its cells
 
 Usage:
   uv run scripts/validate_links.py [--json] [--only CHECK ...]
@@ -343,6 +344,10 @@ def count_claims() -> list[Claim]:
         Claim("requirements/index.md", r"\+ (\d+) REQ-O\)", c["tier_o"], "footer O"),
         Claim("mkdocs.yml", r"site_description: (\d+) failure modes", fm, "site description"),
         Claim("mkdocs.yml", r"site_description: \d+ failure modes \+ (\d+) requirements", reqs, "site description"),
+        Claim("comparison-matrix.md", r"against the (\d+) agent-compatibility failure modes", fm, "intro"),
+        Claim("comparison-matrix.md", r"Rows are the (\d+) currently mapped failure modes", fm, "Part 1 intro"),
+        Claim("comparison-matrix.md", r"Coverage % = \(✓ \+ 0\.5 × ~\) / (\d+) × 100", fm, "coverage formula"),
+        Claim("comparison-matrix.md", r"— (\d+) currently mapped failure modes, \d+ solutions evaluated", fm, "footer"),
         Claim("research/alternatives-landscape.md", r"evaluated against the (\d+) failure modes", fm, "intro"),
         Claim("research/alternatives-landscape.md", r"the spec's (\d+) failure modes", fm, "EvidenceRun section"),
         Claim("skills/cli-agent-report/templates/README.md", r"(\d+) failure modes", fm, "report template"),
@@ -355,6 +360,7 @@ def count_claims() -> list[Claim]:
         Claim("website/fixlayer.html", r"\(\d+ failure modes · (\d+) requirements\)", reqs, "footer"),
         Claim("website/index.html", r"(\d+) (?:documented )?failure modes", fm, "failure mode mentions"),
         Claim("website/index.html", r"(\d+) requirements", reqs, "requirement mentions"),
+        Claim("website/index.html", r"(\d+) currently mapped failure modes", fm, "matrix section"),
     ]
     for priority in ("P0", "P1", "P2", "P3"):
         claims.append(Claim("requirements/index.md", rf"\*\*By priority:\*\*.*?{priority}: (\d+)", c[priority], f"by priority {priority}"))
@@ -457,6 +463,73 @@ def check_levels() -> list[Problem]:
 
 
 # ---------------------------------------------------------------------------
+# matrix
+# ---------------------------------------------------------------------------
+
+MATRIX_PATH = "comparison-matrix.md"
+_MATRIX_PART_1 = "## Part 1: Failure Mode Coverage Matrix"
+_MATRIX_PART_2 = "## Part 2: Coverage Scores"
+_RATINGS = ("✓", "~", "✗")
+_SCORE_ROW = re.compile(r"^\|(?: \d+ \|)? ([\w-]+) \| (\d+) \| (\d+) \| (\d+) \| \*\*(\d+\.\d)%\*\* \|$", re.M)
+
+
+def _cells(line: str) -> list[str]:
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+def matrix_problems(text: str, active: frozenset[int], path: str = MATRIX_PATH) -> list[Problem]:
+    """Part 1 has one row per active failure mode; Part 2 scores are computed from its cells."""
+    problems: list[Problem] = []
+    lines = section_body(text, _MATRIX_PART_1).splitlines()
+    header = next((line for line in lines if line.startswith("| # |")), None)
+    if header is None:
+        return [Problem("matrix", "NOT FOUND", path, f"no '| # |' table header under {_MATRIX_PART_1!r}")]
+    solutions = _cells(header)[4:]
+    tallies = {solution: collections.Counter[str]() for solution in solutions}
+    seen: set[int] = set()
+    for line in lines:
+        match = re.match(r"^\| (\d+) \|", line)
+        if match is None:
+            continue
+        number = int(match.group(1))
+        if number in seen:
+            problems.append(Problem("matrix", "DUPLICATE ROW", path, f"§{number} has more than one row"))
+        seen.add(number)
+        ratings = _cells(line)[4:]
+        if len(ratings) != len(solutions) or any(r not in _RATINGS for r in ratings):
+            problems.append(Problem("matrix", "MALFORMED ROW", path, f"§{number} needs one of {' '.join(_RATINGS)} for each of {len(solutions)} solutions"))
+            continue
+        for solution, rating in zip(solutions, ratings, strict=True):
+            tallies[solution][rating] += 1
+    for number in sorted(active - seen):
+        problems.append(Problem("matrix", "MISSING ROW", path, f"§{number} is an active failure mode with no row"))
+    for number in sorted(seen - active):
+        problems.append(Problem("matrix", "STALE ROW", path, f"§{number} has a row but is not an active failure mode"))
+    tables = [rows for block in re.split(r"\n\s*\n", section_body(text, _MATRIX_PART_2)) if (rows := _SCORE_ROW.findall(block))]
+    if not tables:
+        problems.append(Problem("matrix", "NOT FOUND", path, f"no score table under {_MATRIX_PART_2!r}"))
+    for rows in tables:
+        for solution, native, partial, missing, percent in rows:
+            tally = tallies.get(solution)
+            if tally is None:
+                problems.append(Problem("matrix", "STALE SCORE", path, f"{solution} is scored but has no Part 1 column"))
+                continue
+            coverage = f"{(tally['✓'] + 0.5 * tally['~']) / len(active) * 100:.1f}"
+            expected = (str(tally["✓"]), str(tally["~"]), str(tally["✗"]), coverage)
+            if (native, partial, missing, percent) != expected:
+                problems.append(Problem("matrix", "STALE SCORE", path, f"{solution} row says {native}/{partial}/{missing} {percent}%, Part 1 gives {'/'.join(expected)}%"))
+        for solution in solutions:
+            if solution not in {row[0] for row in rows}:
+                problems.append(Problem("matrix", "MISSING SCORE", path, f"{solution} is missing from a Part 2 score table"))
+    return problems
+
+
+def check_matrix() -> list[Problem]:
+    text = (ROOT / MATRIX_PATH).read_text(encoding="utf-8")
+    return matrix_problems(text, frozenset(fm.id.number for fm in active_failure_modes()))
+
+
+# ---------------------------------------------------------------------------
 # entry point
 # ---------------------------------------------------------------------------
 
@@ -468,6 +541,7 @@ CHECKS: dict[str, Callable[[], list[Problem]]] = {
     "counts": check_counts,
     "snippets": check_snippets,
     "levels": check_levels,
+    "matrix": check_matrix,
 }
 
 
