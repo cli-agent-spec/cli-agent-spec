@@ -214,6 +214,8 @@ serde_json = "1"
 
 **Note:** `typify` does not support directory input — process files individually. The `x-enum-varnames` extension is used to name enum variants.
 
+**Known failure:** `cargo-typify` 0.10.2 panics with `not implemented: if/then/else schemas are not supported` on `exit-code-entry`, `response-envelope`, and `manifest-response`, which use `if`/`then` for their invariants. It generates the other three schemas.
+
 ---
 
 ### Go
