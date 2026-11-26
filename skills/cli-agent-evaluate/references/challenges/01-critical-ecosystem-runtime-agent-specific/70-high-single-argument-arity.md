@@ -80,6 +80,7 @@ Args: cobra.MinimumNArgs(1),
 - Per-item results MUST be returned as an array even when a single path is passed, so the agent can parse the response uniformly
 - The manifest's `args` array MUST include `nargs` (`"1"`, `"?"`, `"*"`, `"+"`); absence of `nargs` MUST be treated as `"1"` by agents
 - Partial success MUST be reported per-item with a top-level `ok: false` when any item fails; the agent must not have to infer failure count from missing output
+- [REQ-C-037](../../requirements/c-037-item-wise-commands-accept-every-item-in-one-call.md) states the contract: a variadic last positional declared `variadic: true` in the manifest's `positionals` (or a declared batch input on stdin), every item validated before any is acted on, and per-item `summary` and `results[]` as REQ-C-009 reports them
 
 ### Evaluation
 
