@@ -1,9 +1,11 @@
 import json
+import re
 import subprocess
 import sys
 import textwrap
 from pathlib import Path
 
+import pytest
 import spec_corpus as corpus
 import validate_links as vl
 
@@ -52,6 +54,35 @@ def test_corpus_counts_match_disk() -> None:
     assert counts["failure_modes"] == len(corpus.active_failure_modes())
     assert counts["tier_f"] + counts["tier_c"] + counts["tier_o"] == counts["requirements"]
     assert sum(counts[p] for p in ("P0", "P1", "P2", "P3")) == counts["requirements"]
+
+
+STALE_MATRIX_LINES = {
+    "CLAUDE.md": "- `comparison-matrix.md` — 75 failure modes × 12 frameworks coverage table.",
+    "README.md": "scored against 71 currently mapped failure modes. No framework exceeds 59%.\n"
+                 "| [`comparison-matrix.md`](comparison-matrix.md) | 71 currently mapped failure modes × 12 frameworks coverage table |",
+    "AGENTS.md": "comparison-matrix.md        ← solution comparison across 71 currently mapped failure modes",
+    "skills/cli-agent-implement/references/AGENTS.md": "comparison-matrix.md        ← solution comparison across 71 currently mapped failure modes",
+}
+
+
+def test_matrix_count_claims_cover_prose_outside_the_matrix() -> None:
+    rows = vl.corpus_counts()["matrix_rows"]
+    assert rows == len(corpus.active_failure_modes())
+    claims = [c for c in vl.count_claims() if c.path in STALE_MATRIX_LINES and c.actual == rows and "matrix" in c.label]
+    found = sorted((c.path, int(n)) for c in claims for n in re.findall(c.pattern, STALE_MATRIX_LINES[c.path]))
+    assert found == [
+        ("AGENTS.md", 71),
+        ("CLAUDE.md", 75),
+        ("README.md", 71),
+        ("README.md", 71),
+        ("skills/cli-agent-implement/references/AGENTS.md", 71),
+    ]
+
+
+def test_matrix_row_count_fails_fast_without_part_1_rows() -> None:
+    renamed = "## Part 1: Failure Mode Matrix\n\n| # | Failure mode |\n| 1 | x |\n"
+    with pytest.raises(SystemExit, match="no failure mode rows"):
+        vl.matrix_row_count(renamed)
 
 
 def test_well_formed_failure_mode_passes() -> None:

@@ -50,7 +50,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 **6 canonical JSON schemas** — machine-readable type definitions for `ExitCode`, `ExitCodeEntry`, `ResponseEnvelope`, `ManifestResponse`, `DispatchRequest`, and `AuditLogEntry`. Generate typed structs for your language directly from the schemas. Every JSON example in the spec prose is validated against them in CI.
 
-**A comparison matrix** — 12 existing frameworks (argparse, Click, Cobra, Clap, Typer, Commander.js, and more) scored against 71 currently mapped failure modes. No framework exceeds 59%.
+**A comparison matrix** — 12 existing frameworks (argparse, Click, Cobra, Clap, Typer, Commander.js, and more) scored against 76 currently mapped failure modes. No framework exceeds 59%.
 
 ---
 
@@ -74,7 +74,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 | [`schemas/`](schemas/index.md) | JSON Schema draft-07 definitions for all 5 types |
 | [`guides/`](guides/index.md) | Design guides: positive conventions that cannot be expressed as enforceable requirements |
 | [`IMPLEMENTING.md`](IMPLEMENTING.md) | Implementation guide: wave-based order, goal-based paths, invariants, codegen |
-| [`comparison-matrix.md`](comparison-matrix.md) | 71 currently mapped failure modes × 12 frameworks coverage table |
+| [`comparison-matrix.md`](comparison-matrix.md) | 76 currently mapped failure modes × 12 frameworks coverage table |
 | [`research/`](research/index.md) | Per-framework analysis and competitive landscape (MCP, OpenAPI, function calling) |
 | [Agent skills](skills/index.md) | Agent skills for evaluating CLIs and guiding implementation |
 | `website/` | MkDocs website source; canonical specification content remains in the root sections above |
