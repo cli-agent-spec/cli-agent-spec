@@ -2,11 +2,11 @@
 
 > All requirements for an agent-compatible CLI framework, derived from the CLI Agent Spec's 76 documented failure modes.
 
-**167 total** &nbsp;|&nbsp; 81 Framework-Automatic · 36 Command Contract · 50 Opt-In — amended 2026-10-09
+**168 total** &nbsp;|&nbsp; 81 Framework-Automatic · 37 Command Contract · 50 Opt-In — amended 2026-11-26
 
-**By priority:** P0: 51 · P1: 72 · P2: 35 · P3: 9 — REQ-F-026 (append-only audit log) merged into opt-in REQ-O-030; the ID is retired
+**By priority:** P0: 51 · P1: 73 · P2: 35 · P3: 9 — REQ-F-026 (append-only audit log) merged into opt-in REQ-O-030; the ID is retired
 
-**By level** ([`levels.md`](levels.md)): Level 1: 12 · Level 2: 51 · Level 3: 167
+**By level** ([`levels.md`](levels.md)): Level 1: 12 · Level 2: 51 · Level 3: 168
 
 ---
 
@@ -102,7 +102,7 @@
 
 ## Command Contract (C)
 
-**36 requirements** &nbsp;|&nbsp; P0: 12 · P1: 20 · P2: 2 · P3: 2
+**37 requirements** &nbsp;|&nbsp; P0: 12 · P1: 21 · P2: 2 · P3: 2
 
 | ID | Priority | Title | Failure mode(s) | Level |
 |----|----------|-------|-------------|-------|
@@ -142,6 +142,7 @@
 | [REQ-C-034](c-034-long-running-commands-report-progress.md) | P1 | Long-Running Commands Report Progress | [§79](../challenges/02-critical-execution-and-reliability/79-critical-work-outlives-budget.md) [§11](../challenges/02-critical-execution-and-reliability/11-critical-timeouts.md) | 3 |
 | [REQ-C-035](c-035-resumable-commands-checkpoint-at-safe-points.md) | P2 | Resumable Commands Checkpoint at Safe Points | [§79](../challenges/02-critical-execution-and-reliability/79-critical-work-outlives-budget.md) [§13](../challenges/02-critical-execution-and-reliability/13-critical-partial-failure.md) [§16](../challenges/02-critical-execution-and-reliability/16-high-signal-handling.md) | 3 |
 | [REQ-C-036](c-036-person-only-commands-declare-requires-person.md) | P1 | Person-Only Commands Declare requires_person | [§10](../challenges/02-critical-execution-and-reliability/10-critical-interactivity.md) [§23](../challenges/03-critical-security/23-critical-destructive-ops.md) | 3 |
+| [REQ-C-037](c-037-item-wise-commands-accept-every-item-in-one-call.md) | P1 | Item-Wise Commands Accept Every Item in One Call | [§70](../challenges/01-critical-ecosystem-runtime-agent-specific/70-high-single-argument-arity.md) | 3 |
 
 ---
 
@@ -204,4 +205,4 @@
 
 ---
 
-*CLI Agent Spec v1.16 — 167 requirements (81 REQ-F + 36 REQ-C + 50 REQ-O). Updated 2026-10-09.*
+*CLI Agent Spec v1.16 — 168 requirements (81 REQ-F + 37 REQ-C + 50 REQ-O). Updated 2026-11-26.*
