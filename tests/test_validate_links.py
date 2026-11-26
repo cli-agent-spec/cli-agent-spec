@@ -79,6 +79,44 @@ def test_matrix_count_claims_cover_prose_outside_the_matrix() -> None:
     ]
 
 
+STALE_TOP_SCORE_LINES = {
+    "README.md": "> **No existing CLI framework covers more than 59% of the currently mapped failure modes.**\n"
+                 "scored against 76 currently mapped failure modes. No framework exceeds 59%.",
+    "comparison-matrix.md": "- No solution exceeds 59% coverage across 71 currently mapped failure modes\n"
+                            "- No solution exceeded 59% coverage across the 71 failure modes mapped at that update",
+    "CITATION.cff": "twelve existing CLI frameworks. No existing framework exceeds 59% coverage.",
+}
+
+
+def top_score_claims() -> list[vl.Claim]:
+    return [c for c in vl.count_claims() if "top score" in c.label]
+
+
+def test_top_score_ceiling_rounds_the_best_part_2_score_up() -> None:
+    assert vl.matrix_top_ceiling(textwrap.dedent(MATRIX)) == 75
+    assert vl.matrix_top_ceiling(textwrap.dedent(MATRIX).replace("**75.0%**", "**57.2%**")) == 58
+
+
+def test_top_score_ceiling_fails_fast_without_part_2_scores() -> None:
+    with pytest.raises(SystemExit, match="no score table"):
+        vl.matrix_top_ceiling("## Part 2: Coverage Scores\n\nnone yet\n")
+
+
+def test_drifted_top_score_claims_fail_and_history_is_skipped() -> None:
+    claims = top_score_claims()
+    assert {c.path for c in claims} == set(STALE_TOP_SCORE_LINES)
+    problems = [vl.claim_problems(c, STALE_TOP_SCORE_LINES[c.path]) for c in claims]
+    assert [kinds(p) for p in problems] == [["STALE"]] * len(claims)
+    assert all(re.search(r" says (59|71), corpus has \d+$", p.message) for [p] in problems)
+
+
+def test_current_top_score_claims_pass() -> None:
+    counts = vl.corpus_counts()
+    assert counts["matrix_top_ceiling"] == vl.matrix_top_ceiling((ROOT / "comparison-matrix.md").read_text(encoding="utf-8"))
+    for claim in top_score_claims():
+        assert vl.claim_problems(claim, (ROOT / claim.path).read_text(encoding="utf-8")) == []
+
+
 def test_matrix_row_count_fails_fast_without_part_1_rows() -> None:
     renamed = "## Part 1: Failure Mode Matrix\n\n| # | Failure mode |\n| 1 | x |\n"
     with pytest.raises(SystemExit, match="no failure mode rows"):

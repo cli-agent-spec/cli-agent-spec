@@ -4,7 +4,7 @@
 
 This is a specification for building CLI tools that AI agents can call reliably: **76 documented failure modes**, **168 requirements** to eliminate them, machine-readable schemas an agent can consume directly, and design guides for CLI authors.
 
-> **No existing CLI framework covers more than 59% of the currently mapped failure modes.**
+> **No existing CLI framework covers more than 58% of the currently mapped failure modes.**
 
 ---
 
@@ -50,7 +50,7 @@ These are not edge cases. They are the **default behavior** of most CLI tools to
 
 **6 canonical JSON schemas** — machine-readable type definitions for `ExitCode`, `ExitCodeEntry`, `ResponseEnvelope`, `ManifestResponse`, `DispatchRequest`, and `AuditLogEntry`. Generate typed structs for your language directly from the schemas. Every JSON example in the spec prose is validated against them in CI.
 
-**A comparison matrix** — 12 existing frameworks (argparse, Click, Cobra, Clap, Typer, Commander.js, and more) scored against 76 currently mapped failure modes. No framework exceeds 59%.
+**A comparison matrix** — 12 existing frameworks (argparse, Click, Cobra, Clap, Typer, Commander.js, and more) scored against 76 currently mapped failure modes. No framework exceeds 58%.
 
 ---
 
