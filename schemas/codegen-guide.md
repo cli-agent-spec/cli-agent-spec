@@ -252,6 +252,8 @@ go-jsonschema --package framework --output pkg/framework/types.go \
   schemas/manifest-response.json schemas/dispatch-request.json schemas/audit-log-entry.json
 ```
 
+The output imports `github.com/go-viper/mapstructure/v2`; run `go mod tidy` in your module before `go build`.
+
 **Options:**
 
 | Flag | Effect |
@@ -276,11 +278,11 @@ go-jsonschema --package framework --output pkg/framework/types.go \
 java --version
 ```
 
-**Install** (`brew install jsonschema2pojo` on macOS, or the release archive, which is what CI runs):
+**Install** (`brew install jsonschema2pojo` on macOS, or the release archive, which is what CI runs; `--exclude '._*'` drops the archive's macOS metadata files, which are not jars):
 
 ```bash
 mkdir -p "$HOME/.local/share/jsonschema2pojo" "$HOME/.local/bin"
-curl -fsSL https://github.com/joelittlejohn/jsonschema2pojo/releases/download/jsonschema2pojo-1.3.3/jsonschema2pojo-1.3.3.tar.gz | tar -xz --strip-components=1 -C "$HOME/.local/share/jsonschema2pojo"
+curl -fsSL https://github.com/joelittlejohn/jsonschema2pojo/releases/download/jsonschema2pojo-1.3.3/jsonschema2pojo-1.3.3.tar.gz | tar -xz --strip-components=1 --exclude '._*' -C "$HOME/.local/share/jsonschema2pojo"
 ln -sf "$HOME/.local/share/jsonschema2pojo/bin/jsonschema2pojo" "$HOME/.local/bin/jsonschema2pojo"
 
 # Verify

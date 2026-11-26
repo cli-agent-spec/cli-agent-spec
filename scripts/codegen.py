@@ -152,7 +152,8 @@ GENERATORS: dict[str, Generator] = {
                 'mkdir -p "$HOME/.local/share/jsonschema2pojo" "$HOME/.local/bin"',
                 "curl -fsSL https://github.com/joelittlejohn/jsonschema2pojo/releases/download/"
                 f"jsonschema2pojo-{JSONSCHEMA2POJO}/jsonschema2pojo-{JSONSCHEMA2POJO}.tar.gz"
-                ' | tar -xz --strip-components=1 -C "$HOME/.local/share/jsonschema2pojo"',
+                " | tar -xz --strip-components=1 --exclude '._*'"
+                ' -C "$HOME/.local/share/jsonschema2pojo"',
                 'ln -sf "$HOME/.local/share/jsonschema2pojo/bin/jsonschema2pojo"'
                 ' "$HOME/.local/bin/jsonschema2pojo"',
             ),
@@ -179,8 +180,16 @@ def generate(gen: Generator, out: Path) -> None:
     if out.exists():
         shutil.rmtree(out)
     schemas = canonical_schemas()
+    # Run every command before failing, so one run names every schema a generator rejects
+    failures = []
     for command in gen.generate(_shell_path(out), schemas):
-        _run(command)
+        try:
+            _run(command)
+        except CodegenError as exc:
+            print(f"codegen: {exc}", file=sys.stderr, flush=True)
+            failures.append(str(exc))
+    if failures:
+        raise CodegenError(f"{gen.lang}: {len(failures)} generate command(s) failed:\n  " + "\n  ".join(failures))
     for path in gen.outputs(out, schemas):
         if not path.is_file() or path.stat().st_size == 0:
             raise CodegenError(f"{gen.lang}: generator wrote no output to {path}")
@@ -231,6 +240,8 @@ def compile_output(gen: Generator, out: Path) -> None:
         _run(["cargo", "check", "--quiet", "--manifest-path", str(crate / "Cargo.toml")])
     elif gen.lang == "go":
         (out / "go.mod").write_text("module example.com/framework\n\ngo 1.25\n", encoding="utf-8")
+        # The output imports github.com/go-viper/mapstructure/v2; tidy records it in go.mod
+        _run(["go", "mod", "tidy"], cwd=out)
         _run(["go", "build", "./..."], cwd=out)
     elif gen.lang == "java":
         tool = shutil.which("jsonschema2pojo")
