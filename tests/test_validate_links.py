@@ -179,6 +179,24 @@ def test_comparison_matrix_rates_every_active_failure_mode() -> None:
     assert vl.check_matrix() == []
 
 
+def test_unmapped_failure_mode_detected(tmp_path: Path) -> None:
+    fm = failure_mode(tmp_path, WORKAROUND_OK)
+    [problem] = vl.unmapped_problems([fm], {})
+    assert (problem.check, problem.kind) == ("mapping", "UNMAPPED")
+    assert problem.message.startswith("§10 ")
+    assert vl.unmapped_problems([fm], {10: ["REQ-C-001"]}) == []
+
+
+def test_merged_failure_mode_needs_no_requirement(tmp_path: Path) -> None:
+    fm = failure_mode(tmp_path, "# 10. Sample\n\nMERGED: consolidated into **§11**\n")
+    merged = corpus.FailureModeFile(fm.id, fm.path, fm.part_dir, merged=True)
+    assert vl.unmapped_problems([merged], {}) == []
+
+
+def test_every_active_failure_mode_maps_to_a_requirement() -> None:
+    assert vl.check_mapping() == []
+
+
 def test_level_one_is_a_subset_of_p0() -> None:
     levels = vl.requirement_levels()
     assert sorted(levels[r] for r in vl.level_one_ids()) == [1] * 12

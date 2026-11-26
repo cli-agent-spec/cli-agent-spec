@@ -27,7 +27,7 @@ uv run scripts/validate_schemas.py --json
 
 Each exits `0` when clean and `1` when any error exists. Always parse stdout as JSON regardless of exit code.
 
-`validate_links.py` runs seven checks; pass `--only <check> ...` to run a subset:
+`validate_links.py` runs nine checks; pass `--only <check> ...` to run a subset:
 
 | Check | What it verifies |
 |-------|------------------|
@@ -38,6 +38,8 @@ Each exits `0` when clean and `1` when any error exists. Always parse stdout as 
 | `counts` | Prose counters in README, AGENTS, CLAUDE, and the index files match the corpus on disk, including per-tier and per-priority counts |
 | `snippets` | Every embedded `extract_envelope` copy matches the canonical block in `challenges/triage.md` |
 | `levels` | Each requirement's Level in `requirements/index.md` matches the level computed from the `requirements/levels.md` Level 1 block and its priority (P0 → Level 2, otherwise Level 3), and every Level 1 entry has a file |
+| `matrix` | `comparison-matrix.md` has one row per active failure mode, and its Part 2 scores are computed from the Part 1 cells |
+| `mapping` | Every active failure mode is named by at least one `requirements/index.md` row; merged stubs are exempt |
 
 `validate_schemas.py` checks that every schema is valid draft-07 with `$id` equal to its filename, resolvable `$ref`s, and a `description` on every property. It then validates every ```` ```json ```` block in `requirements/`, `schemas/`, `guides/`, `README.md`, and `IMPLEMENTING.md` against the spec type its shape identifies. Blocks introduced by an "Invalid" or "Incorrect" label must fail validation. Blocks under `## Schema` in requirements and under `## Common mistakes` are skipped.
 
@@ -55,6 +57,8 @@ Each exits `0` when clean and `1` when any error exists. Always parse stdout as 
 ### Counter consistency    — N errors
 ### Snippet consistency    — N errors
 ### Level consistency      — N errors
+### Matrix consistency     — N errors
+### Requirement mapping    — N errors
 ### Schemas and examples   — N errors
 
 Total: N errors
@@ -71,6 +75,7 @@ List every error with its file. For each error suggest the fix:
 - `NO LEVEL` → add the Level column to the requirement's row in `requirements/index.md`
 - `STALE` (levels check) → set the index Level to the computed level, or change the requirement's priority or its Level 1 membership in `requirements/levels.md`
 - `STALE` / `NOT FOUND` → update the counter to match the corpus, or restore the phrase the check looks for
+- `UNMAPPED` → add the failure mode's `§N` to the Failure mode(s) cell of each requirement that addresses it in `requirements/index.md`, or write a requirement for it
 - `DRIFT` → re-sync the `extract_envelope` copy from `challenges/triage.md`
 - `UNPARSEABLE` → make the block valid JSON, or relabel an annotated sketch as ```` ```jsonc ````
 - `EXAMPLE` → fix the example, or fix the schema if the example is the intended contract
