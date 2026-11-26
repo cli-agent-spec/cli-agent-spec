@@ -6,7 +6,7 @@ Checks, each reported separately:
   symmetry     schema "Used by" rows and requirement "## Schema" links agree
   indexes      every corpus file is listed in its index and every index row resolves
   sections     failure mode, requirement, and schema doc files carry required sections in order
-  counts       prose counters match the corpus on disk
+  counts       prose counters and "exceeds N%" top-score claims match the corpus on disk
   snippets     every embedded extract_envelope copy matches the canonical block in triage.md
   levels       requirements/levels.md, priorities, and the index Level column agree
   matrix       comparison-matrix.md has one row per active failure mode and scores computed from its cells
@@ -24,11 +24,13 @@ import argparse
 import collections
 import hashlib
 import json
+import math
 import re
 import subprocess
 import sys
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
+from decimal import Decimal
 from pathlib import Path
 
 from build_failure_index import corpus_links
@@ -291,12 +293,14 @@ def corpus_counts() -> dict[str, int]:
             raise SystemExit(f"{_rel(req.path)} has no **Priority:** on its Tier line")
         priorities[match.group(1)] += 1
         tier_priorities[req.id.tier][match.group(1)] += 1
+    matrix_text = (ROOT / MATRIX_PATH).read_text(encoding="utf-8")
     counts = {
         "failure_modes": len(active_failure_modes()),
         "requirements": len(requirements),
         "schemas": len(schema_pairs()),
         "canonical_schemas": len(canonical_schema_names()),
-        "matrix_rows": matrix_row_count((ROOT / MATRIX_PATH).read_text(encoding="utf-8")),
+        "matrix_rows": matrix_row_count(matrix_text),
+        "matrix_top_ceiling": matrix_top_ceiling(matrix_text),
     }
     for tier in Tier:
         counts[f"tier_{tier.value}"] = per_tier[tier]
@@ -354,6 +358,13 @@ def count_claims() -> list[Claim]:
         Claim("CLAUDE.md", r"`comparison-matrix\.md` — (\d+) failure modes ×", c["matrix_rows"], "matrix directory line"),
         Claim("README.md", r"scored against (\d+) currently mapped failure modes", c["matrix_rows"], "matrix bullet"),
         Claim("README.md", r"\| (\d+) currently mapped failure modes × \d+ frameworks", c["matrix_rows"], "matrix file row"),
+        # "exceeds N%" ceilings: the best Part 2 score rounded up. Past-tense lines
+        # ("exceeded ... at that update") are history and deliberately not matched.
+        Claim("comparison-matrix.md", r"No solution exceeds (\d+)% coverage", c["matrix_top_ceiling"], "current observations top score"),
+        Claim("comparison-matrix.md", r"No solution exceeds \d+% coverage across (\d+) currently mapped failure modes", c["matrix_rows"], "current observations top score count"),
+        Claim("README.md", r"covers more than (\d+)% of the currently mapped failure modes", c["matrix_top_ceiling"], "headline top score"),
+        Claim("README.md", r"No framework exceeds (\d+)%", c["matrix_top_ceiling"], "matrix bullet top score"),
+        Claim("CITATION.cff", r"No existing framework exceeds (\d+)% coverage", c["matrix_top_ceiling"], "abstract top score"),
         Claim("AGENTS.md", r"solution comparison across (\d+) currently mapped failure modes", c["matrix_rows"], "matrix tree line"),
         Claim("skills/cli-agent-implement/references/AGENTS.md", r"solution comparison across (\d+) currently mapped failure modes", c["matrix_rows"], "matrix tree line"),
         Claim("research/alternatives-landscape.md", r"evaluated against the (\d+) failure modes", fm, "intro"),
@@ -384,17 +395,21 @@ def count_claims() -> list[Claim]:
     return claims
 
 
+def claim_problems(claim: Claim, text: str) -> list[Problem]:
+    matches = re.findall(claim.pattern, text)
+    if not matches:
+        return [Problem("counts", "NOT FOUND", claim.path, f"{claim.label}: pattern {claim.pattern!r} not found")]
+    return [
+        Problem("counts", "STALE", claim.path, f"{claim.label} says {found}, corpus has {claim.actual}")
+        for found in matches
+        if int(found) != claim.actual
+    ]
+
+
 def check_counts() -> list[Problem]:
     problems: list[Problem] = []
     for claim in count_claims():
-        text = (ROOT / claim.path).read_text(encoding="utf-8")
-        matches = re.findall(claim.pattern, text)
-        if not matches:
-            problems.append(Problem("counts", "NOT FOUND", claim.path, f"{claim.label}: pattern {claim.pattern!r} not found"))
-            continue
-        for found in matches:
-            if int(found) != claim.actual:
-                problems.append(Problem("counts", "STALE", claim.path, f"{claim.label} says {found}, corpus has {claim.actual}"))
+        problems.extend(claim_problems(claim, (ROOT / claim.path).read_text(encoding="utf-8")))
     return problems
 
 
@@ -487,6 +502,14 @@ def matrix_row_count(text: str) -> int:
     if not rows:
         raise SystemExit(f"{MATRIX_PATH} has no failure mode rows under {_MATRIX_PART_1!r}")
     return rows
+
+
+def matrix_top_ceiling(text: str) -> int:
+    """Best Part 2 coverage score rounded up: the N in a true "no solution exceeds N%" claim."""
+    scores = [Decimal(row[4]) for row in _SCORE_ROW.findall(section_body(text, _MATRIX_PART_2))]
+    if not scores:
+        raise SystemExit(f"{MATRIX_PATH} has no score table under {_MATRIX_PART_2!r}")
+    return math.ceil(max(scores))
 
 
 def _cells(line: str) -> list[str]:

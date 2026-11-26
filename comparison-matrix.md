@@ -213,7 +213,7 @@ Coverage % = (✓ + 0.5 × ~) / 76 × 100, rounded to one decimal place.
 - **OpenAPI rises to #3** (was tied #4) — earns the only ✓ for §74 (Credential Scope Declaration) via native `securitySchemes` + per-operation `security` declarations.
 - **MCP extends to #1 at 58.5%** — earns ✓ for §69 (argument ordering irrelevant in JSON invocation), §72 and §73 (tool definitions are the artifact; drift is structurally impossible), keeping its structural advantage.
 - **Cobra and Clap gain ✓ for §71** (static binary releases are non-interactive by construction) but lose ground on §72/§73 (no artifact generation).
-- No solution exceeds 59% coverage across 71 currently mapped failure modes. The space remains wide open.
+- No solution exceeded 59% coverage across the 71 failure modes mapped at that update. The space remained wide open.
 - **Pydantic jumps to #2** (33% → 45%) because the §34–68 challenges include many where pydantic's type system, SecretStr, and immutable-by-default model behaviour provide structural protection (buffer safety, locale invariance, no stdout output, no subprocess invocation, no GUI operations).
 - **MCP extends its lead** (52% → 58%) — protocol-level design protects against most I/O, subprocess, GUI, and locale failure modes structurally.
 - **Cobra and Clap gain ground** due to Go/Rust type-system and stdlib advantages in §60/§61/§51/§57/§56.
