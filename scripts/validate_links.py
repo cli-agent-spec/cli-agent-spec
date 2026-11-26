@@ -10,6 +10,7 @@ Checks, each reported separately:
   snippets     every embedded extract_envelope copy matches the canonical block in triage.md
   levels       requirements/levels.md, priorities, and the index Level column agree
   matrix       comparison-matrix.md has one row per active failure mode and scores computed from its cells
+  mapping      every active failure mode is named by at least one requirements/index.md row
 
 Usage:
   uv run scripts/validate_links.py [--json] [--only CHECK ...]
@@ -26,10 +27,11 @@ import json
 import re
 import subprocess
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
+from build_failure_index import corpus_links
 from spec_corpus import (
     ROOT,
     FailureModeFile,
@@ -530,6 +532,24 @@ def check_matrix() -> list[Problem]:
 
 
 # ---------------------------------------------------------------------------
+# mapping
+# ---------------------------------------------------------------------------
+
+
+def unmapped_problems(failure_modes: Iterable[FailureModeFile], requirements: Mapping[int, list[str]]) -> list[Problem]:
+    """Each active failure mode that no requirement names; merged stubs are exempt."""
+    return [
+        Problem("mapping", "UNMAPPED", _rel(fm.path), f"{fm.id} is an active failure mode that no requirements/index.md row names")
+        for fm in failure_modes
+        if not fm.merged and not requirements.get(fm.id.number)
+    ]
+
+
+def check_mapping() -> list[Problem]:
+    return unmapped_problems(active_failure_modes(), corpus_links().requirements)
+
+
+# ---------------------------------------------------------------------------
 # entry point
 # ---------------------------------------------------------------------------
 
@@ -542,6 +562,7 @@ CHECKS: dict[str, Callable[[], list[Problem]]] = {
     "snippets": check_snippets,
     "levels": check_levels,
     "matrix": check_matrix,
+    "mapping": check_mapping,
 }
 
 
