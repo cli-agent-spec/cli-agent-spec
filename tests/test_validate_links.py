@@ -126,6 +126,59 @@ def test_fenced_blocks_track_section_and_label(tmp_path: Path) -> None:
     assert (block.section, block.label, block.lang, block.body) == ("Examples", "**Invalid — bad**", "json", "{}")
 
 
+MATRIX = """\
+    ## Part 1: Failure Mode Coverage Matrix
+
+    | # | Failure mode | Sev | Freq | alpha | beta |
+    |---|-----------|-----|------|-------|------|
+    | **Part I: Output & Parsing** |
+    | 1 | One | Crit | Common | ✓ | ~ |
+    | 2 | Two | High | Common | ✗ | ✓ |
+
+    ## Part 2: Coverage Scores
+
+    | Solution | ✓ Native | ~ Partial | ✗ Missing | Coverage % |
+    |----------|----------|-----------|-----------|------------|
+    | beta | 1 | 1 | 0 | **75.0%** |
+    | alpha | 1 | 0 | 1 | **50.0%** |
+
+    | Rank | Solution | ✓ | ~ | ✗ | Coverage % |
+    |------|----------|---|---|---|------------|
+    | 1 | beta | 1 | 1 | 0 | **75.0%** |
+    | 2 | alpha | 1 | 0 | 1 | **50.0%** |
+
+    ## Part 3: Per-Failure-Mode Analysis
+    """
+
+
+def test_matrix_consistent_with_catalog_passes() -> None:
+    assert vl.matrix_problems(textwrap.dedent(MATRIX), frozenset({1, 2})) == []
+
+
+def test_matrix_missing_and_retired_rows_detected() -> None:
+    problems = vl.matrix_problems(textwrap.dedent(MATRIX), frozenset({1, 3}))
+    assert sorted((p.kind, p.message[:3]) for p in problems if p.kind.endswith("ROW")) == [("MISSING ROW", "§3 "), ("STALE ROW", "§2 ")]
+
+
+def test_matrix_duplicate_and_malformed_rows_detected() -> None:
+    text = textwrap.dedent(MATRIX).replace("| 2 | Two | High | Common | ✗ | ✓ |", "| 1 | Two | High | Common | ✗ | ? |")
+    assert {"DUPLICATE ROW", "MALFORMED ROW"} <= set(kinds(vl.matrix_problems(text, frozenset({1}))))
+
+
+def test_matrix_scores_must_be_computed_from_cells() -> None:
+    text = textwrap.dedent(MATRIX).replace("| 2 | alpha | 1 | 0 | 1 | **50.0%** |", "| 2 | alpha | 1 | 0 | 1 | **55.0%** |")
+    assert kinds(vl.matrix_problems(text, frozenset({1, 2}))) == ["STALE SCORE"]
+
+
+def test_matrix_missing_score_detected() -> None:
+    text = textwrap.dedent(MATRIX).replace("| beta | 1 | 1 | 0 | **75.0%** |\n", "")
+    assert kinds(vl.matrix_problems(text, frozenset({1, 2}))) == ["MISSING SCORE"]
+
+
+def test_comparison_matrix_rates_every_active_failure_mode() -> None:
+    assert vl.check_matrix() == []
+
+
 def test_level_one_is_a_subset_of_p0() -> None:
     levels = vl.requirement_levels()
     assert sorted(levels[r] for r in vl.level_one_ids()) == [1] * 12
