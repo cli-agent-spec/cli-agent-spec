@@ -19,7 +19,7 @@ Current corpus: 76 failure modes, 168 requirements.
 ```
 AGENTS.md                   ← spec editor guide (this file)
 IMPLEMENTING.md             ← implementer guide for AI agents
-comparison-matrix.md        ← solution comparison across 71 currently mapped failure modes
+comparison-matrix.md        ← solution comparison across 76 currently mapped failure modes
 challenges/                 ← 76 failure modes grouped into 7 parts
   index.md                  ← master index of all failure modes
   sources.md                ← source evidence for each failure mode
